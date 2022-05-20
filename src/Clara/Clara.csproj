@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net462;net472;netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0</TargetFrameworks>
+    <RootNamespace>Clara</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>Maciej Olesiński</Authors>
+    <Description>Simple, yet feature complete, in memory search engine.</Description>
+    <Copyright>Copyright Maciej Olesiński</Copyright>
+    <RepositoryUrl>https://github.com/molesinski/Clara</RepositoryUrl>
+    <PackageId>Clara</PackageId>
+    <PackageProjectUrl>https://github.com/molesinski/Clara</PackageProjectUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Analysis\EnglishStopTokenFilter.txt" />
+    <None Remove="Analysis\PolishStopTokenFilter.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Analysis\EnglishStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\PolishStopTokenFilter.txt" />
+  </ItemGroup>
+
+</Project>

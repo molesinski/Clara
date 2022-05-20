@@ -1,0 +1,37 @@
+﻿variables:
+  major: 0
+  minor: 1
+  patch: $[counter('versioncounter_0_1', 0)]
+
+name: $(major).$(minor).$(patch)
+
+pool:
+  vmImage: windows-latest
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - src/Clara/*
+
+pr: none
+
+steps:
+- script: |
+    dotnet restore "src/Clara/Clara.csproj"
+    dotnet build "src/Clara/Clara.csproj" --no-restore -c Release /p:Version=$(major).$(minor).$(patch)
+  displayName: Restore and build projects
+
+- script: |
+    dotnet pack "src/Clara/Clara.csproj" --no-build -c Release -o $(Build.ArtifactStagingDirectory) /p:Version=$(major).$(minor).$(patch)
+  displayName: Pack project
+
+- task: NuGetCommand@2
+  inputs:
+    command: push
+    nuGetFeedType: external
+    publishFeedCredentials: "Clara"
+  displayName: Push package
