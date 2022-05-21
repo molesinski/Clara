@@ -15,16 +15,14 @@ namespace Clara.Collections
     {
         private const int MinimumCapacity = 4;
 
-        private static readonly TItem[] InitialEntries = new TItem[1];
         private static readonly ArrayPool<TItem> EntriesPool = ArrayPool<TItem>.Shared;
+        private static readonly TItem[] InitialEntries = new TItem[1];
 
-        private int size;
         private int count;
         private TItem[] entries;
 
         public PooledList()
         {
-            this.size = 1;
             this.count = 0;
             this.entries = InitialEntries;
         }
@@ -41,9 +39,10 @@ namespace Clara.Collections
                 capacity = MinimumCapacity;
             }
 
-            this.size = HashHelpers.PowerOf2(capacity);
+            capacity = HashHelpers.PowerOf2(capacity);
+
             this.count = 0;
-            this.entries = EntriesPool.Rent(this.size);
+            this.entries = EntriesPool.Rent(capacity);
         }
 
         public PooledList(IEnumerable<TItem> collection)
@@ -55,19 +54,26 @@ namespace Clara.Collections
 
             if (collection is PooledList<TItem> source)
             {
-                if (source.size == 1)
+                if (source.entries.Length == 1)
                 {
-                    this.size = 1;
                     this.count = 0;
                     this.entries = InitialEntries;
                 }
                 else
                 {
-                    this.size = source.size;
-                    this.count = source.count;
-                    this.entries = EntriesPool.Rent(this.size);
+                    var capacity = source.count;
 
-                    Array.Copy(source.entries, 0, this.entries, 0, this.size);
+                    if (capacity < MinimumCapacity)
+                    {
+                        capacity = MinimumCapacity;
+                    }
+
+                    capacity = HashHelpers.PowerOf2(capacity);
+
+                    this.count = source.count;
+                    this.entries = EntriesPool.Rent(capacity);
+
+                    Array.Copy(source.entries, 0, this.entries, 0, source.count);
                 }
 
                 return;
@@ -82,13 +88,13 @@ namespace Clara.Collections
                     capacity = MinimumCapacity;
                 }
 
-                this.size = HashHelpers.PowerOf2(capacity);
+                capacity = HashHelpers.PowerOf2(capacity);
+
                 this.count = 0;
-                this.entries = EntriesPool.Rent(this.size);
+                this.entries = EntriesPool.Rent(capacity);
             }
             else
             {
-                this.size = 1;
                 this.count = 0;
                 this.entries = InitialEntries;
             }
@@ -117,7 +123,7 @@ namespace Clara.Collections
 
         public void Clear()
         {
-            if (this.size > 1)
+            if (this.entries.Length > 1)
             {
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
                 EntriesPool.Return(this.entries, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<TItem>());
@@ -126,7 +132,6 @@ namespace Clara.Collections
 #endif
             }
 
-            this.size = 1;
             this.count = 0;
             this.entries = InitialEntries;
         }
@@ -135,7 +140,7 @@ namespace Clara.Collections
         {
             var entries = this.entries;
 
-            if (this.count == this.size || this.size == 1)
+            if (this.entries.Length == this.count || this.entries.Length == 1)
             {
                 entries = this.Resize();
             }
@@ -152,7 +157,7 @@ namespace Clara.Collections
                 throw new ArgumentNullException(nameof(comparer));
             }
 
-            Array.Sort(this.entries, 0, this.Count, comparer);
+            Array.Sort(this.entries, 0, this.count, comparer);
         }
 
         public Enumerator GetEnumerator()
@@ -177,10 +182,10 @@ namespace Clara.Collections
 
         private TItem[] Resize()
         {
-            Debug.Assert(this.size == this.count || this.size == 1);
+            Debug.Assert(this.entries.Length == this.count || this.entries.Length == 1);
 
             var count = this.count;
-            var newSize = this.size * 2;
+            var newSize = this.entries.Length * 2;
 
             if (newSize < MinimumCapacity)
             {
@@ -196,7 +201,7 @@ namespace Clara.Collections
 
             Array.Copy(this.entries, 0, newEntries, 0, count);
 
-            if (this.size > 1)
+            if (this.entries.Length > 1)
             {
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
                 EntriesPool.Return(this.entries, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<TItem>());
@@ -205,7 +210,6 @@ namespace Clara.Collections
 #endif
             }
 
-            this.size = newSize;
             this.entries = newEntries;
 
             return newEntries;

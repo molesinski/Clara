@@ -25,7 +25,7 @@ namespace Clara.Collections
         private int[] buckets;
         private Entry[] entries;
 
-        [DebuggerDisplay("({key}, {value})->{next}")]
+        [DebuggerDisplay("({Key}, {Value})->{Next}")]
         private struct Entry
         {
             public TKey Key;

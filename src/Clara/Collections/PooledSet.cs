@@ -14,11 +14,11 @@ namespace Clara.Collections
         where TItem : notnull, IEquatable<TItem>
     {
         private const int MinimumCapacity = 4;
-        private const int StackAllocThreshold = 100;
+        private const int StackAllocThreshold = 512;
 
-        private static readonly Entry[] InitialEntries = new Entry[1];
         private static readonly ArrayPool<int> BucketsPool = ArrayPool<int>.Shared;
         private static readonly ArrayPool<Entry> EntriesPool = ArrayPool<Entry>.Shared;
+        private static readonly Entry[] InitialEntries = new Entry[1];
 
         private int size;
         private int count;
@@ -26,7 +26,7 @@ namespace Clara.Collections
         private int[] buckets;
         private Entry[] entries;
 
-        [DebuggerDisplay("({item})->{next}")]
+        [DebuggerDisplay("({Item})->{Next}")]
         private struct Entry
         {
             public TItem Item;
@@ -342,17 +342,31 @@ namespace Clara.Collections
 
             if (other is PooledSet<TItem> source)
             {
-                var count = source.count;
-
-                for (var i = 0; count > 0; i++)
+                if (this.size == 1)
                 {
-                    ref var entry = ref source.entries[i];
+                    this.size = source.size;
+                    this.count = source.count;
+                    this.freeList = source.freeList;
+                    this.buckets = BucketsPool.Rent(this.size);
+                    this.entries = EntriesPool.Rent(this.size);
 
-                    if (entry.Next >= -1)
+                    Array.Copy(source.buckets, 0, this.buckets, 0, this.size);
+                    Array.Copy(source.entries, 0, this.entries, 0, this.size);
+                }
+                else
+                {
+                    var count = source.count;
+
+                    for (var i = 0; count > 0; i++)
                     {
-                        count--;
+                        ref var entry = ref source.entries[i];
 
-                        this.Add(entry.Item);
+                        if (entry.Next >= -1)
+                        {
+                            count--;
+
+                            this.Add(entry.Item);
+                        }
                     }
                 }
 
