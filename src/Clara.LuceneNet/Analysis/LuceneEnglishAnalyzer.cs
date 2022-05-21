@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Lucene.Net.Analysis.En;
 using Lucene.Net.Util;
 
 namespace Clara.Analysis
 {
-    public sealed class LuceneEnglishAnalyzer : ITokenizer, IDisposable
+    public sealed class LuceneEnglishAnalyzer : ITokenizer
     {
-        private readonly EnglishAnalyzer analyzer;
-
-        public LuceneEnglishAnalyzer()
-        {
-            this.analyzer = new EnglishAnalyzer(LuceneVersion.LUCENE_48);
-        }
+        private static readonly DisposableThreadLocal<EnglishAnalyzer> Analyzer = new(() => new EnglishAnalyzer(LuceneVersion.LUCENE_48));
 
         public IEnumerable<string> GetTokens(string text)
         {
@@ -26,18 +22,18 @@ namespace Clara.Analysis
                 yield break;
             }
 
-            using (var tokenStream = this.analyzer.GetTokenStream(string.Empty, text))
+            var analyzer = Analyzer.Value;
+
+            using (var input = new StringReader(text))
             {
-                foreach (var token in new TokenStreamEnumerable(tokenStream))
+                using (var tokenStream = analyzer.GetTokenStream(string.Empty, input))
                 {
-                    yield return token;
+                    foreach (var token in new TokenStreamEnumerable(tokenStream))
+                    {
+                        yield return token;
+                    }
                 }
             }
-        }
-
-        public void Dispose()
-        {
-            this.analyzer.Dispose();
         }
     }
 }

@@ -6,8 +6,10 @@ using Lucene.Net.Util;
 
 namespace Clara.Analysis
 {
-    public sealed class LuceneStandardTokenizer : ITokenizer
+    public sealed class LuceneStandardAnalyzer : ITokenizer
     {
+        private static readonly DisposableThreadLocal<StandardAnalyzer> Analyzer = new(() => new StandardAnalyzer(LuceneVersion.LUCENE_48));
+
         public IEnumerable<string> GetTokens(string text)
         {
             if (text is null)
@@ -20,9 +22,11 @@ namespace Clara.Analysis
                 yield break;
             }
 
+            var analyzer = Analyzer.Value;
+
             using (var input = new StringReader(text))
             {
-                using (var tokenStream = new StandardTokenizer(LuceneVersion.LUCENE_48, input))
+                using (var tokenStream = analyzer.GetTokenStream(string.Empty, input))
                 {
                     foreach (var token in new TokenStreamEnumerable(tokenStream))
                     {

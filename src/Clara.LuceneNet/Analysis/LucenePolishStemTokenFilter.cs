@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 using Egothor.Stemmer;
 using Lucene.Net.Analysis.Pl;
+using Lucene.Net.Util;
 
 namespace Clara.Analysis
 {
     public sealed class LucenePolishStemTokenFilter : ITokenFilter
     {
+        private static readonly DisposableThreadLocal<StringBuilder> Buffer = new(() => new StringBuilder());
+
         private readonly Trie stemmer;
 
         public LucenePolishStemTokenFilter()
@@ -22,7 +25,7 @@ namespace Clara.Analysis
                 throw new ArgumentNullException(nameof(tokens));
             }
 
-            var buffer = new StringBuilder();
+            var buffer = Buffer.Value;
 
             foreach (var token in tokens)
             {

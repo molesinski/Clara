@@ -6,8 +6,8 @@ namespace Clara.Analysis
     {
         public EnglishStopTokenFilter()
             : base(
-                  typeof(PolishStopTokenFilter).Assembly,
-                  $"{typeof(PolishStopTokenFilter).FullName}.txt",
+                  typeof(EnglishStopTokenFilter).Assembly,
+                  $"{typeof(EnglishStopTokenFilter).FullName}.txt",
                   Encoding.UTF8)
         {
         }

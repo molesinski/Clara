@@ -9,7 +9,7 @@ namespace Clara.Analysis
     {
         private readonly ICharTermAttribute charTermAttribute;
         private readonly IEnumerable<string> tokens;
-        private IEnumerator<string>? enumerator;
+        private IEnumerator<string> enumerator;
 
         public EnumerableTokenStream(IEnumerable<string> tokens)
         {
@@ -46,13 +46,8 @@ namespace Clara.Analysis
                     continue;
                 }
 
-                if (token.Length > this.charTermAttribute.Length)
-                {
-                    this.charTermAttribute.ResizeBuffer(token.Length);
-                }
-
-                token.CopyTo(0, this.charTermAttribute.Buffer, 0, token.Length);
-                this.charTermAttribute.SetLength(token.Length);
+                this.charTermAttribute.SetEmpty();
+                this.charTermAttribute.Append(token);
 
                 return true;
             }
