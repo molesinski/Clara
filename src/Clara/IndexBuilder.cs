@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Clara.Analysis;
+using Clara.Collections;
 using Clara.Mapping;
 using Clara.Storage;
 
@@ -20,15 +21,14 @@ namespace Clara
             IEnumerable<TSource> source,
             IEnumerable<ISynonymMap> synonymMaps)
         {
-            return Build(mapper, source, synonymMaps, new InstanceTokenEncoderStore(), new NonTrackingBufferManager());
+            return Build(mapper, source, synonymMaps, new InstanceTokenEncoderStore());
         }
 
         public static Index<TDocument> Build<TSource, TDocument>(
             IIndexMapper<TSource, TDocument> mapper,
             IEnumerable<TSource> source,
             IEnumerable<ISynonymMap> synonymMaps,
-            TokenEncoderStore tokenEncoderStore,
-            BufferManager bufferManager)
+            TokenEncoderStore tokenEncoderStore)
         {
             if (mapper is null)
             {
@@ -50,15 +50,10 @@ namespace Clara
                 throw new ArgumentNullException(nameof(tokenEncoderStore));
             }
 
-            if (bufferManager is null)
-            {
-                throw new ArgumentNullException(nameof(bufferManager));
-            }
-
             lock (tokenEncoderStore.SyncRoot)
             {
                 var tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder();
-                var documents = new Dictionary<int, TDocument>();
+                var documents = new PooledDictionary<int, TDocument>();
                 var fields = new HashSet<Field>();
                 var fieldBuilders = new Dictionary<Field, FieldStoreBuilder>();
                 var fieldSynonymMaps = new Dictionary<Field, ISynonymMap>();
@@ -98,10 +93,16 @@ namespace Clara
                 foreach (var item in source)
                 {
                     var documentKey = mapper.GetDocumentKey(item);
-                    var document = mapper.GetDocument(item);
                     var documentId = tokenEncoderBuilder.Encode(documentKey);
 
-                    documents.Add(documentId, document);
+                    ref var document = ref documents.GetValueRefOrAddDefault(documentId, out var exists);
+
+                    if (exists)
+                    {
+                        throw new InvalidOperationException("Attempt to index document with duplicate key.");
+                    }
+
+                    document = mapper.GetDocument(item);
 
                     foreach (var fieldValue in mapper.GetFieldValues(item))
                     {
@@ -127,7 +128,7 @@ namespace Clara
                     fieldStores.Add(field, builder.Build());
                 }
 
-                return new Index<TDocument>(tokenEncoder, documents, fieldStores, bufferManager);
+                return new Index<TDocument>(tokenEncoder, documents, fieldStores);
             }
         }
     }

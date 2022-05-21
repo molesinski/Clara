@@ -5,26 +5,34 @@ using Clara.Querying;
 
 namespace Clara.Storage
 {
-    internal sealed class DocumentSort
+    internal sealed class DocumentSort : IDisposable
     {
-        private readonly IEnumerable<int> documents;
+        private readonly DocumentSet documentSet;
         private IOrderedEnumerable<int>? orderedDocuments;
 
-        public DocumentSort(IEnumerable<int> documents)
+        public DocumentSort(DocumentSet documentSet)
         {
-            if (documents is null)
+            if (documentSet is null)
             {
-                throw new ArgumentNullException(nameof(documents));
+                throw new ArgumentNullException(nameof(documentSet));
             }
 
-            this.documents = documents;
+            this.documentSet = documentSet;
+        }
+
+        public int Count
+        {
+            get
+            {
+                return this.documentSet.Count;
+            }
         }
 
         public IEnumerable<int> Documents
         {
             get
             {
-                return this.orderedDocuments ?? this.documents;
+                return this.orderedDocuments ?? (IEnumerable<int>)this.documentSet.Documents;
             }
         }
 
@@ -35,12 +43,12 @@ namespace Clara.Storage
             {
                 if (direction == SortDirection.Descending)
                 {
-                    this.orderedDocuments = this.documents
+                    this.orderedDocuments = this.documentSet.Documents
                         .OrderByDescending(orderer);
                 }
                 else
                 {
-                    this.orderedDocuments = this.documents
+                    this.orderedDocuments = this.documentSet.Documents
                         .OrderBy(orderer);
                 }
             }
@@ -57,6 +65,11 @@ namespace Clara.Storage
                         .ThenBy(orderer);
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            this.documentSet.Dispose();
         }
     }
 }

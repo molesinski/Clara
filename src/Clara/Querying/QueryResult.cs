@@ -1,19 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using Clara.Collections;
 using Clara.Storage;
 
 namespace Clara.Querying
 {
     public sealed class QueryResult<TDocument> : IDisposable
     {
-        private readonly BufferScope bufferScope;
+        private readonly DocumentSort documentSort;
+        private readonly PooledDictionary<int, TDocument> documents;
+        private readonly List<FacetResult> facets;
 
         internal QueryResult(
-            IEnumerable<DocumentResult> documents,
-            IEnumerable<FacetResult> facets,
-            int totalCount,
-            BufferScope bufferScope)
+            DocumentSort documentSort,
+            PooledDictionary<int, TDocument> documents,
+            List<FacetResult> facets)
         {
+            if (documentSort is null)
+            {
+                throw new ArgumentNullException(nameof(documentSort));
+            }
+
             if (documents is null)
             {
                 throw new ArgumentNullException(nameof(documents));
@@ -24,32 +32,39 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(facets));
             }
 
-            if (totalCount < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(totalCount));
-            }
-
-            if (bufferScope is null)
-            {
-                throw new ArgumentNullException(nameof(bufferScope));
-            }
-
-            this.bufferScope = bufferScope;
-
-            this.Documents = documents;
-            this.Facets = facets;
-            this.TotalCount = totalCount;
+            this.documentSort = documentSort;
+            this.documents = documents;
+            this.facets = facets;
         }
 
-        public IEnumerable<DocumentResult> Documents { get; }
+        public IEnumerable<DocumentResult> Documents
+        {
+            get
+            {
+                return this.documentSort.Documents
+                    .Select(o => new QueryResult<TDocument>.DocumentResult(this.documents.GetValueOrDefault(o), 1));
+            }
+        }
 
-        public IEnumerable<FacetResult> Facets { get; }
+        public IEnumerable<FacetResult> Facets
+        {
+            get
+            {
+                return this.facets;
+            }
+        }
 
-        public int TotalCount { get; }
+        public int TotalCount
+        {
+            get
+            {
+                return this.documentSort.Count;
+            }
+        }
 
         public void Dispose()
         {
-            this.bufferScope.Dispose();
+            this.documentSort.Dispose();
         }
 
         public readonly struct DocumentResult

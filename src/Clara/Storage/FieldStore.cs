@@ -4,7 +4,7 @@ using Clara.Querying;
 
 namespace Clara.Storage
 {
-    internal abstract class FieldStore
+    internal abstract class FieldStore : IDisposable
     {
         protected FieldStore()
         {
@@ -31,6 +31,10 @@ namespace Clara.Storage
         public virtual void Sort(SortExpression sortExpression, DocumentSort documentSort)
         {
             throw new InvalidOperationException("Field does not support sorting.");
+        }
+
+        public virtual void Dispose()
+        {
         }
     }
 }

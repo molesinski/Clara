@@ -71,5 +71,13 @@ namespace Clara.Storage
 
             base.Sort(sortExpression, documentSort);
         }
+
+        public override void Dispose()
+        {
+            this.sortedDocumentValueStore?.Dispose();
+            this.documentValueMinMaxStore?.Dispose();
+
+            base.Dispose();
+        }
     }
 }

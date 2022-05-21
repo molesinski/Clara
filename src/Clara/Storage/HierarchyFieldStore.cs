@@ -1,17 +1,26 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Clara.Querying;
 
 namespace Clara.Storage
 {
     internal sealed class HierarchyFieldStore : FieldStore
     {
+        private readonly TokenEncoder tokenEncoder;
         private readonly TokenDocumentStore? tokenDocumentStore;
         private readonly HierarchyDocumentTokenStore? documentTokenStore;
 
         public HierarchyFieldStore(
+            TokenEncoder tokenEncoder,
             TokenDocumentStore? tokenDocumentStore,
             HierarchyDocumentTokenStore? documentTokenStore)
         {
+            if (tokenEncoder is null)
+            {
+                throw new ArgumentNullException(nameof(tokenEncoder));
+            }
+
+            this.tokenEncoder = tokenEncoder;
             this.tokenDocumentStore = tokenDocumentStore;
             this.documentTokenStore = documentTokenStore;
         }
@@ -54,6 +63,15 @@ namespace Clara.Storage
             }
 
             return base.Facet(facetExpression, filterExpressions, documents);
+        }
+
+        public override void Dispose()
+        {
+            this.tokenEncoder.Dispose();
+            this.tokenDocumentStore?.Dispose();
+            this.documentTokenStore?.Dispose();
+
+            base.Dispose();
         }
     }
 }

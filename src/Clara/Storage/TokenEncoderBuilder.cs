@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using Clara.Collections;
 
 namespace Clara.Storage
 {
     internal sealed class TokenEncoderBuilder
     {
-        private readonly Dictionary<string, int> encoder = new();
-        private readonly Dictionary<int, string> decoder = new();
+        private readonly PooledDictionary<string, int> encoder = new();
+        private readonly PooledDictionary<int, string> decoder = new();
         private readonly bool copyOnBuild;
         private int nextId = 1;
 
@@ -23,22 +22,13 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(token));
             }
 
-#if NET6_0_OR_GREATER
-            ref var id = ref CollectionsMarshal.GetValueRefOrAddDefault(this.encoder, token, out var exists);
+            ref var id = ref this.encoder.GetValueRefOrAddDefault(token, out var exists);
 
             if (!exists)
             {
                 id = this.nextId++;
                 this.decoder.Add(id, token);
             }
-#else
-            if (!this.encoder.TryGetValue(token, out var id))
-            {
-                id = this.nextId++;
-                this.encoder.Add(token, id);
-                this.decoder.Add(id, token);
-            }
-#endif
 
             return id;
         }
@@ -47,8 +37,8 @@ namespace Clara.Storage
         {
             if (this.copyOnBuild)
             {
-                var encoder = new Dictionary<string, int>(this.encoder);
-                var decoder = new Dictionary<int, string>(this.decoder);
+                var encoder = new PooledDictionary<string, int>(this.encoder);
+                var decoder = new PooledDictionary<int, string>(this.decoder);
 
                 return new TokenEncoder(encoder, decoder);
             }

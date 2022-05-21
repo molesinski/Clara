@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Clara.Collections;
 using Clara.Mapping;
 using Clara.Querying;
 using Clara.Storage;
@@ -16,19 +17,17 @@ namespace Clara
         internal abstract bool HasField(Field field);
     }
 
-    public sealed class Index<TDocument> : Index
+    public sealed class Index<TDocument> : Index, IDisposable
     {
         private readonly TokenEncoder tokenEncoder;
-        private readonly Dictionary<int, TDocument> documents;
+        private readonly PooledDictionary<int, TDocument> documents;
         private readonly Dictionary<Field, FieldStore> fieldStores;
-        private readonly BufferManager bufferManager;
-        private readonly IReadOnlyCollection<int> allDocuments;
+        private readonly PooledSet<int> allDocuments;
 
         internal Index(
             TokenEncoder tokenEncoder,
-            Dictionary<int, TDocument> documents,
-            Dictionary<Field, FieldStore> fieldStores,
-            BufferManager bufferManager)
+            PooledDictionary<int, TDocument> documents,
+            Dictionary<Field, FieldStore> fieldStores)
         {
             if (tokenEncoder is null)
             {
@@ -45,21 +44,11 @@ namespace Clara
                 throw new ArgumentNullException(nameof(fieldStores));
             }
 
-            if (bufferManager is null)
-            {
-                throw new ArgumentNullException(nameof(bufferManager));
-            }
-
             this.tokenEncoder = tokenEncoder;
             this.documents = documents;
             this.fieldStores = fieldStores;
-            this.bufferManager = bufferManager;
 
-#if NETSTANDARD2_1_OR_GREATER || NET472_OR_GREATER || NETCOREAPP2_0_OR_GREATER
-            var allDocuments = new HashSet<int>(capacity: documents.Count);
-#else
-            var allDocuments = new HashSet<int>();
-#endif
+            var allDocuments = new PooledSet<int>(capacity: documents.Count);
 
             foreach (var pair in documents)
             {
@@ -76,13 +65,12 @@ namespace Clara
                 throw new ArgumentNullException(nameof(query));
             }
 
-            var bufferScope = this.bufferManager.CreateScope();
             var documentSet = default(DocumentSet);
 
             if (query.IncludeDocuments is not null)
             {
                 var hasValues = false;
-                var includedDocuments = bufferScope.CreateDocumentSet();
+                var includedDocuments = new PooledSet<int>();
 
                 foreach (var includedDocument in query.IncludeDocuments)
                 {
@@ -99,13 +87,13 @@ namespace Clara
 
                 if (hasValues)
                 {
-                    documentSet = new DocumentSet(includedDocuments, bufferScope);
+                    documentSet = new DocumentSet(includedDocuments);
                 }
             }
 
             if (documentSet == default)
             {
-                documentSet = new DocumentSet(this.allDocuments, bufferScope);
+                documentSet = new DocumentSet((IReadOnlyCollection<int>)this.allDocuments);
             }
 
             var facetFields = new HashSet<Field>();
@@ -120,7 +108,7 @@ namespace Clara
                 .OrderBy(o => o.IsBranchingRequiredForFaceting && facetFields.Contains(o.Field) ? 1 : 0)
                 .ThenBy(o => this.fieldStores.TryGetValue(o.Field, out var store) ? store.FilterOrder : double.MinValue))
             {
-                if (documentSet.Documents.Count == 0)
+                if (documentSet.Count == 0)
                 {
                     break;
                 }
@@ -146,7 +134,7 @@ namespace Clara
             if (query.ExcludeDocuments is not null)
             {
                 var hasValues = false;
-                var excludeDocuments = bufferScope.CreateDocumentSet();
+                using var excludeDocuments = new PooledSet<int>();
 
                 foreach (var excludeDocument in query.ExcludeDocuments)
                 {
@@ -200,7 +188,7 @@ namespace Clara
                 }
             }
 
-            var documentSort = new DocumentSort(documentSet.Documents);
+            var documentSort = new DocumentSort(documentSet);
 
             foreach (var sortExpression in query.Sort)
             {
@@ -214,10 +202,21 @@ namespace Clara
                 store.Sort(sortExpression, documentSort);
             }
 
-            var documents = documentSort.Documents.Select(o => new QueryResult<TDocument>.DocumentResult(this.documents[o], 1));
-            var count = documentSet.Documents.Count;
+            return new QueryResult<TDocument>(documentSort, this.documents, facets);
+        }
 
-            return new QueryResult<TDocument>(documents, facets, count, bufferScope);
+        public void Dispose()
+        {
+            this.tokenEncoder.Dispose();
+            this.documents.Dispose();
+            this.allDocuments.Dispose();
+
+            foreach (var pair in this.fieldStores)
+            {
+                pair.Value.Dispose();
+            }
+
+            this.fieldStores.Clear();
         }
 
         internal override bool HasField(Field field)

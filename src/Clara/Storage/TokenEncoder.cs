@@ -1,16 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
+using Clara.Collections;
 
 namespace Clara.Storage
 {
-    internal sealed class TokenEncoder
+    internal sealed class TokenEncoder : IDisposable
     {
-        private readonly Dictionary<string, int> encoder;
-        private readonly Dictionary<int, string> decoder;
+        private readonly PooledDictionary<string, int> encoder;
+        private readonly PooledDictionary<int, string> decoder;
 
         public TokenEncoder(
-            Dictionary<string, int> encoder,
-            Dictionary<int, string> decoder)
+            PooledDictionary<string, int> encoder,
+            PooledDictionary<int, string> decoder)
         {
             if (encoder is null)
             {
@@ -39,6 +39,12 @@ namespace Clara.Storage
             }
 
             return token;
+        }
+
+        public void Dispose()
+        {
+            this.encoder.Dispose();
+            this.decoder.Dispose();
         }
     }
 }

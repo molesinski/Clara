@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using Clara.Collections;
 using Clara.Mapping;
 using Clara.Querying;
 
 namespace Clara.Storage
 {
-    internal sealed class TokenDocumentStore
+    internal sealed class TokenDocumentStore : IDisposable
     {
         private readonly TokenEncoder tokenEncoder;
-        private readonly Dictionary<int, HashSet<int>> tokenDocuments;
+        private readonly PooledDictionary<int, PooledSet<int>> tokenDocuments;
 
         public TokenDocumentStore(
             TokenEncoder tokenEncoder,
-            Dictionary<int, HashSet<int>> tokenDocuments)
+            PooledDictionary<int, PooledSet<int>> tokenDocuments)
         {
             if (tokenEncoder is null)
             {
@@ -45,8 +46,6 @@ namespace Clara.Storage
 
         public void Filter(Field field, MatchExpression matchExpression, DocumentSet documentSet)
         {
-            var bufferScope = documentSet.BufferScope;
-
             if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
             {
                 if (anyValuesMatchExpression.Values.Count == 1)
@@ -57,7 +56,7 @@ namespace Clara.Storage
                     {
                         if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
                         {
-                            documentSet.IntersectWith(field, (IReadOnlyCollection<int>)documents);
+                            documentSet.IntersectWith(field, (IEnumerable<int>)documents);
 
                             return;
                         }
@@ -67,7 +66,7 @@ namespace Clara.Storage
                 }
                 else
                 {
-                    var anyMatches = bufferScope.CreateDocumentSet();
+                    var anyMatches = new PooledSet<int>();
 
                     foreach (var token in anyValuesMatchExpression.Values)
                     {
@@ -91,7 +90,7 @@ namespace Clara.Storage
                     {
                         if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
                         {
-                            documentSet.IntersectWith(field, (IReadOnlyCollection<int>)documents);
+                            documentSet.IntersectWith(field, (IEnumerable<int>)documents);
 
                             continue;
                         }
@@ -104,14 +103,14 @@ namespace Clara.Storage
             }
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
-                var anyMatches = bufferScope.CreateDocumentSet();
-                var tempSet = bufferScope.CreateDocumentSet();
+                var anyMatches = new PooledSet<int>();
+                using var tempSet = new PooledSet<int>();
 
                 foreach (var expression in orMatchExpression.Expressions)
                 {
                     tempSet.Clear();
 
-                    this.Filter(expression, tempSet, bufferScope);
+                    this.Filter(expression, tempSet);
 
                     anyMatches.UnionWith(tempSet);
                 }
@@ -120,15 +119,15 @@ namespace Clara.Storage
             }
             else if (matchExpression is AndMatchExpression andMatchExpression)
             {
-                var tempSet = bufferScope.CreateDocumentSet();
+                using var tempSet = new PooledSet<int>();
 
                 foreach (var expression in andMatchExpression.Expressions)
                 {
                     tempSet.Clear();
 
-                    this.Filter(expression, tempSet, bufferScope);
+                    this.Filter(expression, tempSet);
 
-                    documentSet.IntersectWith(field, (IReadOnlyCollection<int>)tempSet);
+                    documentSet.IntersectWith(field, (IEnumerable<int>)tempSet);
                 }
             }
             else
@@ -137,7 +136,7 @@ namespace Clara.Storage
             }
         }
 
-        private void Filter(MatchExpression matchExpression, HashSet<int> resultSet, BufferScope bufferScope)
+        private void Filter(MatchExpression matchExpression, PooledSet<int> resultSet)
         {
             if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
             {
@@ -182,27 +181,27 @@ namespace Clara.Storage
             }
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
-                var tempSet = bufferScope.CreateDocumentSet();
+                using var tempSet = new PooledSet<int>();
 
                 foreach (var expression in orMatchExpression.Expressions)
                 {
                     tempSet.Clear();
 
-                    this.Filter(expression, tempSet, bufferScope);
+                    this.Filter(expression, tempSet);
 
                     resultSet.UnionWith(tempSet);
                 }
             }
             else if (matchExpression is AndMatchExpression andMatchExpression)
             {
-                var tempSet = bufferScope.CreateDocumentSet();
+                using var tempSet = new PooledSet<int>();
                 var isFirst = true;
 
                 foreach (var expression in andMatchExpression.Expressions)
                 {
                     tempSet.Clear();
 
-                    this.Filter(expression, tempSet, bufferScope);
+                    this.Filter(expression, tempSet);
 
                     if (isFirst)
                     {
@@ -219,6 +218,11 @@ namespace Clara.Storage
             {
                 throw new InvalidOperationException("Unsupported token expression encountered.");
             }
+        }
+
+        public void Dispose()
+        {
+            this.tokenEncoder.Dispose();
         }
     }
 }

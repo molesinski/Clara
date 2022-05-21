@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using Clara.Collections;
 using Clara.Querying;
 
 namespace Clara.Storage
 {
-    internal class KeywordDocumentTokenStore
+    internal class KeywordDocumentTokenStore : IDisposable
     {
         private readonly TokenEncoder tokenEncoder;
-        private readonly Dictionary<int, HashSet<int>> documentTokens;
+        private readonly PooledDictionary<int, PooledSet<int>> documentTokens;
 
         public KeywordDocumentTokenStore(
             TokenEncoder tokenEncoder,
-            Dictionary<int, HashSet<int>> documentTokens)
+            PooledDictionary<int, PooledSet<int>> documentTokens)
         {
             if (tokenEncoder is null)
             {
@@ -30,7 +30,7 @@ namespace Clara.Storage
 
         public FacetResult? Facet(KeywordFacetExpression tokenFacetExpression, IEnumerable<FilterExpression> filterExpressions, IEnumerable<int> documents)
         {
-            var selectedValues = new HashSet<string>();
+            using var selectedValues = new PooledSet<string>();
 
             foreach (var filterExpression in filterExpressions)
             {
@@ -43,7 +43,7 @@ namespace Clara.Storage
                 }
             }
 
-            var tokenCounts = new Dictionary<int, int>();
+            using var tokenCounts = new PooledDictionary<int, int>();
 
             foreach (var documentId in documents)
             {
@@ -51,20 +51,9 @@ namespace Clara.Storage
                 {
                     foreach (var tokenId in tokenIds)
                     {
-#if NET6_0_OR_GREATER
-                        ref var count = ref CollectionsMarshal.GetValueRefOrAddDefault(tokenCounts, tokenId, out _);
+                        ref var count = ref tokenCounts.GetValueRefOrAddDefault(tokenId, out _);
 
                         count++;
-#else
-                        if (tokenCounts.TryGetValue(tokenId, out var count))
-                        {
-                            tokenCounts[tokenId] = count++;
-                        }
-                        else
-                        {
-                            tokenCounts.Add(tokenId, 1);
-                        }
-#endif
                     }
                 }
             }
@@ -90,6 +79,11 @@ namespace Clara.Storage
             values.Sort(tokenFacetExpression.Comparer);
 
             return tokenFacetExpression.CreateResult(values);
+        }
+
+        public void Dispose()
+        {
+            this.documentTokens.Dispose();
         }
     }
 }

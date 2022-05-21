@@ -1,23 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using Clara.Collections;
 using Clara.Mapping;
 
 namespace Clara.Storage
 {
-    internal class RangeSortedDocumentValueStore<TValue>
+    internal class RangeSortedDocumentValueStore<TValue> : IDisposable
         where TValue : struct, IComparable<TValue>
     {
-        private readonly List<DocumentValue<TValue>> sortedDocumentValues;
+        private readonly PooledList<DocumentValue<TValue>> sortedDocumentValues;
 
         public RangeSortedDocumentValueStore(
-            List<DocumentValue<TValue>> sortedDocumentValues)
+            PooledList<DocumentValue<TValue>> sortedDocumentValues)
         {
             if (sortedDocumentValues is null)
             {
                 throw new ArgumentNullException(nameof(sortedDocumentValues));
             }
 
-            sortedDocumentValues.Sort((a, b) => a.Value.CompareTo(b.Value));
+            sortedDocumentValues.Sort(new DocumentValueComparer());
 
             this.sortedDocumentValues = sortedDocumentValues;
         }
@@ -35,6 +36,21 @@ namespace Clara.Storage
             var rangeMatches = new DocumentValueRange<TValue>(this.sortedDocumentValues, from, to);
 
             documentSet.IntersectWith(field, rangeMatches);
+        }
+
+        public void Dispose()
+        {
+            this.sortedDocumentValues.Dispose();
+        }
+
+
+
+        private readonly struct DocumentValueComparer : IComparer<DocumentValue<TValue>>
+        {
+            public int Compare(DocumentValue<TValue> x, DocumentValue<TValue> y)
+            {
+                return x.Value.CompareTo(y.Value);
+            }
         }
     }
 }

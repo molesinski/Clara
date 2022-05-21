@@ -1,21 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using Clara.Collections;
 using Clara.Querying;
 
 namespace Clara.Storage
 {
-    internal class RangeDocumentValueMinMaxStore<TValue>
+    internal class RangeDocumentValueMinMaxStore<TValue> : IDisposable
         where TValue : struct, IComparable<TValue>
     {
         private readonly TValue minValue;
         private readonly TValue maxValue;
-        private readonly Dictionary<int, MinMax<TValue>> documentValueMinMax;
+        private readonly PooledDictionary<int, MinMax<TValue>> documentValueMinMax;
 
         public RangeDocumentValueMinMaxStore(
             TValue minValue,
             TValue maxValue,
-            Dictionary<int, MinMax<TValue>> documentValueMinMax)
+            PooledDictionary<int, MinMax<TValue>> documentValueMinMax)
         {
+            if (documentValueMinMax is null)
+            {
+                throw new ArgumentNullException(nameof(documentValueMinMax));
+            }
+
             this.minValue = minValue;
             this.maxValue = maxValue;
             this.documentValueMinMax = documentValueMinMax;
@@ -67,6 +73,11 @@ namespace Clara.Storage
 
                 documentSort.Sort(o => this.documentValueMinMax.TryGetValue(o, out var maxMax) ? maxMax.Min : maxValue, direction);
             }
+        }
+
+        public void Dispose()
+        {
+            this.documentValueMinMax.Dispose();
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Clara.Analysis;
+using Clara.Collections;
 using Clara.Mapping;
 
 namespace Clara.Storage
@@ -11,7 +10,7 @@ namespace Clara.Storage
         private readonly ITokenizer tokenizer;
         private readonly ISynonymMap synonymMap;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
-        private readonly Dictionary<int, HashSet<int>> tokenDocuments;
+        private readonly PooledDictionary<int, PooledSet<int>> tokenDocuments;
 
         public TextFieldStoreBuilder(TextField field, TokenEncoderStore tokenEncoderStore, ISynonymMap? synonymMap)
         {
@@ -42,16 +41,9 @@ namespace Clara.Storage
             {
                 var tokenId = this.tokenEncoderBuilder.Encode(token);
 
-#if NET6_0_OR_GREATER
-                ref var documents = ref CollectionsMarshal.GetValueRefOrAddDefault(this.tokenDocuments, tokenId, out _);
+                ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
-                documents ??= new HashSet<int>();
-#else
-                if (!this.tokenDocuments.TryGetValue(tokenId, out var documents))
-                {
-                    this.tokenDocuments.Add(tokenId, documents = new HashSet<int>());
-                }
-#endif
+                documents ??= new PooledSet<int>();
 
                 documents.Add(documentId);
             }
@@ -64,6 +56,7 @@ namespace Clara.Storage
             return
                 new TextFieldStore(
                     this.synonymMap,
+                    tokenEncoder,
                     new TokenDocumentStore(tokenEncoder, this.tokenDocuments));
         }
     }

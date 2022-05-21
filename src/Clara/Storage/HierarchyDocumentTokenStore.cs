@@ -1,22 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using Clara.Collections;
 using Clara.Querying;
 
 namespace Clara.Storage
 {
-    internal class HierarchyDocumentTokenStore
+    internal class HierarchyDocumentTokenStore : IDisposable
     {
         private readonly string root;
         private readonly TokenEncoder tokenEncoder;
-        private readonly Dictionary<int, HashSet<int>> documentTokens;
-        private readonly Dictionary<int, HashSet<int>> parentChildren;
+        private readonly PooledDictionary<int, PooledSet<int>> documentTokens;
+        private readonly PooledDictionary<int, PooledSet<int>> parentChildren;
 
         public HierarchyDocumentTokenStore(
             string root,
             TokenEncoder tokenEncoder,
-            Dictionary<int, HashSet<int>> documentTokens,
-            Dictionary<int, HashSet<int>> parentChildren)
+            PooledDictionary<int, PooledSet<int>> documentTokens,
+            PooledDictionary<int, PooledSet<int>> parentChildren)
         {
             if (root is null)
             {
@@ -46,7 +46,7 @@ namespace Clara.Storage
 
         public FacetResult? Facet(HierarchyFacetExpression hierarchyFacetExpression, IEnumerable<FilterExpression> filterExpressions, IEnumerable<int> documents)
         {
-            var selectedValues = new HashSet<string>();
+            using var selectedValues = new PooledSet<string>();
 
             foreach (var filterExpression in filterExpressions)
             {
@@ -65,7 +65,7 @@ namespace Clara.Storage
             }
 
             var tokenEncoder = this.tokenEncoder;
-            var filteredTokens = new HashSet<int>();
+            using var filteredTokens = new PooledSet<int>();
 
             foreach (var selectedToken in selectedValues)
             {
@@ -80,7 +80,7 @@ namespace Clara.Storage
                 }
             }
 
-            var tokenCounts = new Dictionary<int, int>();
+            using var tokenCounts = new PooledDictionary<int, int>();
 
             foreach (var documentId in documents)
             {
@@ -90,20 +90,9 @@ namespace Clara.Storage
                     {
                         if (filteredTokens.Contains(tokenId))
                         {
-#if NET6_0_OR_GREATER
-                            ref var count = ref CollectionsMarshal.GetValueRefOrAddDefault(tokenCounts, tokenId, out _);
+                            ref var count = ref tokenCounts.GetValueRefOrAddDefault(tokenId, out _);
 
                             count++;
-#else
-                            if (tokenCounts.TryGetValue(tokenId, out var count))
-                            {
-                                tokenCounts[tokenId] = count++;
-                            }
-                            else
-                            {
-                                tokenCounts.Add(tokenId, 1);
-                            }
-#endif
                         }
                     }
                 }
@@ -142,6 +131,12 @@ namespace Clara.Storage
             values.Sort(hierarchyFacetExpression.Comparer);
 
             return hierarchyFacetExpression.CreateResult(values);
+        }
+
+        public void Dispose()
+        {
+            this.documentTokens.Dispose();
+            this.parentChildren.Dispose();
         }
     }
 }

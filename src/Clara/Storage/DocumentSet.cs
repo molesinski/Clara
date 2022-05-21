@@ -1,40 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using Clara.Collections;
 using Clara.Mapping;
 
 namespace Clara.Storage
 {
-    internal sealed class DocumentSet
+    internal sealed class DocumentSet : IDisposable
     {
-        private static readonly HashSet<int> Empty = new HashSet<int>();
+        private static readonly PooledSet<int> Empty = new();
 
         private readonly IReadOnlyCollection<int> allDocuments;
-        private readonly BufferScope bufferScope;
-        private readonly Dictionary<Field, HashSet<int>> facetDocuments = new();
-        private HashSet<int>? documents;
+        private readonly Dictionary<Field, PooledSet<int>> facetDocuments = new();
+        private PooledSet<int>? documents;
 
-        public DocumentSet(
-            IReadOnlyCollection<int> allDocuments,
-            BufferScope bufferScope)
+        public DocumentSet(IReadOnlyCollection<int> allDocuments)
         {
             if (allDocuments is null)
             {
                 throw new ArgumentNullException(nameof(allDocuments));
             }
 
-            if (bufferScope is null)
-            {
-                throw new ArgumentNullException(nameof(bufferScope));
-            }
-
             this.allDocuments = allDocuments;
-            this.bufferScope = bufferScope;
             this.documents = null;
         }
 
-        public DocumentSet(
-            HashSet<int> documents,
-            BufferScope bufferScope)
+        public DocumentSet(PooledSet<int> documents)
         {
             if (documents is null)
             {
@@ -43,7 +33,14 @@ namespace Clara.Storage
 
             this.allDocuments = Empty;
             this.documents = documents;
-            this.bufferScope = bufferScope;
+        }
+
+        public int Count
+        {
+            get
+            {
+                return (this.documents ?? this.allDocuments).Count;
+            }
         }
 
         public IReadOnlyCollection<int> Documents
@@ -51,14 +48,6 @@ namespace Clara.Storage
             get
             {
                 return this.documents ?? this.allDocuments;
-            }
-        }
-
-        public BufferScope BufferScope
-        {
-            get
-            {
-                return this.bufferScope;
             }
         }
 
@@ -89,15 +78,15 @@ namespace Clara.Storage
         {
             if (this.documents is null)
             {
-                this.facetDocuments.Add(field, this.bufferScope.CreateDocumentSet(this.allDocuments));
+                this.facetDocuments.Add(field, new PooledSet<int>(this.allDocuments));
             }
             else
             {
-                this.facetDocuments.Add(field, this.bufferScope.CreateDocumentSet(this.documents));
+                this.facetDocuments.Add(field, new PooledSet<int>(this.documents));
             }
         }
 
-        public void IntersectWith(Field field, HashSet<int> documents)
+        public void IntersectWith(Field field, PooledSet<int> documents)
         {
             if (this.documents is null)
             {
@@ -106,46 +95,69 @@ namespace Clara.Storage
             else
             {
                 this.documents.IntersectWith(documents);
-            }
 
-            foreach (var pair in this.facetDocuments)
-            {
-                if (pair.Key != field)
+                foreach (var pair in this.facetDocuments)
                 {
-                    pair.Value.IntersectWith(documents);
+                    if (pair.Key != field)
+                    {
+                        pair.Value.IntersectWith(documents);
+                    }
                 }
+
+                documents.Dispose();
             }
         }
 
-        public void IntersectWith(Field field, IReadOnlyCollection<int> documents)
+        public void IntersectWith(Field field, IEnumerable<int> documents)
         {
             if (this.documents is null)
             {
-                this.documents = this.bufferScope.CreateDocumentSet(documents);
+                this.documents = new PooledSet<int>(documents);
             }
             else
             {
                 this.documents.IntersectWith(documents);
-            }
 
-            foreach (var pair in this.facetDocuments)
-            {
-                if (pair.Key != field)
+                foreach (var pair in this.facetDocuments)
                 {
-                    pair.Value.IntersectWith(documents);
+                    if (pair.Key != field)
+                    {
+                        pair.Value.IntersectWith(documents);
+                    }
                 }
             }
         }
 
-        public void ExceptWith(IReadOnlyCollection<int> documents)
+        public void ExceptWith(IEnumerable<int> documents)
         {
-            this.documents ??= this.bufferScope.CreateDocumentSet(this.allDocuments);
-            this.documents.ExceptWith(documents);
+            if (this.documents is null)
+            {
+                this.documents = new PooledSet<int>(this.allDocuments);
 
+                this.documents.ExceptWith(documents);
+            }
+            else
+            {
+                this.documents.ExceptWith(documents);
+
+                foreach (var pair in this.facetDocuments)
+                {
+                    pair.Value.ExceptWith(documents);
+                }
+            }
+        }
+
+        public void Dispose()
+        {
             foreach (var pair in this.facetDocuments)
             {
-                pair.Value.ExceptWith(documents);
+                pair.Value.Dispose();
             }
+
+            this.documents?.Dispose();
+
+            this.facetDocuments.Clear();
+            this.documents = null;
         }
     }
 }

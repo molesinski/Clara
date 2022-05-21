@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
+using Clara.Collections;
 using Clara.Mapping;
 
 namespace Clara.Storage
@@ -12,9 +12,9 @@ namespace Clara.Storage
         private readonly string root;
         private readonly IEnumerable<string> rootEnumerable;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
-        private readonly Dictionary<int, HashSet<int>> parentChildren;
-        private readonly Dictionary<int, HashSet<int>>? tokenDocuments;
-        private readonly Dictionary<int, HashSet<int>>? documentTokens;
+        private readonly PooledDictionary<int, PooledSet<int>> parentChildren;
+        private readonly PooledDictionary<int, PooledSet<int>>? tokenDocuments;
+        private readonly PooledDictionary<int, PooledSet<int>>? documentTokens;
 
         public HierarchyFieldStoreBuilder(HierarchyField field, TokenEncoderStore tokenEncoderStore)
         {
@@ -52,7 +52,7 @@ namespace Clara.Storage
                 throw new InvalidOperationException("Indexing of non hierarchy field values is not supported.");
             }
 
-            var tokens = default(HashSet<int>);
+            var tokens = default(PooledSet<int>);
 
             foreach (var hierarchyEncodedToken in hierarchyFieldValue.Keywords)
             {
@@ -63,16 +63,9 @@ namespace Clara.Storage
                 {
                     var tokenId = this.tokenEncoderBuilder.Encode(token);
 
-#if NET6_0_OR_GREATER
-                    ref var children = ref CollectionsMarshal.GetValueRefOrAddDefault(this.parentChildren, parentId, out _);
+                    ref var children = ref this.parentChildren.GetValueRefOrAddDefault(parentId, out _);
 
-                    children ??= new HashSet<int>();
-#else
-                    if (!this.parentChildren.TryGetValue(parentId, out var children))
-                    {
-                        this.parentChildren.Add(parentId, children = new HashSet<int>());
-                    }
-#endif
+                    children ??= new PooledSet<int>();
 
                     children.Add(tokenId);
 
@@ -80,16 +73,9 @@ namespace Clara.Storage
 
                     if (this.tokenDocuments is not null)
                     {
-#if NET6_0_OR_GREATER
-                        ref var documents = ref CollectionsMarshal.GetValueRefOrAddDefault(this.tokenDocuments, tokenId, out _);
+                        ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
-                        documents ??= new HashSet<int>();
-#else
-                        if (!this.tokenDocuments.TryGetValue(tokenId, out var documents))
-                        {
-                            this.tokenDocuments.Add(tokenId, documents = new HashSet<int>());
-                        }
-#endif
+                        documents ??= new PooledSet<int>();
 
                         documents.Add(documentId);
                     }
@@ -98,7 +84,7 @@ namespace Clara.Storage
                     {
                         if (tokens == default)
                         {
-                            tokens = new HashSet<int>();
+                            tokens = new PooledSet<int>();
 
                             this.documentTokens.Add(documentId, tokens);
                         }
@@ -115,6 +101,7 @@ namespace Clara.Storage
 
             return
                 new HierarchyFieldStore(
+                    tokenEncoder,
                     this.tokenDocuments is not null ? new TokenDocumentStore(tokenEncoder, this.tokenDocuments) : null,
                     this.documentTokens is not null ? new HierarchyDocumentTokenStore(this.root, tokenEncoder, this.documentTokens, this.parentChildren) : null);
         }

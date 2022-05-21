@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using Clara.Collections;
 using Clara.Mapping;
 
 namespace Clara.Storage
@@ -8,8 +7,8 @@ namespace Clara.Storage
     internal sealed class KeywordFieldStoreBuilder : FieldStoreBuilder
     {
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
-        private readonly Dictionary<int, HashSet<int>>? tokenDocuments;
-        private readonly Dictionary<int, HashSet<int>>? documentTokens;
+        private readonly PooledDictionary<int, PooledSet<int>>? tokenDocuments;
+        private readonly PooledDictionary<int, PooledSet<int>>? documentTokens;
 
         public KeywordFieldStoreBuilder(KeywordField field, TokenEncoderStore tokenEncoderStore)
         {
@@ -43,7 +42,7 @@ namespace Clara.Storage
                 throw new InvalidOperationException("Indexing of non token field values is not supported.");
             }
 
-            var tokens = default(HashSet<int>);
+            var tokens = default(PooledSet<int>);
 
             foreach (var token in tokenFieldValue.Keywords)
             {
@@ -51,16 +50,9 @@ namespace Clara.Storage
 
                 if (this.tokenDocuments is not null)
                 {
-#if NET6_0_OR_GREATER
-                    ref var documents = ref CollectionsMarshal.GetValueRefOrAddDefault(this.tokenDocuments, tokenId, out _);
+                    ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
-                    documents ??= new HashSet<int>();
-#else
-                    if (!this.tokenDocuments.TryGetValue(tokenId, out var documents))
-                    {
-                        this.tokenDocuments.Add(tokenId, documents = new HashSet<int>());
-                    }
-#endif
+                    documents ??= new PooledSet<int>();
 
                     documents.Add(documentId);
                 }
@@ -69,7 +61,7 @@ namespace Clara.Storage
                 {
                     if (tokens == default)
                     {
-                        tokens = new HashSet<int>();
+                        tokens = new PooledSet<int>();
 
                         this.documentTokens.Add(documentId, tokens);
                     }
@@ -85,6 +77,7 @@ namespace Clara.Storage
 
             return
                 new KeywordFieldStore(
+                    tokenEncoder,
                     this.tokenDocuments is not null ? new TokenDocumentStore(tokenEncoder, this.tokenDocuments) : null,
                     this.documentTokens is not null ? new KeywordDocumentTokenStore(tokenEncoder, this.documentTokens) : null);
         }

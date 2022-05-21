@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Clara.Collections;
 using Clara.Mapping;
 
 namespace Clara.Storage
@@ -9,8 +10,8 @@ namespace Clara.Storage
     {
         private readonly TValue minValue;
         private readonly TValue maxValue;
-        private readonly List<DocumentValue<TValue>>? sortedDocumentValues;
-        private readonly Dictionary<int, MinMax<TValue>>? documentValueMinMax;
+        private readonly PooledList<DocumentValue<TValue>>? sortedDocumentValues;
+        private readonly PooledDictionary<int, MinMax<TValue>>? documentValueMinMax;
 
         public RangeFieldStoreBuilder(RangeField<TValue> field)
         {
