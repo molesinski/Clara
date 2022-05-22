@@ -8,14 +8,7 @@ name: $(major).$(minor).$(patch)
 pool:
   vmImage: windows-latest
 
-trigger:
-  batch: true
-  branches:
-    include:
-    - master
-  paths:
-    include:
-    - src/Clara/*
+trigger: none
 
 pr: none
 
