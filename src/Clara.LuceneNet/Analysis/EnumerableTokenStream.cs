@@ -9,7 +9,7 @@ namespace Clara.Analysis
     {
         private readonly ICharTermAttribute charTermAttribute;
         private readonly IEnumerable<string> tokens;
-        private IEnumerator<string> enumerator;
+        private IEnumerator<string>? enumerator;
 
         public EnumerableTokenStream(IEnumerable<string> tokens)
         {

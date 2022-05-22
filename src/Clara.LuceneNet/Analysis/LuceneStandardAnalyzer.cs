@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Util;
 
@@ -8,7 +9,24 @@ namespace Clara.Analysis
 {
     public sealed class LuceneStandardAnalyzer : ITokenizer
     {
-        private static readonly DisposableThreadLocal<StandardAnalyzer> Analyzer = new(() => new StandardAnalyzer(LuceneVersion.LUCENE_48));
+        private static readonly ThreadLocal<StandardAnalyzer> Analyzer = new(() => new StandardAnalyzer(LuceneVersion.LUCENE_48));
+
+        private readonly IStringFactory stringFactory;
+
+        public LuceneStandardAnalyzer()
+            : this(DefaultStringFactory.Instance)
+        {
+        }
+
+        public LuceneStandardAnalyzer(IStringFactory stringFactory)
+        {
+            if (stringFactory is null)
+            {
+                throw new ArgumentNullException(nameof(stringFactory));
+            }
+
+            this.stringFactory = stringFactory;
+        }
 
         public IEnumerable<string> GetTokens(string text)
         {
@@ -22,13 +40,13 @@ namespace Clara.Analysis
                 yield break;
             }
 
-            var analyzer = Analyzer.Value;
+            var analyzer = Analyzer.Value!;
 
             using (var input = new StringReader(text))
             {
                 using (var tokenStream = analyzer.GetTokenStream(string.Empty, input))
                 {
-                    foreach (var token in new TokenStreamEnumerable(tokenStream))
+                    foreach (var token in new TokenStreamEnumerable(tokenStream, this.stringFactory))
                     {
                         yield return token;
                     }

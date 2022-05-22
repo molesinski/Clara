@@ -1,21 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Egothor.Stemmer;
 using Lucene.Net.Analysis.Pl;
-using Lucene.Net.Util;
 
 namespace Clara.Analysis
 {
     public sealed class LucenePolishStemTokenFilter : ITokenFilter
     {
-        private static readonly DisposableThreadLocal<StringBuilder> Buffer = new(() => new StringBuilder());
+        private static readonly ThreadLocal<StringBuilder> Buffer = new(() => new StringBuilder());
 
-        private readonly Trie stemmer;
+        private readonly Trie stemmer = PolishAnalyzer.DefaultTable;
+        private readonly IStringFactory stringFactory;
 
         public LucenePolishStemTokenFilter()
+            : this(DefaultStringFactory.Instance)
         {
-            this.stemmer = PolishAnalyzer.DefaultTable;
+        }
+
+        public LucenePolishStemTokenFilter(IStringFactory stringFactory)
+        {
+            if (stringFactory is null)
+            {
+                throw new ArgumentNullException(nameof(stringFactory));
+            }
+
+            this.stringFactory = stringFactory;
         }
 
         public IEnumerable<string> Filter(IEnumerable<string> tokens)
@@ -25,7 +36,7 @@ namespace Clara.Analysis
                 throw new ArgumentNullException(nameof(tokens));
             }
 
-            var buffer = Buffer.Value;
+            var buffer = Buffer.Value!;
 
             foreach (var token in tokens)
             {
@@ -40,7 +51,7 @@ namespace Clara.Analysis
 
                     if (buffer.Length > 0)
                     {
-                        yield return buffer.ToString();
+                        yield return this.stringFactory.Create(buffer);
 
                         continue;
                     }
