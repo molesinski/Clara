@@ -44,9 +44,9 @@ namespace Clara.Querying
             }
         }
 
-        public IEnumerable<string>? IncludeDocuments { get; set; }
+        public IEnumerable<string?>? IncludeDocuments { get; set; }
 
-        public IEnumerable<string>? ExcludeDocuments { get; set; }
+        public IEnumerable<string?>? ExcludeDocuments { get; set; }
 
         public void AddFilter(FilterExpression filterExpression)
         {

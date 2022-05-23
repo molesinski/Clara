@@ -35,14 +35,18 @@ namespace Clara.Analysis
                 yield break;
             }
 
-            foreach (var token in this.regex.Split(text))
+            var matches = this.regex.Matches(text);
+
+            for (var i = 0; i < matches.Count; i++)
             {
-                if (string.IsNullOrWhiteSpace(token))
+                var match = matches[i];
+
+                if (match.Length == 0)
                 {
                     continue;
                 }
 
-                yield return token;
+                yield return match.Value;
             }
         }
     }

@@ -124,7 +124,7 @@ namespace Clara.Querying
             return EmptyMatchExpression.Instance;
         }
 
-        public static MatchExpression All(IEnumerable<string>? values)
+        public static MatchExpression All(IEnumerable<string?>? values)
         {
             if (values is not null)
             {
@@ -163,7 +163,7 @@ namespace Clara.Querying
             return EmptyMatchExpression.Instance;
         }
 
-        public static MatchExpression Any(IEnumerable<string>? values)
+        public static MatchExpression Any(IEnumerable<string?>? values)
         {
             if (values is not null)
             {

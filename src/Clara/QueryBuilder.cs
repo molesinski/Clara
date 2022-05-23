@@ -78,7 +78,7 @@ namespace Clara
             return this;
         }
 
-        public QueryBuilder Include(IEnumerable<string> includeDocuments)
+        public QueryBuilder Include(IEnumerable<string?>? includeDocuments)
         {
             if (includeDocuments is not null)
             {
@@ -93,7 +93,7 @@ namespace Clara
             return this;
         }
 
-        public QueryBuilder Exclude(IEnumerable<string> excludeDocuments)
+        public QueryBuilder Exclude(IEnumerable<string?>? excludeDocuments)
         {
             if (excludeDocuments is not null)
             {

@@ -64,12 +64,11 @@ namespace Clara.Storage
                 selectedValues.Add(this.root);
             }
 
-            var tokenEncoder = this.tokenEncoder;
             using var filteredTokens = new PooledSet<int>();
 
             foreach (var selectedToken in selectedValues)
             {
-                if (tokenEncoder.TryEncode(selectedToken, out var parentId))
+                if (this.tokenEncoder.TryEncode(selectedToken, out var parentId))
                 {
                     filteredTokens.Add(parentId);
 
@@ -102,7 +101,7 @@ namespace Clara.Storage
 
             foreach (var selectedToken in selectedValues)
             {
-                if (tokenEncoder.TryEncode(selectedToken, out var parentId))
+                if (this.tokenEncoder.TryEncode(selectedToken, out var parentId))
                 {
                     var childrenResult = new List<HierarchyValue>();
 
@@ -112,7 +111,7 @@ namespace Clara.Storage
                         {
                             if (tokenCounts.TryGetValue(childId, out var childCount))
                             {
-                                var child = tokenEncoder.Decode(childId);
+                                var child = this.tokenEncoder.Decode(childId);
 
                                 childrenResult.Add(new HierarchyValue(child, childCount));
                             }
@@ -121,7 +120,7 @@ namespace Clara.Storage
                         childrenResult.Sort(hierarchyFacetExpression.Comparer);
                     }
 
-                    var parent = tokenEncoder.Decode(parentId);
+                    var parent = this.tokenEncoder.Decode(parentId);
                     tokenCounts.TryGetValue(parentId, out var parentCount);
 
                     values.Add(new HierarchyValue(parent, parentCount, childrenResult));

@@ -37,12 +37,12 @@ namespace Clara.Querying
             this.facets = facets;
         }
 
-        public IEnumerable<DocumentResult> Documents
+        public IEnumerable<DocumentResult<TDocument>> Documents
         {
             get
             {
                 return this.documentSort.Documents
-                    .Select(o => new QueryResult<TDocument>.DocumentResult(this.documents.GetValueOrDefault(o), 1));
+                    .Select(o => new DocumentResult<TDocument>(this.documents.GetValueOrDefault(o), 1));
             }
         }
 
@@ -65,19 +65,6 @@ namespace Clara.Querying
         public void Dispose()
         {
             this.documentSort.Dispose();
-        }
-
-        public readonly struct DocumentResult
-        {
-            public DocumentResult(TDocument document, double score)
-            {
-                this.Document = document;
-                this.Score = score;
-            }
-
-            public TDocument Document { get; }
-
-            public double Score { get; }
         }
     }
 }
