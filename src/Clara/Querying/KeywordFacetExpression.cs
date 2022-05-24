@@ -4,14 +4,14 @@ using Clara.Mapping;
 
 namespace Clara.Querying
 {
-    public sealed class KeywordFacetExpression : TokenFacetExpression<KeywordValue>
+    public sealed class KeywordFacetExpression : TokenFacetExpression<KeywordFacetValue>
     {
-        public KeywordFacetExpression(KeywordField field, IComparer<KeywordValue>? comparer = null)
-            : base(field, comparer ?? KeywordValueComparer.Default)
+        public KeywordFacetExpression(KeywordField field)
+            : base(field)
         {
         }
 
-        public override FacetResult CreateResult(IEnumerable<KeywordValue> values)
+        public override FacetResult CreateResult(IEnumerable<KeywordFacetValue> values)
         {
             if (values is null)
             {

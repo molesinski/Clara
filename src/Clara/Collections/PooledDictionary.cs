@@ -13,10 +13,10 @@ namespace Clara.Collections
     internal sealed class PooledDictionary<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TValue>>, IDisposable
         where TKey : notnull, IEquatable<TKey>
     {
-        private const int MinimumCapacity = 4;
+        private const int MinimumCapacity = 16;
 
-        private static readonly ArrayPool<int> BucketsPool = ArrayPool<int>.Shared;
-        private static readonly ArrayPool<Entry> EntriesPool = ArrayPool<Entry>.Shared;
+        private static readonly ArrayPool<int> IntPool = ArrayPool<int>.Shared;
+        private static readonly ArrayPool<Entry> EntryPool = ArrayPool<Entry>.Shared;
         private static readonly Entry[] InitialEntries = new Entry[1];
 
         private int size;
@@ -57,8 +57,8 @@ namespace Clara.Collections
             this.size = HashHelpers.PowerOf2(capacity);
             this.count = 0;
             this.freeList = -1;
-            this.buckets = BucketsPool.Rent(this.size);
-            this.entries = EntriesPool.Rent(this.size);
+            this.buckets = IntPool.Rent(this.size);
+            this.entries = EntryPool.Rent(this.size);
 
             Array.Clear(this.buckets, 0, this.size);
             Array.Clear(this.entries, 0, this.size);
@@ -86,8 +86,8 @@ namespace Clara.Collections
                     this.size = source.size;
                     this.count = source.count;
                     this.freeList = source.freeList;
-                    this.buckets = BucketsPool.Rent(this.size);
-                    this.entries = EntriesPool.Rent(this.size);
+                    this.buckets = IntPool.Rent(this.size);
+                    this.entries = EntryPool.Rent(this.size);
 
                     Array.Copy(source.buckets, 0, this.buckets, 0, this.size);
                     Array.Copy(source.entries, 0, this.entries, 0, this.size);
@@ -108,8 +108,8 @@ namespace Clara.Collections
                 this.size = HashHelpers.PowerOf2(capacity);
                 this.count = 0;
                 this.freeList = -1;
-                this.buckets = BucketsPool.Rent(this.size);
-                this.entries = EntriesPool.Rent(this.size);
+                this.buckets = IntPool.Rent(this.size);
+                this.entries = EntryPool.Rent(this.size);
 
                 Array.Clear(this.buckets, 0, this.size);
                 Array.Clear(this.entries, 0, this.size);
@@ -146,22 +146,14 @@ namespace Clara.Collections
 
         public void Clear()
         {
-            if (this.size > 1)
+            if (this.count > 0)
             {
-                BucketsPool.Return(this.buckets, clearArray: false);
+                Array.Clear(this.buckets, 0, this.size);
+                Array.Clear(this.entries, 0, this.size);
 
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
-                EntriesPool.Return(this.entries, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<Entry>());
-#else
-                EntriesPool.Return(this.entries, clearArray: true);
-#endif
+                this.count = 0;
+                this.freeList = -1;
             }
-
-            this.size = 1;
-            this.count = 0;
-            this.freeList = -1;
-            this.buckets = HashHelpers.SizeOneIntArray;
-            this.entries = InitialEntries;
         }
 
         public TValue GetValueOrDefault(TKey key)
@@ -346,7 +338,22 @@ namespace Clara.Collections
 
         public void Dispose()
         {
-            this.Clear();
+            if (this.size > 1)
+            {
+                IntPool.Return(this.buckets, clearArray: false);
+
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+                EntryPool.Return(this.entries, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<Entry>());
+#else
+                EntryPool.Return(this.entries, clearArray: true);
+#endif
+            }
+
+            this.size = 1;
+            this.count = 0;
+            this.freeList = -1;
+            this.buckets = HashHelpers.SizeOneIntArray;
+            this.entries = InitialEntries;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -394,11 +401,11 @@ namespace Clara.Collections
 
             if ((uint)newSize > (uint)int.MaxValue)
             {
-                throw new InvalidOperationException("TODO Arg_HTCapacityOverflow");
+                throw new InvalidOperationException("Capacity overflowed and went negative. Check load factor, capacity and the current size of the table.");
             }
 
-            var newBuckets = BucketsPool.Rent(newSize);
-            var newEntries = EntriesPool.Rent(newSize);
+            var newBuckets = IntPool.Rent(newSize);
+            var newEntries = EntryPool.Rent(newSize);
 
             Array.Clear(newBuckets, 0, newSize);
             Array.Clear(newEntries, count, newSize - count);
@@ -414,12 +421,12 @@ namespace Clara.Collections
 
             if (this.size > 1)
             {
-                BucketsPool.Return(this.buckets, clearArray: false);
+                IntPool.Return(this.buckets, clearArray: false);
 
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
-                EntriesPool.Return(this.entries, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<Entry>());
+                EntryPool.Return(this.entries, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<Entry>());
 #else
-                EntriesPool.Return(this.entries, clearArray: true);
+                EntryPool.Return(this.entries, clearArray: true);
 #endif
             }
 

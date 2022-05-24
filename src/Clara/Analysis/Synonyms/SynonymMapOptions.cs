@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Clara.Analysis
+namespace Clara.Analysis.Synonyms
 {
     public class SynonymMapOptions
     {

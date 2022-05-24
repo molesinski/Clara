@@ -1,7 +1,7 @@
 ﻿using Clara.Mapping;
 using Clara.Querying;
 
-namespace Clara.Analysis
+namespace Clara.Analysis.Synonyms
 {
     public interface ISynonymMap : ITokenFilter, IMatchExpressionFilter
     {

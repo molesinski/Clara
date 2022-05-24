@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Clara.Querying
 {
-    public readonly struct HierarchyValue
+    public readonly struct HierarchyFacetValue
     {
-        public HierarchyValue(string value, int count, IEnumerable<HierarchyValue> children)
+        public HierarchyFacetValue(string value, int count, IEnumerable<HierarchyFacetValue> children)
         {
             if (value is null)
             {
@@ -22,8 +22,8 @@ namespace Clara.Querying
             this.Children = children;
         }
 
-        public HierarchyValue(string keyword, int count)
-            : this(keyword, count, Array.Empty<HierarchyValue>())
+        public HierarchyFacetValue(string keyword, int count)
+            : this(keyword, count, Array.Empty<HierarchyFacetValue>())
         {
         }
 
@@ -31,6 +31,6 @@ namespace Clara.Querying
 
         public int Count { get; }
 
-        public IEnumerable<HierarchyValue> Children { get; }
+        public IEnumerable<HierarchyFacetValue> Children { get; }
     }
 }

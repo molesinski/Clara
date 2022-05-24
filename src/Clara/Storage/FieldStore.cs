@@ -23,7 +23,7 @@ namespace Clara.Storage
             throw new InvalidOperationException("Field does not support filtering.");
         }
 
-        public virtual FacetResult? Facet(FacetExpression facetExpression, IEnumerable<FilterExpression> filterExpressions, IEnumerable<int> documents)
+        public virtual FieldFacetResult? Facet(FacetExpression facetExpression, IEnumerable<FilterExpression> filterExpressions, IEnumerable<int> documents)
         {
             throw new InvalidOperationException("Field does not support faceting.");
         }

@@ -8,33 +8,33 @@ namespace Clara.Querying
 {
     public sealed class QueryResult<TDocument> : IDisposable
     {
-        private readonly DocumentSort documentSort;
         private readonly PooledDictionary<int, TDocument> documents;
-        private readonly List<FacetResult> facets;
+        private readonly DocumentSort documentSort;
+        private readonly List<FieldFacetResult> facetResults;
 
         internal QueryResult(
-            DocumentSort documentSort,
             PooledDictionary<int, TDocument> documents,
-            List<FacetResult> facets)
+            DocumentSort documentSort,
+            List<FieldFacetResult> facetResults)
         {
-            if (documentSort is null)
-            {
-                throw new ArgumentNullException(nameof(documentSort));
-            }
-
             if (documents is null)
             {
                 throw new ArgumentNullException(nameof(documents));
             }
 
-            if (facets is null)
+            if (documentSort is null)
             {
-                throw new ArgumentNullException(nameof(facets));
+                throw new ArgumentNullException(nameof(documentSort));
             }
 
-            this.documentSort = documentSort;
+            if (facetResults is null)
+            {
+                throw new ArgumentNullException(nameof(facetResults));
+            }
+
             this.documents = documents;
-            this.facets = facets;
+            this.documentSort = documentSort;
+            this.facetResults = facetResults;
         }
 
         public IEnumerable<DocumentResult<TDocument>> Documents
@@ -50,7 +50,8 @@ namespace Clara.Querying
         {
             get
             {
-                return this.facets;
+                return this.facetResults
+                    .Select(o => o.FacetResult);
             }
         }
 
@@ -65,6 +66,11 @@ namespace Clara.Querying
         public void Dispose()
         {
             this.documentSort.Dispose();
+
+            foreach (var fieldFacet in this.facetResults)
+            {
+                fieldFacet.Dispose();
+            }
         }
     }
 }

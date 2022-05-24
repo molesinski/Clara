@@ -48,16 +48,16 @@ namespace Clara
             return this;
         }
 
-        public QueryBuilder Facet(KeywordField field, IComparer<KeywordValue>? comparer = null)
+        public QueryBuilder Facet(KeywordField field)
         {
-            this.Query.AddFacet(new KeywordFacetExpression(field, comparer));
+            this.Query.AddFacet(new KeywordFacetExpression(field));
 
             return this;
         }
 
-        public QueryBuilder Facet(HierarchyField field, IComparer<HierarchyValue>? comparer = null)
+        public QueryBuilder Facet(HierarchyField field)
         {
-            this.Query.AddFacet(new HierarchyFacetExpression(field, comparer));
+            this.Query.AddFacet(new HierarchyFacetExpression(field));
 
             return this;
         }

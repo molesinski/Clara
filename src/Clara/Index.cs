@@ -155,10 +155,13 @@ namespace Clara
                 }
             }
 
-            var facets = new List<FacetResult>();
+            var facetResults = new List<FieldFacetResult>(capacity: query.Facets.Count);
+            var filterExpressions = new List<FilterExpression>(capacity: query.Filters.Count);
 
             foreach (var facetExpression in query.Facets)
             {
+                filterExpressions.Clear();
+
                 var field = facetExpression.Field;
                 var facetDocuments = documentSet.GetMatches(field);
 
@@ -169,8 +172,6 @@ namespace Clara
                         throw new InvalidOperationException("Facet expression references field not belonging to current index.");
                     }
 
-                    var filterExpressions = new List<FilterExpression>();
-
                     foreach (var filterExpression in query.Filters)
                     {
                         if (filterExpression.Field == field)
@@ -179,11 +180,11 @@ namespace Clara
                         }
                     }
 
-                    var facet = store.Facet(facetExpression, filterExpressions, facetDocuments);
+                    var facetResult = store.Facet(facetExpression, filterExpressions, facetDocuments);
 
-                    if (facet is not null)
+                    if (facetResult is not null)
                     {
-                        facets.Add(facet);
+                        facetResults.Add(facetResult);
                     }
                 }
             }
@@ -202,7 +203,7 @@ namespace Clara
                 store.Sort(sortExpression, documentSort);
             }
 
-            return new QueryResult<TDocument>(documentSort, this.documents, facets);
+            return new QueryResult<TDocument>(this.documents, documentSort, facetResults);
         }
 
         public void Dispose()

@@ -117,7 +117,7 @@ namespace Clara.Querying
             {
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    return new AllValuesMatchExpression(new List<string> { value });
+                    return new AllValuesMatchExpression(new HashSet<string> { value });
                 }
             }
 
@@ -128,7 +128,7 @@ namespace Clara.Querying
         {
             if (values is not null)
             {
-                var result = new List<string>();
+                var result = new HashSet<string>();
 
                 foreach (var value in values)
                 {
@@ -156,7 +156,7 @@ namespace Clara.Querying
             {
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    return new AnyValuesMatchExpression(new List<string> { value });
+                    return new AnyValuesMatchExpression(new HashSet<string> { value });
                 }
             }
 
@@ -167,7 +167,7 @@ namespace Clara.Querying
         {
             if (values is not null)
             {
-                var result = new List<string>();
+                var result = new HashSet<string>();
 
                 foreach (var value in values)
                 {

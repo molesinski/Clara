@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Clara.Analysis;
+using Clara.Analysis.Synonyms;
 using Clara.Collections;
 using Clara.Mapping;
 using Clara.Storage;

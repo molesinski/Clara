@@ -6,12 +6,11 @@ using Lucene.Net.Analysis.TokenAttributes;
 
 namespace Clara.Analysis
 {
-    public readonly struct TokenStreamEnumerable : IEnumerable<string>
+    internal readonly struct TokenStreamEnumerable : IEnumerable<string>
     {
         private readonly TokenStream tokenStream;
-        private readonly IStringFactory stringFactory;
 
-        public TokenStreamEnumerable(TokenStream tokenStream, IStringFactory stringFactory)
+        public TokenStreamEnumerable(TokenStream tokenStream)
         {
             if (tokenStream is null)
             {
@@ -19,7 +18,6 @@ namespace Clara.Analysis
             }
 
             this.tokenStream = tokenStream;
-            this.stringFactory = stringFactory;
         }
 
         public IEnumerator<string> GetEnumerator()
@@ -35,7 +33,6 @@ namespace Clara.Analysis
         public struct Enumerator : IEnumerator<string>
         {
             private readonly TokenStream tokenStream;
-            private readonly IStringFactory stringFactory;
             private readonly ICharTermAttribute charTermAttribute;
             private bool isStarted;
             private string current;
@@ -43,7 +40,6 @@ namespace Clara.Analysis
             public Enumerator(TokenStreamEnumerable source)
             {
                 this.tokenStream = source.tokenStream;
-                this.stringFactory = source.stringFactory;
                 this.charTermAttribute = source.tokenStream.GetAttribute<ICharTermAttribute>();
                 this.isStarted = false;
                 this.current = string.Empty;
@@ -83,9 +79,9 @@ namespace Clara.Analysis
                     }
 
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-                    this.current = this.stringFactory.Create(this.charTermAttribute.Buffer.AsSpan(0, this.charTermAttribute.Length));
+                    this.current = new string(this.charTermAttribute.Buffer.AsSpan(0, this.charTermAttribute.Length));
 #else
-                    this.current = this.stringFactory.Create(this.charTermAttribute.Buffer, 0, this.charTermAttribute.Length);
+                    this.current = new string(this.charTermAttribute.Buffer, 0, this.charTermAttribute.Length);
 #endif
 
                     return true;

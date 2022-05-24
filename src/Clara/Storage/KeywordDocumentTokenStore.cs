@@ -7,11 +7,11 @@ namespace Clara.Storage
 {
     internal class KeywordDocumentTokenStore : IDisposable
     {
-        private readonly TokenEncoder tokenEncoder;
+        private readonly ITokenEncoder tokenEncoder;
         private readonly PooledDictionary<int, PooledSet<int>> documentTokens;
 
         public KeywordDocumentTokenStore(
-            TokenEncoder tokenEncoder,
+            ITokenEncoder tokenEncoder,
             PooledDictionary<int, PooledSet<int>> documentTokens)
         {
             if (tokenEncoder is null)
@@ -28,9 +28,9 @@ namespace Clara.Storage
             this.documentTokens = documentTokens;
         }
 
-        public FacetResult? Facet(KeywordFacetExpression tokenFacetExpression, IEnumerable<FilterExpression> filterExpressions, IEnumerable<int> documents)
+        public FieldFacetResult? Facet(KeywordFacetExpression tokenFacetExpression, IEnumerable<FilterExpression> filterExpressions, IEnumerable<int> documents)
         {
-            using var selectedValues = new PooledSet<string>();
+            var selectedValues = new HashSet<string>();
 
             foreach (var filterExpression in filterExpressions)
             {
@@ -58,7 +58,7 @@ namespace Clara.Storage
                 }
             }
 
-            var values = new List<KeywordValue>();
+            var values = new PooledList<KeywordFacetValue>();
 
             foreach (var pair in tokenCounts)
             {
@@ -67,23 +67,44 @@ namespace Clara.Storage
                 var token = this.tokenEncoder.Decode(tokenId);
                 var isSelected = selectedValues.Contains(token);
 
-                values.Add(new KeywordValue(token, count, isSelected));
+                values.Add(new KeywordFacetValue(token, count, isSelected));
                 selectedValues.Remove(token);
             }
 
             foreach (var token in selectedValues)
             {
-                values.Add(new KeywordValue(token, count: 0, isSelected: true));
+                values.Add(new KeywordFacetValue(token, count: 0, isSelected: true));
             }
 
-            values.Sort(tokenFacetExpression.Comparer);
+            values.Sort(KeywordFacetValueComparer.Instance);
 
-            return tokenFacetExpression.CreateResult(values);
+            return new FieldFacetResult(tokenFacetExpression.CreateResult(values), new[] { values });
         }
 
         public void Dispose()
         {
             this.documentTokens.Dispose();
+        }
+
+        public sealed class KeywordFacetValueComparer : IComparer<KeywordFacetValue>
+        {
+            private KeywordFacetValueComparer()
+            {
+            }
+
+            public static IComparer<KeywordFacetValue> Instance { get; } = new KeywordFacetValueComparer();
+
+            public int Compare(KeywordFacetValue x, KeywordFacetValue y)
+            {
+                var result = y.IsSelected.CompareTo(x.IsSelected);
+
+                if (result != 0)
+                {
+                    return result;
+                }
+
+                return y.Count.CompareTo(x.Count);
+            }
         }
     }
 }

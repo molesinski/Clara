@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Clara.Analysis
+namespace Clara.Analysis.Synonyms
 {
     internal static class PermutationHelper
     {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Clara.Collections;
 using Clara.Mapping;
 using Clara.Querying;
@@ -8,11 +9,11 @@ namespace Clara.Storage
 {
     internal sealed class TokenDocumentStore : IDisposable
     {
-        private readonly TokenEncoder tokenEncoder;
+        private readonly ITokenEncoder tokenEncoder;
         private readonly PooledDictionary<int, PooledSet<int>> tokenDocuments;
 
         public TokenDocumentStore(
-            TokenEncoder tokenEncoder,
+            ITokenEncoder tokenEncoder,
             PooledDictionary<int, PooledSet<int>> tokenDocuments)
         {
             if (tokenEncoder is null)
@@ -50,7 +51,7 @@ namespace Clara.Storage
             {
                 if (anyValuesMatchExpression.Values.Count == 1)
                 {
-                    var token = anyValuesMatchExpression.Values[0];
+                    var token = anyValuesMatchExpression.Values.Single();
 
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
@@ -222,7 +223,7 @@ namespace Clara.Storage
 
         public void Dispose()
         {
-            this.tokenEncoder.Dispose();
+            this.tokenDocuments.Dispose();
         }
     }
 }

@@ -3,7 +3,7 @@ using Clara.Collections;
 
 namespace Clara.Storage
 {
-    internal sealed class TokenEncoder : IDisposable
+    internal sealed class TokenEncoder : ITokenEncoder, IDisposable
     {
         private readonly PooledDictionary<string, int> encoder;
         private readonly PooledDictionary<int, string> decoder;

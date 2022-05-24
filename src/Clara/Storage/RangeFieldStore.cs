@@ -45,7 +45,7 @@ namespace Clara.Storage
             base.Filter(filterExpression, documentSet);
         }
 
-        public override FacetResult? Facet(FacetExpression facetExpression, IEnumerable<FilterExpression> filterExpression, IEnumerable<int> documents)
+        public override FieldFacetResult? Facet(FacetExpression facetExpression, IEnumerable<FilterExpression> filterExpression, IEnumerable<int> documents)
         {
             if (facetExpression is RangeFacetExpression<TValue> rangeFacetExpression)
             {

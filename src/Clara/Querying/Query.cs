@@ -20,7 +20,7 @@ namespace Clara.Querying
             this.index = index;
         }
 
-        public IEnumerable<FilterExpression> Filters
+        public IReadOnlyCollection<FilterExpression> Filters
         {
             get
             {
@@ -28,7 +28,7 @@ namespace Clara.Querying
             }
         }
 
-        public IEnumerable<FacetExpression> Facets
+        public IReadOnlyCollection<FacetExpression> Facets
         {
             get
             {
@@ -36,7 +36,7 @@ namespace Clara.Querying
             }
         }
 
-        public IEnumerable<SortExpression> Sort
+        public IReadOnlyCollection<SortExpression> Sort
         {
             get
             {

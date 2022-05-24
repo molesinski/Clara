@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Clara.Mapping;
 using Clara.Querying;
 
-namespace Clara.Analysis
+namespace Clara.Analysis.Synonyms
 {
     public class SynonymMap : ISynonymMap, ITokenFilter, IMatchExpressionFilter
     {

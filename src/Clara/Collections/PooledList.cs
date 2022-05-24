@@ -13,9 +13,9 @@ namespace Clara.Collections
     internal sealed class PooledList<TItem> : IReadOnlyList<TItem>, IDisposable
         where TItem : notnull
     {
-        private const int MinimumCapacity = 4;
+        private const int MinimumCapacity = 16;
 
-        private static readonly ArrayPool<TItem> EntriesPool = ArrayPool<TItem>.Shared;
+        private static readonly ArrayPool<TItem> EntryPool = ArrayPool<TItem>.Shared;
         private static readonly TItem[] InitialEntries = new TItem[1];
 
         private int count;
@@ -42,7 +42,7 @@ namespace Clara.Collections
             capacity = HashHelpers.PowerOf2(capacity);
 
             this.count = 0;
-            this.entries = EntriesPool.Rent(capacity);
+            this.entries = EntryPool.Rent(capacity);
         }
 
         public PooledList(IEnumerable<TItem> collection)
@@ -71,7 +71,7 @@ namespace Clara.Collections
                     capacity = HashHelpers.PowerOf2(capacity);
 
                     this.count = source.count;
-                    this.entries = EntriesPool.Rent(capacity);
+                    this.entries = EntryPool.Rent(capacity);
 
                     Array.Copy(source.entries, 0, this.entries, 0, source.count);
                 }
@@ -91,7 +91,7 @@ namespace Clara.Collections
                 capacity = HashHelpers.PowerOf2(capacity);
 
                 this.count = 0;
-                this.entries = EntriesPool.Rent(capacity);
+                this.entries = EntryPool.Rent(capacity);
             }
             else
             {
@@ -123,17 +123,19 @@ namespace Clara.Collections
 
         public void Clear()
         {
-            if (this.entries.Length > 1)
+            if (this.count > 0)
             {
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
-                EntriesPool.Return(this.entries, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<TItem>());
+                if (RuntimeHelpers.IsReferenceOrContainsReferences<TItem>())
+                {
+                    Array.Clear(this.entries, 0, this.count);
+                }
 #else
-                EntriesPool.Return(this.entries, clearArray: true);
+                Array.Clear(this.entries, 0, this.count);
 #endif
-            }
 
-            this.count = 0;
-            this.entries = InitialEntries;
+                this.count = 0;
+            }
         }
 
         public void Add(TItem item)
@@ -152,12 +154,42 @@ namespace Clara.Collections
 
         public void Sort(IComparer<TItem> comparer)
         {
+            this.Sort(0, this.count, comparer);
+        }
+
+        public void Sort(int offset, int count, IComparer<TItem> comparer)
+        {
+            if (offset < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(offset));
+            }
+
+            if (offset + count > this.count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count));
+            }
+
             if (comparer is null)
             {
                 throw new ArgumentNullException(nameof(comparer));
             }
 
-            Array.Sort(this.entries, 0, this.count, comparer);
+            Array.Sort(this.entries, offset, count, comparer);
+        }
+
+        public IEnumerable<TItem> Range(int offset, int count)
+        {
+            if (offset < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(offset));
+            }
+
+            if (offset + count > this.count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count));
+            }
+
+            return new RangeEnumerable(this, offset, count);
         }
 
         public Enumerator GetEnumerator()
@@ -177,7 +209,17 @@ namespace Clara.Collections
 
         public void Dispose()
         {
-            this.Clear();
+            if (this.entries.Length > 1)
+            {
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+                EntryPool.Return(this.entries, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<TItem>());
+#else
+                EntryPool.Return(this.entries, clearArray: true);
+#endif
+            }
+
+            this.count = 0;
+            this.entries = InitialEntries;
         }
 
         private TItem[] Resize()
@@ -194,19 +236,19 @@ namespace Clara.Collections
 
             if ((uint)newSize > (uint)int.MaxValue)
             {
-                throw new InvalidOperationException("TODO Arg_HTCapacityOverflow");
+                throw new InvalidOperationException("Capacity overflowed and went negative. Check load factor, capacity and the current size of the table.");
             }
 
-            var newEntries = EntriesPool.Rent(newSize);
+            var newEntries = EntryPool.Rent(newSize);
 
             Array.Copy(this.entries, 0, newEntries, 0, count);
 
             if (this.entries.Length > 1)
             {
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
-                EntriesPool.Return(this.entries, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<TItem>());
+                EntryPool.Return(this.entries, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<TItem>());
 #else
-                EntriesPool.Return(this.entries, clearArray: true);
+                EntryPool.Return(this.entries, clearArray: true);
 #endif
             }
 
@@ -218,6 +260,7 @@ namespace Clara.Collections
         public struct Enumerator : IEnumerator<TItem>
         {
             private readonly TItem[] entries;
+            private readonly int offset;
             private readonly int count;
             private int index;
             private TItem current;
@@ -225,7 +268,17 @@ namespace Clara.Collections
             public Enumerator(PooledList<TItem> source)
             {
                 this.entries = source.entries;
+                this.offset = 0;
                 this.count = source.count;
+                this.index = 0;
+                this.current = default!;
+            }
+
+            public Enumerator(PooledList<TItem> source, int offset, int count)
+            {
+                this.entries = source.entries;
+                this.offset = offset;
+                this.count = count;
                 this.index = 0;
                 this.current = default!;
             }
@@ -250,7 +303,7 @@ namespace Clara.Collections
             {
                 if (this.index < this.count)
                 {
-                    this.current = this.entries[this.index];
+                    this.current = this.entries[this.offset + this.index];
                     this.index++;
 
                     return true;
@@ -270,6 +323,30 @@ namespace Clara.Collections
 
             public void Dispose()
             {
+            }
+        }
+
+        private class RangeEnumerable : IEnumerable<TItem>
+        {
+            private readonly PooledList<TItem> source;
+            private readonly int offset;
+            private readonly int count;
+
+            public RangeEnumerable(PooledList<TItem> source, int offset, int count)
+            {
+                this.source = source;
+                this.offset = offset;
+                this.count = count;
+            }
+
+            public IEnumerator<TItem> GetEnumerator()
+            {
+                return new Enumerator(this.source, this.offset, this.count);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return new Enumerator(this.source, this.offset, this.count);
             }
         }
     }

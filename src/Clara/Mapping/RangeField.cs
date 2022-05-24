@@ -1,5 +1,5 @@
 ﻿using System;
-using Clara.Analysis;
+using Clara.Analysis.Synonyms;
 using Clara.Storage;
 
 namespace Clara.Mapping

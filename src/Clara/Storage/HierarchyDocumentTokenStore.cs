@@ -8,13 +8,13 @@ namespace Clara.Storage
     internal class HierarchyDocumentTokenStore : IDisposable
     {
         private readonly string root;
-        private readonly TokenEncoder tokenEncoder;
+        private readonly ITokenEncoder tokenEncoder;
         private readonly PooledDictionary<int, PooledSet<int>> documentTokens;
         private readonly PooledDictionary<int, PooledSet<int>> parentChildren;
 
         public HierarchyDocumentTokenStore(
             string root,
-            TokenEncoder tokenEncoder,
+            ITokenEncoder tokenEncoder,
             PooledDictionary<int, PooledSet<int>> documentTokens,
             PooledDictionary<int, PooledSet<int>> parentChildren)
         {
@@ -44,9 +44,9 @@ namespace Clara.Storage
             this.parentChildren = parentChildren;
         }
 
-        public FacetResult? Facet(HierarchyFacetExpression hierarchyFacetExpression, IEnumerable<FilterExpression> filterExpressions, IEnumerable<int> documents)
+        public FieldFacetResult? Facet(HierarchyFacetExpression hierarchyFacetExpression, IEnumerable<FilterExpression> filterExpressions, IEnumerable<int> documents)
         {
-            using var selectedValues = new PooledSet<string>();
+            var selectedValues = new HashSet<string>();
 
             foreach (var filterExpression in filterExpressions)
             {
@@ -97,45 +97,66 @@ namespace Clara.Storage
                 }
             }
 
-            var values = new List<HierarchyValue>();
+            var values = new List<HierarchyFacetValue>(capacity: selectedValues.Count);
+            var childrenValues = new PooledList<HierarchyFacetValue>();
 
             foreach (var selectedToken in selectedValues)
             {
                 if (this.tokenEncoder.TryEncode(selectedToken, out var parentId))
                 {
-                    var childrenResult = new List<HierarchyValue>();
+                    var parent = this.tokenEncoder.Decode(parentId);
+                    tokenCounts.TryGetValue(parentId, out var parentCount);
 
                     if (this.parentChildren.TryGetValue(parentId, out var children))
                     {
+                        var offset = childrenValues.Count;
+                        var count = 0;
+
                         foreach (var childId in children)
                         {
                             if (tokenCounts.TryGetValue(childId, out var childCount))
                             {
                                 var child = this.tokenEncoder.Decode(childId);
 
-                                childrenResult.Add(new HierarchyValue(child, childCount));
+                                childrenValues.Add(new HierarchyFacetValue(child, childCount));
+                                count++;
                             }
                         }
 
-                        childrenResult.Sort(hierarchyFacetExpression.Comparer);
+                        childrenValues.Sort(offset, count, HierarchyFacetValueComparer.Instance);
+
+                        values.Add(new HierarchyFacetValue(parent, parentCount, childrenValues.Range(offset, count)));
                     }
-
-                    var parent = this.tokenEncoder.Decode(parentId);
-                    tokenCounts.TryGetValue(parentId, out var parentCount);
-
-                    values.Add(new HierarchyValue(parent, parentCount, childrenResult));
+                    else
+                    {
+                        values.Add(new HierarchyFacetValue(parent, parentCount));
+                    }
                 }
             }
 
-            values.Sort(hierarchyFacetExpression.Comparer);
+            values.Sort(HierarchyFacetValueComparer.Instance);
 
-            return hierarchyFacetExpression.CreateResult(values);
+            return new FieldFacetResult(hierarchyFacetExpression.CreateResult(values), new[] { childrenValues });
         }
 
         public void Dispose()
         {
             this.documentTokens.Dispose();
             this.parentChildren.Dispose();
+        }
+
+        private sealed class HierarchyFacetValueComparer : IComparer<HierarchyFacetValue>
+        {
+            private HierarchyFacetValueComparer()
+            {
+            }
+
+            public static IComparer<HierarchyFacetValue> Instance { get; } = new HierarchyFacetValueComparer();
+
+            public int Compare(HierarchyFacetValue x, HierarchyFacetValue y)
+            {
+                return y.Count.CompareTo(x.Count);
+            }
         }
     }
 }

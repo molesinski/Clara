@@ -5,7 +5,7 @@ using Lucene.Net.Analysis.TokenAttributes;
 
 namespace Clara.Analysis
 {
-    public sealed class EnumerableTokenStream : TokenStream
+    internal sealed class EnumerableTokenStream : TokenStream
     {
         private readonly ICharTermAttribute charTermAttribute;
         private readonly IEnumerable<string> tokens;

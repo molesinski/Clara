@@ -4,14 +4,14 @@ using Clara.Mapping;
 
 namespace Clara.Querying
 {
-    public sealed class HierarchyFacetExpression : TokenFacetExpression<HierarchyValue>
+    public sealed class HierarchyFacetExpression : TokenFacetExpression<HierarchyFacetValue>
     {
-        public HierarchyFacetExpression(HierarchyField field, IComparer<HierarchyValue>? comparer = null)
-            : base(field, comparer ?? HierarchyValueComparer.Default)
+        public HierarchyFacetExpression(HierarchyField field)
+            : base(field)
         {
         }
 
-        public override FacetResult CreateResult(IEnumerable<HierarchyValue> values)
+        public override FacetResult CreateResult(IEnumerable<HierarchyFacetValue> values)
         {
             if (values is null)
             {

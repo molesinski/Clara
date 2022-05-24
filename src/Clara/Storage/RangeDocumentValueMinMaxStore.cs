@@ -27,7 +27,7 @@ namespace Clara.Storage
             this.documentValueMinMax = documentValueMinMax;
         }
 
-        public FacetResult? Facet(RangeFacetExpression<TValue> rangeFacetExpression, IEnumerable<int> documents)
+        public FieldFacetResult? Facet(RangeFacetExpression<TValue> rangeFacetExpression, IEnumerable<int> documents)
         {
             var hasMinMax = false;
             var min = this.maxValue;
@@ -53,7 +53,7 @@ namespace Clara.Storage
 
             if (hasMinMax)
             {
-                return rangeFacetExpression.CreateResult(min, max);
+                return new FieldFacetResult(rangeFacetExpression.CreateResult(min, max));
             }
 
             return null;
