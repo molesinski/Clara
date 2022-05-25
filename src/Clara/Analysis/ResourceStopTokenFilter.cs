@@ -30,30 +30,28 @@ namespace Clara.Analysis
                 throw new ArgumentNullException(nameof(encoding));
             }
 
-            using (var stream = assembly.GetManifestResourceStream(name))
+            using var stream = assembly.GetManifestResourceStream(name);
+
+            if (stream is null)
             {
-                if (stream is null)
-                {
-                    throw new InvalidOperationException("Unable to find stopwords resource file in assembly.");
-                }
-
-                var stopwords = new List<string>();
-
-                using (var reader = new StreamReader(stream, encoding))
-                {
-                    while (reader.ReadLine() is string line)
-                    {
-                        if (string.IsNullOrWhiteSpace(line))
-                        {
-                            continue;
-                        }
-
-                        stopwords.Add(line.Trim());
-                    }
-                }
-
-                return stopwords;
+                throw new InvalidOperationException("Unable to find stopwords resource file in assembly.");
             }
+
+            using var reader = new StreamReader(stream, encoding);
+
+            var stopwords = new List<string>();
+
+            while (reader.ReadLine() is string line)
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+
+                stopwords.Add(line.Trim());
+            }
+
+            return stopwords;
         }
     }
 }
