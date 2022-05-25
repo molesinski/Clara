@@ -18,6 +18,8 @@ namespace Clara.Mapping
 
         public bool IsSortable { get; }
 
-        internal abstract FieldStoreBuilder CreateFieldStoreBuilder(TokenEncoderStore tokenEncoderStore, ISynonymMap? synonymMap);
+        internal abstract FieldStoreBuilder CreateFieldStoreBuilder(
+            TokenEncoderStore tokenEncoderStore,
+            ISynonymMap? synonymMap);
     }
 }

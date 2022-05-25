@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using Clara.Analysis.Synonyms;
 using Clara.Storage;
 
 namespace Clara.Mapping
 {
-    public class RangeField<TValue> : Field
+    public abstract class RangeField<TValue> : Field
         where TValue : struct, IComparable<TValue>
     {
-        public RangeField(TValue minValue, TValue maxValue, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
+        protected internal RangeField(TValue minValue, TValue maxValue, bool isFilterable, bool isFacetable, bool isSortable)
             : base(
                 isFilterable: isFilterable,
                 isFacetable: isFacetable,
@@ -25,10 +26,34 @@ namespace Clara.Mapping
         public TValue MinValue { get; }
 
         public TValue MaxValue { get; }
+    }
 
-        internal override FieldStoreBuilder CreateFieldStoreBuilder(TokenEncoderStore tokenEncoderStore, ISynonymMap? synonymMap)
+    public class RangeField<TSource, TValue> : RangeField<TValue>
+        where TValue : struct, IComparable<TValue>
+    {
+        public RangeField(Func<TSource, IEnumerable<TValue>?> valueMapper, TValue minValue, TValue maxValue, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
+            : base(
+                minValue: minValue,
+                maxValue: maxValue,
+                isFilterable: isFilterable,
+                isFacetable: isFacetable,
+                isSortable: isSortable)
         {
-            return new RangeFieldStoreBuilder<TValue>(this);
+            if (valueMapper is null)
+            {
+                throw new ArgumentNullException(nameof(valueMapper));
+            }
+
+            this.ValueMapper = valueMapper;
+        }
+
+        public Func<TSource, IEnumerable<TValue>?> ValueMapper { get; }
+
+        internal override FieldStoreBuilder CreateFieldStoreBuilder(
+            TokenEncoderStore tokenEncoderStore,
+            ISynonymMap? synonymMap)
+        {
+            return new RangeFieldStoreBuilder<TSource, TValue>(this);
         }
     }
 }

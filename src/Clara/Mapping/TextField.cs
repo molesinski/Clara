@@ -5,9 +5,9 @@ using Clara.Storage;
 
 namespace Clara.Mapping
 {
-    public sealed class TextField : TokenField
+    public abstract class TextField : TokenField
     {
-        public TextField(ITokenizer tokenizer)
+        protected internal TextField(ITokenizer tokenizer)
             : base(
                 isFilterable: true,
                 isFacetable: false,
@@ -22,10 +22,28 @@ namespace Clara.Mapping
         }
 
         public ITokenizer Tokenizer { get; }
+    }
 
-        internal override FieldStoreBuilder CreateFieldStoreBuilder(TokenEncoderStore tokenEncoderStore, ISynonymMap? synonymMap)
+    public sealed class TextField<TSource> : TextField
+    {
+        public TextField(Func<TSource, string?> valueMapper, ITokenizer tokenizer)
+            : base(tokenizer)
         {
-            return new TextFieldStoreBuilder(this, tokenEncoderStore, synonymMap);
+            if (valueMapper is null)
+            {
+                throw new ArgumentNullException(nameof(valueMapper));
+            }
+
+            this.ValueMapper = valueMapper;
+        }
+
+        public Func<TSource, string?> ValueMapper { get; }
+
+        internal override FieldStoreBuilder CreateFieldStoreBuilder(
+            TokenEncoderStore tokenEncoderStore,
+            ISynonymMap? synonymMap)
+        {
+            return new TextFieldStoreBuilder<TSource>(this, tokenEncoderStore, synonymMap);
         }
     }
 }

@@ -1,11 +1,20 @@
-﻿using Clara.Mapping;
-
-namespace Clara.Storage
+﻿namespace Clara.Storage
 {
     internal abstract class FieldStoreBuilder
     {
-        public abstract void Index(int documentId, FieldValue fieldValue);
+        protected internal FieldStoreBuilder()
+        {
+        }
 
         public abstract FieldStore Build();
+    }
+
+    internal abstract class FieldStoreBuilder<TSource> : FieldStoreBuilder
+    {
+        protected internal FieldStoreBuilder()
+        {
+        }
+
+        public abstract void Index(int documentId, TSource item);
     }
 }

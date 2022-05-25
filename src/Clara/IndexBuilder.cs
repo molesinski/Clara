@@ -15,28 +15,28 @@ namespace Clara
 
         public static Index<TDocument> Build<TSource, TDocument>(
             IEnumerable<TSource> source,
-            IIndexMapper<TSource, TDocument> mapper)
+            IIndexMapper<TSource, TDocument> indexMapper)
         {
-            return Build(source, mapper, Array.Empty<SynonymMap>());
+            return Build(source, indexMapper, Array.Empty<SynonymMap>());
         }
 
         public static Index<TDocument> Build<TSource, TDocument>(
             IEnumerable<TSource> source,
-            IIndexMapper<TSource, TDocument> mapper,
+            IIndexMapper<TSource, TDocument> indexMapper,
             IEnumerable<ISynonymMap> synonymMaps)
         {
-            return Build(source, mapper, synonymMaps, new InstanceTokenEncoderStore());
+            return Build(source, indexMapper, synonymMaps, new InstanceTokenEncoderStore());
         }
 
         public static Index<TDocument> Build<TSource, TDocument>(
             IEnumerable<TSource> source,
-            IIndexMapper<TSource, TDocument> mapper,
+            IIndexMapper<TSource, TDocument> indexMapper,
             IEnumerable<ISynonymMap> synonymMaps,
             TokenEncoderStore tokenEncoderStore)
         {
             lock (tokenEncoderStore.SyncRoot)
             {
-                var builder = new IndexBuilder<TSource, TDocument>(mapper, synonymMaps, tokenEncoderStore);
+                var builder = new IndexBuilder<TSource, TDocument>(indexMapper, synonymMaps, tokenEncoderStore);
 
                 foreach (var item in source)
                 {
@@ -50,32 +50,32 @@ namespace Clara
 
     public sealed class IndexBuilder<TSource, TDocument> : IndexBuilder
     {
-        private readonly IIndexMapper<TSource, TDocument> mapper;
+        private readonly IIndexMapper<TSource, TDocument> indexMapper;
         private readonly PooledDictionary<int, TDocument> documents;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
-        private readonly Dictionary<Field, FieldStoreBuilder> fieldBuilders;
+        private readonly Dictionary<Field, FieldStoreBuilder<TSource>> fieldBuilders;
 
         public IndexBuilder(
-            IIndexMapper<TSource, TDocument> mapper)
-            : this(mapper, Array.Empty<ISynonymMap>())
+            IIndexMapper<TSource, TDocument> indexMapper)
+            : this(indexMapper, Array.Empty<ISynonymMap>())
         {
         }
 
         public IndexBuilder(
-            IIndexMapper<TSource, TDocument> mapper,
+            IIndexMapper<TSource, TDocument> indexMapper,
             IEnumerable<ISynonymMap> synonymMaps)
-            : this(mapper, synonymMaps, new InstanceTokenEncoderStore())
+            : this(indexMapper, synonymMaps, new InstanceTokenEncoderStore())
         {
         }
 
         public IndexBuilder(
-            IIndexMapper<TSource, TDocument> mapper,
+            IIndexMapper<TSource, TDocument> indexMapper,
             IEnumerable<ISynonymMap> synonymMaps,
             TokenEncoderStore tokenEncoderStore)
         {
-            if (mapper is null)
+            if (indexMapper is null)
             {
-                throw new ArgumentNullException(nameof(mapper));
+                throw new ArgumentNullException(nameof(indexMapper));
             }
 
             if (synonymMaps is null)
@@ -88,15 +88,15 @@ namespace Clara
                 throw new ArgumentNullException(nameof(tokenEncoderStore));
             }
 
-            this.mapper = mapper;
+            this.indexMapper = indexMapper;
             this.documents = new PooledDictionary<int, TDocument>();
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder();
-            this.fieldBuilders = new Dictionary<Field, FieldStoreBuilder>();
+            this.fieldBuilders = new Dictionary<Field, FieldStoreBuilder<TSource>>();
 
             var fields = new HashSet<Field>();
             var fieldSynonymMaps = new Dictionary<Field, ISynonymMap>();
 
-            foreach (var field in mapper.GetFields())
+            foreach (var field in indexMapper.GetFields())
             {
                 if (fields.Contains(field))
                 {
@@ -125,7 +125,12 @@ namespace Clara
             {
                 fieldSynonymMaps.TryGetValue(field, out var synonymMap);
 
-                this.fieldBuilders.Add(field, field.CreateFieldStoreBuilder(tokenEncoderStore, synonymMap));
+                if (field.CreateFieldStoreBuilder(tokenEncoderStore, synonymMap) is not FieldStoreBuilder<TSource> fieldBuilder)
+                {
+                    throw new InvalidOperationException("One of the field value mappers is based on different source type than current index mapper.");
+                }
+
+                this.fieldBuilders.Add(field, fieldBuilder);
             }
         }
 
@@ -136,7 +141,7 @@ namespace Clara
                 throw new ArgumentNullException(nameof(item));
             }
 
-            var documentKey = this.mapper.GetDocumentKey(item);
+            var documentKey = this.indexMapper.GetDocumentKey(item);
             var documentId = this.tokenEncoderBuilder.Encode(documentKey);
 
             ref var document = ref this.documents.GetValueRefOrAddDefault(documentId, out var exists);
@@ -146,18 +151,13 @@ namespace Clara
                 throw new InvalidOperationException("Attempt to index document with duplicate key.");
             }
 
-            document = this.mapper.GetDocument(item);
+            document = this.indexMapper.GetDocument(item);
 
-            foreach (var fieldValue in this.mapper.GetFieldValues(item))
+            foreach (var pair in this.fieldBuilders)
             {
-                var field = fieldValue.Field;
+                var fieldBuilder = pair.Value;
 
-                if (!this.fieldBuilders.TryGetValue(field, out var fieldBuilder))
-                {
-                    throw new InvalidOperationException("Field value references field not belonging to current index mapper fields.");
-                }
-
-                fieldBuilder.Index(documentId, fieldValue);
+                fieldBuilder.Index(documentId, item);
             }
         }
 

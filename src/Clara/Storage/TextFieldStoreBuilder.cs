@@ -6,14 +6,15 @@ using Clara.Mapping;
 
 namespace Clara.Storage
 {
-    internal sealed class TextFieldStoreBuilder : FieldStoreBuilder
+    internal sealed class TextFieldStoreBuilder<TSource> : FieldStoreBuilder<TSource>
     {
+        private readonly TextField<TSource> field;
         private readonly ITokenizer tokenizer;
         private readonly ISynonymMap synonymMap;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
         private readonly PooledDictionary<int, PooledSet<int>> tokenDocuments;
 
-        public TextFieldStoreBuilder(TextField field, TokenEncoderStore tokenEncoderStore, ISynonymMap? synonymMap)
+        public TextFieldStoreBuilder(TextField<TSource> field, TokenEncoderStore tokenEncoderStore, ISynonymMap? synonymMap)
         {
             if (field is null)
             {
@@ -25,20 +26,23 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(tokenEncoderStore));
             }
 
+            this.field = field;
             this.tokenizer = field.Tokenizer;
             this.synonymMap = synonymMap ?? new SynonymMap(field, Array.Empty<Synonym>());
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
             this.tokenDocuments = new();
         }
 
-        public override void Index(int documentId, FieldValue fieldValue)
+        public override void Index(int documentId, TSource item)
         {
-            if (fieldValue is not TextFieldValue textFieldValue)
+            var text = this.field.ValueMapper(item);
+
+            if (text is null)
             {
-                throw new InvalidOperationException("Indexing of non text field values is not supported.");
+                return;
             }
 
-            foreach (var token in this.synonymMap.Filter(this.tokenizer.GetTokens(textFieldValue.Text)))
+            foreach (var token in this.synonymMap.Filter(this.tokenizer.GetTokens(text)))
             {
                 var tokenId = this.tokenEncoderBuilder.Encode(token);
 

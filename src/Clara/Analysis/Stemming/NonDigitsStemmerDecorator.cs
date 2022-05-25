@@ -2,11 +2,11 @@
 
 namespace Clara.Analysis.Stemming
 {
-    public class DigitsIgnoringStemmerDecorator : IStemmer
+    public class NonDigitsStemmerDecorator : IStemmer
     {
         private readonly IStemmer stemmer;
 
-        public DigitsIgnoringStemmerDecorator(IStemmer stemmer)
+        public NonDigitsStemmerDecorator(IStemmer stemmer)
         {
             if (stemmer is null)
             {

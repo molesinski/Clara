@@ -9,7 +9,5 @@ namespace Clara.Mapping
         string GetDocumentKey(TSource item);
 
         TDocument GetDocument(TSource item);
-
-        IEnumerable<FieldValue> GetFieldValues(TSource item);
     }
 }

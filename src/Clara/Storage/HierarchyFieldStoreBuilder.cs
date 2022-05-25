@@ -6,8 +6,9 @@ using Clara.Mapping;
 
 namespace Clara.Storage
 {
-    internal sealed class HierarchyFieldStoreBuilder : FieldStoreBuilder
+    internal sealed class HierarchyFieldStoreBuilder<TSource> : FieldStoreBuilder<TSource>
     {
+        private readonly HierarchyField<TSource> field;
         private readonly char separator;
         private readonly string root;
         private readonly IEnumerable<string> rootEnumerable;
@@ -16,7 +17,7 @@ namespace Clara.Storage
         private readonly PooledDictionary<int, PooledSet<int>>? tokenDocuments;
         private readonly PooledDictionary<int, PooledSet<int>>? documentTokens;
 
-        public HierarchyFieldStoreBuilder(HierarchyField field, TokenEncoderStore tokenEncoderStore)
+        public HierarchyFieldStoreBuilder(HierarchyField<TSource> field, TokenEncoderStore tokenEncoderStore)
         {
             if (field is null)
             {
@@ -28,6 +29,7 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(tokenEncoderStore));
             }
 
+            this.field = field;
             this.separator = field.Separator;
             this.root = field.Root;
             this.rootEnumerable = new[] { field.Root };
@@ -45,17 +47,24 @@ namespace Clara.Storage
             }
         }
 
-        public override void Index(int documentId, FieldValue fieldValue)
+        public override void Index(int documentId, TSource item)
         {
-            if (fieldValue is not HierarchyFieldValue hierarchyFieldValue)
+            var values = this.field.ValueMapper(item);
+
+            if (values is null)
             {
-                throw new InvalidOperationException("Indexing of non hierarchy field values is not supported.");
+                return;
             }
 
             var tokens = default(PooledSet<int>);
 
-            foreach (var hierarchyEncodedToken in hierarchyFieldValue.Keywords)
+            foreach (var hierarchyEncodedToken in values)
             {
+                if (hierarchyEncodedToken is null)
+                {
+                    continue;
+                }
+
                 var decodedTokens = hierarchyEncodedToken.Split(this.separator);
                 var parentId = this.tokenEncoderBuilder.Encode(this.root);
 

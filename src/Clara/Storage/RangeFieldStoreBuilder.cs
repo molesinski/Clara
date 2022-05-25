@@ -4,21 +4,23 @@ using Clara.Mapping;
 
 namespace Clara.Storage
 {
-    internal sealed class RangeFieldStoreBuilder<TValue> : FieldStoreBuilder
+    internal sealed class RangeFieldStoreBuilder<TSource, TValue> : FieldStoreBuilder<TSource>
         where TValue : struct, IComparable<TValue>
     {
+        private readonly RangeField<TSource, TValue> field;
         private readonly TValue minValue;
         private readonly TValue maxValue;
         private readonly PooledList<DocumentValue<TValue>>? sortedDocumentValues;
         private readonly PooledDictionary<int, MinMax<TValue>>? documentValueMinMax;
 
-        public RangeFieldStoreBuilder(RangeField<TValue> field)
+        public RangeFieldStoreBuilder(RangeField<TSource, TValue> field)
         {
             if (field is null)
             {
                 throw new ArgumentNullException(nameof(field));
             }
 
+            this.field = field;
             this.minValue = field.MinValue;
             this.maxValue = field.MaxValue;
 
@@ -33,45 +35,48 @@ namespace Clara.Storage
             }
         }
 
-        public override void Index(int documentId, FieldValue fieldValue)
+        public override void Index(int documentId, TSource item)
         {
-            if (fieldValue is RangeFieldValue<TValue> rangeFieldValue)
+            var values = this.field.ValueMapper(item);
+
+            if (values is null)
             {
-                if (rangeFieldValue.Values.Length > 0)
+                return;
+            }
+
+            var hadValues = false;
+            var min = this.maxValue;
+            var max = this.minValue;
+
+            foreach (var value in values)
+            {
+                hadValues = true;
+
+                if (this.sortedDocumentValues is not null)
                 {
-                    if (this.sortedDocumentValues is not null)
+                    this.sortedDocumentValues.Add(new DocumentValue<TValue>(documentId, value));
+                }
+
+                if (this.documentValueMinMax is not null)
+                {
+                    if (value.CompareTo(min) < 0)
                     {
-                        foreach (var value in rangeFieldValue.Values)
-                        {
-                            this.sortedDocumentValues.Add(new DocumentValue<TValue>(documentId, value));
-                        }
+                        min = value;
                     }
 
-                    if (this.documentValueMinMax is not null)
+                    if (value.CompareTo(max) > 0)
                     {
-                        var min = this.maxValue;
-                        var max = this.minValue;
-
-                        foreach (var value in rangeFieldValue.Values)
-                        {
-                            if (value.CompareTo(min) < 0)
-                            {
-                                min = value;
-                            }
-
-                            if (value.CompareTo(max) > 0)
-                            {
-                                max = value;
-                            }
-                        }
-
-                        this.documentValueMinMax.Add(documentId, new MinMax<TValue>(min, max));
+                        max = value;
                     }
                 }
             }
-            else
+
+            if (hadValues)
             {
-                throw new InvalidOperationException("Indexing of non range field values is not supported.");
+                if (this.documentValueMinMax is not null)
+                {
+                    this.documentValueMinMax.Add(documentId, new MinMax<TValue>(min, max));
+                }
             }
         }
 

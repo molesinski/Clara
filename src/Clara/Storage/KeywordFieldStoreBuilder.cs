@@ -4,13 +4,14 @@ using Clara.Mapping;
 
 namespace Clara.Storage
 {
-    internal sealed class KeywordFieldStoreBuilder : FieldStoreBuilder
+    internal sealed class KeywordFieldStoreBuilder<TSource> : FieldStoreBuilder<TSource>
     {
+        private readonly KeywordField<TSource> field;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
         private readonly PooledDictionary<int, PooledSet<int>>? tokenDocuments;
         private readonly PooledDictionary<int, PooledSet<int>>? documentTokens;
 
-        public KeywordFieldStoreBuilder(KeywordField field, TokenEncoderStore tokenEncoderStore)
+        public KeywordFieldStoreBuilder(KeywordField<TSource> field, TokenEncoderStore tokenEncoderStore)
         {
             if (field is null)
             {
@@ -22,6 +23,7 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(tokenEncoderStore));
             }
 
+            this.field = field;
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
 
             if (field.IsFilterable)
@@ -35,17 +37,24 @@ namespace Clara.Storage
             }
         }
 
-        public override void Index(int documentId, FieldValue fieldValue)
+        public override void Index(int documentId, TSource item)
         {
-            if (fieldValue is not KeywordFieldValue tokenFieldValue)
+            var values = this.field.ValueMapper(item);
+
+            if (values is null)
             {
-                throw new InvalidOperationException("Indexing of non token field values is not supported.");
+                return;
             }
 
             var tokens = default(PooledSet<int>);
 
-            foreach (var token in tokenFieldValue.Keywords)
+            foreach (var token in values)
             {
+                if (token is null)
+                {
+                    continue;
+                }
+
                 var tokenId = this.tokenEncoderBuilder.Encode(token);
 
                 if (this.tokenDocuments is not null)
