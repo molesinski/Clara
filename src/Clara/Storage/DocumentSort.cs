@@ -24,7 +24,7 @@ namespace Clara.Storage
         {
             get
             {
-                return this.documentSet.Count;
+                return this.documentSet.Documents.Count;
             }
         }
 

@@ -98,7 +98,7 @@ namespace Clara.Storage
             }
 
             var values = new List<HierarchyFacetValue>(capacity: selectedValues.Count);
-            var childrenValues = new PooledList<HierarchyFacetValue>();
+            var childrenValues = new PooledList<HierarchyFacetValue>(capacity: filteredTokens.Count);
 
             foreach (var selectedToken in selectedValues)
             {

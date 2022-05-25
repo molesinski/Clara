@@ -8,5 +8,13 @@ namespace Clara.Querying
             : base(field, matchExpression)
         {
         }
+
+        internal override bool IsBranchingRequiredForFaceting
+        {
+            get
+            {
+                return false;
+            }
+        }
     }
 }

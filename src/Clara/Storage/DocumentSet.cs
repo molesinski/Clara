@@ -9,8 +9,8 @@ namespace Clara.Storage
     {
         private static readonly PooledSet<int> Empty = new();
 
+        private readonly Dictionary<Field, BranchSet> branches = new();
         private readonly IReadOnlyCollection<int> allDocuments;
-        private readonly Dictionary<Field, PooledSet<int>> facetDocuments = new();
         private PooledSet<int>? documents;
 
         public DocumentSet(IReadOnlyCollection<int> allDocuments)
@@ -35,14 +35,6 @@ namespace Clara.Storage
             this.documents = documents;
         }
 
-        public int Count
-        {
-            get
-            {
-                return (this.documents ?? this.allDocuments).Count;
-            }
-        }
-
         public IReadOnlyCollection<int> Documents
         {
             get
@@ -53,9 +45,9 @@ namespace Clara.Storage
 
         public IReadOnlyCollection<int> GetMatches(Field field)
         {
-            if (this.facetDocuments.TryGetValue(field, out var facetDocuments))
+            if (this.branches.TryGetValue(field, out var facetDocuments))
             {
-                return facetDocuments;
+                return facetDocuments.Documents;
             }
 
             return this.documents ?? this.allDocuments;
@@ -69,20 +61,30 @@ namespace Clara.Storage
             }
             else
             {
-                this.documents.Clear();
-                this.facetDocuments.Clear();
+                if (this.documents != null)
+                {
+                    this.documents.Dispose();
+                    this.documents = Empty;
+                }
             }
+
+            foreach (var pair in this.branches)
+            {
+                pair.Value.Dispose();
+            }
+
+            this.branches.Clear();
         }
 
         public void Branch(Field field)
         {
             if (this.documents is null)
             {
-                this.facetDocuments.Add(field, new PooledSet<int>(this.allDocuments));
+                this.branches.Add(field, new BranchSet(this.allDocuments));
             }
             else
             {
-                this.facetDocuments.Add(field, new PooledSet<int>(this.documents));
+                this.branches.Add(field, new BranchSet(new PooledSet<int>(this.documents)));
             }
         }
 
@@ -96,7 +98,7 @@ namespace Clara.Storage
             {
                 this.documents.IntersectWith(documents);
 
-                foreach (var pair in this.facetDocuments)
+                foreach (var pair in this.branches)
                 {
                     if (pair.Key != field)
                     {
@@ -118,7 +120,7 @@ namespace Clara.Storage
             {
                 this.documents.IntersectWith(documents);
 
-                foreach (var pair in this.facetDocuments)
+                foreach (var pair in this.branches)
                 {
                     if (pair.Key != field)
                     {
@@ -133,31 +135,113 @@ namespace Clara.Storage
             if (this.documents is null)
             {
                 this.documents = new PooledSet<int>(this.allDocuments);
-
-                this.documents.ExceptWith(documents);
             }
-            else
-            {
-                this.documents.ExceptWith(documents);
 
-                foreach (var pair in this.facetDocuments)
-                {
-                    pair.Value.ExceptWith(documents);
-                }
+            this.documents.ExceptWith(documents);
+
+            foreach (var pair in this.branches)
+            {
+                pair.Value.ExceptWith(documents);
             }
         }
 
         public void Dispose()
         {
-            foreach (var pair in this.facetDocuments)
+            if (this.documents != null)
+            {
+                this.documents.Dispose();
+                this.documents = null;
+            }
+
+            foreach (var pair in this.branches)
             {
                 pair.Value.Dispose();
             }
 
-            this.documents?.Dispose();
+            this.branches.Clear();
+        }
 
-            this.facetDocuments.Clear();
-            this.documents = null;
+        private class BranchSet : IDisposable
+        {
+            private readonly IReadOnlyCollection<int> allDocuments;
+            private PooledSet<int>? documents;
+
+            public BranchSet(IReadOnlyCollection<int> allDocuments)
+            {
+                if (allDocuments is null)
+                {
+                    throw new ArgumentNullException(nameof(allDocuments));
+                }
+
+                this.allDocuments = allDocuments;
+                this.documents = null;
+            }
+
+            public BranchSet(PooledSet<int> documents)
+            {
+                if (documents is null)
+                {
+                    throw new ArgumentNullException(nameof(documents));
+                }
+
+                this.allDocuments = Empty;
+                this.documents = documents;
+            }
+
+            public IReadOnlyCollection<int> Documents
+            {
+                get
+                {
+                    return this.documents ?? this.allDocuments;
+                }
+            }
+
+            public void Clear()
+            {
+                if (this.documents is null)
+                {
+                    this.documents = Empty;
+                }
+                else
+                {
+                    if (this.documents != null)
+                    {
+                        this.documents.Dispose();
+                        this.documents = Empty;
+                    }
+                }
+            }
+
+            public void IntersectWith(IEnumerable<int> documents)
+            {
+                if (this.documents is null)
+                {
+                    this.documents = new PooledSet<int>(documents);
+                }
+                else
+                {
+                    this.documents.IntersectWith(documents);
+                }
+            }
+
+            public void ExceptWith(IEnumerable<int> documents)
+            {
+                if (this.documents is null)
+                {
+                    this.documents = new PooledSet<int>(this.allDocuments);
+                }
+
+                this.documents.ExceptWith(documents);
+            }
+
+            public void Dispose()
+            {
+                if (this.documents != null)
+                {
+                    this.documents.Dispose();
+                    this.documents = null;
+                }
+            }
         }
     }
 }

@@ -47,15 +47,12 @@ namespace Clara
             this.tokenEncoder = tokenEncoder;
             this.documents = documents;
             this.fieldStores = fieldStores;
-
-            var allDocuments = new PooledSet<int>(capacity: documents.Count);
+            this.allDocuments = new PooledSet<int>(capacity: documents.Count);
 
             foreach (var pair in documents)
             {
-                allDocuments.Add(pair.Key);
+                this.allDocuments.Add(pair.Key);
             }
-
-            this.allDocuments = allDocuments;
         }
 
         public QueryResult<TDocument> Query(Query query)
@@ -108,7 +105,7 @@ namespace Clara
                 .OrderBy(o => o.IsBranchingRequiredForFaceting && facetFields.Contains(o.Field) ? 1 : 0)
                 .ThenBy(o => this.fieldStores.TryGetValue(o.Field, out var store) ? store.FilterOrder : double.MinValue))
             {
-                if (documentSet.Count == 0)
+                if (documentSet.Documents.Count == 0)
                 {
                     break;
                 }
