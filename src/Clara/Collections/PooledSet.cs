@@ -22,6 +22,7 @@ namespace Clara.Collections
 
         private int size;
         private int count;
+        private int lastIndex;
         private int freeList;
         private int[] buckets;
         private Entry[] entries;
@@ -37,6 +38,7 @@ namespace Clara.Collections
         {
             this.size = 1;
             this.count = 0;
+            this.lastIndex = 0;
             this.freeList = -1;
             this.buckets = HashHelpers.SizeOneIntArray;
             this.entries = InitialEntries;
@@ -56,12 +58,12 @@ namespace Clara.Collections
 
             this.size = HashHelpers.PowerOf2(capacity);
             this.count = 0;
+            this.lastIndex = 0;
             this.freeList = -1;
             this.buckets = IntPool.Rent(this.size);
             this.entries = EntryPool.Rent(this.size);
 
             Array.Clear(this.buckets, 0, this.size);
-            Array.Clear(this.entries, 0, this.size);
         }
 
         public PooledSet(IEnumerable<TItem> collection)
@@ -77,6 +79,7 @@ namespace Clara.Collections
                 {
                     this.size = 1;
                     this.count = 0;
+                    this.lastIndex = 0;
                     this.freeList = -1;
                     this.buckets = HashHelpers.SizeOneIntArray;
                     this.entries = InitialEntries;
@@ -85,12 +88,13 @@ namespace Clara.Collections
                 {
                     this.size = source.size;
                     this.count = source.count;
+                    this.lastIndex = source.lastIndex;
                     this.freeList = source.freeList;
                     this.buckets = IntPool.Rent(this.size);
                     this.entries = EntryPool.Rent(this.size);
 
                     Array.Copy(source.buckets, 0, this.buckets, 0, this.size);
-                    Array.Copy(source.entries, 0, this.entries, 0, this.size);
+                    Array.Copy(source.entries, 0, this.entries, 0, this.lastIndex);
                 }
 
                 return;
@@ -107,17 +111,18 @@ namespace Clara.Collections
 
                 this.size = HashHelpers.PowerOf2(capacity);
                 this.count = 0;
+                this.lastIndex = 0;
                 this.freeList = -1;
                 this.buckets = IntPool.Rent(this.size);
                 this.entries = EntryPool.Rent(this.size);
 
                 Array.Clear(this.buckets, 0, this.size);
-                Array.Clear(this.entries, 0, this.size);
             }
             else
             {
                 this.size = 1;
                 this.count = 0;
+                this.lastIndex = 0;
                 this.freeList = -1;
                 this.buckets = HashHelpers.SizeOneIntArray;
                 this.entries = InitialEntries;
@@ -142,9 +147,18 @@ namespace Clara.Collections
             if (this.count > 0)
             {
                 Array.Clear(this.buckets, 0, this.size);
-                Array.Clear(this.entries, 0, this.size);
+
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+                if (RuntimeHelpers.IsReferenceOrContainsReferences<Entry>())
+                {
+                    Array.Clear(this.entries, 0, this.lastIndex);
+                }
+#else
+                Array.Clear(this.entries, 0, this.lastIndex);
+#endif
 
                 this.count = 0;
+                this.lastIndex = 0;
                 this.freeList = -1;
             }
         }
@@ -165,7 +179,7 @@ namespace Clara.Collections
             var collisionCount = 0;
             var bucketIndex = item.GetHashCode() & (this.size - 1);
 
-            for (var i = this.buckets[bucketIndex] - 1; (uint)i < (uint)this.size; i = entries[i].Next)
+            for (var i = this.buckets[bucketIndex] - 1; i >= 0; i = entries[i].Next)
             {
                 if (item.Equals(entries[i].Item))
                 {
@@ -219,6 +233,13 @@ namespace Clara.Collections
                     this.freeList = entryIndex;
 
                     this.count--;
+
+                    if (this.count == 0)
+                    {
+                        this.lastIndex = 0;
+                        this.freeList = -1;
+                    }
+
                     return true;
                 }
 
@@ -291,7 +312,7 @@ namespace Clara.Collections
             }
             else
             {
-                var lastIndex = this.FindLastIndex();
+                var lastIndex = this.lastIndex;
                 var intArrayLength = BitHelper.ToIntArrayLength(lastIndex);
 
                 if (intArrayLength <= StackAllocThreshold)
@@ -352,12 +373,13 @@ namespace Clara.Collections
                 {
                     this.size = source.size;
                     this.count = source.count;
+                    this.lastIndex = source.lastIndex;
                     this.freeList = source.freeList;
                     this.buckets = IntPool.Rent(this.size);
                     this.entries = EntryPool.Rent(this.size);
 
                     Array.Copy(source.buckets, 0, this.buckets, 0, this.size);
-                    Array.Copy(source.entries, 0, this.entries, 0, this.size);
+                    Array.Copy(source.entries, 0, this.entries, 0, this.lastIndex);
                 }
                 else
                 {
@@ -448,17 +470,22 @@ namespace Clara.Collections
         {
             if (this.size > 1)
             {
-                IntPool.Return(this.buckets, clearArray: false);
-
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
-                EntryPool.Return(this.entries, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<Entry>());
+                if (RuntimeHelpers.IsReferenceOrContainsReferences<Entry>())
+                {
+                    Array.Clear(this.entries, 0, this.lastIndex);
+                }
 #else
-                EntryPool.Return(this.entries, clearArray: true);
+                Array.Clear(this.entries, 0, this.lastIndex);
 #endif
+
+                IntPool.Return(this.buckets);
+                EntryPool.Return(this.entries);
             }
 
             this.size = 1;
             this.count = 0;
+            this.lastIndex = 0;
             this.freeList = -1;
             this.buckets = HashHelpers.SizeOneIntArray;
             this.entries = InitialEntries;
@@ -484,6 +511,7 @@ namespace Clara.Collections
                 }
 
                 entryIndex = this.count;
+                this.lastIndex++;
             }
 
             entries[entryIndex].Item = item;
@@ -503,7 +531,7 @@ namespace Clara.Collections
             var entries = this.entries;
             var collisionCount = 0;
 
-            for (var i = this.buckets[item.GetHashCode() & (this.size - 1)] - 1; (uint)i < (uint)this.size; i = entries[i].Next)
+            for (var i = this.buckets[item.GetHashCode() & (this.size - 1)] - 1; i >= 0; i = entries[i].Next)
             {
                 if (item.Equals(entries[i].Item))
                 {
@@ -519,28 +547,6 @@ namespace Clara.Collections
             }
 
             return -1;
-        }
-
-        private int FindLastIndex()
-        {
-            var lastIndex = -1;
-            var count = this.count;
-
-            for (var i = 0; count > 0; i++)
-            {
-                ref var entry = ref this.entries[i];
-
-                if (entry.Next >= -1)
-                {
-                    count--;
-
-                    lastIndex = i;
-                }
-            }
-
-            lastIndex++;
-
-            return lastIndex;
         }
 
         private Entry[] Resize()
@@ -564,7 +570,6 @@ namespace Clara.Collections
             var newEntries = EntryPool.Rent(newSize);
 
             Array.Clear(newBuckets, 0, newSize);
-            Array.Clear(newEntries, count, newSize - count);
             Array.Copy(this.entries, 0, newEntries, 0, count);
 
             while (count-- > 0)
@@ -577,13 +582,17 @@ namespace Clara.Collections
 
             if (this.size > 1)
             {
-                IntPool.Return(this.buckets, clearArray: false);
-
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
-                EntryPool.Return(this.entries, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<Entry>());
+                if (RuntimeHelpers.IsReferenceOrContainsReferences<Entry>())
+                {
+                    Array.Clear(this.entries, 0, this.lastIndex);
+                }
 #else
-                EntryPool.Return(this.entries, clearArray: true);
+                Array.Clear(this.entries, 0, this.lastIndex);
 #endif
+
+                IntPool.Return(this.buckets);
+                EntryPool.Return(this.entries);
             }
 
             this.size = newSize;

@@ -79,7 +79,7 @@ namespace Clara.Storage
                 }
             }
 
-            using var tokenCounts = new PooledDictionary<int, int>();
+            using var tokenCounts = new PooledDictionary<int, int>(capacity: filteredTokens.Count);
 
             foreach (var documentId in documents)
             {
