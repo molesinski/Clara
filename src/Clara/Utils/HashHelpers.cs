@@ -1,4 +1,4 @@
-﻿namespace Clara.Collections
+﻿namespace Clara.Utils
 {
     internal static class HashHelpers
     {
@@ -6,7 +6,7 @@
 
         internal static int PowerOf2(int v)
         {
-            if ((v & (v - 1)) == 0)
+            if ((v & v - 1) == 0)
             {
                 return v;
             }

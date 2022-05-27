@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Clara.Analysis.Synonyms;
-using Clara.Collections;
 using Clara.Mapping;
 using Clara.Storage;
+using Clara.Utils;
 
 namespace Clara
 {
@@ -51,7 +51,7 @@ namespace Clara
     public sealed class IndexBuilder<TSource, TDocument> : IndexBuilder
     {
         private readonly IIndexMapper<TSource, TDocument> indexMapper;
-        private readonly PooledDictionary<int, TDocument> documents;
+        private readonly PooledDictionarySlim<int, TDocument> documents;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
         private readonly Dictionary<Field, FieldStoreBuilder<TSource>> fieldBuilders;
 
@@ -89,7 +89,7 @@ namespace Clara
             }
 
             this.indexMapper = indexMapper;
-            this.documents = new PooledDictionary<int, TDocument>();
+            this.documents = new PooledDictionarySlim<int, TDocument>();
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder();
             this.fieldBuilders = new Dictionary<Field, FieldStoreBuilder<TSource>>();
 

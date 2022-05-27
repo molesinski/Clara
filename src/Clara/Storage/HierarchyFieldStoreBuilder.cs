@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Clara.Collections;
 using Clara.Mapping;
+using Clara.Utils;
 
 namespace Clara.Storage
 {
@@ -13,9 +13,9 @@ namespace Clara.Storage
         private readonly string root;
         private readonly IEnumerable<string> rootEnumerable;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
-        private readonly PooledDictionary<int, PooledSet<int>> parentChildren;
-        private readonly PooledDictionary<int, PooledSet<int>>? tokenDocuments;
-        private readonly PooledDictionary<int, PooledSet<int>>? documentTokens;
+        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>> parentChildren;
+        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>>? tokenDocuments;
+        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>>? documentTokens;
 
         public HierarchyFieldStoreBuilder(HierarchyField<TSource> field, TokenEncoderStore tokenEncoderStore)
         {
@@ -56,7 +56,7 @@ namespace Clara.Storage
                 return;
             }
 
-            var tokens = default(PooledSet<int>);
+            var tokens = default(PooledHashSetSlim<int>);
 
             foreach (var hierarchyEncodedToken in values)
             {
@@ -74,7 +74,7 @@ namespace Clara.Storage
 
                     ref var children = ref this.parentChildren.GetValueRefOrAddDefault(parentId, out _);
 
-                    children ??= new PooledSet<int>();
+                    children ??= new PooledHashSetSlim<int>();
 
                     children.Add(tokenId);
 
@@ -84,7 +84,7 @@ namespace Clara.Storage
                     {
                         ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
-                        documents ??= new PooledSet<int>();
+                        documents ??= new PooledHashSetSlim<int>();
 
                         documents.Add(documentId);
                     }
@@ -93,7 +93,7 @@ namespace Clara.Storage
                     {
                         if (tokens == default)
                         {
-                            tokens = new PooledSet<int>();
+                            tokens = new PooledHashSetSlim<int>();
 
                             this.documentTokens.Add(documentId, tokens);
                         }

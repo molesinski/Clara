@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Clara.Collections;
 using Clara.Mapping;
 using Clara.Querying;
+using Clara.Utils;
 
 namespace Clara.Storage
 {
     internal sealed class TokenDocumentStore : IDisposable
     {
         private readonly ITokenEncoder tokenEncoder;
-        private readonly PooledDictionary<int, PooledSet<int>> tokenDocuments;
+        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>> tokenDocuments;
 
         public TokenDocumentStore(
             ITokenEncoder tokenEncoder,
-            PooledDictionary<int, PooledSet<int>> tokenDocuments)
+            PooledDictionarySlim<int, PooledHashSetSlim<int>> tokenDocuments)
         {
             if (tokenEncoder is null)
             {
@@ -67,7 +67,7 @@ namespace Clara.Storage
                 }
                 else
                 {
-                    var anyMatches = new PooledSet<int>();
+                    var anyMatches = new PooledHashSetSlim<int>();
 
                     foreach (var token in anyValuesMatchExpression.Values)
                     {
@@ -104,8 +104,8 @@ namespace Clara.Storage
             }
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
-                var anyMatches = new PooledSet<int>();
-                using var tempSet = new PooledSet<int>();
+                var anyMatches = new PooledHashSetSlim<int>();
+                using var tempSet = new PooledHashSetSlim<int>();
 
                 foreach (var expression in orMatchExpression.Expressions)
                 {
@@ -120,7 +120,7 @@ namespace Clara.Storage
             }
             else if (matchExpression is AndMatchExpression andMatchExpression)
             {
-                using var tempSet = new PooledSet<int>();
+                using var tempSet = new PooledHashSetSlim<int>();
 
                 foreach (var expression in andMatchExpression.Expressions)
                 {
@@ -137,7 +137,7 @@ namespace Clara.Storage
             }
         }
 
-        private void Filter(MatchExpression matchExpression, PooledSet<int> resultSet)
+        private void Filter(MatchExpression matchExpression, PooledHashSetSlim<int> resultSet)
         {
             if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
             {
@@ -182,7 +182,7 @@ namespace Clara.Storage
             }
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
-                using var tempSet = new PooledSet<int>();
+                using var tempSet = new PooledHashSetSlim<int>();
 
                 foreach (var expression in orMatchExpression.Expressions)
                 {
@@ -195,7 +195,7 @@ namespace Clara.Storage
             }
             else if (matchExpression is AndMatchExpression andMatchExpression)
             {
-                using var tempSet = new PooledSet<int>();
+                using var tempSet = new PooledHashSetSlim<int>();
                 var isFirst = true;
 
                 foreach (var expression in andMatchExpression.Expressions)

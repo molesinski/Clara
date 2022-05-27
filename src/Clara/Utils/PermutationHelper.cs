@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Clara.Analysis.Synonyms
+namespace Clara.Utils
 {
     internal static class PermutationHelper
     {
@@ -16,7 +16,7 @@ namespace Clara.Analysis.Synonyms
             yield return source;
         }
 
-        public static IEnumerable<IEnumerable<TItem>> Dijkstra<TItem>(IEnumerable<TItem> source)
+        public static IEnumerable<IEnumerable<TItem>> Permutate<TItem>(IEnumerable<TItem> source)
         {
             if (source is null)
             {

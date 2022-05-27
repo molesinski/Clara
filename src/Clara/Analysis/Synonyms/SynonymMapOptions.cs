@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Clara.Utils;
 
 namespace Clara.Analysis.Synonyms
 {
@@ -12,7 +13,7 @@ namespace Clara.Analysis.Synonyms
         {
             return
                 this.PermutatePhraseTokens && phraseTokens.Count <= this.MaximumPermutationTokenCount
-                    ? PermutationHelper.Dijkstra(phraseTokens)
+                    ? PermutationHelper.Permutate(phraseTokens)
                     : PermutationHelper.Identity(phraseTokens);
         }
     }

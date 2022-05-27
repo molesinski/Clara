@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace Clara.Collections
+namespace Clara.Utils
 {
     [DebuggerTypeProxy(typeof(PooledDictionaryDebugView<,>))]
     [DebuggerDisplay("Count = {Count}")]
@@ -31,6 +31,7 @@ namespace Clara.Collections
         {
             public TKey Key;
             public TValue Value;
+            public int HashCode;
             public int Next;
         }
 
@@ -189,14 +190,18 @@ namespace Clara.Collections
 
             var entries = this.entries;
             var collisionCount = 0;
+            var hashCode = key.GetHashCode();
 
-            for (var i = this.buckets[key.GetHashCode() & (this.size - 1)] - 1; i >= 0; i = entries[i].Next)
+            for (var i = this.buckets[hashCode & this.size - 1] - 1; i >= 0; i = entries[i].Next)
             {
-                if (key.Equals(entries[i].Key))
+                if (hashCode == entries[i].HashCode)
                 {
-                    value = entries[i].Value;
+                    if (key.Equals(entries[i].Key))
+                    {
+                        value = entries[i].Value;
 
-                    return true;
+                        return true;
+                    }
                 }
 
                 if (collisionCount == this.size)
@@ -220,12 +225,16 @@ namespace Clara.Collections
 
             var entries = this.entries;
             var collisionCount = 0;
+            var hashCode = key.GetHashCode();
 
-            for (var i = this.buckets[key.GetHashCode() & (this.size - 1)] - 1; i >= 0; i = entries[i].Next)
+            for (var i = this.buckets[hashCode & this.size - 1] - 1; i >= 0; i = entries[i].Next)
             {
-                if (key.Equals(entries[i].Key))
+                if (hashCode == entries[i].HashCode)
                 {
-                    return true;
+                    if (key.Equals(entries[i].Key))
+                    {
+                        return true;
+                    }
                 }
 
                 if (collisionCount == this.size)
@@ -259,7 +268,8 @@ namespace Clara.Collections
             }
 
             var entries = this.entries;
-            var bucketIndex = key.GetHashCode() & (this.size - 1);
+            var hashCode = key.GetHashCode();
+            var bucketIndex = hashCode & this.size - 1;
             var entryIndex = this.buckets[bucketIndex] - 1;
 
             var lastIndex = -1;
@@ -269,30 +279,33 @@ namespace Clara.Collections
             {
                 var candidate = entries[entryIndex];
 
-                if (candidate.Key.Equals(key))
+                if (candidate.HashCode == hashCode)
                 {
-                    if (lastIndex != -1)
+                    if (candidate.Key.Equals(key))
                     {
-                        entries[lastIndex].Next = candidate.Next;
+                        if (lastIndex != -1)
+                        {
+                            entries[lastIndex].Next = candidate.Next;
+                        }
+                        else
+                        {
+                            this.buckets[bucketIndex] = candidate.Next + 1;
+                        }
+
+                        entries[entryIndex] = default;
+                        entries[entryIndex].Next = -3 - this.freeList;
+                        this.freeList = entryIndex;
+
+                        this.count--;
+
+                        if (this.count == 0)
+                        {
+                            this.lastIndex = 0;
+                            this.freeList = -1;
+                        }
+
+                        return true;
                     }
-                    else
-                    {
-                        this.buckets[bucketIndex] = candidate.Next + 1;
-                    }
-
-                    entries[entryIndex] = default;
-                    entries[entryIndex].Next = -3 - this.freeList;
-                    this.freeList = entryIndex;
-
-                    this.count--;
-
-                    if (this.count == 0)
-                    {
-                        this.lastIndex = 0;
-                        this.freeList = -1;
-                    }
-
-                    return true;
                 }
 
                 lastIndex = entryIndex;
@@ -318,15 +331,19 @@ namespace Clara.Collections
 
             var entries = this.entries;
             var collisionCount = 0;
-            var bucketIndex = key.GetHashCode() & (this.size - 1);
+            var hashCode = key.GetHashCode();
+            var bucketIndex = hashCode & this.size - 1;
 
             for (var i = this.buckets[bucketIndex] - 1; i >= 0; i = entries[i].Next)
             {
-                if (key.Equals(entries[i].Key))
+                if (hashCode == entries[i].HashCode)
                 {
-                    exists = true;
+                    if (key.Equals(entries[i].Key))
+                    {
+                        exists = true;
 
-                    return ref entries[i].Value;
+                        return ref entries[i].Value;
+                    }
                 }
 
                 if (collisionCount == this.size)
@@ -339,7 +356,7 @@ namespace Clara.Collections
 
             exists = false;
 
-            return ref this.AddKey(key, bucketIndex);
+            return ref this.AddKey(key, hashCode, bucketIndex);
         }
 
         public Enumerator GetEnumerator()
@@ -383,7 +400,7 @@ namespace Clara.Collections
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private ref TValue AddKey(TKey key, int bucketIndex)
+        private ref TValue AddKey(TKey key, int hashCode, int bucketIndex)
         {
             var entries = this.entries;
             int entryIndex;
@@ -398,7 +415,7 @@ namespace Clara.Collections
                 if (this.count == this.size || this.size == 1)
                 {
                     entries = this.Resize();
-                    bucketIndex = key.GetHashCode() & (this.size - 1);
+                    bucketIndex = hashCode & this.size - 1;
                 }
 
                 entryIndex = this.count;
@@ -407,6 +424,7 @@ namespace Clara.Collections
 
             entries[entryIndex].Key = key;
             entries[entryIndex].Value = default!;
+            entries[entryIndex].HashCode = hashCode;
             entries[entryIndex].Next = this.buckets[bucketIndex] - 1;
 
             this.buckets[bucketIndex] = entryIndex + 1;
@@ -427,7 +445,7 @@ namespace Clara.Collections
                 newSize = MinimumCapacity;
             }
 
-            if ((uint)newSize > (uint)int.MaxValue)
+            if ((uint)newSize > int.MaxValue)
             {
                 throw new InvalidOperationException("Capacity overflowed and went negative. Check load factor, capacity and the current size of the table.");
             }
@@ -440,7 +458,7 @@ namespace Clara.Collections
 
             while (count-- > 0)
             {
-                var bucketIndex = newEntries[count].Key.GetHashCode() & (newSize - 1);
+                var bucketIndex = newEntries[count].HashCode & newSize - 1;
 
                 newEntries[count].Next = newBuckets[bucketIndex] - 1;
                 newBuckets[bucketIndex] = count + 1;

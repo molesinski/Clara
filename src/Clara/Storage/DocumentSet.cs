@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using Clara.Collections;
 using Clara.Mapping;
+using Clara.Utils;
 
 namespace Clara.Storage
 {
     internal sealed class DocumentSet : IDisposable
     {
-        private static readonly PooledSet<int> Empty = new();
+        private static readonly PooledHashSetSlim<int> Empty = new();
 
         private readonly Dictionary<Field, BranchSet> branches = new();
         private readonly IReadOnlyCollection<int> allDocuments;
-        private PooledSet<int>? documents;
+        private PooledHashSetSlim<int>? documents;
 
         public DocumentSet(IReadOnlyCollection<int> allDocuments)
         {
@@ -24,7 +24,7 @@ namespace Clara.Storage
             this.documents = null;
         }
 
-        public DocumentSet(PooledSet<int> documents)
+        public DocumentSet(PooledHashSetSlim<int> documents)
         {
             if (documents is null)
             {
@@ -84,11 +84,11 @@ namespace Clara.Storage
             }
             else
             {
-                this.branches.Add(field, new BranchSet(new PooledSet<int>(this.documents)));
+                this.branches.Add(field, new BranchSet(new PooledHashSetSlim<int>(this.documents)));
             }
         }
 
-        public void IntersectWith(Field field, PooledSet<int> documents)
+        public void IntersectWith(Field field, PooledHashSetSlim<int> documents)
         {
             if (this.documents is null)
             {
@@ -114,7 +114,7 @@ namespace Clara.Storage
         {
             if (this.documents is null)
             {
-                this.documents = new PooledSet<int>(documents);
+                this.documents = new PooledHashSetSlim<int>(documents);
             }
             else
             {
@@ -134,7 +134,7 @@ namespace Clara.Storage
         {
             if (this.documents is null)
             {
-                this.documents = new PooledSet<int>(this.allDocuments);
+                this.documents = new PooledHashSetSlim<int>(this.allDocuments);
             }
 
             this.documents.ExceptWith(documents);
@@ -164,7 +164,7 @@ namespace Clara.Storage
         private class BranchSet : IDisposable
         {
             private readonly IReadOnlyCollection<int> allDocuments;
-            private PooledSet<int>? documents;
+            private PooledHashSetSlim<int>? documents;
 
             public BranchSet(IReadOnlyCollection<int> allDocuments)
             {
@@ -177,7 +177,7 @@ namespace Clara.Storage
                 this.documents = null;
             }
 
-            public BranchSet(PooledSet<int> documents)
+            public BranchSet(PooledHashSetSlim<int> documents)
             {
                 if (documents is null)
                 {
@@ -216,7 +216,7 @@ namespace Clara.Storage
             {
                 if (this.documents is null)
                 {
-                    this.documents = new PooledSet<int>(documents);
+                    this.documents = new PooledHashSetSlim<int>(documents);
                 }
                 else
                 {
@@ -228,7 +228,7 @@ namespace Clara.Storage
             {
                 if (this.documents is null)
                 {
-                    this.documents = new PooledSet<int>(this.allDocuments);
+                    this.documents = new PooledHashSetSlim<int>(this.allDocuments);
                 }
 
                 this.documents.ExceptWith(documents);

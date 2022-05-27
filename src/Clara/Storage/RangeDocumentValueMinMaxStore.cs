@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Clara.Collections;
 using Clara.Querying;
+using Clara.Utils;
 
 namespace Clara.Storage
 {
@@ -10,12 +10,12 @@ namespace Clara.Storage
     {
         private readonly TValue minValue;
         private readonly TValue maxValue;
-        private readonly PooledDictionary<int, MinMax<TValue>> documentValueMinMax;
+        private readonly PooledDictionarySlim<int, MinMax<TValue>> documentValueMinMax;
 
         public RangeDocumentValueMinMaxStore(
             TValue minValue,
             TValue maxValue,
-            PooledDictionary<int, MinMax<TValue>> documentValueMinMax)
+            PooledDictionarySlim<int, MinMax<TValue>> documentValueMinMax)
         {
             if (documentValueMinMax is null)
             {

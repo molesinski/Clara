@@ -1,6 +1,6 @@
 ﻿using System;
-using Clara.Collections;
 using Clara.Mapping;
+using Clara.Utils;
 
 namespace Clara.Storage
 {
@@ -8,8 +8,8 @@ namespace Clara.Storage
     {
         private readonly KeywordField<TSource> field;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
-        private readonly PooledDictionary<int, PooledSet<int>>? tokenDocuments;
-        private readonly PooledDictionary<int, PooledSet<int>>? documentTokens;
+        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>>? tokenDocuments;
+        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>>? documentTokens;
 
         public KeywordFieldStoreBuilder(KeywordField<TSource> field, TokenEncoderStore tokenEncoderStore)
         {
@@ -46,7 +46,7 @@ namespace Clara.Storage
                 return;
             }
 
-            var tokens = default(PooledSet<int>);
+            var tokens = default(PooledHashSetSlim<int>);
 
             foreach (var token in values)
             {
@@ -61,7 +61,7 @@ namespace Clara.Storage
                 {
                     ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
-                    documents ??= new PooledSet<int>();
+                    documents ??= new PooledHashSetSlim<int>();
 
                     documents.Add(documentId);
                 }
@@ -70,7 +70,7 @@ namespace Clara.Storage
                 {
                     if (tokens == default)
                     {
-                        tokens = new PooledSet<int>();
+                        tokens = new PooledHashSetSlim<int>();
 
                         this.documentTokens.Add(documentId, tokens);
                     }

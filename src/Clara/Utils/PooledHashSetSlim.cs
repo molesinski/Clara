@@ -6,11 +6,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace Clara.Collections
+namespace Clara.Utils
 {
-    [DebuggerTypeProxy(typeof(PooledSetDebugView<>))]
+    [DebuggerTypeProxy(typeof(PooledHashSetSlimDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
-    internal sealed class PooledSet<TItem> : IReadOnlyCollection<TItem>, IDisposable
+    internal sealed class PooledHashSetSlim<TItem> : IReadOnlyCollection<TItem>, IDisposable
         where TItem : notnull, IEquatable<TItem>
     {
         private const int MinimumCapacity = 16;
@@ -34,7 +34,7 @@ namespace Clara.Collections
             public int Next;
         }
 
-        public PooledSet()
+        public PooledHashSetSlim()
         {
             this.size = 1;
             this.count = 0;
@@ -44,7 +44,7 @@ namespace Clara.Collections
             this.entries = InitialEntries;
         }
 
-        public PooledSet(int capacity)
+        public PooledHashSetSlim(int capacity)
         {
             if (capacity < 0)
             {
@@ -66,14 +66,14 @@ namespace Clara.Collections
             Array.Clear(this.buckets, 0, this.size);
         }
 
-        public PooledSet(IEnumerable<TItem> collection)
+        public PooledHashSetSlim(IEnumerable<TItem> collection)
         {
             if (collection is null)
             {
                 throw new ArgumentNullException(nameof(collection));
             }
 
-            if (collection is PooledSet<TItem> source)
+            if (collection is PooledHashSetSlim<TItem> source)
             {
                 if (source.size == 1)
                 {
@@ -177,7 +177,7 @@ namespace Clara.Collections
 
             var entries = this.entries;
             var collisionCount = 0;
-            var bucketIndex = item.GetHashCode() & (this.size - 1);
+            var bucketIndex = item.GetHashCode() & this.size - 1;
 
             for (var i = this.buckets[bucketIndex] - 1; i >= 0; i = entries[i].Next)
             {
@@ -207,7 +207,7 @@ namespace Clara.Collections
             }
 
             var entries = this.entries;
-            var bucketIndex = item.GetHashCode() & (this.size - 1);
+            var bucketIndex = item.GetHashCode() & this.size - 1;
             var entryIndex = this.buckets[bucketIndex] - 1;
 
             var lastIndex = -1;
@@ -289,7 +289,7 @@ namespace Clara.Collections
                 }
             }
 
-            if (other is PooledSet<TItem> source)
+            if (other is PooledHashSetSlim<TItem> source)
             {
                 var count = this.count;
 
@@ -367,7 +367,7 @@ namespace Clara.Collections
                 throw new ArgumentNullException(nameof(other));
             }
 
-            if (other is PooledSet<TItem> source)
+            if (other is PooledHashSetSlim<TItem> source)
             {
                 if (this.size == 1)
                 {
@@ -426,7 +426,7 @@ namespace Clara.Collections
                 return;
             }
 
-            if (other is PooledSet<TItem> source)
+            if (other is PooledHashSetSlim<TItem> source)
             {
                 var count = source.count;
 
@@ -507,7 +507,7 @@ namespace Clara.Collections
                 if (this.count == this.size || this.size == 1)
                 {
                     entries = this.Resize();
-                    bucketIndex = item.GetHashCode() & (this.size - 1);
+                    bucketIndex = item.GetHashCode() & this.size - 1;
                 }
 
                 entryIndex = this.count;
@@ -531,7 +531,7 @@ namespace Clara.Collections
             var entries = this.entries;
             var collisionCount = 0;
 
-            for (var i = this.buckets[item.GetHashCode() & (this.size - 1)] - 1; i >= 0; i = entries[i].Next)
+            for (var i = this.buckets[item.GetHashCode() & this.size - 1] - 1; i >= 0; i = entries[i].Next)
             {
                 if (item.Equals(entries[i].Item))
                 {
@@ -561,7 +561,7 @@ namespace Clara.Collections
                 newSize = MinimumCapacity;
             }
 
-            if ((uint)newSize > (uint)int.MaxValue)
+            if ((uint)newSize > int.MaxValue)
             {
                 throw new InvalidOperationException("Capacity overflowed and went negative. Check load factor, capacity and the current size of the table.");
             }
@@ -574,7 +574,7 @@ namespace Clara.Collections
 
             while (count-- > 0)
             {
-                var bucketIndex = newEntries[count].Item.GetHashCode() & (newSize - 1);
+                var bucketIndex = newEntries[count].Item.GetHashCode() & newSize - 1;
 
                 newEntries[count].Next = newBuckets[bucketIndex] - 1;
                 newBuckets[bucketIndex] = count + 1;
@@ -604,12 +604,12 @@ namespace Clara.Collections
 
         public struct Enumerator : IEnumerator<TItem>
         {
-            private readonly PooledSet<TItem> source;
+            private readonly PooledHashSetSlim<TItem> source;
             private int index;
             private int count;
             private TItem current;
 
-            internal Enumerator(PooledSet<TItem> source)
+            internal Enumerator(PooledHashSetSlim<TItem> source)
             {
                 this.source = source;
                 this.index = 0;
@@ -669,11 +669,11 @@ namespace Clara.Collections
         }
     }
 
-    internal sealed class PooledSetDebugView<TItem> where TItem : IEquatable<TItem>
+    internal sealed class PooledHashSetSlimDebugView<TItem> where TItem : IEquatable<TItem>
     {
-        private readonly PooledSet<TItem> source;
+        private readonly PooledHashSetSlim<TItem> source;
 
-        public PooledSetDebugView(PooledSet<TItem> source)
+        public PooledHashSetSlimDebugView(PooledHashSetSlim<TItem> source)
         {
             if (source is null)
             {

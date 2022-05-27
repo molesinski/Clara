@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Clara.Collections;
 using Clara.Mapping;
 using Clara.Querying;
 using Clara.Storage;
+using Clara.Utils;
 
 namespace Clara
 {
@@ -20,13 +20,13 @@ namespace Clara
     public sealed class Index<TDocument> : Index, IDisposable
     {
         private readonly TokenEncoder tokenEncoder;
-        private readonly PooledDictionary<int, TDocument> documents;
+        private readonly PooledDictionarySlim<int, TDocument> documents;
         private readonly Dictionary<Field, FieldStore> fieldStores;
-        private readonly PooledSet<int> allDocuments;
+        private readonly PooledHashSetSlim<int> allDocuments;
 
         internal Index(
             TokenEncoder tokenEncoder,
-            PooledDictionary<int, TDocument> documents,
+            PooledDictionarySlim<int, TDocument> documents,
             Dictionary<Field, FieldStore> fieldStores)
         {
             if (tokenEncoder is null)
@@ -47,7 +47,7 @@ namespace Clara
             this.tokenEncoder = tokenEncoder;
             this.documents = documents;
             this.fieldStores = fieldStores;
-            this.allDocuments = new PooledSet<int>(capacity: documents.Count);
+            this.allDocuments = new PooledHashSetSlim<int>(capacity: documents.Count);
 
             foreach (var pair in documents)
             {
@@ -67,7 +67,7 @@ namespace Clara
             if (query.IncludeDocuments is not null)
             {
                 var hasValues = false;
-                var includedDocuments = new PooledSet<int>();
+                var includedDocuments = new PooledHashSetSlim<int>();
 
                 foreach (var includedDocument in query.IncludeDocuments)
                 {
@@ -131,7 +131,7 @@ namespace Clara
             if (query.ExcludeDocuments is not null)
             {
                 var hasValues = false;
-                using var excludeDocuments = new PooledSet<int>();
+                using var excludeDocuments = new PooledHashSetSlim<int>();
 
                 foreach (var excludeDocument in query.ExcludeDocuments)
                 {

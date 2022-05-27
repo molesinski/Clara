@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using Clara.Collections;
 using Clara.Querying;
+using Clara.Utils;
 
 namespace Clara.Storage
 {
     internal class KeywordDocumentTokenStore : IDisposable
     {
         private readonly ITokenEncoder tokenEncoder;
-        private readonly PooledDictionary<int, PooledSet<int>> documentTokens;
+        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>> documentTokens;
 
         public KeywordDocumentTokenStore(
             ITokenEncoder tokenEncoder,
-            PooledDictionary<int, PooledSet<int>> documentTokens)
+            PooledDictionarySlim<int, PooledHashSetSlim<int>> documentTokens)
         {
             if (tokenEncoder is null)
             {
@@ -43,7 +43,7 @@ namespace Clara.Storage
                 }
             }
 
-            using var tokenCounts = new PooledDictionary<int, int>();
+            using var tokenCounts = new PooledDictionarySlim<int, int>();
 
             foreach (var documentId in documents)
             {

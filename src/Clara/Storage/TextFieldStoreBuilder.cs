@@ -1,8 +1,8 @@
 ﻿using System;
 using Clara.Analysis;
 using Clara.Analysis.Synonyms;
-using Clara.Collections;
 using Clara.Mapping;
+using Clara.Utils;
 
 namespace Clara.Storage
 {
@@ -12,7 +12,7 @@ namespace Clara.Storage
         private readonly ITokenizer tokenizer;
         private readonly ISynonymMap synonymMap;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
-        private readonly PooledDictionary<int, PooledSet<int>> tokenDocuments;
+        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>> tokenDocuments;
 
         public TextFieldStoreBuilder(TextField<TSource> field, TokenEncoderStore tokenEncoderStore, ISynonymMap? synonymMap)
         {
@@ -48,7 +48,7 @@ namespace Clara.Storage
 
                 ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
-                documents ??= new PooledSet<int>();
+                documents ??= new PooledHashSetSlim<int>();
 
                 documents.Add(documentId);
             }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Clara.Collections
+namespace Clara.Utils
 {
     internal ref struct BitHelper
     {
@@ -24,7 +24,7 @@ namespace Clara.Collections
 
             if ((uint)bitArrayIndex < (uint)this.span.Length)
             {
-                this.span[bitArrayIndex] |= (1 << (bitPosition % IntSize));
+                this.span[bitArrayIndex] |= 1 << bitPosition % IntSize;
             }
         }
 
@@ -34,7 +34,7 @@ namespace Clara.Collections
 
             return
                 (uint)bitArrayIndex < (uint)this.span.Length &&
-                (this.span[bitArrayIndex] & (1 << (bitPosition % IntSize))) != 0;
+                (this.span[bitArrayIndex] & 1 << bitPosition % IntSize) != 0;
         }
 
         internal int FindFirstUnmarked(int startPosition = 0)
@@ -43,7 +43,7 @@ namespace Clara.Collections
 
             for (var bi = i / IntSize; (uint)bi < (uint)this.span.Length; bi = ++i / IntSize)
             {
-                if ((this.span[bi] & (1 << (i % IntSize))) == 0)
+                if ((this.span[bi] & 1 << i % IntSize) == 0)
                 {
                     return i;
                 }
@@ -54,7 +54,7 @@ namespace Clara.Collections
 
         internal static int ToIntArrayLength(int n)
         {
-            return n > 0 ? ((n - 1) / IntSize + 1) : 0;
+            return n > 0 ? (n - 1) / IntSize + 1 : 0;
         }
     }
 }

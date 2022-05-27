@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Clara.Collections;
 using Clara.Querying;
+using Clara.Utils;
 
 namespace Clara.Storage
 {
@@ -9,14 +9,14 @@ namespace Clara.Storage
     {
         private readonly string root;
         private readonly ITokenEncoder tokenEncoder;
-        private readonly PooledDictionary<int, PooledSet<int>> documentTokens;
-        private readonly PooledDictionary<int, PooledSet<int>> parentChildren;
+        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>> documentTokens;
+        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>> parentChildren;
 
         public HierarchyDocumentTokenStore(
             string root,
             ITokenEncoder tokenEncoder,
-            PooledDictionary<int, PooledSet<int>> documentTokens,
-            PooledDictionary<int, PooledSet<int>> parentChildren)
+            PooledDictionarySlim<int, PooledHashSetSlim<int>> documentTokens,
+            PooledDictionarySlim<int, PooledHashSetSlim<int>> parentChildren)
         {
             if (root is null)
             {
@@ -64,7 +64,7 @@ namespace Clara.Storage
                 selectedValues.Add(this.root);
             }
 
-            using var filteredTokens = new PooledSet<int>();
+            using var filteredTokens = new PooledHashSetSlim<int>();
 
             foreach (var selectedToken in selectedValues)
             {
@@ -79,7 +79,7 @@ namespace Clara.Storage
                 }
             }
 
-            using var tokenCounts = new PooledDictionary<int, int>(capacity: filteredTokens.Count);
+            using var tokenCounts = new PooledDictionarySlim<int, int>(capacity: filteredTokens.Count);
 
             foreach (var documentId in documents)
             {

@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace Clara.Collections
+namespace Clara.Utils
 {
     [DebuggerTypeProxy(typeof(PooledListDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
@@ -234,7 +234,7 @@ namespace Clara.Collections
                 newSize = MinimumCapacity;
             }
 
-            if ((uint)newSize > (uint)int.MaxValue)
+            if ((uint)newSize > int.MaxValue)
             {
                 throw new InvalidOperationException("Capacity overflowed and went negative. Check load factor, capacity and the current size of the table.");
             }

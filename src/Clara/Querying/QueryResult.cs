@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Clara.Collections;
 using Clara.Storage;
+using Clara.Utils;
 
 namespace Clara.Querying
 {
     public sealed class QueryResult<TDocument> : IDisposable
     {
-        private readonly PooledDictionary<int, TDocument> documents;
+        private readonly PooledDictionarySlim<int, TDocument> documents;
         private readonly DocumentSort documentSort;
         private readonly List<FieldFacetResult> facetResults;
 
         internal QueryResult(
-            PooledDictionary<int, TDocument> documents,
+            PooledDictionarySlim<int, TDocument> documents,
             DocumentSort documentSort,
             List<FieldFacetResult> facetResults)
         {
