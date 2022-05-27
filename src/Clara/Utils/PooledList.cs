@@ -10,7 +10,7 @@ namespace Clara.Utils
 {
     [DebuggerTypeProxy(typeof(PooledListDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
-    internal sealed class PooledList<TItem> : IReadOnlyList<TItem>, IDisposable
+    public sealed class PooledList<TItem> : IReadOnlyList<TItem>, IDisposable
         where TItem : notnull
     {
         private const int MinimumCapacity = 16;
@@ -39,7 +39,7 @@ namespace Clara.Utils
                 capacity = MinimumCapacity;
             }
 
-            capacity = HashHelpers.PowerOf2(capacity);
+            capacity = HashHelper.PowerOf2(capacity);
 
             this.count = 0;
             this.entries = EntryPool.Rent(capacity);
@@ -68,7 +68,7 @@ namespace Clara.Utils
                         capacity = MinimumCapacity;
                     }
 
-                    capacity = HashHelpers.PowerOf2(capacity);
+                    capacity = HashHelper.PowerOf2(capacity);
 
                     this.count = source.count;
                     this.entries = EntryPool.Rent(capacity);
@@ -88,7 +88,7 @@ namespace Clara.Utils
                     capacity = MinimumCapacity;
                 }
 
-                capacity = HashHelpers.PowerOf2(capacity);
+                capacity = HashHelper.PowerOf2(capacity);
 
                 this.count = 0;
                 this.entries = EntryPool.Rent(capacity);
@@ -117,7 +117,22 @@ namespace Clara.Utils
         {
             get
             {
-                throw new NotImplementedException();
+                if (index < 0 || index >= this.Count)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+
+                return this.entries[index];
+            }
+
+            set
+            {
+                if (index < 0 || index >= this.Count)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+
+                this.entries[index] = value;
             }
         }
 

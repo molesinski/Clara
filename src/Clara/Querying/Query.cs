@@ -5,10 +5,14 @@ namespace Clara.Querying
 {
     public sealed class Query
     {
+        private static readonly List<FilterExpression> EmptyFilters = new();
+        private static readonly List<FacetExpression> EmptyFacets = new();
+        private static readonly List<SortExpression> EmptySort = new();
+
         private readonly Index index;
-        private readonly List<FilterExpression> filters = new();
-        private readonly List<FacetExpression> facets = new();
-        private readonly List<SortExpression> sort = new();
+        private List<FilterExpression> filters = EmptyFilters;
+        private List<FacetExpression> facets = EmptyFacets;
+        private List<SortExpression> sort = EmptySort;
 
         public Query(Index index)
         {
@@ -68,7 +72,15 @@ namespace Clara.Querying
                 }
             }
 
-            this.filters.Add(filterExpression);
+            if (!filterExpression.IsEmpty)
+            {
+                if (this.filters == EmptyFilters)
+                {
+                    this.filters = new();
+                }
+
+                this.filters.Add(filterExpression);
+            }
         }
 
         public void AddFacet(FacetExpression facetExpression)
@@ -89,6 +101,11 @@ namespace Clara.Querying
                 {
                     throw new InvalidOperationException("Facet for given field has already been added.");
                 }
+            }
+
+            if (this.facets == EmptyFacets)
+            {
+                this.facets = new();
             }
 
             this.facets.Add(facetExpression);
@@ -112,6 +129,11 @@ namespace Clara.Querying
                 {
                     throw new InvalidOperationException("Sort for given field has already been added.");
                 }
+            }
+
+            if (this.sort == EmptySort)
+            {
+                this.sort = new();
             }
 
             this.sort.Add(sortExpression);

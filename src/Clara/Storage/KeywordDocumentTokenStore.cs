@@ -7,6 +7,8 @@ namespace Clara.Storage
 {
     internal class KeywordDocumentTokenStore : IDisposable
     {
+        private static readonly HashSet<string> EmptySelectedValues = new();
+
         private readonly ITokenEncoder tokenEncoder;
         private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>> documentTokens;
 
@@ -28,18 +30,15 @@ namespace Clara.Storage
             this.documentTokens = documentTokens;
         }
 
-        public FieldFacetResult? Facet(KeywordFacetExpression tokenFacetExpression, IEnumerable<FilterExpression> filterExpressions, IEnumerable<int> documents)
+        public FieldFacetResult? Facet(KeywordFacetExpression tokenFacetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
         {
-            var selectedValues = new HashSet<string>();
+            var selectedValues = EmptySelectedValues;
 
-            foreach (var filterExpression in filterExpressions)
+            if (filterExpression is TokenFilterExpression tokenFilterExpression)
             {
-                if (filterExpression is TokenFilterExpression tokenFilterExpression)
+                if (tokenFilterExpression.MatchExpression is ValuesMatchExpression valuesMatchExpression)
                 {
-                    if (tokenFilterExpression.MatchExpression is ValuesMatchExpression valuesMatchExpression)
-                    {
-                        selectedValues.UnionWith(valuesMatchExpression.Values);
-                    }
+                    selectedValues = valuesMatchExpression.ValuesSet;
                 }
             }
 
@@ -78,7 +77,7 @@ namespace Clara.Storage
 
             values.Sort(KeywordFacetValueComparer.Instance);
 
-            return new FieldFacetResult(tokenFacetExpression.CreateResult(values), new[] { values });
+            return new FieldFacetResult(tokenFacetExpression.CreateResult(values), values);
         }
 
         public void Dispose()

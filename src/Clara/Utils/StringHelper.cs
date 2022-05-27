@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Clara.Analysis
 {
-    internal static class StringHelper
+    public static class StringHelper
     {
         private const int StackAllocThreshold = 256;
 

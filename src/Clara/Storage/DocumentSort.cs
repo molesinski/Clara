@@ -1,16 +1,17 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Clara.Querying;
 
 namespace Clara.Storage
 {
-    internal sealed class DocumentSort : IDisposable
+    internal sealed class DocumentSort : IDocumentSet
     {
-        private readonly DocumentSet documentSet;
+        private readonly IDocumentSet documentSet;
         private IOrderedEnumerable<int>? orderedDocuments;
 
-        public DocumentSort(DocumentSet documentSet)
+        public DocumentSort(IDocumentSet documentSet)
         {
             if (documentSet is null)
             {
@@ -24,15 +25,7 @@ namespace Clara.Storage
         {
             get
             {
-                return this.documentSet.Documents.Count;
-            }
-        }
-
-        public IEnumerable<int> Documents
-        {
-            get
-            {
-                return this.orderedDocuments ?? (IEnumerable<int>)this.documentSet.Documents;
+                return this.documentSet.Count;
             }
         }
 
@@ -43,12 +36,12 @@ namespace Clara.Storage
             {
                 if (direction == SortDirection.Descending)
                 {
-                    this.orderedDocuments = this.documentSet.Documents
+                    this.orderedDocuments = this.documentSet
                         .OrderByDescending(orderer);
                 }
                 else
                 {
-                    this.orderedDocuments = this.documentSet.Documents
+                    this.orderedDocuments = this.documentSet
                         .OrderBy(orderer);
                 }
             }
@@ -70,6 +63,16 @@ namespace Clara.Storage
         public void Dispose()
         {
             this.documentSet.Dispose();
+        }
+
+        public IEnumerator<int> GetEnumerator()
+        {
+            return this.orderedDocuments?.GetEnumerator() ?? this.documentSet.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.orderedDocuments?.GetEnumerator() ?? this.documentSet.GetEnumerator();
         }
     }
 }

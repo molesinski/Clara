@@ -93,9 +93,9 @@ namespace Clara.Storage
                     {
                         if (tokens == default)
                         {
-                            tokens = new PooledHashSetSlim<int>();
+                            ref var value = ref this.documentTokens.GetValueRefOrAddDefault(documentId, out _);
 
-                            this.documentTokens.Add(documentId, tokens);
+                            value = tokens = new PooledHashSetSlim<int>();
                         }
 
                         tokens.Add(tokenId);

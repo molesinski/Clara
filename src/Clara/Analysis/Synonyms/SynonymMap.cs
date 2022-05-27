@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Clara.Mapping;
 using Clara.Querying;
+using Clara.Utils;
 
 namespace Clara.Analysis.Synonyms
 {
@@ -9,12 +10,7 @@ namespace Clara.Analysis.Synonyms
     {
         private readonly SynonymNode root;
 
-        public SynonymMap(TextField field, IEnumerable<Synonym> synonyms)
-            : this(field, synonyms, new SynonymMapOptions())
-        {
-        }
-
-        public SynonymMap(TextField field, IEnumerable<Synonym> synonyms, SynonymMapOptions options)
+        public SynonymMap(TextField field, IEnumerable<Synonym> synonyms, int maximumPermutatedPhraseTokenCount = 2)
         {
             if (field is null)
             {
@@ -26,12 +22,12 @@ namespace Clara.Analysis.Synonyms
                 throw new ArgumentNullException(nameof(synonyms));
             }
 
-            if (options is null)
+            if (maximumPermutatedPhraseTokenCount < 0 || maximumPermutatedPhraseTokenCount > 5)
             {
-                throw new ArgumentNullException(nameof(options));
+                throw new ArgumentOutOfRangeException(nameof(maximumPermutatedPhraseTokenCount));
             }
 
-            this.root = SynonymNode.BuildTree(field.Tokenizer, synonyms, options);
+            this.root = SynonymNode.BuildTree(field.Tokenizer, synonyms, maximumPermutatedPhraseTokenCount);
             this.Field = field;
         }
 
@@ -396,7 +392,7 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public static SynonymNode BuildTree(ITokenizer tokenizer, IEnumerable<Synonym> synonyms, SynonymMapOptions options)
+            public static SynonymNode BuildTree(ITokenizer tokenizer, IEnumerable<Synonym> synonyms, int maximumPermutatedPhraseTokenCount)
             {
                 var nextSynonymId = 1;
                 var root = new SynonymNode();
@@ -432,7 +428,7 @@ namespace Clara.Analysis.Synonyms
                         {
                             foreach (var tokenizedPhrase in tokenizedPhrases)
                             {
-                                foreach (var tokenPermutation in options.GetPhraseTokensPermutations(tokenizedPhrase))
+                                foreach (var tokenPermutation in GetPhraseTokensPermutations(tokenizedPhrase))
                                 {
                                     var node = root;
 
@@ -474,7 +470,7 @@ namespace Clara.Analysis.Synonyms
 
                             foreach (var tokenizedPhrase in tokenizedPhrases)
                             {
-                                foreach (var tokenPermutation in options.GetPhraseTokensPermutations(tokenizedPhrase))
+                                foreach (var tokenPermutation in GetPhraseTokensPermutations(tokenizedPhrase))
                                 {
                                     var node = root;
 
@@ -499,6 +495,14 @@ namespace Clara.Analysis.Synonyms
                 }
 
                 return root;
+
+                IEnumerable<IEnumerable<string>> GetPhraseTokensPermutations(List<string> phraseTokens)
+                {
+                    return
+                        maximumPermutatedPhraseTokenCount > 1 && phraseTokens.Count <= maximumPermutatedPhraseTokenCount
+                            ? PermutationHelper.Permutate(phraseTokens)
+                            : PermutationHelper.Identity(phraseTokens);
+                }
             }
         }
 

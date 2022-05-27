@@ -8,23 +8,18 @@ namespace Clara.Querying
 {
     public sealed class QueryResult<TDocument> : IDisposable
     {
-        private readonly PooledDictionarySlim<int, TDocument> documents;
-        private readonly DocumentSort documentSort;
+        private readonly IDocumentSet documentSet;
         private readonly List<FieldFacetResult> facetResults;
+        private readonly PooledDictionarySlim<int, TDocument> documents;
 
         internal QueryResult(
-            PooledDictionarySlim<int, TDocument> documents,
-            DocumentSort documentSort,
-            List<FieldFacetResult> facetResults)
+            IDocumentSet documentSet,
+            List<FieldFacetResult> facetResults,
+            PooledDictionarySlim<int, TDocument> documents)
         {
-            if (documents is null)
+            if (documentSet is null)
             {
-                throw new ArgumentNullException(nameof(documents));
-            }
-
-            if (documentSort is null)
-            {
-                throw new ArgumentNullException(nameof(documentSort));
+                throw new ArgumentNullException(nameof(documentSet));
             }
 
             if (facetResults is null)
@@ -32,17 +27,36 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(facetResults));
             }
 
-            this.documents = documents;
-            this.documentSort = documentSort;
+            if (documents is null)
+            {
+                throw new ArgumentNullException(nameof(documents));
+            }
+
+            this.documentSet = documentSet;
             this.facetResults = facetResults;
+            this.documents = documents;
+        }
+
+        public int Count
+        {
+            get
+            {
+                return this.documentSet.Count;
+            }
         }
 
         public IEnumerable<DocumentResult<TDocument>> Documents
         {
             get
             {
-                return this.documentSort.Documents
-                    .Select(o => new DocumentResult<TDocument>(this.documents.GetValueOrDefault(o), 1));
+                return this.documentSet
+                    .Select(
+                        o =>
+                        {
+                            this.documents.TryGetValue(o, out var document);
+
+                            return new DocumentResult<TDocument>(document, 1);
+                        });
             }
         }
 
@@ -55,17 +69,9 @@ namespace Clara.Querying
             }
         }
 
-        public int TotalCount
-        {
-            get
-            {
-                return this.documentSort.Count;
-            }
-        }
-
         public void Dispose()
         {
-            this.documentSort.Dispose();
+            this.documentSet.Dispose();
 
             foreach (var fieldFacet in this.facetResults)
             {

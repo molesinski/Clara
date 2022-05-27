@@ -10,7 +10,7 @@ namespace Clara.Utils
 {
     [DebuggerTypeProxy(typeof(PooledHashSetSlimDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
-    internal sealed class PooledHashSetSlim<TItem> : IReadOnlyCollection<TItem>, IDisposable
+    public sealed class PooledHashSetSlim<TItem> : IReadOnlyCollection<TItem>, IDisposable
         where TItem : notnull, IEquatable<TItem>
     {
         private const int MinimumCapacity = 16;
@@ -40,7 +40,7 @@ namespace Clara.Utils
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
-            this.buckets = HashHelpers.SizeOneIntArray;
+            this.buckets = HashHelper.SizeOneIntArray;
             this.entries = InitialEntries;
         }
 
@@ -56,7 +56,7 @@ namespace Clara.Utils
                 capacity = MinimumCapacity;
             }
 
-            this.size = HashHelpers.PowerOf2(capacity);
+            this.size = HashHelper.PowerOf2(capacity);
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
@@ -81,7 +81,7 @@ namespace Clara.Utils
                     this.count = 0;
                     this.lastIndex = 0;
                     this.freeList = -1;
-                    this.buckets = HashHelpers.SizeOneIntArray;
+                    this.buckets = HashHelper.SizeOneIntArray;
                     this.entries = InitialEntries;
                 }
                 else
@@ -109,7 +109,7 @@ namespace Clara.Utils
                     capacity = MinimumCapacity;
                 }
 
-                this.size = HashHelpers.PowerOf2(capacity);
+                this.size = HashHelper.PowerOf2(capacity);
                 this.count = 0;
                 this.lastIndex = 0;
                 this.freeList = -1;
@@ -124,7 +124,7 @@ namespace Clara.Utils
                 this.count = 0;
                 this.lastIndex = 0;
                 this.freeList = -1;
-                this.buckets = HashHelpers.SizeOneIntArray;
+                this.buckets = HashHelper.SizeOneIntArray;
                 this.entries = InitialEntries;
             }
 
@@ -487,7 +487,7 @@ namespace Clara.Utils
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
-            this.buckets = HashHelpers.SizeOneIntArray;
+            this.buckets = HashHelper.SizeOneIntArray;
             this.entries = InitialEntries;
         }
 

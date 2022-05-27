@@ -27,7 +27,10 @@ namespace Clara.Storage
             if (!exists)
             {
                 id = this.nextId++;
-                this.decoder.Add(id, token);
+
+                ref var value = ref this.decoder.GetValueRefOrAddDefault(id, out _);
+
+                value = token;
             }
 
             return id;

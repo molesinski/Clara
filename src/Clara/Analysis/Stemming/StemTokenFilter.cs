@@ -7,9 +7,9 @@ namespace Clara.Analysis.Stemming
     {
         private readonly IStemmer stemmer;
         private readonly bool emitTokenOnEmptyStems;
-        private readonly bool acceptOneStemOnly;
+        private readonly bool acceptFirstStemOnly;
 
-        public StemTokenFilter(IStemmer stemmer, bool emitTokenOnEmptyStems = true, bool acceptOneStemOnly = false)
+        public StemTokenFilter(IStemmer stemmer, bool emitTokenOnEmptyStems = true, bool acceptFirstStemOnly = false)
         {
             if (stemmer is null)
             {
@@ -18,7 +18,7 @@ namespace Clara.Analysis.Stemming
 
             this.stemmer = stemmer;
             this.emitTokenOnEmptyStems = emitTokenOnEmptyStems;
-            this.acceptOneStemOnly = acceptOneStemOnly;
+            this.acceptFirstStemOnly = acceptFirstStemOnly;
         }
 
         public IEnumerable<string> Filter(IEnumerable<string> tokens)
@@ -33,7 +33,7 @@ namespace Clara.Analysis.Stemming
 
                     yield return stem;
 
-                    if (this.acceptOneStemOnly)
+                    if (this.acceptFirstStemOnly)
                     {
                         break;
                     }

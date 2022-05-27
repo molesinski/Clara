@@ -17,7 +17,15 @@ namespace Clara.Querying
             this.values = values;
         }
 
-        public IReadOnlyCollection<string> Values
+        public IEnumerable<string> Values
+        {
+            get
+            {
+                return this.values;
+            }
+        }
+
+        internal HashSet<string> ValuesSet
         {
             get
             {

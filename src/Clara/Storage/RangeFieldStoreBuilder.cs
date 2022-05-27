@@ -75,7 +75,9 @@ namespace Clara.Storage
             {
                 if (this.documentValueMinMax is not null)
                 {
-                    this.documentValueMinMax.Add(documentId, new MinMax<TValue>(min, max));
+                    ref var value = ref this.documentValueMinMax.GetValueRefOrAddDefault(documentId, out _);
+
+                    value = new MinMax<TValue>(min, max);
                 }
             }
         }

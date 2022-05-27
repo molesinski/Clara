@@ -58,7 +58,11 @@ namespace Clara.Analysis.Stemming
             {
                 this.stem = result.stem;
                 this.stems = result.stems;
-                this.count = result.stems != null ? result.stems.Count : this.stem != null ? 1 : 0;
+                this.count =
+                    this.stem != null ? 1 :
+                    this.stems != null ? this.stems.Count :
+                    0;
+
                 this.index = 0;
                 this.current = default!;
             }

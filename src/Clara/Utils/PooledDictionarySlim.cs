@@ -10,7 +10,7 @@ namespace Clara.Utils
 {
     [DebuggerTypeProxy(typeof(PooledDictionarySlimDebugView<,>))]
     [DebuggerDisplay("Count = {Count}")]
-    internal sealed class PooledDictionarySlim<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TValue>>, IDisposable
+    public sealed class PooledDictionarySlim<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TValue>>, IDisposable
         where TKey : notnull, IEquatable<TKey>
     {
         private const int MinimumCapacity = 16;
@@ -40,7 +40,7 @@ namespace Clara.Utils
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
-            this.buckets = HashHelpers.SizeOneIntArray;
+            this.buckets = HashHelper.SizeOneIntArray;
             this.entries = InitialEntries;
         }
 
@@ -56,7 +56,7 @@ namespace Clara.Utils
                 capacity = MinimumCapacity;
             }
 
-            this.size = HashHelpers.PowerOf2(capacity);
+            this.size = HashHelper.PowerOf2(capacity);
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
@@ -81,7 +81,7 @@ namespace Clara.Utils
                     this.count = 0;
                     this.lastIndex = 0;
                     this.freeList = -1;
-                    this.buckets = HashHelpers.SizeOneIntArray;
+                    this.buckets = HashHelper.SizeOneIntArray;
                     this.entries = InitialEntries;
                 }
                 else
@@ -109,7 +109,7 @@ namespace Clara.Utils
                     capacity = MinimumCapacity;
                 }
 
-                this.size = HashHelpers.PowerOf2(capacity);
+                this.size = HashHelper.PowerOf2(capacity);
                 this.count = 0;
                 this.lastIndex = 0;
                 this.freeList = -1;
@@ -124,7 +124,7 @@ namespace Clara.Utils
                 this.count = 0;
                 this.lastIndex = 0;
                 this.freeList = -1;
-                this.buckets = HashHelpers.SizeOneIntArray;
+                this.buckets = HashHelper.SizeOneIntArray;
                 this.entries = InitialEntries;
             }
 
@@ -168,16 +168,6 @@ namespace Clara.Utils
                 this.lastIndex = 0;
                 this.freeList = -1;
             }
-        }
-
-        public TValue GetValueOrDefault(TKey key)
-        {
-            if (this.TryGetValue(key, out var value))
-            {
-                return value;
-            }
-
-            return default!;
         }
 
         public bool TryGetValue(TKey key, out TValue value)
@@ -237,18 +227,6 @@ namespace Clara.Utils
             }
 
             return false;
-        }
-
-        public void Add(TKey key, TValue value)
-        {
-            ref var valueRef = ref this.GetValueRefOrAddDefault(key, out var exists);
-
-            if (exists)
-            {
-                throw new ArgumentException("An element with the same key already exists", nameof(key));
-            }
-
-            valueRef = value;
         }
 
         public bool Remove(TKey key)
@@ -378,7 +356,7 @@ namespace Clara.Utils
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
-            this.buckets = HashHelpers.SizeOneIntArray;
+            this.buckets = HashHelper.SizeOneIntArray;
             this.entries = InitialEntries;
         }
 

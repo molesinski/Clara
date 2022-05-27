@@ -1,42 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
 using Clara.Querying;
 
 namespace Clara.Storage
 {
     internal sealed class FieldFacetResult : IDisposable
     {
-        private readonly IEnumerable<IDisposable> disposables;
+        private readonly IDisposable? disposable;
 
         public FieldFacetResult(FacetResult facetResult)
-            : this(facetResult, Array.Empty<IDisposable>())
+            : this(facetResult, default)
         {
         }
 
-        public FieldFacetResult(FacetResult facetResult, IEnumerable<IDisposable> disposables)
+        public FieldFacetResult(FacetResult facetResult, IDisposable? disposable)
         {
             if (facetResult is null)
             {
                 throw new ArgumentNullException(nameof(facetResult));
             }
 
-            if (disposables is null)
-            {
-                throw new ArgumentNullException(nameof(disposables));
-            }
-
             this.FacetResult = facetResult;
-            this.disposables = disposables;
+            this.disposable = disposable;
         }
 
         public FacetResult FacetResult { get; }
 
         public void Dispose()
         {
-            foreach (var disposable in this.disposables)
-            {
-                disposable.Dispose();
-            }
+            this.disposable?.Dispose();
         }
     }
 }

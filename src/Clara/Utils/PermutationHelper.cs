@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Clara.Utils
 {
-    internal static class PermutationHelper
+    public static class PermutationHelper
     {
         public static IEnumerable<IEnumerable<TItem>> Identity<TItem>(IEnumerable<TItem> source)
         {
@@ -23,17 +23,23 @@ namespace Clara.Utils
                 throw new ArgumentNullException(nameof(source));
             }
 
-            var items = source.ToArray();
-            var length = items.Length;
+            var list = source as IReadOnlyList<TItem>;
 
-            if (length == 0)
+            if (list == null)
+            {
+                list = source.ToList();
+            }
+
+            var length = list.Count;
+
+            if (length <= 0)
             {
                 yield break;
             }
 
             if (length == 1)
             {
-                yield return items;
+                yield return source;
                 yield break;
             }
 
@@ -49,7 +55,7 @@ namespace Clara.Utils
             {
                 for (var i = 0; i < length; i++)
                 {
-                    result[i] = items[transform[i]];
+                    result[i] = list[transform[i]];
                 }
 
                 yield return result;

@@ -19,6 +19,9 @@ namespace Clara
 
     public sealed class Index<TDocument> : Index, IDisposable
     {
+        private static readonly HashSet<Field> EmptyFacetFields = new();
+        private static readonly List<FieldFacetResult> EmptyFacetResults = new();
+
         private readonly TokenEncoder tokenEncoder;
         private readonly PooledDictionarySlim<int, TDocument> documents;
         private readonly Dictionary<Field, FieldStore> fieldStores;
@@ -93,39 +96,46 @@ namespace Clara
                 documentSet = new DocumentSet((IReadOnlyCollection<int>)this.allDocuments);
             }
 
-            var facetFields = new HashSet<Field>();
-
-            foreach (var facet in query.Facets)
+            if (query.Filters.Count > 0)
             {
-                facetFields.Add(facet.Field);
-            }
+                var facetFields = EmptyFacetFields;
 
-            foreach (var filterExpression in query.Filters
-                .Where(o => !o.IsEmpty)
-                .OrderBy(o => o.IsBranchingRequiredForFaceting && facetFields.Contains(o.Field) ? 1 : 0)
-                .ThenBy(o => this.fieldStores.TryGetValue(o.Field, out var store) ? store.FilterOrder : double.MinValue))
-            {
-                if (documentSet.Documents.Count == 0)
+                if (query.Facets.Count > 0)
                 {
-                    break;
-                }
+                    facetFields = new HashSet<Field>();
 
-                var field = filterExpression.Field;
-
-                if (!this.fieldStores.TryGetValue(field, out var store))
-                {
-                    throw new InvalidOperationException("Filter expression references field not belonging to current index.");
-                }
-
-                if (filterExpression.IsBranchingRequiredForFaceting)
-                {
-                    if (facetFields.Contains(field))
+                    foreach (var facet in query.Facets)
                     {
-                        documentSet.Branch(field);
+                        facetFields.Add(facet.Field);
                     }
                 }
 
-                store.Filter(filterExpression, documentSet);
+                foreach (var filterExpression in query.Filters
+                    .OrderBy(o => o.IsBranchingRequiredForFaceting && facetFields.Contains(o.Field) ? 1 : 0)
+                    .ThenBy(o => this.fieldStores.TryGetValue(o.Field, out var store) ? store.FilterOrder : double.MinValue))
+                {
+                    if (documentSet.Count == 0)
+                    {
+                        break;
+                    }
+
+                    var field = filterExpression.Field;
+
+                    if (!this.fieldStores.TryGetValue(field, out var store))
+                    {
+                        throw new InvalidOperationException("Filter expression references field not belonging to current index.");
+                    }
+
+                    if (filterExpression.IsBranchingRequiredForFaceting)
+                    {
+                        if (facetFields.Contains(field))
+                        {
+                            documentSet.Branch(field);
+                        }
+                    }
+
+                    store.Filter(filterExpression, documentSet);
+                }
             }
 
             if (query.ExcludeDocuments is not null)
@@ -152,55 +162,67 @@ namespace Clara
                 }
             }
 
-            var facetResults = new List<FieldFacetResult>(capacity: query.Facets.Count);
-            var filterExpressions = new List<FilterExpression>(capacity: query.Filters.Count);
+            var facetResults = EmptyFacetResults;
 
-            foreach (var facetExpression in query.Facets)
+            if (query.Facets.Count > 0)
             {
-                filterExpressions.Clear();
+                facetResults = new List<FieldFacetResult>(capacity: query.Facets.Count);
 
-                var field = facetExpression.Field;
-                var facetDocuments = documentSet.GetMatches(field);
-
-                if (facetDocuments.Count > 0)
+                foreach (var facetExpression in query.Facets)
                 {
-                    if (!this.fieldStores.TryGetValue(field, out var store))
-                    {
-                        throw new InvalidOperationException("Facet expression references field not belonging to current index.");
-                    }
+                    var field = facetExpression.Field;
+                    var facetDocuments = documentSet.GetMatches(field);
 
-                    foreach (var filterExpression in query.Filters)
+                    if (facetDocuments.Count > 0)
                     {
-                        if (filterExpression.Field == field)
+                        if (!this.fieldStores.TryGetValue(field, out var store))
                         {
-                            filterExpressions.Add(filterExpression);
+                            throw new InvalidOperationException("Facet expression references field not belonging to current index.");
+                        }
+
+                        var filterExpression = default(FilterExpression);
+
+                        foreach (var item in query.Filters)
+                        {
+                            if (item.Field == field)
+                            {
+                                filterExpression = item;
+                                break;
+                            }
+                        }
+
+                        var facetResult = store.Facet(facetExpression, filterExpression, facetDocuments);
+
+                        if (facetResult is not null)
+                        {
+                            facetResults.Add(facetResult);
                         }
                     }
-
-                    var facetResult = store.Facet(facetExpression, filterExpressions, facetDocuments);
-
-                    if (facetResult is not null)
-                    {
-                        facetResults.Add(facetResult);
-                    }
                 }
             }
 
-            var documentSort = new DocumentSort(documentSet);
+            var documentResult = (IDocumentSet)documentSet;
 
-            foreach (var sortExpression in query.Sort)
+            if (query.Sort.Count > 0)
             {
-                var field = sortExpression.Field;
+                var documentSort = new DocumentSort(documentSet);
 
-                if (!this.fieldStores.TryGetValue(field, out var store))
+                foreach (var sortExpression in query.Sort)
                 {
-                    throw new InvalidOperationException("Sort expression references field not belonging to current index.");
+                    var field = sortExpression.Field;
+
+                    if (!this.fieldStores.TryGetValue(field, out var store))
+                    {
+                        throw new InvalidOperationException("Sort expression references field not belonging to current index.");
+                    }
+
+                    store.Sort(sortExpression, documentSort);
                 }
 
-                store.Sort(sortExpression, documentSort);
+                documentResult = documentSort;
             }
 
-            return new QueryResult<TDocument>(this.documents, documentSort, facetResults);
+            return new QueryResult<TDocument>(documentResult, facetResults, this.documents);
         }
 
         public void Dispose()

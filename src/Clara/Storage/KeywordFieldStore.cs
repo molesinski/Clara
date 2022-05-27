@@ -52,17 +52,17 @@ namespace Clara.Storage
             base.Filter(filterExpression, documentSet);
         }
 
-        public override FieldFacetResult? Facet(FacetExpression facetExpression, IEnumerable<FilterExpression> filterExpressions, IEnumerable<int> documents)
+        public override FieldFacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
         {
             if (facetExpression is KeywordFacetExpression tokenFacetExpression)
             {
                 if (this.documentTokenStore is not null)
                 {
-                    return this.documentTokenStore.Facet(tokenFacetExpression, filterExpressions, documents);
+                    return this.documentTokenStore.Facet(tokenFacetExpression, filterExpression, documents);
                 }
             }
 
-            return base.Facet(facetExpression, filterExpressions, documents);
+            return base.Facet(facetExpression, filterExpression, documents);
         }
 
         public override void Dispose()

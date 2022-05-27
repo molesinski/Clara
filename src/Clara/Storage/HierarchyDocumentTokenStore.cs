@@ -7,7 +7,7 @@ namespace Clara.Storage
 {
     internal class HierarchyDocumentTokenStore : IDisposable
     {
-        private readonly string root;
+        private readonly HashSet<string> rootSet;
         private readonly ITokenEncoder tokenEncoder;
         private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>> documentTokens;
         private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>> parentChildren;
@@ -38,30 +38,22 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(parentChildren));
             }
 
-            this.root = root;
+            this.rootSet = new HashSet<string> { root };
             this.tokenEncoder = tokenEncoder;
             this.documentTokens = documentTokens;
             this.parentChildren = parentChildren;
         }
 
-        public FieldFacetResult? Facet(HierarchyFacetExpression hierarchyFacetExpression, IEnumerable<FilterExpression> filterExpressions, IEnumerable<int> documents)
+        public FieldFacetResult? Facet(HierarchyFacetExpression hierarchyFacetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
         {
-            var selectedValues = new HashSet<string>();
+            var selectedValues = this.rootSet;
 
-            foreach (var filterExpression in filterExpressions)
+            if (filterExpression is TokenFilterExpression tokenFilterExpression)
             {
-                if (filterExpression is TokenFilterExpression tokenFilterExpression)
+                if (tokenFilterExpression.MatchExpression is ValuesMatchExpression valuesMatchExpression)
                 {
-                    if (tokenFilterExpression.MatchExpression is ValuesMatchExpression valuesMatchExpression)
-                    {
-                        selectedValues.UnionWith(valuesMatchExpression.Values);
-                    }
+                    selectedValues = valuesMatchExpression.ValuesSet;
                 }
-            }
-
-            if (selectedValues.Count == 0)
-            {
-                selectedValues.Add(this.root);
             }
 
             using var filteredTokens = new PooledHashSetSlim<int>();
@@ -97,8 +89,13 @@ namespace Clara.Storage
                 }
             }
 
-            var values = new List<HierarchyFacetValue>(capacity: selectedValues.Count);
-            var childrenValues = new PooledList<HierarchyFacetValue>(capacity: filteredTokens.Count);
+            var values = new PooledList<HierarchyFacetValue>(capacity: selectedValues.Count + filteredTokens.Count);
+            var selectedCount = 0;
+
+            for (var i = 0; i < selectedValues.Count; i++)
+            {
+                values.Add(default);
+            }
 
             foreach (var selectedToken in selectedValues)
             {
@@ -109,7 +106,7 @@ namespace Clara.Storage
 
                     if (this.parentChildren.TryGetValue(parentId, out var children))
                     {
-                        var offset = childrenValues.Count;
+                        var offset = values.Count;
                         var count = 0;
 
                         foreach (var childId in children)
@@ -118,25 +115,25 @@ namespace Clara.Storage
                             {
                                 var child = this.tokenEncoder.Decode(childId);
 
-                                childrenValues.Add(new HierarchyFacetValue(child, childCount));
+                                values.Add(new HierarchyFacetValue(child, childCount));
                                 count++;
                             }
                         }
 
-                        childrenValues.Sort(offset, count, HierarchyFacetValueComparer.Instance);
+                        values.Sort(offset, count, HierarchyFacetValueComparer.Instance);
 
-                        values.Add(new HierarchyFacetValue(parent, parentCount, childrenValues.Range(offset, count)));
+                        values[selectedCount++] = new HierarchyFacetValue(parent, parentCount, values.Range(offset, count));
                     }
                     else
                     {
-                        values.Add(new HierarchyFacetValue(parent, parentCount));
+                        values[selectedCount++] = new HierarchyFacetValue(parent, parentCount);
                     }
                 }
             }
 
-            values.Sort(HierarchyFacetValueComparer.Instance);
+            values.Sort(0, selectedCount, HierarchyFacetValueComparer.Instance);
 
-            return new FieldFacetResult(hierarchyFacetExpression.CreateResult(values), new[] { childrenValues });
+            return new FieldFacetResult(hierarchyFacetExpression.CreateResult(values.Range(0, selectedCount)), values);
         }
 
         public void Dispose()

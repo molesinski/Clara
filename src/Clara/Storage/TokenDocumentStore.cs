@@ -49,9 +49,9 @@ namespace Clara.Storage
         {
             if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
             {
-                if (anyValuesMatchExpression.Values.Count == 1)
+                if (anyValuesMatchExpression.ValuesSet.Count == 1)
                 {
-                    var token = anyValuesMatchExpression.Values.Single();
+                    var token = anyValuesMatchExpression.ValuesSet.Single();
 
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {

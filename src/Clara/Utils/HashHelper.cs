@@ -1,6 +1,6 @@
 ﻿namespace Clara.Utils
 {
-    internal static class HashHelpers
+    internal static class HashHelper
     {
         internal static readonly int[] SizeOneIntArray = new int[1];
 

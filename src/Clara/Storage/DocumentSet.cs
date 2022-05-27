@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Clara.Mapping;
 using Clara.Utils;
 
 namespace Clara.Storage
 {
-    internal sealed class DocumentSet : IDisposable
+    internal sealed class DocumentSet : IDocumentSet
     {
         private static readonly PooledHashSetSlim<int> Empty = new();
 
@@ -35,11 +36,11 @@ namespace Clara.Storage
             this.documents = documents;
         }
 
-        public IReadOnlyCollection<int> Documents
+        public int Count
         {
             get
             {
-                return this.documents ?? this.allDocuments;
+                return (this.documents ?? this.allDocuments).Count;
             }
         }
 
@@ -159,6 +160,16 @@ namespace Clara.Storage
             }
 
             this.branches.Clear();
+        }
+
+        public IEnumerator<int> GetEnumerator()
+        {
+            return (this.documents ?? this.allDocuments).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return (this.documents ?? this.allDocuments).GetEnumerator();
         }
 
         private class BranchSet : IDisposable

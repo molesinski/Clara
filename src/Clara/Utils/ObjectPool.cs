@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace Clara.Analysis
 {
-    internal class ObjectPool<TItem>
+    public sealed class ObjectPool<TItem>
     {
         private readonly ConcurrentBag<TItem> objects = new();
         private readonly Func<TItem> factory;
