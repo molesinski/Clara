@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Clara.Analysis.Synonyms;
 using Clara.Storage;
 
@@ -36,7 +35,7 @@ namespace Clara.Mapping
 
     public sealed class HierarchyField<TSource> : HierarchyField
     {
-        public HierarchyField(Func<TSource, IEnumerable<string>?> valueMapper, bool isFilterable = false, bool isFacetable = false, char separator = ',', string root = DefaultRoot)
+        public HierarchyField(Func<TSource, FieldValues<string>> valueMapper, bool isFilterable = false, bool isFacetable = false, char separator = ',', string root = DefaultRoot)
             : base(
                 isFilterable: isFilterable,
                 isFacetable: isFacetable,
@@ -51,7 +50,7 @@ namespace Clara.Mapping
             this.ValueMapper = valueMapper;
         }
 
-        public Func<TSource, IEnumerable<string>?> ValueMapper { get; }
+        public Func<TSource, FieldValues<string>> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderStore tokenEncoderStore,

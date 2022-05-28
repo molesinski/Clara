@@ -52,7 +52,7 @@ namespace Clara.Storage
             {
                 if (tokenFilterExpression.MatchExpression is ValuesMatchExpression valuesMatchExpression)
                 {
-                    selectedValues = valuesMatchExpression.ValuesSet;
+                    selectedValues = new HashSet<string>(valuesMatchExpression.Values);
                 }
             }
 
@@ -138,6 +138,16 @@ namespace Clara.Storage
 
         public void Dispose()
         {
+            foreach (var pair in this.documentTokens)
+            {
+                pair.Value.Dispose();
+            }
+
+            foreach (var pair in this.parentChildren)
+            {
+                pair.Value.Dispose();
+            }
+
             this.documentTokens.Dispose();
             this.parentChildren.Dispose();
         }

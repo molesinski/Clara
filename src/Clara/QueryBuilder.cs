@@ -7,6 +7,8 @@ namespace Clara
 {
     public class QueryBuilder
     {
+        private readonly Query query;
+
         public QueryBuilder(Index index)
         {
             if (index is null)
@@ -14,28 +16,34 @@ namespace Clara
                 throw new ArgumentNullException(nameof(index));
             }
 
-            this.Query = new Query(index);
+            this.query = new Query(index);
         }
 
-        public Query Query { get; }
+        public Query Query
+        {
+            get
+            {
+                return this.query;
+            }
+        }
 
         public QueryBuilder Filter(TextField field, MatchExpression matchExpression)
         {
-            this.Query.AddFilter(new TextFilterExpression(field, matchExpression));
+            this.query.AddFilter(new TextFilterExpression(field, matchExpression));
 
             return this;
         }
 
         public QueryBuilder Filter(KeywordField field, MatchExpression matchExpression)
         {
-            this.Query.AddFilter(new KeywordFilterExpression(field, matchExpression));
+            this.query.AddFilter(new KeywordFilterExpression(field, matchExpression));
 
             return this;
         }
 
         public QueryBuilder Filter(HierarchyField field, MatchExpression matchExpression)
         {
-            this.Query.AddFilter(new HierarchyFilterExpression(field, matchExpression));
+            this.query.AddFilter(new HierarchyFilterExpression(field, matchExpression));
 
             return this;
         }
@@ -43,21 +51,21 @@ namespace Clara
         public QueryBuilder Filter<TValue>(RangeField<TValue> field, TValue? from, TValue? to)
             where TValue : struct, IComparable<TValue>
         {
-            this.Query.AddFilter(new RangeFilterExpression<TValue>(field, from, to));
+            this.query.AddFilter(new RangeFilterExpression<TValue>(field, from, to));
 
             return this;
         }
 
         public QueryBuilder Facet(KeywordField field)
         {
-            this.Query.AddFacet(new KeywordFacetExpression(field));
+            this.query.AddFacet(new KeywordFacetExpression(field));
 
             return this;
         }
 
         public QueryBuilder Facet(HierarchyField field)
         {
-            this.Query.AddFacet(new HierarchyFacetExpression(field));
+            this.query.AddFacet(new HierarchyFacetExpression(field));
 
             return this;
         }
@@ -65,7 +73,7 @@ namespace Clara
         public QueryBuilder Facet<TValue>(RangeField<TValue> field)
             where TValue : struct, IComparable<TValue>
         {
-            this.Query.AddFacet(new RangeFacetExpression<TValue>(field));
+            this.query.AddFacet(new RangeFacetExpression<TValue>(field));
 
             return this;
         }
@@ -73,7 +81,7 @@ namespace Clara
         public QueryBuilder Sort<TValue>(RangeField<TValue> field, SortDirection direction)
             where TValue : struct, IComparable<TValue>
         {
-            this.Query.AddSort(new RangeSortExpression<TValue>(field, direction));
+            this.query.AddSort(new RangeSortExpression<TValue>(field, direction));
 
             return this;
         }
@@ -82,13 +90,13 @@ namespace Clara
         {
             if (includeDocuments is not null)
             {
-                if (this.Query.IncludeDocuments is not null)
+                if (this.query.IncludeDocuments is not null)
                 {
                     throw new InvalidOperationException("Include documents already have been set.");
                 }
             }
 
-            this.Query.IncludeDocuments = includeDocuments;
+            this.query.IncludeDocuments = includeDocuments;
 
             return this;
         }
@@ -97,13 +105,13 @@ namespace Clara
         {
             if (excludeDocuments is not null)
             {
-                if (this.Query.ExcludeDocuments is not null)
+                if (this.query.ExcludeDocuments is not null)
                 {
                     throw new InvalidOperationException("Exclude documents already have been set.");
                 }
             }
 
-            this.Query.ExcludeDocuments = excludeDocuments;
+            this.query.ExcludeDocuments = excludeDocuments;
 
             return this;
         }

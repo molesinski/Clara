@@ -1,24 +1,30 @@
-﻿namespace Clara.Utils
+﻿using System;
+
+namespace Clara.Utils
 {
     internal static class HashHelper
     {
-        internal static readonly int[] SizeOneIntArray = new int[1];
+        private const int MinimumCapacity = 16;
 
-        internal static int PowerOf2(int v)
+        internal static readonly int[] InitialBuckets = new int[1];
+
+        internal static int Size(int capacity)
         {
-            if ((v & v - 1) == 0)
+            capacity = Math.Max(capacity, MinimumCapacity);
+
+            if ((capacity & capacity - 1) == 0)
             {
-                return v;
+                return capacity;
             }
 
-            var i = 2;
+            var size = 2;
 
-            while (i < v)
+            while (size < capacity)
             {
-                i <<= 1;
+                size <<= 1;
             }
 
-            return i;
+            return size;
         }
     }
 }

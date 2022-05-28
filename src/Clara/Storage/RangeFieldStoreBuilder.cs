@@ -39,11 +39,6 @@ namespace Clara.Storage
         {
             var values = this.field.ValueMapper(item);
 
-            if (values is null)
-            {
-                return;
-            }
-
             var hadValues = false;
             var min = this.maxValue;
             var max = this.minValue;

@@ -58,6 +58,11 @@ namespace Clara
             }
         }
 
+        public QueryBuilder QueryBuilder()
+        {
+            return new QueryBuilder(this);
+        }
+
         public QueryResult<TDocument> Query(Query query)
         {
             if (query is null)
@@ -69,14 +74,13 @@ namespace Clara
 
             if (query.IncludeDocuments is not null)
             {
-                var hasValues = false;
-                var includedDocuments = new PooledHashSetSlim<int>();
+                var includedDocuments = default(PooledHashSetSlim<int>);
 
                 foreach (var includedDocument in query.IncludeDocuments)
                 {
                     if (includedDocument is not null)
                     {
-                        hasValues = true;
+                        includedDocuments ??= new();
 
                         if (this.tokenEncoder.TryEncode(includedDocument, out var documentId))
                         {
@@ -85,13 +89,13 @@ namespace Clara
                     }
                 }
 
-                if (hasValues)
+                if (includedDocuments is not null)
                 {
                     documentSet = new DocumentSet(includedDocuments);
                 }
             }
 
-            if (documentSet == default)
+            if (documentSet is null)
             {
                 documentSet = new DocumentSet((IReadOnlyCollection<int>)this.allDocuments);
             }
@@ -110,9 +114,11 @@ namespace Clara
                     }
                 }
 
-                foreach (var filterExpression in query.Filters
-                    .OrderBy(o => o.IsBranchingRequiredForFaceting && facetFields.Contains(o.Field) ? 1 : 0)
-                    .ThenBy(o => this.fieldStores.TryGetValue(o.Field, out var store) ? store.FilterOrder : double.MinValue))
+                var filterExpressions = query.Filters.ToArray();
+
+                Array.Sort(filterExpressions, new FilterExpressionComparer(facetFields, this.fieldStores));
+
+                foreach (var filterExpression in filterExpressions)
                 {
                     if (documentSet.Count == 0)
                     {
@@ -140,14 +146,13 @@ namespace Clara
 
             if (query.ExcludeDocuments is not null)
             {
-                var hasValues = false;
-                using var excludeDocuments = new PooledHashSetSlim<int>();
+                var excludeDocuments = default(PooledHashSetSlim<int>);
 
                 foreach (var excludeDocument in query.ExcludeDocuments)
                 {
                     if (excludeDocument is not null)
                     {
-                        hasValues = true;
+                        excludeDocuments ??= new();
 
                         if (this.tokenEncoder.TryEncode(excludeDocument, out var documentId))
                         {
@@ -156,9 +161,11 @@ namespace Clara
                     }
                 }
 
-                if (hasValues)
+                if (excludeDocuments is not null)
                 {
                     documentSet.ExceptWith(excludeDocuments);
+
+                    excludeDocuments.Dispose();
                 }
             }
 
@@ -247,6 +254,56 @@ namespace Clara
             }
 
             return this.fieldStores.ContainsKey(field);
+        }
+
+        private sealed class FilterExpressionComparer : IComparer<FilterExpression>
+        {
+            private readonly HashSet<Field> facetFields;
+            private readonly Dictionary<Field, FieldStore> fieldStores;
+
+            public FilterExpressionComparer(HashSet<Field> facetFields, Dictionary<Field, FieldStore> fieldStores)
+            {
+                if (facetFields is null)
+                {
+                    throw new ArgumentNullException(nameof(facetFields));
+                }
+
+                if (fieldStores is null)
+                {
+                    throw new ArgumentNullException(nameof(fieldStores));
+                }
+
+                this.facetFields = facetFields;
+                this.fieldStores = fieldStores;
+            }
+
+            public int Compare(FilterExpression? x, FilterExpression? y)
+            {
+                if (x is null)
+                {
+                    throw new ArgumentNullException(nameof(x));
+                }
+
+                if (y is null)
+                {
+                    throw new ArgumentNullException(nameof(y));
+                }
+
+                var a = x.IsBranchingRequiredForFaceting && this.facetFields.Contains(x.Field) ? 1 : 0;
+                var b = y.IsBranchingRequiredForFaceting && this.facetFields.Contains(y.Field) ? 1 : 0;
+
+                var result = a.CompareTo(b);
+
+                if (result != 0)
+                {
+                    return result;
+                }
+
+                var c = this.fieldStores.TryGetValue(x.Field, out var store1) ? store1.FilterOrder : double.MinValue;
+                var d = this.fieldStores.TryGetValue(y.Field, out var store2) ? store2.FilterOrder : double.MinValue;
+
+                return c.CompareTo(d);
+            }
         }
     }
 }

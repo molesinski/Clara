@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Clara.Mapping;
 using Clara.Querying;
@@ -33,6 +34,14 @@ namespace Clara.Analysis.Synonyms
 
         public TextField Field { get; }
 
+        private bool IsEmpty
+        {
+            get
+            {
+                return this.root.Children.Count == 0;
+            }
+        }
+
         public IEnumerable<string> Filter(IEnumerable<string> tokens)
         {
             if (tokens is null)
@@ -40,7 +49,7 @@ namespace Clara.Analysis.Synonyms
                 throw new ArgumentNullException(nameof(tokens));
             }
 
-            if (this.IsEmpty())
+            if (this.IsEmpty)
             {
                 return tokens;
             }
@@ -49,7 +58,7 @@ namespace Clara.Analysis.Synonyms
 
             IEnumerable<string> FilterEnumerable(IEnumerable<string> tokens)
             {
-                foreach (var item in this.Walk(tokens))
+                foreach (var item in new SynonymResultEnumerable(this.root, tokens))
                 {
                     if (item.Node is SynonymNode node)
                     {
@@ -73,7 +82,7 @@ namespace Clara.Analysis.Synonyms
                 throw new ArgumentNullException(nameof(matchExpression));
             }
 
-            if (this.IsEmpty())
+            if (this.IsEmpty)
             {
                 return matchExpression;
             }
@@ -81,9 +90,9 @@ namespace Clara.Analysis.Synonyms
             if (matchExpression is AllValuesMatchExpression allValuesMatchExpression)
             {
                 var expressions = new List<MatchExpression>();
-                var tokens = new HashSet<string>();
+                var tokens = new List<string>();
 
-                foreach (var item in this.Walk(allValuesMatchExpression.Values))
+                foreach (var item in new SynonymResultEnumerable(this.root, allValuesMatchExpression.Values))
                 {
                     if (item.Node is SynonymNode node)
                     {
@@ -105,9 +114,9 @@ namespace Clara.Analysis.Synonyms
             else if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
             {
                 var expressions = new List<MatchExpression>();
-                var tokens = new HashSet<string>();
+                var tokens = new List<string>();
 
-                foreach (var item in this.Walk(anyValuesMatchExpression.Values))
+                foreach (var item in new SynonymResultEnumerable(this.root, anyValuesMatchExpression.Values))
                 {
                     if (item.Node is SynonymNode node)
                     {
@@ -132,69 +141,179 @@ namespace Clara.Analysis.Synonyms
             }
         }
 
-        private bool IsEmpty()
+        private readonly struct SynonymResultEnumerable : IEnumerable<SynonymResult>
         {
-            return this.root.Children.Count == 0;
-        }
+            private readonly SynonymNode root;
+            private readonly IEnumerable<string> tokens;
 
-        private IEnumerable<SynonymResult> Walk(IEnumerable<string> tokens)
-        {
-            var currentNode = this.root;
-
-            foreach (var token in tokens)
+            public SynonymResultEnumerable(SynonymNode root, IEnumerable<string> tokens)
             {
-                if (currentNode.Children.TryGetValue(token, out var node))
+                if (root is null)
                 {
-                    currentNode = node;
+                    throw new ArgumentNullException(nameof(root));
                 }
-                else
+
+                if (tokens is null)
                 {
-                    if (!currentNode.IsRoot)
-                    {
-                        foreach (var item in Backtrack(currentNode))
-                        {
-                            yield return item;
-                        }
-
-                        currentNode = this.root;
-                    }
-
-                    if (currentNode.Children.TryGetValue(token, out node))
-                    {
-                        currentNode = node;
-                    }
-                    else
-                    {
-                        yield return new SynonymResult(token);
-                    }
+                    throw new ArgumentNullException(nameof(tokens));
                 }
+
+                this.root = root;
+                this.tokens = tokens;
             }
 
-            if (!currentNode.IsRoot)
+            IEnumerator<SynonymResult> GetEnumerator()
             {
-                foreach (var item in Backtrack(currentNode))
-                {
-                    yield return item;
-                }
+                return new Enumerator(this);
             }
 
-            static IEnumerable<SynonymResult> Backtrack(SynonymNode node)
+            IEnumerator<SynonymResult> IEnumerable<SynonymResult>.GetEnumerator()
             {
-                if (node.HasSynonyms)
+                return new Enumerator(this);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return new Enumerator(this);
+            }
+
+            public struct Enumerator : IEnumerator<SynonymResult>
+            {
+                private readonly SynonymNode root;
+                private readonly IEnumerable<string> tokens;
+                private SynonymNode currentNode;
+                private SynonymNode? backtrackingNode;
+                private IEnumerator<string>? enumerator;
+                private string? previousToken;
+                private bool isEnumerated;
+                private SynonymResult current;
+
+                public Enumerator(SynonymResultEnumerable source)
                 {
-                    yield return new SynonymResult(node);
+                    this.root = source.root;
+                    this.tokens = source.tokens;
+                    this.currentNode = this.root;
+                    this.backtrackingNode = null;
+                    this.previousToken = null;
+                    this.enumerator = null;
+                    this.isEnumerated = false;
+                    this.current = default;
                 }
-                else
+
+                SynonymResult IEnumerator<SynonymResult>.Current
                 {
-                    if (!node.Parent.IsRoot)
+                    get
                     {
-                        foreach (var item in Backtrack(node.Parent))
+                        return this.current;
+                    }
+                }
+
+                public object Current
+                {
+                    get
+                    {
+                        return this.current;
+                    }
+                }
+
+                public bool MoveNext()
+                {
+                    if (this.isEnumerated)
+                    {
+                        return false;
+                    }
+
+                    this.enumerator ??= this.tokens.GetEnumerator();
+
+                    while (this.backtrackingNode is not null || !this.isEnumerated)
+                    {
+                        while (this.backtrackingNode is not null)
                         {
-                            yield return item;
+                            if (this.backtrackingNode.IsRoot)
+                            {
+                                this.backtrackingNode = null;
+
+                                break;
+                            }
+
+                            if (this.backtrackingNode.HasSynonyms)
+                            {
+                                this.current = new SynonymResult(this.backtrackingNode);
+                                this.backtrackingNode = null;
+
+                                return true;
+                            }
+
+                            this.current = new SynonymResult(this.backtrackingNode.Token);
+                            this.backtrackingNode = this.backtrackingNode.Parent;
+
+                            return true;
+                        }
+
+                        if (this.previousToken is not null || (!this.isEnumerated && this.enumerator.MoveNext()))
+                        {
+                            var currentToken = this.previousToken ?? this.enumerator.Current;
+
+                            this.previousToken = null;
+
+                            if (this.currentNode.Children.TryGetValue(currentToken, out var node))
+                            {
+                                this.currentNode = node;
+                                continue;
+                            }
+
+                            if (!this.currentNode.IsRoot)
+                            {
+                                this.backtrackingNode = this.currentNode;
+                                this.currentNode = this.root;
+                                this.previousToken = currentToken;
+
+                                continue;
+                            }
+
+                            this.current = new SynonymResult(currentToken);
+
+                            return true;
+                        }
+                        else
+                        {
+                            if (!this.isEnumerated)
+                            {
+                                this.isEnumerated = true;
+
+                                if (!this.currentNode.IsRoot)
+                                {
+                                    this.backtrackingNode = this.currentNode;
+                                    this.currentNode = this.root;
+                                    this.previousToken = null;
+
+                                    continue;
+                                }
+                            }
                         }
                     }
 
-                    yield return new SynonymResult(node.Token);
+                    this.isEnumerated = true;
+                    this.current = default;
+
+                    return false;
+                }
+
+                public void Reset()
+                {
+                    this.currentNode = this.root;
+                    this.backtrackingNode = null;
+                    this.previousToken = null;
+                    this.enumerator?.Dispose();
+                    this.enumerator = null;
+                    this.isEnumerated = false;
+                    this.current = default;
+                }
+
+                public void Dispose()
+                {
+                    this.enumerator?.Dispose();
+                    this.enumerator = null;
                 }
             }
         }

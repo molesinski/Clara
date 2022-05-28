@@ -59,8 +59,8 @@ namespace Clara.Analysis.Stemming
                 this.stem = result.stem;
                 this.stems = result.stems;
                 this.count =
-                    this.stem != null ? 1 :
-                    this.stems != null ? this.stems.Count :
+                    this.stem is not null ? 1 :
+                    this.stems is not null ? this.stems.Count :
                     0;
 
                 this.index = 0;
@@ -85,7 +85,7 @@ namespace Clara.Analysis.Stemming
 
             public bool MoveNext()
             {
-                if (this.stem != null)
+                if (this.stem is not null)
                 {
                     if (this.index < this.count)
                     {
@@ -95,7 +95,7 @@ namespace Clara.Analysis.Stemming
                         return true;
                     }
                 }
-                else if (this.stems != null)
+                else if (this.stems is not null)
                 {
                     if (this.index < this.count)
                     {

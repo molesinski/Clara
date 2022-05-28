@@ -5,7 +5,7 @@ namespace Clara.Storage
 {
     internal sealed class TokenEncoderBuilder
     {
-        private readonly PooledDictionary<string, int> encoder = new();
+        private readonly PooledDictionarySlim<string, int> encoder = new();
         private readonly PooledDictionarySlim<int, string> decoder = new();
         private readonly bool copyOnBuild;
         private int nextId = 1;
@@ -40,7 +40,7 @@ namespace Clara.Storage
         {
             if (this.copyOnBuild)
             {
-                var encoder = new PooledDictionary<string, int>(this.encoder);
+                var encoder = new PooledDictionarySlim<string, int>(this.encoder);
                 var decoder = new PooledDictionarySlim<int, string>(this.decoder);
 
                 return new TokenEncoder(encoder, decoder);

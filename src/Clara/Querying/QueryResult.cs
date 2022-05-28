@@ -55,7 +55,7 @@ namespace Clara.Querying
                         {
                             this.documents.TryGetValue(o, out var document);
 
-                            return new DocumentResult<TDocument>(document, 1);
+                            return new DocumentResult<TDocument>(document);
                         });
             }
         }

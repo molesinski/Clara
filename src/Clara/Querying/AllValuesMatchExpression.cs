@@ -4,7 +4,7 @@ namespace Clara.Querying
 {
     public sealed class AllValuesMatchExpression : ValuesMatchExpression
     {
-        internal AllValuesMatchExpression(HashSet<string> values)
+        internal AllValuesMatchExpression(List<string> values)
             : base(values)
         {
         }

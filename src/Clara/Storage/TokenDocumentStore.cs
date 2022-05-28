@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Clara.Mapping;
 using Clara.Querying;
 using Clara.Utils;
@@ -49,9 +48,9 @@ namespace Clara.Storage
         {
             if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
             {
-                if (anyValuesMatchExpression.ValuesSet.Count == 1)
+                if (anyValuesMatchExpression.Values.Count == 1)
                 {
-                    var token = anyValuesMatchExpression.ValuesSet.Single();
+                    var token = anyValuesMatchExpression.Values[0];
 
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
@@ -223,6 +222,11 @@ namespace Clara.Storage
 
         public void Dispose()
         {
+            foreach (var pair in this.tokenDocuments)
+            {
+                pair.Value.Dispose();
+            }
+
             this.tokenDocuments.Dispose();
         }
     }

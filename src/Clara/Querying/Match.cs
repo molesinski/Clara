@@ -9,7 +9,12 @@ namespace Clara.Querying
             return EmptyMatchExpression.Instance;
         }
 
-        public static MatchExpression And(IEnumerable<MatchExpression>? expressions)
+        public static MatchExpression And(params MatchExpression?[] expressions)
+        {
+            return And((IEnumerable<MatchExpression?>)expressions);
+        }
+
+        public static MatchExpression And(IEnumerable<MatchExpression?>? expressions)
         {
             if (expressions is not null)
             {
@@ -60,7 +65,12 @@ namespace Clara.Querying
             return EmptyMatchExpression.Instance;
         }
 
-        public static MatchExpression Or(IEnumerable<MatchExpression>? expressions)
+        public static MatchExpression Or(params MatchExpression?[] expressions)
+        {
+            return Or((IEnumerable<MatchExpression?>)expressions);
+        }
+
+        public static MatchExpression Or(IEnumerable<MatchExpression?>? expressions)
         {
             if (expressions is not null)
             {
@@ -117,18 +127,23 @@ namespace Clara.Querying
             {
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    return new AllValuesMatchExpression(new HashSet<string> { value });
+                    return new AllValuesMatchExpression(new List<string> { value });
                 }
             }
 
             return EmptyMatchExpression.Instance;
         }
 
+        public static MatchExpression All(params string?[] values)
+        {
+            return All((IEnumerable<string?>)values);
+        }
+
         public static MatchExpression All(IEnumerable<string?>? values)
         {
             if (values is not null)
             {
-                var result = new HashSet<string>();
+                var result = new List<string>();
 
                 foreach (var value in values)
                 {
@@ -156,18 +171,23 @@ namespace Clara.Querying
             {
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    return new AnyValuesMatchExpression(new HashSet<string> { value });
+                    return new AnyValuesMatchExpression(new List<string> { value });
                 }
             }
 
             return EmptyMatchExpression.Instance;
         }
 
+        public static MatchExpression Any(params string?[] values)
+        {
+            return Any((IEnumerable<string?>)values);
+        }
+
         public static MatchExpression Any(IEnumerable<string?>? values)
         {
             if (values is not null)
             {
-                var result = new HashSet<string>();
+                var result = new List<string>();
 
                 foreach (var value in values)
                 {

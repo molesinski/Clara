@@ -13,9 +13,7 @@ namespace Clara.Utils
     public sealed class PooledDictionarySlim<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TValue>>, IDisposable
         where TKey : notnull, IEquatable<TKey>
     {
-        private const int MinimumCapacity = 16;
-
-        private static readonly ArrayPool<int> IntPool = ArrayPool<int>.Shared;
+        private static readonly ArrayPool<int> BucketPool = ArrayPool<int>.Shared;
         private static readonly ArrayPool<Entry> EntryPool = ArrayPool<Entry>.Shared;
         private static readonly Entry[] InitialEntries = new Entry[1];
 
@@ -40,7 +38,7 @@ namespace Clara.Utils
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
-            this.buckets = HashHelper.SizeOneIntArray;
+            this.buckets = HashHelper.InitialBuckets;
             this.entries = InitialEntries;
         }
 
@@ -51,69 +49,45 @@ namespace Clara.Utils
                 throw new ArgumentOutOfRangeException(nameof(capacity));
             }
 
-            if (capacity < MinimumCapacity)
-            {
-                capacity = MinimumCapacity;
-            }
-
-            this.size = HashHelper.PowerOf2(capacity);
+            this.size = HashHelper.Size(capacity);
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
-            this.buckets = IntPool.Rent(this.size);
+            this.buckets = BucketPool.Rent(this.size);
             this.entries = EntryPool.Rent(this.size);
 
             Array.Clear(this.buckets, 0, this.size);
         }
 
-        public PooledDictionarySlim(IEnumerable<KeyValuePair<TKey, TValue>> collection)
+        public PooledDictionarySlim(IEnumerable<KeyValuePair<TKey, TValue>> source)
         {
-            if (collection is null)
+            if (source is null)
             {
-                throw new ArgumentNullException(nameof(collection));
+                throw new ArgumentNullException(nameof(source));
             }
 
-            if (collection is PooledDictionarySlim<TKey, TValue> source)
+            if (source is PooledDictionarySlim<TKey, TValue> other && other.count > 0)
             {
-                if (source.size == 1)
-                {
-                    this.size = 1;
-                    this.count = 0;
-                    this.lastIndex = 0;
-                    this.freeList = -1;
-                    this.buckets = HashHelper.SizeOneIntArray;
-                    this.entries = InitialEntries;
-                }
-                else
-                {
-                    this.size = source.size;
-                    this.count = source.count;
-                    this.lastIndex = source.lastIndex;
-                    this.freeList = source.freeList;
-                    this.buckets = IntPool.Rent(this.size);
-                    this.entries = EntryPool.Rent(this.size);
+                this.size = other.size;
+                this.count = other.count;
+                this.lastIndex = other.lastIndex;
+                this.freeList = other.freeList;
+                this.buckets = BucketPool.Rent(this.size);
+                this.entries = EntryPool.Rent(this.size);
 
-                    Array.Copy(source.buckets, 0, this.buckets, 0, this.size);
-                    Array.Copy(source.entries, 0, this.entries, 0, this.lastIndex);
-                }
+                Array.Copy(other.buckets, 0, this.buckets, 0, this.size);
+                Array.Copy(other.entries, 0, this.entries, 0, this.lastIndex);
 
                 return;
             }
 
-            if (collection is IReadOnlyCollection<KeyValuePair<TKey, TValue>> readOnlyCollection)
+            if (source is IReadOnlyCollection<KeyValuePair<TKey, TValue>> collection && collection.Count > 0)
             {
-                var capacity = readOnlyCollection.Count;
-
-                if (capacity < MinimumCapacity)
-                {
-                    capacity = MinimumCapacity;
-                }
-
-                this.size = HashHelper.PowerOf2(capacity);
+                this.size = HashHelper.Size(collection.Count);
                 this.count = 0;
                 this.lastIndex = 0;
                 this.freeList = -1;
-                this.buckets = IntPool.Rent(this.size);
+                this.buckets = BucketPool.Rent(this.size);
                 this.entries = EntryPool.Rent(this.size);
 
                 Array.Clear(this.buckets, 0, this.size);
@@ -124,17 +98,17 @@ namespace Clara.Utils
                 this.count = 0;
                 this.lastIndex = 0;
                 this.freeList = -1;
-                this.buckets = HashHelper.SizeOneIntArray;
+                this.buckets = HashHelper.InitialBuckets;
                 this.entries = InitialEntries;
             }
 
-            foreach (var pair in collection)
+            foreach (var pair in source)
             {
                 ref var value = ref this.GetValueRefOrAddDefault(pair.Key, out var exists);
 
                 if (exists)
                 {
-                    throw new ArgumentException("Collection contains one or more duplicated keys.", nameof(collection));
+                    throw new ArgumentException("Collection contains one or more duplicated keys.", nameof(source));
                 }
 
                 value = pair.Value;
@@ -172,7 +146,7 @@ namespace Clara.Utils
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            if (key == null)
+            if (key is null)
             {
                 throw new ArgumentNullException(nameof(key));
             }
@@ -203,7 +177,7 @@ namespace Clara.Utils
 
         public bool ContainsKey(TKey key)
         {
-            if (key == null)
+            if (key is null)
             {
                 throw new ArgumentNullException(nameof(key));
             }
@@ -231,7 +205,7 @@ namespace Clara.Utils
 
         public bool Remove(TKey key)
         {
-            if (key == null)
+            if (key is null)
             {
                 throw new ArgumentNullException(nameof(key));
             }
@@ -289,7 +263,7 @@ namespace Clara.Utils
 
         public ref TValue GetValueRefOrAddDefault(TKey key, out bool exists)
         {
-            if (key == null)
+            if (key is null)
             {
                 throw new ArgumentNullException(nameof(key));
             }
@@ -348,7 +322,7 @@ namespace Clara.Utils
                 Array.Clear(this.entries, 0, this.lastIndex);
 #endif
 
-                IntPool.Return(this.buckets);
+                BucketPool.Return(this.buckets);
                 EntryPool.Return(this.entries);
             }
 
@@ -356,7 +330,7 @@ namespace Clara.Utils
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
-            this.buckets = HashHelper.SizeOneIntArray;
+            this.buckets = HashHelper.InitialBuckets;
             this.entries = InitialEntries;
         }
 
@@ -375,7 +349,9 @@ namespace Clara.Utils
             {
                 if (this.count == this.size || this.size == 1)
                 {
-                    entries = this.Resize();
+                    this.EnsureCapacity(this.count + 1);
+
+                    entries = this.entries;
                     bucketIndex = key.GetHashCode() & this.size - 1;
                 }
 
@@ -393,35 +369,33 @@ namespace Clara.Utils
             return ref entries[entryIndex].Value;
         }
 
-        private Entry[] Resize()
+        private void EnsureCapacity(int capacity)
         {
-            Debug.Assert(this.size == this.count || this.size == 1);
+            var newSize = HashHelper.Size(capacity);
 
-            var count = this.count;
-            var newSize = this.size * 2;
-
-            if (newSize < MinimumCapacity)
+            if (newSize <= this.size)
             {
-                newSize = MinimumCapacity;
+                return;
             }
 
-            if ((uint)newSize > int.MaxValue)
-            {
-                throw new InvalidOperationException("Capacity overflowed and went negative. Check load factor, capacity and the current size of the table.");
-            }
-
-            var newBuckets = IntPool.Rent(newSize);
+            var lastIndex = this.lastIndex;
+            var newBuckets = BucketPool.Rent(newSize);
             var newEntries = EntryPool.Rent(newSize);
 
             Array.Clear(newBuckets, 0, newSize);
-            Array.Copy(this.entries, 0, newEntries, 0, count);
+            Array.Copy(this.entries, 0, newEntries, 0, lastIndex);
 
-            while (count-- > 0)
+            while (lastIndex-- > 0)
             {
-                var bucketIndex = newEntries[count].Key.GetHashCode() & newSize - 1;
+                ref var entry = ref newEntries[lastIndex];
 
-                newEntries[count].Next = newBuckets[bucketIndex] - 1;
-                newBuckets[bucketIndex] = count + 1;
+                if (entry.Next >= -1)
+                {
+                    var bucketIndex = entry.Key.GetHashCode() & newSize - 1;
+
+                    entry.Next = newBuckets[bucketIndex] - 1;
+                    newBuckets[bucketIndex] = lastIndex + 1;
+                }
             }
 
             if (this.size > 1)
@@ -435,15 +409,13 @@ namespace Clara.Utils
                 Array.Clear(this.entries, 0, this.lastIndex);
 #endif
 
-                IntPool.Return(this.buckets);
+                BucketPool.Return(this.buckets);
                 EntryPool.Return(this.entries);
             }
 
             this.size = newSize;
             this.buckets = newBuckets;
             this.entries = newEntries;
-
-            return newEntries;
         }
 
         public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>

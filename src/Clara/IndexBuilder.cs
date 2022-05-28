@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Clara.Analysis.Synonyms;
 using Clara.Mapping;
 using Clara.Storage;
@@ -36,19 +37,20 @@ namespace Clara
         {
             lock (tokenEncoderStore.SyncRoot)
             {
-                var builder = new IndexBuilder<TSource, TDocument>(indexMapper, synonymMaps, tokenEncoderStore);
-
-                foreach (var item in source)
+                using (var builder = new IndexBuilder<TSource, TDocument>(indexMapper, synonymMaps, tokenEncoderStore))
                 {
-                    builder.Index(item);
-                }
+                    foreach (var item in source)
+                    {
+                        builder.Index(item);
+                    }
 
-                return builder.Build();
+                    return builder.Build();
+                }
             }
         }
     }
 
-    public sealed class IndexBuilder<TSource, TDocument> : IndexBuilder
+    public sealed class IndexBuilder<TSource, TDocument> : IndexBuilder, IDisposable
     {
         private readonly IIndexMapper<TSource, TDocument> indexMapper;
         private readonly PooledDictionarySlim<int, TDocument> documents;
@@ -175,6 +177,14 @@ namespace Clara
             }
 
             return new Index<TDocument>(tokenEncoder, this.documents, fieldStores);
+        }
+
+        public void Dispose()
+        {
+            foreach (var pair in this.fieldBuilders)
+            {
+                pair.Value.Dispose();
+            }
         }
     }
 }

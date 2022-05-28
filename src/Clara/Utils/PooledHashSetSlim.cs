@@ -13,10 +13,9 @@ namespace Clara.Utils
     public sealed class PooledHashSetSlim<TItem> : IReadOnlyCollection<TItem>, IDisposable
         where TItem : notnull, IEquatable<TItem>
     {
-        private const int MinimumCapacity = 16;
         private const int StackAllocThreshold = 256;
 
-        private static readonly ArrayPool<int> IntPool = ArrayPool<int>.Shared;
+        private static readonly ArrayPool<int> BucketPool = ArrayPool<int>.Shared;
         private static readonly ArrayPool<Entry> EntryPool = ArrayPool<Entry>.Shared;
         private static readonly Entry[] InitialEntries = new Entry[1];
 
@@ -40,7 +39,7 @@ namespace Clara.Utils
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
-            this.buckets = HashHelper.SizeOneIntArray;
+            this.buckets = HashHelper.InitialBuckets;
             this.entries = InitialEntries;
         }
 
@@ -51,69 +50,45 @@ namespace Clara.Utils
                 throw new ArgumentOutOfRangeException(nameof(capacity));
             }
 
-            if (capacity < MinimumCapacity)
-            {
-                capacity = MinimumCapacity;
-            }
-
-            this.size = HashHelper.PowerOf2(capacity);
+            this.size = HashHelper.Size(capacity);
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
-            this.buckets = IntPool.Rent(this.size);
+            this.buckets = BucketPool.Rent(this.size);
             this.entries = EntryPool.Rent(this.size);
 
             Array.Clear(this.buckets, 0, this.size);
         }
 
-        public PooledHashSetSlim(IEnumerable<TItem> collection)
+        public PooledHashSetSlim(IEnumerable<TItem> source)
         {
-            if (collection is null)
+            if (source is null)
             {
-                throw new ArgumentNullException(nameof(collection));
+                throw new ArgumentNullException(nameof(source));
             }
 
-            if (collection is PooledHashSetSlim<TItem> source)
+            if (source is PooledHashSetSlim<TItem> other && other.size > 1)
             {
-                if (source.size == 1)
-                {
-                    this.size = 1;
-                    this.count = 0;
-                    this.lastIndex = 0;
-                    this.freeList = -1;
-                    this.buckets = HashHelper.SizeOneIntArray;
-                    this.entries = InitialEntries;
-                }
-                else
-                {
-                    this.size = source.size;
-                    this.count = source.count;
-                    this.lastIndex = source.lastIndex;
-                    this.freeList = source.freeList;
-                    this.buckets = IntPool.Rent(this.size);
-                    this.entries = EntryPool.Rent(this.size);
+                this.size = other.size;
+                this.count = other.count;
+                this.lastIndex = other.lastIndex;
+                this.freeList = other.freeList;
+                this.buckets = BucketPool.Rent(this.size);
+                this.entries = EntryPool.Rent(this.size);
 
-                    Array.Copy(source.buckets, 0, this.buckets, 0, this.size);
-                    Array.Copy(source.entries, 0, this.entries, 0, this.lastIndex);
-                }
+                Array.Copy(other.buckets, 0, this.buckets, 0, this.size);
+                Array.Copy(other.entries, 0, this.entries, 0, this.lastIndex);
 
                 return;
             }
 
-            if (collection is IReadOnlyCollection<TItem> readOnlyCollection)
+            if (source is IReadOnlyCollection<TItem> collection && collection.Count > 0)
             {
-                var capacity = readOnlyCollection.Count;
-
-                if (capacity < MinimumCapacity)
-                {
-                    capacity = MinimumCapacity;
-                }
-
-                this.size = HashHelper.PowerOf2(capacity);
+                this.size = HashHelper.Size(collection.Count);
                 this.count = 0;
                 this.lastIndex = 0;
                 this.freeList = -1;
-                this.buckets = IntPool.Rent(this.size);
+                this.buckets = BucketPool.Rent(this.size);
                 this.entries = EntryPool.Rent(this.size);
 
                 Array.Clear(this.buckets, 0, this.size);
@@ -124,11 +99,11 @@ namespace Clara.Utils
                 this.count = 0;
                 this.lastIndex = 0;
                 this.freeList = -1;
-                this.buckets = HashHelper.SizeOneIntArray;
+                this.buckets = HashHelper.InitialBuckets;
                 this.entries = InitialEntries;
             }
 
-            foreach (var item in collection)
+            foreach (var item in source)
             {
                 this.Add(item);
             }
@@ -170,7 +145,7 @@ namespace Clara.Utils
 
         public bool Add(TItem item)
         {
-            if (item == null)
+            if (item is null)
             {
                 throw new ArgumentNullException(nameof(item));
             }
@@ -201,7 +176,7 @@ namespace Clara.Utils
 
         public bool Remove(TItem item)
         {
-            if (item == null)
+            if (item is null)
             {
                 throw new ArgumentNullException(nameof(item));
             }
@@ -257,39 +232,26 @@ namespace Clara.Utils
             return false;
         }
 
-        public void IntersectWith(IEnumerable<TItem> other)
+        public void IntersectWith(IEnumerable<TItem> enumerable)
         {
-            if (other == null)
+            if (enumerable is null)
             {
-                throw new ArgumentNullException(nameof(other));
+                throw new ArgumentNullException(nameof(enumerable));
             }
 
-            if (this.Count == 0 || other == this)
+            if (this.Count == 0 || enumerable == this)
             {
                 return;
             }
 
-            if (other is IReadOnlyCollection<TItem> otherReadOnlyCollection)
+            if (enumerable is IReadOnlyCollection<TItem> collection && collection.Count == 0)
             {
-                if (otherReadOnlyCollection.Count == 0)
-                {
-                    this.Clear();
+                this.Clear();
 
-                    return;
-                }
+                return;
             }
 
-            if (other is ICollection<TItem> otherCollection)
-            {
-                if (otherCollection.Count == 0)
-                {
-                    this.Clear();
-
-                    return;
-                }
-            }
-
-            if (other is PooledHashSetSlim<TItem> source)
+            if (enumerable is PooledHashSetSlim<TItem> other)
             {
                 var count = this.count;
 
@@ -303,7 +265,7 @@ namespace Clara.Utils
 
                         var item = entry.Item;
 
-                        if (!source.Contains(item))
+                        if (!other.Contains(item))
                         {
                             this.Remove(item);
                         }
@@ -320,22 +282,22 @@ namespace Clara.Utils
                     Span<int> span = stackalloc int[intArrayLength];
                     var bitHelper = new BitHelper(span.Slice(0, intArrayLength), clear: true);
 
-                    IntersectWith(other, ref bitHelper, lastIndex);
+                    IntersectWith(enumerable, ref bitHelper, lastIndex);
                 }
                 else
                 {
-                    var array = IntPool.Rent(intArrayLength);
+                    var array = BucketPool.Rent(intArrayLength);
                     var bitHelper = new BitHelper(array.AsSpan(0, intArrayLength), clear: true);
 
-                    IntersectWith(other, ref bitHelper, lastIndex);
+                    IntersectWith(enumerable, ref bitHelper, lastIndex);
 
-                    IntPool.Return(array);
+                    BucketPool.Return(array);
                 }
             }
 
-            void IntersectWith(IEnumerable<TItem> other, ref BitHelper bitHelper, int lastIndex)
+            void IntersectWith(IEnumerable<TItem> enumerable, ref BitHelper bitHelper, int lastIndex)
             {
-                foreach (var item in other)
+                foreach (var item in enumerable)
                 {
                     var index = this.FindItemIndex(item);
 
@@ -360,58 +322,86 @@ namespace Clara.Utils
             }
         }
 
-        public void UnionWith(IEnumerable<TItem> other)
+        public void UnionWith(IEnumerable<TItem> enumerable)
         {
-            if (other is null)
+            if (enumerable is null)
             {
-                throw new ArgumentNullException(nameof(other));
+                throw new ArgumentNullException(nameof(enumerable));
             }
 
-            if (other is PooledHashSetSlim<TItem> source)
+            if (enumerable is PooledHashSetSlim<TItem> other)
             {
+                if (other.count == 0)
+                {
+                    return;
+                }
+
+                if (this.size > 1)
+                {
+                    if (this.count == 0)
+                    {
+                        if (this.size < other.count)
+                        {
+                            this.Dispose();
+                        }
+                    }
+                }
+
                 if (this.size == 1)
                 {
-                    this.size = source.size;
-                    this.count = source.count;
-                    this.lastIndex = source.lastIndex;
-                    this.freeList = source.freeList;
-                    this.buckets = IntPool.Rent(this.size);
+                    this.size = other.size;
+                    this.count = other.count;
+                    this.lastIndex = other.lastIndex;
+                    this.freeList = other.freeList;
+                    this.buckets = BucketPool.Rent(this.size);
                     this.entries = EntryPool.Rent(this.size);
 
-                    Array.Copy(source.buckets, 0, this.buckets, 0, this.size);
-                    Array.Copy(source.entries, 0, this.entries, 0, this.lastIndex);
+                    Array.Copy(other.buckets, 0, this.buckets, 0, this.size);
+                    Array.Copy(other.entries, 0, this.entries, 0, this.lastIndex);
+
+                    return;
                 }
-                else
+
+                this.EnsureCapacity(other.count);
+
+                var count = other.count;
+
+                for (var i = 0; count > 0; i++)
                 {
-                    var count = source.count;
+                    ref var entry = ref other.entries[i];
 
-                    for (var i = 0; count > 0; i++)
+                    if (entry.Next >= -1)
                     {
-                        ref var entry = ref source.entries[i];
+                        count--;
 
-                        if (entry.Next >= -1)
-                        {
-                            count--;
-
-                            this.Add(entry.Item);
-                        }
+                        this.Add(entry.Item);
                     }
                 }
 
                 return;
             }
 
-            foreach (var item in other)
+            if (enumerable is IReadOnlyCollection<TItem> collection)
+            {
+                if (collection.Count == 0)
+                {
+                    return;
+                }
+
+                this.EnsureCapacity(collection.Count);
+            }
+
+            foreach (var item in enumerable)
             {
                 this.Add(item);
             }
         }
 
-        public void ExceptWith(IEnumerable<TItem> other)
+        public void ExceptWith(IEnumerable<TItem> enumerable)
         {
-            if (other == null)
+            if (enumerable is null)
             {
-                throw new ArgumentNullException(nameof(other));
+                throw new ArgumentNullException(nameof(enumerable));
             }
 
             if (this.count == 0)
@@ -419,20 +409,20 @@ namespace Clara.Utils
                 return;
             }
 
-            if (other == this)
+            if (enumerable == this)
             {
                 this.Clear();
 
                 return;
             }
 
-            if (other is PooledHashSetSlim<TItem> source)
+            if (enumerable is PooledHashSetSlim<TItem> other)
             {
-                var count = source.count;
+                var count = other.count;
 
                 for (var i = 0; count > 0; i++)
                 {
-                    ref var entry = ref source.entries[i];
+                    ref var entry = ref other.entries[i];
 
                     if (entry.Next >= -1)
                     {
@@ -445,7 +435,7 @@ namespace Clara.Utils
                 return;
             }
 
-            foreach (var item in other)
+            foreach (var item in enumerable)
             {
                 this.Remove(item);
             }
@@ -479,7 +469,7 @@ namespace Clara.Utils
                 Array.Clear(this.entries, 0, this.lastIndex);
 #endif
 
-                IntPool.Return(this.buckets);
+                BucketPool.Return(this.buckets);
                 EntryPool.Return(this.entries);
             }
 
@@ -487,7 +477,7 @@ namespace Clara.Utils
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
-            this.buckets = HashHelper.SizeOneIntArray;
+            this.buckets = HashHelper.InitialBuckets;
             this.entries = InitialEntries;
         }
 
@@ -506,7 +496,9 @@ namespace Clara.Utils
             {
                 if (this.count == this.size || this.size == 1)
                 {
-                    entries = this.Resize();
+                    this.EnsureCapacity(this.count + 1);
+
+                    entries = this.entries;
                     bucketIndex = item.GetHashCode() & this.size - 1;
                 }
 
@@ -523,7 +515,7 @@ namespace Clara.Utils
 
         private int FindItemIndex(TItem item)
         {
-            if (item == null)
+            if (item is null)
             {
                 throw new ArgumentNullException(nameof(item));
             }
@@ -549,35 +541,33 @@ namespace Clara.Utils
             return -1;
         }
 
-        private Entry[] Resize()
+        private void EnsureCapacity(int capacity)
         {
-            Debug.Assert(this.size == this.count || this.size == 1);
+            var newSize = HashHelper.Size(capacity);
 
-            var count = this.count;
-            var newSize = this.size * 2;
-
-            if (newSize < MinimumCapacity)
+            if (newSize <= this.size)
             {
-                newSize = MinimumCapacity;
+                return;
             }
 
-            if ((uint)newSize > int.MaxValue)
-            {
-                throw new InvalidOperationException("Capacity overflowed and went negative. Check load factor, capacity and the current size of the table.");
-            }
-
-            var newBuckets = IntPool.Rent(newSize);
+            var lastIndex = this.lastIndex;
+            var newBuckets = BucketPool.Rent(newSize);
             var newEntries = EntryPool.Rent(newSize);
 
             Array.Clear(newBuckets, 0, newSize);
-            Array.Copy(this.entries, 0, newEntries, 0, count);
+            Array.Copy(this.entries, 0, newEntries, 0, lastIndex);
 
-            while (count-- > 0)
+            while (lastIndex-- > 0)
             {
-                var bucketIndex = newEntries[count].Item.GetHashCode() & newSize - 1;
+                ref var entry = ref newEntries[lastIndex];
 
-                newEntries[count].Next = newBuckets[bucketIndex] - 1;
-                newBuckets[bucketIndex] = count + 1;
+                if (entry.Next >= -1)
+                {
+                    var bucketIndex = entry.Item.GetHashCode() & newSize - 1;
+
+                    entry.Next = newBuckets[bucketIndex] - 1;
+                    newBuckets[bucketIndex] = lastIndex + 1;
+                }
             }
 
             if (this.size > 1)
@@ -591,15 +581,13 @@ namespace Clara.Utils
                 Array.Clear(this.entries, 0, this.lastIndex);
 #endif
 
-                IntPool.Return(this.buckets);
+                BucketPool.Return(this.buckets);
                 EntryPool.Return(this.entries);
             }
 
             this.size = newSize;
             this.buckets = newBuckets;
             this.entries = newEntries;
-
-            return newEntries;
         }
 
         public struct Enumerator : IEnumerator<TItem>

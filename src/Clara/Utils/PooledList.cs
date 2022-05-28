@@ -13,8 +13,6 @@ namespace Clara.Utils
     public sealed class PooledList<TItem> : IReadOnlyList<TItem>, IDisposable
         where TItem : notnull
     {
-        private const int MinimumCapacity = 16;
-
         private static readonly ArrayPool<TItem> EntryPool = ArrayPool<TItem>.Shared;
         private static readonly TItem[] InitialEntries = new TItem[1];
 
@@ -34,64 +32,37 @@ namespace Clara.Utils
                 throw new ArgumentOutOfRangeException(nameof(capacity));
             }
 
-            if (capacity < MinimumCapacity)
-            {
-                capacity = MinimumCapacity;
-            }
-
-            capacity = HashHelper.PowerOf2(capacity);
+            var size = HashHelper.Size(capacity);
 
             this.count = 0;
-            this.entries = EntryPool.Rent(capacity);
+            this.entries = EntryPool.Rent(size);
         }
 
-        public PooledList(IEnumerable<TItem> collection)
+        public PooledList(IEnumerable<TItem> source)
         {
-            if (collection is null)
+            if (source is null)
             {
-                throw new ArgumentNullException(nameof(collection));
+                throw new ArgumentNullException(nameof(source));
             }
 
-            if (collection is PooledList<TItem> source)
+            if (source is PooledList<TItem> other && other.count > 0)
             {
-                if (source.entries.Length == 1)
-                {
-                    this.count = 0;
-                    this.entries = InitialEntries;
-                }
-                else
-                {
-                    var capacity = source.count;
+                var size = HashHelper.Size(other.count);
 
-                    if (capacity < MinimumCapacity)
-                    {
-                        capacity = MinimumCapacity;
-                    }
+                this.count = other.count;
+                this.entries = EntryPool.Rent(size);
 
-                    capacity = HashHelper.PowerOf2(capacity);
-
-                    this.count = source.count;
-                    this.entries = EntryPool.Rent(capacity);
-
-                    Array.Copy(source.entries, 0, this.entries, 0, source.count);
-                }
+                Array.Copy(other.entries, 0, this.entries, 0, other.count);
 
                 return;
             }
 
-            if (collection is IReadOnlyCollection<TItem> readOnlyCollection)
+            if (source is IReadOnlyCollection<TItem> collection && collection.Count > 0)
             {
-                var capacity = readOnlyCollection.Count;
-
-                if (capacity < MinimumCapacity)
-                {
-                    capacity = MinimumCapacity;
-                }
-
-                capacity = HashHelper.PowerOf2(capacity);
+                var size = HashHelper.Size(collection.Count);
 
                 this.count = 0;
-                this.entries = EntryPool.Rent(capacity);
+                this.entries = EntryPool.Rent(size);
             }
             else
             {
@@ -99,7 +70,7 @@ namespace Clara.Utils
                 this.entries = InitialEntries;
             }
 
-            foreach (var item in collection)
+            foreach (var item in source)
             {
                 this.Add(item);
             }
@@ -155,15 +126,12 @@ namespace Clara.Utils
 
         public void Add(TItem item)
         {
-            var entries = this.entries;
-
-            if (this.entries.Length == this.count || this.entries.Length == 1)
+            if (this.count == this.entries.Length || this.entries.Length == 1)
             {
-                entries = this.Resize();
+                this.EnsureCapacity(this.count + 1);
             }
 
-            entries[this.count] = item;
-
+            this.entries[this.count] = item;
             this.count++;
         }
 
@@ -237,26 +205,18 @@ namespace Clara.Utils
             this.entries = InitialEntries;
         }
 
-        private TItem[] Resize()
+        private void EnsureCapacity(int capacity)
         {
-            Debug.Assert(this.entries.Length == this.count || this.entries.Length == 1);
+            var newSize = HashHelper.Size(capacity);
 
-            var count = this.count;
-            var newSize = this.entries.Length * 2;
-
-            if (newSize < MinimumCapacity)
+            if (newSize <= this.entries.Length)
             {
-                newSize = MinimumCapacity;
-            }
-
-            if ((uint)newSize > int.MaxValue)
-            {
-                throw new InvalidOperationException("Capacity overflowed and went negative. Check load factor, capacity and the current size of the table.");
+                return;
             }
 
             var newEntries = EntryPool.Rent(newSize);
 
-            Array.Copy(this.entries, 0, newEntries, 0, count);
+            Array.Copy(this.entries, 0, newEntries, 0, this.count);
 
             if (this.entries.Length > 1)
             {
@@ -268,8 +228,6 @@ namespace Clara.Utils
             }
 
             this.entries = newEntries;
-
-            return newEntries;
         }
 
         public struct Enumerator : IEnumerator<TItem>

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Clara.Analysis.Synonyms;
 using Clara.Storage;
 
@@ -31,7 +30,7 @@ namespace Clara.Mapping
     public class RangeField<TSource, TValue> : RangeField<TValue>
         where TValue : struct, IComparable<TValue>
     {
-        public RangeField(Func<TSource, IEnumerable<TValue>?> valueMapper, TValue minValue, TValue maxValue, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
+        public RangeField(Func<TSource, FieldValues<TValue>> valueMapper, TValue minValue, TValue maxValue, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
             : base(
                 minValue: minValue,
                 maxValue: maxValue,
@@ -47,7 +46,7 @@ namespace Clara.Mapping
             this.ValueMapper = valueMapper;
         }
 
-        public Func<TSource, IEnumerable<TValue>?> ValueMapper { get; }
+        public Func<TSource, FieldValues<TValue>> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderStore tokenEncoderStore,

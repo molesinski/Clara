@@ -62,7 +62,7 @@ namespace Clara.Storage
             }
             else
             {
-                if (this.documents != null)
+                if (this.documents is not null)
                 {
                     this.documents.Dispose();
                     this.documents = Empty;
@@ -146,9 +146,19 @@ namespace Clara.Storage
             }
         }
 
+        public IEnumerator<int> GetEnumerator()
+        {
+            return (this.documents ?? this.allDocuments).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return (this.documents ?? this.allDocuments).GetEnumerator();
+        }
+
         public void Dispose()
         {
-            if (this.documents != null)
+            if (this.documents is not null)
             {
                 this.documents.Dispose();
                 this.documents = null;
@@ -160,16 +170,6 @@ namespace Clara.Storage
             }
 
             this.branches.Clear();
-        }
-
-        public IEnumerator<int> GetEnumerator()
-        {
-            return (this.documents ?? this.allDocuments).GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return (this.documents ?? this.allDocuments).GetEnumerator();
         }
 
         private class BranchSet : IDisposable
@@ -215,7 +215,7 @@ namespace Clara.Storage
                 }
                 else
                 {
-                    if (this.documents != null)
+                    if (this.documents is not null)
                     {
                         this.documents.Dispose();
                         this.documents = Empty;
@@ -247,7 +247,7 @@ namespace Clara.Storage
 
             public void Dispose()
             {
-                if (this.documents != null)
+                if (this.documents is not null)
                 {
                     this.documents.Dispose();
                     this.documents = null;

@@ -25,7 +25,7 @@ namespace Clara.Utils
 
             var list = source as IReadOnlyList<TItem>;
 
-            if (list == null)
+            if (list is null)
             {
                 list = source.ToList();
             }

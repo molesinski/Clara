@@ -40,21 +40,10 @@ namespace Clara.Storage
         public override void Index(int documentId, TSource item)
         {
             var values = this.field.ValueMapper(item);
-
-            if (values is null)
-            {
-                return;
-            }
-
             var tokens = default(PooledHashSetSlim<int>);
 
             foreach (var token in values)
             {
-                if (token is null)
-                {
-                    continue;
-                }
-
                 var tokenId = this.tokenEncoderBuilder.Encode(token);
 
                 if (this.tokenDocuments is not null)
