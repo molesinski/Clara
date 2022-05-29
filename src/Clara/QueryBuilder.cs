@@ -81,7 +81,12 @@ namespace Clara
         public QueryBuilder Sort<TValue>(RangeField<TValue> field, SortDirection direction)
             where TValue : struct, IComparable<TValue>
         {
-            this.query.AddSort(new RangeSortExpression<TValue>(field, direction));
+            if (this.query.Sort is not null)
+            {
+                throw new InvalidOperationException("Sort expression already has been set.");
+            }
+
+            this.query.Sort = new RangeSortExpression<TValue>(field, direction);
 
             return this;
         }

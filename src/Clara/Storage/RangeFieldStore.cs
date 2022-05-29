@@ -58,18 +58,17 @@ namespace Clara.Storage
             return base.Facet(facetExpression, filterExpression, documents);
         }
 
-        public override void Sort(SortExpression sortExpression, DocumentSort documentSort)
+        public override SortedDocumentSet Sort(SortExpression sortExpression, DocumentSet documentSet)
         {
             if (sortExpression is RangeSortExpression<TValue> rangeSortExpression)
             {
                 if (this.documentValueMinMaxStore is not null)
                 {
-                    this.documentValueMinMaxStore.Sort(rangeSortExpression.Direction, documentSort);
-                    return;
+                    return this.documentValueMinMaxStore.Sort(rangeSortExpression.Direction, documentSet);
                 }
             }
 
-            base.Sort(sortExpression, documentSort);
+            return base.Sort(sortExpression, documentSet);
         }
 
         public override void Dispose()

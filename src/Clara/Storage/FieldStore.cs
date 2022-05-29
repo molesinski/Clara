@@ -28,7 +28,7 @@ namespace Clara.Storage
             throw new InvalidOperationException("Field does not support faceting.");
         }
 
-        public virtual void Sort(SortExpression sortExpression, DocumentSort documentSort)
+        public virtual SortedDocumentSet Sort(SortExpression sortExpression, DocumentSet documentSet)
         {
             throw new InvalidOperationException("Field does not support sorting.");
         }

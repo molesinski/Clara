@@ -59,19 +59,43 @@ namespace Clara.Storage
             return null;
         }
 
-        public void Sort(SortDirection direction, DocumentSort documentSort)
+        public SortedDocumentSet Sort(SortDirection direction, DocumentSet documentSet)
         {
             if (direction == SortDirection.Descending)
             {
+                var documentValueMinMax = this.documentValueMinMax;
                 var minValue = this.minValue;
 
-                documentSort.Sort(o => this.documentValueMinMax.TryGetValue(o, out var maxMax) ? maxMax.Max : minValue, direction);
+                return new RangeSortedDocumentSet<TValue>(
+                    o =>
+                    {
+                        if (documentValueMinMax.TryGetValue(o, out var maxMax))
+                        {
+                            return maxMax.Max;
+                        }
+
+                        return minValue;
+                    },
+                    DocumentValueComparer<TValue>.Descending,
+                    documentSet);
             }
             else
             {
+                var documentValueMinMax = this.documentValueMinMax;
                 var maxValue = this.maxValue;
 
-                documentSort.Sort(o => this.documentValueMinMax.TryGetValue(o, out var maxMax) ? maxMax.Min : maxValue, direction);
+                return new RangeSortedDocumentSet<TValue>(
+                    o =>
+                    {
+                        if (documentValueMinMax.TryGetValue(o, out var maxMax))
+                        {
+                            return maxMax.Min;
+                        }
+
+                        return maxValue;
+                    },
+                    DocumentValueComparer<TValue>.Ascending,
+                    documentSet);
             }
         }
 

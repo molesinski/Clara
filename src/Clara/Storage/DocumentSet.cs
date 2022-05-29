@@ -153,7 +153,7 @@ namespace Clara.Storage
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return (this.documents ?? this.allDocuments).GetEnumerator();
+            return this.GetEnumerator();
         }
 
         public void Dispose()

@@ -7,12 +7,11 @@ namespace Clara.Querying
     {
         private static readonly List<FilterExpression> EmptyFilters = new();
         private static readonly List<FacetExpression> EmptyFacets = new();
-        private static readonly List<SortExpression> EmptySort = new();
 
         private readonly Index index;
         private List<FilterExpression> filters = EmptyFilters;
         private List<FacetExpression> facets = EmptyFacets;
-        private List<SortExpression> sort = EmptySort;
+        private SortExpression? sort;
 
         public Query(Index index)
         {
@@ -40,11 +39,27 @@ namespace Clara.Querying
             }
         }
 
-        public IReadOnlyCollection<SortExpression> Sort
+        public SortExpression? Sort
         {
             get
             {
                 return this.sort;
+            }
+
+            set
+            {
+                if (value is null)
+                {
+                    this.sort = null;
+                    return;
+                }
+
+                if (!this.index.HasField(value.Field))
+                {
+                    throw new InvalidOperationException("Sort expression references field not belonging to current index.");
+                }
+
+                this.sort = value;
             }
         }
 
@@ -109,34 +124,6 @@ namespace Clara.Querying
             }
 
             this.facets.Add(facetExpression);
-        }
-
-        public void AddSort(SortExpression sortExpression)
-        {
-            if (sortExpression is null)
-            {
-                throw new ArgumentNullException(nameof(sortExpression));
-            }
-
-            if (!this.index.HasField(sortExpression.Field))
-            {
-                throw new InvalidOperationException("Sort expression references field not belonging to current index.");
-            }
-
-            foreach (var item in this.sort)
-            {
-                if (item.Field == sortExpression.Field)
-                {
-                    throw new InvalidOperationException("Sort for given field has already been added.");
-                }
-            }
-
-            if (this.sort == EmptySort)
-            {
-                this.sort = new();
-            }
-
-            this.sort.Add(sortExpression);
         }
     }
 }

@@ -210,23 +210,16 @@ namespace Clara
 
             var documentResult = (IDocumentSet)documentSet;
 
-            if (query.Sort.Count > 0)
+            if (query.Sort is SortExpression sortExpression)
             {
-                var documentSort = new DocumentSort(documentSet);
+                var field = sortExpression.Field;
 
-                foreach (var sortExpression in query.Sort)
+                if (!this.fieldStores.TryGetValue(field, out var store))
                 {
-                    var field = sortExpression.Field;
-
-                    if (!this.fieldStores.TryGetValue(field, out var store))
-                    {
-                        throw new InvalidOperationException("Sort expression references field not belonging to current index.");
-                    }
-
-                    store.Sort(sortExpression, documentSort);
+                    throw new InvalidOperationException("Sort expression references field not belonging to current index.");
                 }
 
-                documentResult = documentSort;
+                documentResult = store.Sort(sortExpression, documentSet);
             }
 
             return new QueryResult<TDocument>(documentResult, facetResults, this.documents);
