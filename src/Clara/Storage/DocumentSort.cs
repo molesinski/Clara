@@ -9,7 +9,7 @@ namespace Clara.Storage
     internal sealed class DocumentSort : IDocumentSet
     {
         private readonly IDocumentSet documentSet;
-        private DocumentComparer? comparer;
+        private DocumentComparer documentComparer;
         private PooledList<int>? sortedDocuments;
 
         public DocumentSort(IDocumentSet documentSet)
@@ -19,6 +19,7 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(documentSet));
             }
 
+            this.documentComparer = DocumentComparer.Empty;
             this.documentSet = documentSet;
         }
 
@@ -30,26 +31,26 @@ namespace Clara.Storage
             }
         }
 
-        public void Sort<TValue>(Func<int, TValue> orderer, SortDirection direction)
+        public void Sort<TValue>(Func<int, TValue> selector, SortDirection direction)
             where TValue : struct, IComparable<TValue>
         {
-            this.comparer = new OrdererDocumentComparer<TValue>(orderer, direction, this.comparer);
+            this.documentComparer = this.documentComparer.Compose(selector, direction);
         }
 
         public IEnumerator<int> GetEnumerator()
         {
-            if (this.comparer is null)
+            if (!this.documentComparer.IsEmpty)
             {
-                return this.documentSet.GetEnumerator();
+                if (this.sortedDocuments is null)
+                {
+                    this.sortedDocuments = new PooledList<int>(this.documentSet);
+                    this.sortedDocuments.Sort(this.documentComparer);
+                }
+
+                return this.sortedDocuments.GetEnumerator();
             }
 
-            if (this.sortedDocuments is null)
-            {
-                this.sortedDocuments = new PooledList<int>(this.documentSet);
-                this.sortedDocuments.Sort(this.comparer);
-            }
-
-            return this.sortedDocuments.GetEnumerator();
+            return this.documentSet.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -65,47 +66,80 @@ namespace Clara.Storage
 
         private abstract class DocumentComparer : IComparer<int>
         {
-            protected internal DocumentComparer(DocumentComparer? inner)
-            {
-                this.Inner = inner;
-            }
+            public static DocumentComparer Empty { get; } = new EmptyDocumentOrderer();
 
-            protected DocumentComparer? Inner { get; }
+            public abstract bool IsEmpty { get; }
 
             public abstract int Compare(int x, int y);
-        }
 
-        private sealed class OrdererDocumentComparer<TValue> : DocumentComparer, IComparer<int>
-            where TValue : struct, IComparable<TValue>
-        {
-            private readonly Func<int, TValue> orderer;
-            private readonly int direction;
-
-            public OrdererDocumentComparer(Func<int, TValue> orderer, SortDirection direction, DocumentComparer? inner)
-                : base(inner)
+            public DocumentComparer Compose<TValue>(Func<int, TValue> selector, SortDirection direction)
+                where TValue : struct, IComparable<TValue>
             {
-                if (orderer is null)
-                {
-                    throw new ArgumentNullException(nameof(orderer));
-                }
-
-                this.orderer = orderer;
-                this.direction = direction == SortDirection.Descending ? -1 : 1;
+                return new ComposedDocumentComparer<TValue>(this, selector, direction);
             }
 
-            public override int Compare(int x, int y)
+            private sealed class EmptyDocumentOrderer : DocumentComparer
             {
-                if (this.Inner is DocumentComparer inner)
+                public override bool IsEmpty
                 {
-                    var result = inner.Compare(x, y);
-
-                    if (result != 0)
+                    get
                     {
-                        return result;
+                        return true;
                     }
                 }
 
-                return this.orderer(x).CompareTo(this.orderer(y)) * this.direction;
+                public override int Compare(int x, int y)
+                {
+                    return 0;
+                }
+            }
+
+            private sealed class ComposedDocumentComparer<TValue> : DocumentComparer, IComparer<int>
+                where TValue : struct, IComparable<TValue>
+            {
+                private readonly DocumentComparer inner;
+                private readonly Func<int, TValue> selector;
+                private readonly int direction;
+
+                public ComposedDocumentComparer(DocumentComparer inner, Func<int, TValue> selector, SortDirection direction)
+                {
+                    if (inner is null)
+                    {
+                        throw new ArgumentNullException(nameof(inner));
+                    }
+
+                    if (selector is null)
+                    {
+                        throw new ArgumentNullException(nameof(selector));
+                    }
+
+                    this.inner = inner;
+                    this.selector = selector;
+                    this.direction = direction == SortDirection.Descending ? -1 : 1;
+                }
+
+                public override bool IsEmpty
+                {
+                    get
+                    {
+                        return false;
+                    }
+                }
+
+                public override int Compare(int x, int y)
+                {
+                    if (this.inner is not EmptyDocumentOrderer)
+                    {
+                        var result = this.inner.Compare(x, y);
+
+                        if (result != 0)
+                        {
+                            return result;
+                        }
+                    }
+
+                    return this.selector(x).CompareTo(this.selector(y)) * this.direction;
+                }
             }
         }
     }
