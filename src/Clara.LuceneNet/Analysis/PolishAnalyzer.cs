@@ -5,7 +5,7 @@ using Lucene.Net.Util;
 
 namespace Clara.Analysis
 {
-    public sealed class PolishAnalyzer : ITokenizer
+    public sealed class PolishAnalyzer : IAnalyzer
     {
         private static readonly ObjectPool<Lucene.Net.Analysis.Pl.PolishAnalyzer> AnalyzerPool = new(() => new(LuceneVersion.LUCENE_48));
 

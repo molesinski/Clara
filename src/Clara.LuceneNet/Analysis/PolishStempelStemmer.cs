@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using Clara.Analysis.Stemming;
 using Egothor.Stemmer;
-using Lucene.Net.Analysis.Pl;
 
 namespace Clara.Analysis
 {
