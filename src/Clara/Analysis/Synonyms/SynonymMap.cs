@@ -28,7 +28,7 @@ namespace Clara.Analysis.Synonyms
                 throw new ArgumentOutOfRangeException(nameof(maximumPermutatedPhraseTokenCount));
             }
 
-            this.root = SynonymNode.BuildTree(field.Tokenizer, synonyms, maximumPermutatedPhraseTokenCount);
+            this.root = SynonymNode.BuildTree(field.Analyzer, synonyms, maximumPermutatedPhraseTokenCount);
             this.Field = field;
         }
 
@@ -162,7 +162,7 @@ namespace Clara.Analysis.Synonyms
                 this.tokens = tokens;
             }
 
-            IEnumerator<SynonymResult> GetEnumerator()
+            public Enumerator GetEnumerator()
             {
                 return new Enumerator(this);
             }
@@ -200,7 +200,7 @@ namespace Clara.Analysis.Synonyms
                     this.current = default;
                 }
 
-                SynonymResult IEnumerator<SynonymResult>.Current
+                public SynonymResult Current
                 {
                     get
                     {
@@ -208,7 +208,7 @@ namespace Clara.Analysis.Synonyms
                     }
                 }
 
-                public object Current
+                object IEnumerator.Current
                 {
                     get
                     {
@@ -511,7 +511,7 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public static SynonymNode BuildTree(ITokenizer tokenizer, IEnumerable<Synonym> synonyms, int maximumPermutatedPhraseTokenCount)
+            public static SynonymNode BuildTree(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, int maximumPermutatedPhraseTokenCount)
             {
                 var nextSynonymId = 1;
                 var root = new SynonymNode();
@@ -530,7 +530,7 @@ namespace Clara.Analysis.Synonyms
                     {
                         var tokenizedPhrase = new List<string>();
 
-                        foreach (var token in tokenizer.GetTokens(phrase))
+                        foreach (var token in analyzer.GetTokens(phrase))
                         {
                             tokenizedPhrase.Add(token);
                         }
@@ -575,7 +575,7 @@ namespace Clara.Analysis.Synonyms
                         {
                             var replacementTokens = new List<string>();
 
-                            foreach (var token in tokenizer.GetTokens(explicitMappingSynonym.MappedPhrase))
+                            foreach (var token in analyzer.GetTokens(explicitMappingSynonym.MappedPhrase))
                             {
                                 replacementTokens.Add(token);
                             }

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 namespace Clara.Analysis
 {
@@ -8,7 +9,8 @@ namespace Clara.Analysis
             : base(
                   typeof(EnglishStopTokenFilter).Assembly,
                   $"{typeof(EnglishStopTokenFilter).FullName}.txt",
-                  Encoding.UTF8)
+                  Encoding.UTF8,
+                  StringComparer.OrdinalIgnoreCase)
         {
         }
     }

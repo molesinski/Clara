@@ -7,27 +7,27 @@ namespace Clara.Mapping
 {
     public abstract class TextField : TokenField
     {
-        protected internal TextField(ITokenizer tokenizer)
+        protected internal TextField(IAnalyzer analyzer)
             : base(
                 isFilterable: true,
                 isFacetable: false,
                 isSortable: false)
         {
-            if (tokenizer is null)
+            if (analyzer is null)
             {
-                throw new ArgumentNullException(nameof(tokenizer));
+                throw new ArgumentNullException(nameof(analyzer));
             }
 
-            this.Tokenizer = tokenizer;
+            this.Analyzer = analyzer;
         }
 
-        public ITokenizer Tokenizer { get; }
+        public IAnalyzer Analyzer { get; }
     }
 
     public sealed class TextField<TSource> : TextField
     {
-        public TextField(Func<TSource, string?> valueMapper, ITokenizer tokenizer)
-            : base(tokenizer)
+        public TextField(Func<TSource, string?> valueMapper, IAnalyzer analyzer)
+            : base(analyzer)
         {
             if (valueMapper is null)
             {

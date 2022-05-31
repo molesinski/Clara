@@ -9,7 +9,7 @@ namespace Clara.Storage
     internal sealed class TextFieldStoreBuilder<TSource> : FieldStoreBuilder<TSource>
     {
         private readonly TextField<TSource> field;
-        private readonly ITokenizer tokenizer;
+        private readonly IAnalyzer analyzer;
         private readonly ISynonymMap synonymMap;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
         private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>> tokenDocuments;
@@ -27,7 +27,7 @@ namespace Clara.Storage
             }
 
             this.field = field;
-            this.tokenizer = field.Tokenizer;
+            this.analyzer = field.Analyzer;
             this.synonymMap = synonymMap ?? new SynonymMap(field, Array.Empty<Synonym>());
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
             this.tokenDocuments = new();
@@ -42,7 +42,7 @@ namespace Clara.Storage
                 return;
             }
 
-            foreach (var token in this.synonymMap.Filter(this.tokenizer.GetTokens(text)))
+            foreach (var token in this.synonymMap.Filter(this.analyzer.GetTokens(text)))
             {
                 var tokenId = this.tokenEncoderBuilder.Encode(token);
 

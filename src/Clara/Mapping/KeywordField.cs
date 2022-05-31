@@ -21,7 +21,7 @@ namespace Clara.Mapping
 
     public sealed class KeywordField<TSource> : KeywordField
     {
-        public KeywordField(Func<TSource, FieldValues<string>> valueMapper, bool isFilterable = false, bool isFacetable = false)
+        public KeywordField(Func<TSource, TokenValue> valueMapper, bool isFilterable = false, bool isFacetable = false)
             : base(
                 isFilterable: isFilterable,
                 isFacetable: isFacetable)
@@ -34,7 +34,7 @@ namespace Clara.Mapping
             this.ValueMapper = valueMapper;
         }
 
-        public Func<TSource, FieldValues<string>> ValueMapper { get; }
+        public Func<TSource, TokenValue> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderStore tokenEncoderStore,

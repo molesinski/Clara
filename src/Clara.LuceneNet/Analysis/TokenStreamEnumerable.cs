@@ -20,14 +20,19 @@ namespace Clara.Analysis
             this.tokenStream = tokenStream;
         }
 
-        public IEnumerator<string> GetEnumerator()
+        public Enumerator GetEnumerator()
+        {
+            return new Enumerator(this);
+        }
+
+        IEnumerator<string> IEnumerable<string>.GetEnumerator()
         {
             return new Enumerator(this);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.GetEnumerator();
+            return new Enumerator(this);
         }
 
         public struct Enumerator : IEnumerator<string>

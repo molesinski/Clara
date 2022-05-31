@@ -312,7 +312,12 @@ namespace Clara.Utils
                 this.count = count;
             }
 
-            public IEnumerator<TItem> GetEnumerator()
+            public Enumerator GetEnumerator()
+            {
+                return new Enumerator(this.source, this.offset, this.count);
+            }
+
+            IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator()
             {
                 return new Enumerator(this.source, this.offset, this.count);
             }

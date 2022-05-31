@@ -3,17 +3,22 @@ using System.Collections.Generic;
 
 namespace Clara.Analysis
 {
-    public sealed class Tokenizer : ITokenizer
+    public sealed class Analyzer : IAnalyzer
     {
         private readonly ITokenizer tokenizer;
         private readonly List<ITokenFilter> tokenFilters;
 
-        public Tokenizer(ITokenizer tokenizer, params ITokenFilter[] tokenFilters)
+        public Analyzer(ITokenizer tokenizer)
+            : this(tokenizer, (IEnumerable<ITokenFilter>)Array.Empty<ITokenFilter>())
+        {
+        }
+
+        public Analyzer(ITokenizer tokenizer, params ITokenFilter[] tokenFilters)
             : this(tokenizer, (IEnumerable<ITokenFilter>)tokenFilters)
         {
         }
 
-        public Tokenizer(ITokenizer tokenizer, IEnumerable<ITokenFilter> tokenFilters)
+        public Analyzer(ITokenizer tokenizer, IEnumerable<ITokenFilter> tokenFilters)
         {
             if (tokenizer is null)
             {

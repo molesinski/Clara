@@ -85,19 +85,16 @@ namespace Clara.Analysis.Stemming
 
             public bool MoveNext()
             {
-                if (this.stem is not null)
+                if (this.index < this.count)
                 {
-                    if (this.index < this.count)
+                    if (this.stem is not null)
                     {
                         this.current = this.stem;
                         this.index++;
 
                         return true;
                     }
-                }
-                else if (this.stems is not null)
-                {
-                    if (this.index < this.count)
+                    else if (this.stems is not null)
                     {
                         this.current = this.stems[this.index];
                         this.index++;

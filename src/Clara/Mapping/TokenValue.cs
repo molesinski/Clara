@@ -3,42 +3,41 @@ using System.Collections.Generic;
 
 namespace Clara.Mapping
 {
-    public readonly struct FieldValues<TValue> : IEnumerable<TValue>
-        where TValue : notnull
+    public readonly struct TokenValue : IEnumerable<string>
     {
-        private readonly TValue? value;
-        private readonly IEnumerable<TValue?>? values;
+        private readonly string? value;
+        private readonly IEnumerable<string>? values;
 
-        public FieldValues(TValue? value)
+        public TokenValue(string? value)
         {
             this.value = value;
             this.values = default;
         }
 
-        public FieldValues(IEnumerable<TValue?>? values)
+        public TokenValue(IEnumerable<string>? values)
         {
             this.value = default;
             this.values = values;
         }
 
-        public static implicit operator FieldValues<TValue>(TValue? value)
+        public static implicit operator TokenValue(string? value)
         {
-            return new FieldValues<TValue>(value);
+            return new TokenValue(value);
         }
 
-        public static implicit operator FieldValues<TValue>(TValue[]? values)
+        public static implicit operator TokenValue(string[]? values)
         {
-            return new FieldValues<TValue>(values);
+            return new TokenValue(values);
         }
 
-        public static implicit operator FieldValues<TValue>(List<TValue>? values)
+        public static implicit operator TokenValue(List<string>? values)
         {
-            return new FieldValues<TValue>(values);
+            return new TokenValue(values);
         }
 
-        public static implicit operator FieldValues<TValue>(HashSet<TValue>? values)
+        public static implicit operator TokenValue(HashSet<string>? values)
         {
-            return new FieldValues<TValue>(values);
+            return new TokenValue(values);
         }
 
         public Enumerator GetEnumerator()
@@ -46,7 +45,7 @@ namespace Clara.Mapping
             return new Enumerator(this);
         }
 
-        IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
+        IEnumerator<string> IEnumerable<string>.GetEnumerator()
         {
             return new Enumerator(this);
         }
@@ -56,17 +55,17 @@ namespace Clara.Mapping
             return new Enumerator(this);
         }
 
-        public struct Enumerator : IEnumerator<TValue>
+        public struct Enumerator : IEnumerator<string>
         {
-            private readonly TValue? value;
-            private readonly IReadOnlyList<TValue?>? listValues;
-            private readonly IEnumerable<TValue?>? enumerableValues;
+            private readonly string? value;
+            private readonly IReadOnlyList<string>? listValues;
+            private readonly IEnumerable<string>? enumerableValues;
             private bool isEnumerated;
             private int index;
-            private IEnumerator<TValue?>? enumerator;
-            private TValue? current;
+            private IEnumerator<string>? enumerator;
+            private string? current;
 
-            public Enumerator(FieldValues<TValue> source)
+            public Enumerator(TokenValue source)
             {
                 this.value = default;
                 this.listValues = default;
@@ -76,7 +75,7 @@ namespace Clara.Mapping
                 {
                     this.value = source.value;
                 }
-                else if (source.values is IReadOnlyList<TValue?> listValues)
+                else if (source.values is IReadOnlyList<string> listValues)
                 {
                     this.listValues = listValues;
                 }
@@ -91,7 +90,7 @@ namespace Clara.Mapping
                 this.current = default;
             }
 
-            public TValue Current
+            public string Current
             {
                 get
                 {
@@ -109,50 +108,45 @@ namespace Clara.Mapping
 
             public bool MoveNext()
             {
-                if (this.isEnumerated)
+                if (!this.isEnumerated)
                 {
-                    return false;
-                }
-
-                if (this.value is not null)
-                {
-                    this.current = this.value;
-                    this.isEnumerated = true;
-
-                    return true;
-                }
-                else if (this.listValues is not null)
-                {
-                    while (this.index < this.listValues.Count)
+                    if (this.value is not null)
                     {
-                        this.current = this.listValues[this.index];
-                        this.index++;
+                        this.isEnumerated = true;
+                        this.current = this.value;
 
-                        if (this.current is not null)
+                        return true;
+                    }
+                    else if (this.listValues is not null)
+                    {
+                        while (this.index < this.listValues.Count)
                         {
-                            return true;
+                            this.current = this.listValues[this.index];
+                            this.index++;
+
+                            if (this.current is not null)
+                            {
+                                return true;
+                            }
                         }
                     }
-
-                    this.isEnumerated = true;
-                }
-                else if (this.enumerableValues is not null)
-                {
-                    this.enumerator ??= this.enumerableValues.GetEnumerator();
-
-                    while (this.enumerator.MoveNext())
+                    else if (this.enumerableValues is not null)
                     {
-                        this.current = this.enumerator.Current;
+                        this.enumerator ??= this.enumerableValues.GetEnumerator();
 
-                        if (this.current is not null)
+                        while (this.enumerator.MoveNext())
                         {
-                            return true;
+                            this.current = this.enumerator.Current;
+
+                            if (this.current is not null)
+                            {
+                                return true;
+                            }
                         }
                     }
-
-                    this.isEnumerated = true;
                 }
 
+                this.isEnumerated = true;
                 this.current = default;
 
                 return false;
