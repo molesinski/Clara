@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using Clara.Analysis.Stemming;
-using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.En;
 
 namespace Clara.Analysis
@@ -9,47 +9,20 @@ namespace Clara.Analysis
     {
         private static readonly ObjectPool<Stemmer> StemmerPool = new(() => new());
 
-        public StemResult Stem(string token)
+        public Token Stem(Token token)
         {
             var stemmer = StemmerPool.Get();
 
             try
             {
-                stemmer.SetString(token);
+                stemmer.SetToken(token);
 
-                var firstStem = default(string);
-                var stems = default(List<string>);
-
-                foreach (var stem in new TokenStreamEnumerable(stemmer.TokenStream))
+                foreach (var stem in stemmer)
                 {
-                    if (firstStem == null)
-                    {
-                        firstStem = stem;
-                    }
-                    else if (stems == null)
-                    {
-                        stems = new List<string>();
-                        stems.Add(firstStem);
-                        stems.Add(stem);
-                    }
-                    else
-                    {
-                        stems.Add(stem);
-                    }
+                    return stem;
                 }
 
-                if (stems != null)
-                {
-                    return new StemResult(stems);
-                }
-                else if (firstStem != null)
-                {
-                    return new StemResult(firstStem);
-                }
-                else
-                {
-                    return default;
-                }
+                return default;
             }
             finally
             {
@@ -57,28 +30,35 @@ namespace Clara.Analysis
             }
         }
 
-        private class Stemmer
+        private class Stemmer : IEnumerable<Token>
         {
-            private readonly StringTokenStream stringStream;
+            private readonly SingleTokenStream stringStream;
             private readonly PorterStemFilter stemmer;
 
             public Stemmer()
             {
-                this.stringStream = new StringTokenStream();
+                this.stringStream = new SingleTokenStream();
                 this.stemmer = new PorterStemFilter(this.stringStream);
             }
 
-            public TokenStream TokenStream
+            public void SetToken(Token token)
             {
-                get
-                {
-                    return this.stemmer;
-                }
+                this.stringStream.SetToken(token);
             }
 
-            public void SetString(string value)
+            public TokenStreamEnumerable.Enumerator GetEnumerator()
             {
-                this.stringStream.SetString(value);
+                return new TokenStreamEnumerable(this.stemmer).GetEnumerator();
+            }
+
+            IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
+            {
+                return new TokenStreamEnumerable(this.stemmer).GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return new TokenStreamEnumerable(this.stemmer).GetEnumerator();
             }
         }
     }

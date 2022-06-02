@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Clara.Analysis.Stemming;
 using J2N.IO;
 using Morfologik.Stemming.Polish;
@@ -10,7 +9,7 @@ namespace Clara.Analysis
     {
         private static readonly ObjectPool<StemmerBuffer> StemmerBufferPool = new(() => new());
 
-        public StemResult Stem(string token)
+        public Token Stem(Token token)
         {
             var stemmerBuffer = StemmerBufferPool.Get();
 
@@ -20,9 +19,7 @@ namespace Clara.Analysis
                 var buffer = stemmerBuffer.Buffer;
                 var encoding = stemmer.Dictionary.Metadata.Decoder;
 
-                var lemmas = stemmer.Lookup(token);
-                var firstStem = default(string);
-                var stems = default(List<string>);
+                var lemmas = stemmer.Lookup(token.ToString());
 
                 foreach (var lemma in lemmas)
                 {
@@ -31,39 +28,15 @@ namespace Clara.Analysis
                     stemBuffer = lemma.GetStemBytes(stemBuffer);
 
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-                    var stem = StringHelper.Create(stemBuffer.Array.AsSpan(stemBuffer.ArrayOffset, stemBuffer.Limit), encoding);
+                    var stem = new Token(StringHelper.Create(stemBuffer.Array.AsSpan(stemBuffer.ArrayOffset, stemBuffer.Limit), encoding));
 #else
-                    var stem = StringHelper.Create(stemBuffer.Array, stemBuffer.ArrayOffset, stemBuffer.Limit, encoding);
+                    var stem = new Token(StringHelper.Create(stemBuffer.Array, stemBuffer.ArrayOffset, stemBuffer.Limit, encoding));
 #endif
 
-                    if (firstStem == null)
-                    {
-                        firstStem = stem;
-                    }
-                    else if (stems == null)
-                    {
-                        stems = new List<string>();
-                        stems.Add(firstStem);
-                        stems.Add(stem);
-                    }
-                    else
-                    {
-                        stems.Add(stem);
-                    }
+                    return stem;
                 }
 
-                if (stems != null)
-                {
-                    return new StemResult(stems);
-                }
-                else if (firstStem != null)
-                {
-                    return new StemResult(firstStem);
-                }
-                else
-                {
-                    return default;
-                }
+                return default;
             }
             finally
             {

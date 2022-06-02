@@ -5,13 +5,13 @@ using Lucene.Net.Analysis.TokenAttributes;
 
 namespace Clara.Analysis
 {
-    internal sealed class EnumerableTokenStream : TokenStream
+    public sealed class EnumerableTokenStream : TokenStream
     {
         private readonly ICharTermAttribute charTermAttribute;
-        private readonly IEnumerable<string> tokens;
-        private IEnumerator<string>? enumerator;
+        private readonly IEnumerable<Token> tokens;
+        private IEnumerator<Token>? enumerator;
 
-        public EnumerableTokenStream(IEnumerable<string> tokens)
+        public EnumerableTokenStream(IEnumerable<Token> tokens)
         {
             if (tokens is null)
             {
@@ -41,13 +41,21 @@ namespace Clara.Analysis
             {
                 var token = this.enumerator.Current;
 
-                if (token is null)
+                if (token.IsEmpty)
                 {
                     continue;
                 }
 
                 this.charTermAttribute.SetEmpty();
-                this.charTermAttribute.Append(token);
+
+                if (token.IsReadOnly)
+                {
+                    this.charTermAttribute.Append(token.ToString());
+                }
+                else
+                {
+                    this.charTermAttribute.Append(token.Chars, token.Index, token.Length);
+                }
 
                 return true;
             }

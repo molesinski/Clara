@@ -43,12 +43,12 @@ namespace Clara.Storage
 
         IEnumerator<int> IEnumerable<int>.GetEnumerator()
         {
-            return this.GetEnumerator();
+            return new Enumerator(this);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.GetEnumerator();
+            return new Enumerator(this);
         }
 
         private static int BinarySearchLow(IReadOnlyList<DocumentValue<TValue>> list, TValue value)

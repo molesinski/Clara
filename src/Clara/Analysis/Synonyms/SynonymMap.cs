@@ -7,8 +7,10 @@ using Clara.Utils;
 
 namespace Clara.Analysis.Synonyms
 {
-    public class SynonymMap : ISynonymMap, ITokenFilter, IMatchExpressionFilter
+    public class SynonymMap : ISynonymMap, IAnalyzer, IMatchExpressionFilter
     {
+        private readonly TextField field;
+        private readonly IAnalyzer analyzer;
         private readonly SynonymNode root;
 
         public SynonymMap(TextField field, IEnumerable<Synonym> synonyms, int maximumPermutatedPhraseTokenCount = 2)
@@ -28,11 +30,18 @@ namespace Clara.Analysis.Synonyms
                 throw new ArgumentOutOfRangeException(nameof(maximumPermutatedPhraseTokenCount));
             }
 
-            this.root = SynonymNode.BuildTree(field.Analyzer, synonyms, maximumPermutatedPhraseTokenCount);
-            this.Field = field;
+            this.field = field;
+            this.analyzer = field.Analyzer;
+            this.root = SynonymNode.BuildTree(this.analyzer, synonyms, maximumPermutatedPhraseTokenCount);
         }
 
-        public TextField Field { get; }
+        public TextField Field
+        {
+            get
+            {
+                return this.field;
+            }
+        }
 
         private bool IsEmpty
         {
@@ -42,23 +51,23 @@ namespace Clara.Analysis.Synonyms
             }
         }
 
-        public IEnumerable<string> Filter(IEnumerable<string> tokens)
+        public IEnumerable<string> GetTokens(string text)
         {
-            if (tokens is null)
+            if (text is null)
             {
-                throw new ArgumentNullException(nameof(tokens));
+                throw new ArgumentNullException(nameof(text));
             }
 
             if (this.IsEmpty)
             {
-                return tokens;
+                return this.analyzer.GetTokens(text);
             }
 
-            return FilterEnumerable(tokens);
+            return GetTokensEnumerable(text);
 
-            IEnumerable<string> FilterEnumerable(IEnumerable<string> tokens)
+            IEnumerable<string> GetTokensEnumerable(string text)
             {
-                foreach (var item in new SynonymResultEnumerable(this.root, tokens))
+                foreach (var item in new SynonymResultEnumerable(this.root, this.analyzer.GetTokens(text)))
                 {
                     if (item.Node is SynonymNode node)
                     {
@@ -366,11 +375,6 @@ namespace Clara.Analysis.Synonyms
 
             private SynonymNode(string token, SynonymNode parent)
             {
-                if (token is null)
-                {
-                    throw new ArgumentNullException(nameof(token));
-                }
-
                 if (parent is null)
                 {
                     throw new ArgumentNullException(nameof(parent));

@@ -8,8 +8,8 @@ namespace Clara.Analysis
 {
     public abstract class ResourceStopTokenFilter : StopTokenFilter
     {
-        protected ResourceStopTokenFilter(Assembly assembly, string name, Encoding encoding, IEqualityComparer<string> comparer)
-            : base(LoadStopwords(assembly, name, encoding), comparer)
+        protected ResourceStopTokenFilter(Assembly assembly, string name, Encoding encoding)
+            : base(LoadStopwords(assembly, name, encoding))
         {
         }
 

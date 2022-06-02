@@ -42,7 +42,7 @@ namespace Clara.Storage
                 return;
             }
 
-            foreach (var token in this.synonymMap.Filter(this.analyzer.GetTokens(text)))
+            foreach (var token in this.synonymMap.GetTokens(text))
             {
                 var tokenId = this.tokenEncoderBuilder.Encode(token);
 

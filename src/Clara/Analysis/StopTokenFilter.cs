@@ -5,42 +5,29 @@ namespace Clara.Analysis
 {
     public class StopTokenFilter : ITokenFilter
     {
-        private readonly HashSet<string> stopwords;
+        private readonly HashSet<Token> stopwords = new();
 
         public StopTokenFilter(IEnumerable<string> stopwords)
-            : this(stopwords, StringComparer.OrdinalIgnoreCase)
-        {
-        }
-
-        public StopTokenFilter(IEnumerable<string> stopwords, IEqualityComparer<string> comparer)
         {
             if (stopwords is null)
             {
                 throw new ArgumentNullException(nameof(stopwords));
             }
 
-            if (comparer is null)
+            foreach (var stopword in stopwords)
             {
-                throw new ArgumentNullException(nameof(comparer));
+                this.stopwords.Add(new Token(stopword));
             }
-
-            this.stopwords = new HashSet<string>(stopwords, comparer);
         }
 
-        public IEnumerable<string> Filter(IEnumerable<string> tokens)
+        public Token Filter(Token token)
         {
-            if (tokens is null)
+            if (!this.stopwords.Contains(token))
             {
-                throw new ArgumentNullException(nameof(tokens));
+                return token;
             }
 
-            foreach (var token in tokens)
-            {
-                if (!this.stopwords.Contains(token))
-                {
-                    yield return token;
-                }
-            }
+            return default;
         }
     }
 }

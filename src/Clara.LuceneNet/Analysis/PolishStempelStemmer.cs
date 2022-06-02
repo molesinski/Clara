@@ -10,13 +10,13 @@ namespace Clara.Analysis
 
         private readonly Trie stemmer = Lucene.Net.Analysis.Pl.PolishAnalyzer.DefaultTable;
 
-        public StemResult Stem(string token)
+        public Token Stem(Token token)
         {
             var builder = BuilderPool.Get();
 
             try
             {
-                var result = this.stemmer.GetLastOnPath(token);
+                var result = this.stemmer.GetLastOnPath(token.ToString());
 
                 if (result is not null)
                 {
@@ -29,7 +29,7 @@ namespace Clara.Analysis
                     {
                         var stem = StringHelper.Create(builder);
 
-                        return new StemResult(stem);
+                        return new Token(stem);
                     }
                 }
 

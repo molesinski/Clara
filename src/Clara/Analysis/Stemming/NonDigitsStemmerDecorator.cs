@@ -16,13 +16,14 @@ namespace Clara.Analysis.Stemming
             this.stemmer = stemmer;
         }
 
-        public StemResult Stem(string token)
+        public Token Stem(Token token)
         {
-            var length = token.Length;
+            var span = token.ValueSpan;
+            var length = span.Length;
 
             for (var i = 0; i < length; i++)
             {
-                if (char.IsDigit(token[i]))
+                if (char.IsDigit(span[i]))
                 {
                     return default;
                 }

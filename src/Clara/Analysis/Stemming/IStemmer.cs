@@ -2,6 +2,6 @@
 {
     public interface IStemmer
     {
-        StemResult Stem(string token);
+        Token Stem(Token token);
     }
 }

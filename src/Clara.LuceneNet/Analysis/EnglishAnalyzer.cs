@@ -31,7 +31,7 @@ namespace Clara.Analysis
                     {
                         foreach (var token in new TokenStreamEnumerable(tokenStream))
                         {
-                            yield return token;
+                            yield return token.ToString();
                         }
                     }
                 }

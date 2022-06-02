@@ -9,8 +9,7 @@ namespace Clara.Analysis
             : base(
                   typeof(EnglishStopTokenFilter).Assembly,
                   $"{typeof(EnglishStopTokenFilter).FullName}.txt",
-                  Encoding.UTF8,
-                  StringComparer.OrdinalIgnoreCase)
+                  Encoding.UTF8)
         {
         }
     }

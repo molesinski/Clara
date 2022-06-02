@@ -6,7 +6,7 @@ using Lucene.Net.Analysis.TokenAttributes;
 
 namespace Clara.Analysis
 {
-    internal readonly struct TokenStreamEnumerable : IEnumerable<string>
+    public readonly struct TokenStreamEnumerable : IEnumerable<Token>
     {
         private readonly TokenStream tokenStream;
 
@@ -25,7 +25,7 @@ namespace Clara.Analysis
             return new Enumerator(this);
         }
 
-        IEnumerator<string> IEnumerable<string>.GetEnumerator()
+        IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
         {
             return new Enumerator(this);
         }
@@ -35,22 +35,22 @@ namespace Clara.Analysis
             return new Enumerator(this);
         }
 
-        public struct Enumerator : IEnumerator<string>
+        public struct Enumerator : IEnumerator<Token>
         {
             private readonly TokenStream tokenStream;
             private readonly ICharTermAttribute charTermAttribute;
             private bool isStarted;
-            private string current;
+            private Token current;
 
             public Enumerator(TokenStreamEnumerable source)
             {
                 this.tokenStream = source.tokenStream;
                 this.charTermAttribute = source.tokenStream.GetAttribute<ICharTermAttribute>();
                 this.isStarted = false;
-                this.current = string.Empty;
+                this.current = default;
             }
 
-            public string Current
+            public Token Current
             {
                 get
                 {
@@ -78,15 +78,15 @@ namespace Clara.Analysis
                 {
                     if (this.charTermAttribute.Length == 0)
                     {
-                        this.current = string.Empty;
+                        this.current = default;
 
                         return true;
                     }
 
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-                    this.current = new string(this.charTermAttribute.Buffer.AsSpan(0, this.charTermAttribute.Length));
+                    this.current = new Token(new string(this.charTermAttribute.Buffer.AsSpan(0, this.charTermAttribute.Length)));
 #else
-                    this.current = new string(this.charTermAttribute.Buffer, 0, this.charTermAttribute.Length);
+                    this.current = new Token(new string(this.charTermAttribute.Buffer, 0, this.charTermAttribute.Length));
 #endif
 
                     return true;
@@ -103,7 +103,7 @@ namespace Clara.Analysis
                 }
 
                 this.isStarted = false;
-                this.current = string.Empty;
+                this.current = default;
             }
 
             public void Dispose()

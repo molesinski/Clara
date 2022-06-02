@@ -6,13 +6,13 @@ namespace Clara.Analysis.Stemming
 {
     public class CachingStemmerDecorator : IStemmer
     {
-        private readonly ConcurrentDictionary<string, StemResult> cache = new();
+        private readonly ConcurrentDictionary<Token, Token> cache = new();
         private readonly IStemmer stemmer;
         private readonly int maximumLength;
         private readonly int maximumCount;
         private int count;
 
-        public CachingStemmerDecorator(IStemmer stemmer, int maximumLength = 32, int maximumCount = 16384)
+        public CachingStemmerDecorator(IStemmer stemmer, int maximumLength = 32, int maximumCount = 8192)
         {
             if (stemmer is null)
             {
@@ -34,7 +34,7 @@ namespace Clara.Analysis.Stemming
             this.maximumCount = maximumCount;
         }
 
-        public StemResult Stem(string token)
+        public Token Stem(Token token)
         {
             if (token.Length > this.maximumLength)
             {
@@ -50,7 +50,9 @@ namespace Clara.Analysis.Stemming
 
             if (this.count < this.maximumCount)
             {
-                if (this.cache.TryAdd(token, stem))
+                stem = stem.ToReadOnly();
+
+                if (this.cache.TryAdd(token.ToReadOnly(), stem))
                 {
                     Interlocked.Increment(ref this.count);
                 }

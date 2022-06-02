@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Clara.Analysis.Stemming
 {
     public class StemTokenFilter : ITokenFilter
     {
         private readonly IStemmer stemmer;
-        private readonly bool emitTokenOnEmptyStems;
-        private readonly bool acceptFirstStemOnly;
+        private readonly bool tokenOnEmptyStem;
 
-        public StemTokenFilter(IStemmer stemmer, bool emitTokenOnEmptyStems = true, bool acceptFirstStemOnly = false)
+        public StemTokenFilter(IStemmer stemmer, bool tokenOnEmptyStem = true)
         {
             if (stemmer is null)
             {
@@ -17,36 +15,24 @@ namespace Clara.Analysis.Stemming
             }
 
             this.stemmer = stemmer;
-            this.emitTokenOnEmptyStems = emitTokenOnEmptyStems;
-            this.acceptFirstStemOnly = acceptFirstStemOnly;
+            this.tokenOnEmptyStem = tokenOnEmptyStem;
         }
 
-        public IEnumerable<string> Filter(IEnumerable<string> tokens)
+        public Token Filter(Token token)
         {
-            foreach (var token in tokens)
+            var stem = this.stemmer.Stem(token);
+
+            if (!stem.IsEmpty)
             {
-                var hadStems = false;
-
-                foreach (var stem in this.stemmer.Stem(token))
-                {
-                    hadStems = true;
-
-                    yield return stem;
-
-                    if (this.acceptFirstStemOnly)
-                    {
-                        break;
-                    }
-                }
-
-                if (!hadStems)
-                {
-                    if (this.emitTokenOnEmptyStems)
-                    {
-                        yield return token;
-                    }
-                }
+                return stem;
             }
+
+            if (this.tokenOnEmptyStem)
+            {
+                return token;
+            }
+
+            return default;
         }
     }
 }

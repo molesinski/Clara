@@ -3,7 +3,7 @@ using Clara.Querying;
 
 namespace Clara.Analysis.Synonyms
 {
-    public interface ISynonymMap : ITokenFilter, IMatchExpressionFilter
+    public interface ISynonymMap : IAnalyzer, IMatchExpressionFilter
     {
         TextField Field { get; }
     }

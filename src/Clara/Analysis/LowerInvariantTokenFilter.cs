@@ -1,21 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Clara.Analysis
+﻿namespace Clara.Analysis
 {
     public sealed class LowerInvariantTokenFilter : ITokenFilter
     {
-        public IEnumerable<string> Filter(IEnumerable<string> tokens)
+        public Token Filter(Token token)
         {
-            if (tokens is null)
+            var chars = token.Chars;
+            var index = token.Index;
+            var length = token.Length;
+
+            for (var i = index; i < length; i++)
             {
-                throw new ArgumentNullException(nameof(tokens));
+                chars[i] = char.ToLowerInvariant(chars[i]);
             }
 
-            foreach (var token in tokens)
-            {
-                yield return token.ToLowerInvariant();
-            }
+            return token;
         }
     }
 }

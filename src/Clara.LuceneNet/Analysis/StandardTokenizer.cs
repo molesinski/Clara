@@ -8,7 +8,7 @@ namespace Clara.Analysis
     {
         private static readonly ObjectPool<Lucene.Net.Analysis.Standard.StandardTokenizer> TokenizerPool = new(() => new(LuceneVersion.LUCENE_48, new StringReader(string.Empty)));
 
-        public IEnumerable<string> GetTokens(string text)
+        public IEnumerable<Token> GetTokens(string text)
         {
             var tokenizer = TokenizerPool.Get();
 

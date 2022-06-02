@@ -4,6 +4,6 @@ namespace Clara.Analysis
 {
     public interface ITokenizer
     {
-        IEnumerable<string> GetTokens(string text);
+        IEnumerable<Token> GetTokens(string text);
     }
 }

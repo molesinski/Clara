@@ -4,27 +4,22 @@ using Lucene.Net.Analysis.TokenAttributes;
 
 namespace Clara.Analysis
 {
-    internal sealed class StringTokenStream : TokenStream
+    public sealed class SingleTokenStream : TokenStream
     {
         private readonly ICharTermAttribute charTermAttribute;
-        private string value;
+        private Token token;
         private bool isReset;
         private bool isIncremented;
 
-        public StringTokenStream()
+        public SingleTokenStream()
         {
             this.charTermAttribute = this.AddAttribute<ICharTermAttribute>();
-            this.value = default!;
+            this.token = default!;
         }
 
-        public void SetString(string value)
+        public void SetToken(Token token)
         {
-            if (value is null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
-            this.value = value;
+            this.token = token;
             this.isReset = false;
             this.isIncremented = false;
         }
@@ -49,7 +44,15 @@ namespace Clara.Analysis
                 this.isIncremented = true;
 
                 this.charTermAttribute.SetEmpty();
-                this.charTermAttribute.Append(this.value);
+
+                if (!this.token.IsReadOnly)
+                {
+                    this.charTermAttribute.Append(this.token.Chars, this.token.Index, this.token.Length);
+                }
+                else
+                {
+                    this.charTermAttribute.Append(this.token.ToString());
+                }
 
                 return true;
             }
