@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Clara.Analysis.Synonyms;
 using Clara.Mapping;
 using Clara.Storage;
@@ -37,15 +36,14 @@ namespace Clara
         {
             lock (tokenEncoderStore.SyncRoot)
             {
-                using (var builder = new IndexBuilder<TSource, TDocument>(indexMapper, synonymMaps, tokenEncoderStore))
-                {
-                    foreach (var item in source)
-                    {
-                        builder.Index(item);
-                    }
+                using var builder = new IndexBuilder<TSource, TDocument>(indexMapper, synonymMaps, tokenEncoderStore);
 
-                    return builder.Build();
+                foreach (var item in source)
+                {
+                    builder.Index(item);
                 }
+
+                return builder.Build();
             }
         }
     }

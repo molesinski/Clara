@@ -20,7 +20,7 @@ namespace Clara.Analysis
             }
         }
 
-        public Token Filter(Token token)
+        public Token Process(Token token)
         {
             if (!this.stopwords.Contains(token))
             {

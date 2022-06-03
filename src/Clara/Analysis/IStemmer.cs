@@ -1,4 +1,4 @@
-﻿namespace Clara.Analysis.Stemming
+﻿namespace Clara.Analysis
 {
     public interface IStemmer
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Clara.Analysis.Stemming
+namespace Clara.Analysis
 {
     public class NonDigitsStemmerDecorator : IStemmer
     {
@@ -18,14 +18,13 @@ namespace Clara.Analysis.Stemming
 
         public Token Stem(Token token)
         {
-            var span = token.ValueSpan;
-            var length = span.Length;
+            var length = token.Length;
 
             for (var i = 0; i < length; i++)
             {
-                if (char.IsDigit(span[i]))
+                if (char.IsDigit(token[i]))
                 {
-                    return default;
+                    return token;
                 }
             }
 

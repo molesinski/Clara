@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Clara.Analysis.Stemming
+namespace Clara.Analysis
 {
     public class LengthStemmerDecorator : IStemmer
     {
@@ -37,11 +37,11 @@ namespace Clara.Analysis.Stemming
 
         public Token Stem(Token token)
         {
-            var length = token.ValueSpan.Length;
+            var length = token.Length;
 
             if (length < this.minimumLength || length > this.maximumLength)
             {
-                return default;
+                return token;
             }
 
             return this.stemmer.Stem(token);

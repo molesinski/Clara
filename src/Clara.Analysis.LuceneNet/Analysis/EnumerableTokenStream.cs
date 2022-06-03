@@ -47,15 +47,7 @@ namespace Clara.Analysis
                 }
 
                 this.charTermAttribute.SetEmpty();
-
-                if (token.IsReadOnly)
-                {
-                    this.charTermAttribute.Append(token.ToString());
-                }
-                else
-                {
-                    this.charTermAttribute.Append(token.Chars, token.Index, token.Length);
-                }
+                this.charTermAttribute.Append(token.ToString());
 
                 return true;
             }

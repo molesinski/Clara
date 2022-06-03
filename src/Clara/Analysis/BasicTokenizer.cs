@@ -16,9 +16,9 @@ namespace Clara.Analysis
         public BasicTokenizer(
             IEnumerable<char>? additionalWordConnectingCharacters = null,
             char numberDecimalSeparator = '.',
-            int maximumTokenLength = 64)
+            int maximumTokenLength = 32)
         {
-            if (maximumTokenLength < 0 || maximumTokenLength > 256)
+            if (maximumTokenLength < 0 || maximumTokenLength > 128)
             {
                 throw new ArgumentOutOfRangeException(nameof(maximumTokenLength));
             }
@@ -45,7 +45,7 @@ namespace Clara.Analysis
             var current = text[0];
             var start = -1;
 
-            var chars = CharPool.Rent(this.maximumTokenLength);
+            var chars = CharPool.Rent(this.maximumTokenLength * 2);
 
             try
             {
@@ -120,7 +120,7 @@ namespace Clara.Analysis
                 chars[i] = text[start + i];
             }
 
-            return new Token(chars, 0, length);
+            return new Token(chars, length);
         }
 
         private static bool IsWordOrNumber(char c)

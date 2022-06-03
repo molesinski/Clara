@@ -2,15 +2,13 @@
 {
     public sealed class LowerInvariantTokenFilter : ITokenFilter
     {
-        public Token Filter(Token token)
+        public Token Process(Token token)
         {
-            var chars = token.Chars;
-            var index = token.Index;
             var length = token.Length;
 
-            for (var i = index; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
-                chars[i] = char.ToLowerInvariant(chars[i]);
+                token[i] = char.ToLowerInvariant(token[i]);
             }
 
             return token;

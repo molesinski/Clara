@@ -56,6 +56,8 @@ namespace Clara.Analysis
             this.tokenFilters = analyzer.tokenFilters.Concat(tokenFilters).ToArray();
         }
 
+        public static Analyzer Empty { get; } = new Analyzer(new EmptyTokenizer());
+
         public IEnumerable<string> GetTokens(string text)
         {
             foreach (var token in this.tokenizer.GetTokens(text))
@@ -64,7 +66,7 @@ namespace Clara.Analysis
 
                 for (var i = 0; i < this.tokenFilters.Length; i++)
                 {
-                    result = this.tokenFilters[i].Filter(result);
+                    result = this.tokenFilters[i].Process(result);
 
                     if (result.IsEmpty)
                     {
@@ -76,6 +78,14 @@ namespace Clara.Analysis
                 {
                     yield return result.ToString();
                 }
+            }
+        }
+
+        private class EmptyTokenizer : ITokenizer
+        {
+            public IEnumerable<Token> GetTokens(string text)
+            {
+                return Array.Empty<Token>();
             }
         }
     }

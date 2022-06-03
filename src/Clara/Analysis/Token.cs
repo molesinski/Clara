@@ -2,12 +2,11 @@
 
 namespace Clara.Analysis
 {
-    public readonly struct Token : IEquatable<Token>
+    public struct Token : IEquatable<Token>
     {
         private readonly string? value;
         private readonly char[]? chars;
-        private readonly int index;
-        private readonly int length;
+        private int length;
 
         public Token(string value)
         {
@@ -18,30 +17,23 @@ namespace Clara.Analysis
 
             this.value = value;
             this.chars = null;
-            this.index = 0; 
             this.length = 0;
         }
 
-        public Token(char[] chars, int index, int length)
+        public Token(char[] chars, int length)
         {
             if (chars is null)
             {
                 throw new ArgumentNullException(nameof(chars));
             }
 
-            if (index < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-
-            if (index + length > chars.Length)
+            if (length < 0 || length > chars.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(length));
             }
 
             this.value = null;
             this.chars = chars;
-            this.index = index;
             this.length = length;
         }
 
@@ -70,11 +62,16 @@ namespace Clara.Analysis
                     return this.value.AsSpan();
                 }
 
-                return this.chars.AsSpan(this.index, this.length);
+                if (this.chars is not null)
+                {
+                    return this.chars.AsSpan(0, this.length);
+                }
+
+                return ReadOnlySpan<char>.Empty;
             }
         }
 
-        public char[] Chars
+        public char this[int index]
         {
             get
             {
@@ -83,20 +80,17 @@ namespace Clara.Analysis
                     throw new InvalidOperationException("Read only tokens cannot be modified.");
                 }
 
-                return this.chars;
+                return this.chars[index];
             }
-        }
 
-        public int Index
-        {
-            get
+            set
             {
                 if (this.chars is null)
                 {
                     throw new InvalidOperationException("Read only tokens cannot be modified.");
                 }
 
-                return this.index;
+                this.chars[index] = value;
             }
         }
 
@@ -111,6 +105,21 @@ namespace Clara.Analysis
 
                 return this.length;
             }
+
+            set
+            {
+                if (this.chars is null)
+                {
+                    throw new InvalidOperationException("Read only tokens cannot be modified.");
+                }
+
+                if (value < 0 || value > this.chars.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                this.length = value;
+            }
         }
 
         public static bool operator ==(Token left, Token right)
@@ -121,6 +130,21 @@ namespace Clara.Analysis
         public static bool operator !=(Token left, Token right)
         {
             return !left.Equals(right);
+        }
+
+        public static implicit operator ReadOnlySpan<char>(Token value)
+        {
+            return value.ValueSpan;
+        }
+
+        public void GetChars(out char[] chars)
+        {
+            if (this.chars is null)
+            {
+                throw new InvalidOperationException("Read only tokens cannot be modified.");
+            }
+
+            chars = this.chars;
         }
 
         public Token ToReadOnly()
@@ -193,9 +217,9 @@ namespace Clara.Analysis
                 if (this.length > 0)
                 {
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-                    return new string(this.chars.AsSpan(this.index, this.length));
+                    return new string(this.chars.AsSpan(0, this.length));
 #else
-                    return new string(this.chars, this.index, this.length);
+                    return new string(this.chars, 0, this.length);
 #endif
                 }
             }

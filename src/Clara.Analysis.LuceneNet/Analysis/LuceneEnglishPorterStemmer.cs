@@ -1,17 +1,21 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using Clara.Analysis.Stemming;
 using Lucene.Net.Analysis.En;
 
 namespace Clara.Analysis
 {
-    public class EnglishPorterStemmer : IStemmer
+    public class LuceneEnglishPorterStemmer : IStemmer
     {
-        private static readonly ObjectPool<Stemmer> StemmerPool = new(() => new());
+        private readonly ObjectPool<Stemmer> pool;
+
+        public LuceneEnglishPorterStemmer()
+        {
+            this.pool = new(() => new());
+        }
 
         public Token Stem(Token token)
         {
-            var stemmer = StemmerPool.Get();
+            var stemmer = this.pool.Get();
 
             try
             {
@@ -26,7 +30,7 @@ namespace Clara.Analysis
             }
             finally
             {
-                StemmerPool.Return(stemmer);
+                this.pool.Return(stemmer);
             }
         }
 

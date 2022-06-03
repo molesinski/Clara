@@ -44,15 +44,7 @@ namespace Clara.Analysis
                 this.isIncremented = true;
 
                 this.charTermAttribute.SetEmpty();
-
-                if (!this.token.IsReadOnly)
-                {
-                    this.charTermAttribute.Append(this.token.Chars, this.token.Index, this.token.Length);
-                }
-                else
-                {
-                    this.charTermAttribute.Append(this.token.ToString());
-                }
+                this.charTermAttribute.Append(this.token.ToString());
 
                 return true;
             }
