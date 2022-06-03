@@ -2,7 +2,7 @@
 {
     public class EnglishPossesiveTokenFilter : ITokenFilter
     {
-        public Token Process(Token token)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             var length = token.Length;
 
@@ -17,7 +17,7 @@
                 }
             }
 
-            return token;
+            return next(token);
         }
     }
 }

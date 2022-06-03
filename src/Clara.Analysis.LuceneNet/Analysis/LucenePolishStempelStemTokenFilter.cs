@@ -4,20 +4,20 @@ using Lucene.Net.Analysis.Pl;
 
 namespace Clara.Analysis
 {
-    public sealed class PolishStempelStemmer : IStemmer
+    public sealed class LucenePolishStempelStemTokenFilter : ITokenFilter
     {
         private readonly ObjectPool<StringBuilder> pool;
         private readonly Trie stemmer;
         private readonly bool tokenOnEmptyStem;
 
-        public PolishStempelStemmer(bool tokenOnEmptyStem = true)
+        public LucenePolishStempelStemTokenFilter(bool tokenOnEmptyStem = true)
         {
-            this.pool = new(() => new(capacity: 256));
+            this.pool = new(() => new(capacity: Token.MaximumLength));
             this.stemmer = PolishAnalyzer.DefaultTable;
             this.tokenOnEmptyStem = tokenOnEmptyStem;
         }
 
-        public Token Stem(Token token)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             var builder = this.pool.Get();
 

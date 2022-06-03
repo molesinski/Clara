@@ -9,23 +9,23 @@ namespace Clara.Analysis
     {
         private static readonly ArrayPool<char> CharPool = ArrayPool<char>.Shared;
 
+        private readonly int maximumTokenLength;
         private readonly char[] additionalWordConnectingCharacters;
         private readonly char numberDecimalSeparator;
-        private readonly int maximumTokenLength;
 
         public BasicTokenizer(
+            int maximumTokenLength = Token.MaximumLength,
             IEnumerable<char>? additionalWordConnectingCharacters = null,
-            char numberDecimalSeparator = '.',
-            int maximumTokenLength = 32)
+            char numberDecimalSeparator = '.')
         {
-            if (maximumTokenLength < 0 || maximumTokenLength > 128)
+            if (maximumTokenLength < 0 || maximumTokenLength > Token.MaximumLength)
             {
                 throw new ArgumentOutOfRangeException(nameof(maximumTokenLength));
             }
 
+            this.maximumTokenLength = maximumTokenLength;
             this.additionalWordConnectingCharacters = additionalWordConnectingCharacters?.ToArray() ?? Array.Empty<char>();
             this.numberDecimalSeparator = numberDecimalSeparator;
-            this.maximumTokenLength = maximumTokenLength;
         }
 
         public IEnumerable<Token> GetTokens(string text)

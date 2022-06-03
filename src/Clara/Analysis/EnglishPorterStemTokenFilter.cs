@@ -2,9 +2,9 @@
 
 namespace Clara.Analysis
 {
-    public class EnglishPorterStemmer : IStemmer
+    public class EnglishPorterStemTokenFilter : ITokenFilter
     {
-        public Token Stem(Token token)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             if (token.Length > 2)
             {

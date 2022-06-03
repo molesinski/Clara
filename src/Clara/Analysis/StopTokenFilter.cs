@@ -20,14 +20,14 @@ namespace Clara.Analysis
             }
         }
 
-        public Token Process(Token token)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
-            if (!this.stopwords.Contains(token))
+            if (this.stopwords.Contains(token))
             {
-                return token;
+                return default;
             }
 
-            return default;
+            return next(token);
         }
     }
 }

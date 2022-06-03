@@ -2,25 +2,19 @@
 
 namespace Clara.Analysis
 {
-    public class LengthStemmerDecorator : IStemmer
+    public class RequireLengthTokenFilter : ITokenFilter
     {
-        private readonly IStemmer stemmer;
         private readonly int minimumLength;
         private readonly int maximumLength;
 
-        public LengthStemmerDecorator(IStemmer stemmer, int minimumLength = 2, int maximumLength = 32)
+        public RequireLengthTokenFilter(int minimumLength = 1, int maximumLength = Token.MaximumLength)
         {
-            if (stemmer is null)
-            {
-                throw new ArgumentNullException(nameof(stemmer));
-            }
-
-            if (minimumLength < 0)
+            if (minimumLength < 0 || minimumLength > Token.MaximumLength)
             {
                 throw new ArgumentOutOfRangeException(nameof(minimumLength));
             }
 
-            if (maximumLength < 0)
+            if (maximumLength < 0 || maximumLength > Token.MaximumLength)
             {
                 throw new ArgumentOutOfRangeException(nameof(minimumLength));
             }
@@ -30,12 +24,11 @@ namespace Clara.Analysis
                 throw new ArgumentException("Minimum length must be less or equal to maximum length.", nameof(minimumLength));
             }
 
-            this.stemmer = stemmer;
             this.minimumLength = minimumLength;
             this.maximumLength = maximumLength;
         }
 
-        public Token Stem(Token token)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             var length = token.Length;
 
@@ -44,7 +37,7 @@ namespace Clara.Analysis
                 return token;
             }
 
-            return this.stemmer.Stem(token);
+            return next(token);
         }
     }
 }

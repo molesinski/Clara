@@ -1,6 +1,6 @@
 ﻿namespace Clara.Analysis
 {
-    public sealed class LowerInvariantTokenFilter : ITokenFilter
+    public class RequireNonDigitsTokenFilter : ITokenFilter
     {
         public Token Process(Token token, TokenFilterDelegate next)
         {
@@ -8,7 +8,10 @@
 
             for (var i = 0; i < length; i++)
             {
-                token[i] = char.ToLowerInvariant(token[i]);
+                if (char.IsDigit(token[i]))
+                {
+                    return token;
+                }
             }
 
             return next(token);

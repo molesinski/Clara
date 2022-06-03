@@ -4,6 +4,8 @@ namespace Clara.Analysis
 {
     public struct Token : IEquatable<Token>
     {
+        public const int MaximumLength = 100;
+
         private readonly string? value;
         private readonly char[]? chars;
         private int length;
@@ -113,7 +115,7 @@ namespace Clara.Analysis
                     throw new InvalidOperationException("Read only tokens cannot be modified.");
                 }
 
-                if (value < 0 || value > this.chars.Length)
+                if (value < 0 || value > this.chars.Length || value > MaximumLength)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }

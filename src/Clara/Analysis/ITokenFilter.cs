@@ -2,6 +2,6 @@
 {
     public interface ITokenFilter
     {
-        Token Process(Token token);
+        Token Process(Token token, TokenFilterDelegate next);
     }
 }

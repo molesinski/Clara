@@ -7,53 +7,32 @@ namespace Clara.Analysis
     public sealed class Analyzer : IAnalyzer
     {
         private readonly ITokenizer tokenizer;
-        private readonly ITokenFilter[] tokenFilters;
+        private readonly TokenFilterDelegate pipeline;
 
         public Analyzer(ITokenizer tokenizer)
             : this(tokenizer, (IEnumerable<ITokenFilter>)Array.Empty<ITokenFilter>())
         {
         }
 
-        public Analyzer(ITokenizer tokenizer, params ITokenFilter[] tokenFilters)
-            : this(tokenizer, (IEnumerable<ITokenFilter>)tokenFilters)
+        public Analyzer(ITokenizer tokenizer, params ITokenFilter[] filters)
+            : this(tokenizer, (IEnumerable<ITokenFilter>)filters)
         {
         }
 
-        public Analyzer(ITokenizer tokenizer, IEnumerable<ITokenFilter> tokenFilters)
+        public Analyzer(ITokenizer tokenizer, IEnumerable<ITokenFilter> filters)
         {
             if (tokenizer is null)
             {
                 throw new ArgumentNullException(nameof(tokenizer));
             }
 
-            if (tokenFilters is null)
+            if (filters is null)
             {
-                throw new ArgumentNullException(nameof(tokenFilters));
+                throw new ArgumentNullException(nameof(filters));
             }
 
             this.tokenizer = tokenizer;
-            this.tokenFilters = tokenFilters.ToArray();
-        }
-
-        public Analyzer(Analyzer analyzer, params ITokenFilter[] tokenFilters)
-            : this(analyzer, (IEnumerable<ITokenFilter>)tokenFilters)
-        {
-        }
-
-        public Analyzer(Analyzer analyzer, IEnumerable<ITokenFilter> tokenFilters)
-        {
-            if (analyzer is null)
-            {
-                throw new ArgumentNullException(nameof(analyzer));
-            }
-
-            if (tokenFilters is null)
-            {
-                throw new ArgumentNullException(nameof(tokenFilters));
-            }
-
-            this.tokenizer = analyzer.tokenizer;
-            this.tokenFilters = analyzer.tokenFilters.Concat(tokenFilters).ToArray();
+            this.pipeline = CreatePipeline(filters);
         }
 
         public static Analyzer Empty { get; } = new Analyzer(new EmptyTokenizer());
@@ -62,23 +41,35 @@ namespace Clara.Analysis
         {
             foreach (var token in this.tokenizer.GetTokens(text))
             {
-                var result = token;
-
-                for (var i = 0; i < this.tokenFilters.Length; i++)
-                {
-                    result = this.tokenFilters[i].Process(result);
-
-                    if (result.IsEmpty)
-                    {
-                        break;
-                    }
-                }
+                var result = this.pipeline(token);
 
                 if (!result.IsEmpty)
                 {
                     yield return result.ToString();
                 }
             }
+        }
+
+        private static TokenFilterDelegate CreatePipeline(IEnumerable<ITokenFilter> filters)
+        {
+            TokenFilterDelegate pipeline =
+                token =>
+                {
+                    return token;
+                };
+
+            foreach (var filter in filters.Reverse())
+            {
+                var next = pipeline;
+
+                pipeline =
+                    token =>
+                    {
+                        return filter.Process(token, next);
+                    };
+            }
+
+            return pipeline;
         }
 
         private class EmptyTokenizer : ITokenizer

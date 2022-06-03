@@ -4,16 +4,16 @@ using Lucene.Net.Analysis.En;
 
 namespace Clara.Analysis
 {
-    public class LuceneEnglishPorterStemmer : IStemmer
+    public class LuceneEnglishPorterStemTokenFilter : ITokenFilter
     {
         private readonly ObjectPool<Stemmer> pool;
 
-        public LuceneEnglishPorterStemmer()
+        public LuceneEnglishPorterStemTokenFilter()
         {
             this.pool = new(() => new());
         }
 
-        public Token Stem(Token token)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             var stemmer = this.pool.Get();
 

@@ -1,22 +1,21 @@
 ﻿using System.Text;
-using Clara.Analysis.Stemming;
 using J2N.IO;
 using Morfologik.Stemming.Polish;
 
 namespace Clara.Analysis
 {
-    public class PolishMorfologikStemmer : IStemmer
+    public class PolishMorfologikStemTokenFilter : ITokenFilter
     {
         private readonly ObjectPool<StemmerContext> pool;
         private readonly bool tokenOnEmptyStem;
 
-        public PolishMorfologikStemmer(bool tokenOnEmptyStem = true)
+        public PolishMorfologikStemTokenFilter(bool tokenOnEmptyStem = true)
         {
             this.pool = new(() => new());
             this.tokenOnEmptyStem = tokenOnEmptyStem;
         }
 
-        public Token Stem(Token token)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             var stemmerContext = this.pool.Get();
 
@@ -64,8 +63,8 @@ namespace Clara.Analysis
             public StemmerContext()
             {
                 this.Stemmer = new PolishStemmer();
-                this.Input = new StringBuilder(capacity: 256);
-                this.Output = ByteBuffer.Allocate(capacity: 256);
+                this.Input = new StringBuilder(capacity: Token.MaximumLength);
+                this.Output = ByteBuffer.Allocate(capacity: Token.MaximumLength * 2);
             }
 
             public PolishStemmer Stemmer { get; }
