@@ -25,15 +25,15 @@ namespace Clara.Analysis
             {
                 if (EndsWith(token, "sses", out _))
                 {
-                    token.Length -= 2;
+                    token.Remove(token.Length - 2);
                 }
                 else if (EndsWith(token, "ies", out _))
                 {
-                    token.Length -= 2;
+                    token.Remove(token.Length - 2);
                 }
                 else if (token.Length >= 2 && token[token.Length - 2] != 's')
                 {
-                    token.Length -= 1;
+                    token.Remove(token.Length - 1);
                 }
             }
 
@@ -41,17 +41,16 @@ namespace Clara.Analysis
             {
                 if (NumberOfConsoantSequences(token, j) > 0)
                 {
-                    token.Length -= 1;
+                    token.Remove(token.Length - 1);
                 }
             }
             else if ((EndsWith(token, "ed", out j) || EndsWith(token, "ing", out j)) && ContainsVowel(token, j))
             {
-                token.Length = j + 1;
+                token.Remove(j + 1);
 
                 if (EndsWith(token, "at", out _) || EndsWith(token, "bl", out _) || EndsWith(token, "iz", out _))
                 {
-                    token[token.Length] = 'e';
-                    token.Length++;
+                    token.Append("e");
                 }
                 else if (ContainsDoubleConsonantAt(token, token.Length - 1))
                 {
@@ -59,20 +58,19 @@ namespace Clara.Analysis
 
                     if (c != 'l' && c != 's' && c != 'z')
                     {
-                        token.Length--;
+                        token.Remove(token.Length - 1);
                     }
                 }
                 else if (NumberOfConsoantSequences(token, token.Length - 1) == 1 && HasCvcAt(token, token.Length - 1))
                 {
-                    token[token.Length] = 'e';
-                    token.Length++;
+                    token.Append("e");
                 }
             }
         }
 
         private static void Step2(ref Token token)
         {
-            if (EndsWith(token, "y", out var limit) && ContainsVowel(token, limit))
+            if (EndsWith(token, "y", out var j) && ContainsVowel(token, j))
             {
                 token[token.Length - 1] = 'i';
             }
@@ -114,18 +112,15 @@ namespace Clara.Analysis
                     {
                         break;
                     }
-
-                    if (ChangeSuffix(ref token, "alli", "al"))
+                    else if (ChangeSuffix(ref token, "alli", "al"))
                     {
                         break;
                     }
-
-                    if (ChangeSuffix(ref token, "entli", "ent"))
+                    else if (ChangeSuffix(ref token, "entli", "ent"))
                     {
                         break;
                     }
-
-                    if (ChangeSuffix(ref token, "eli", "e"))
+                    else if (ChangeSuffix(ref token, "eli", "e"))
                     {
                         break;
                     }
@@ -138,8 +133,7 @@ namespace Clara.Analysis
                     {
                         break;
                     }
-
-                    if (ChangeSuffix(ref token, "ation", "ate"))
+                    else if (ChangeSuffix(ref token, "ation", "ate"))
                     {
                         break;
                     }
@@ -152,13 +146,11 @@ namespace Clara.Analysis
                     {
                         break;
                     }
-
-                    if (ChangeSuffix(ref token, "iveness", "ive"))
+                    else if (ChangeSuffix(ref token, "iveness", "ive"))
                     {
                         break;
                     }
-
-                    if (ChangeSuffix(ref token, "fulness", "ful"))
+                    else if (ChangeSuffix(ref token, "fulness", "ful"))
                     {
                         break;
                     }
@@ -171,8 +163,7 @@ namespace Clara.Analysis
                     {
                         break;
                     }
-
-                    if (ChangeSuffix(ref token, "iviti", "ive"))
+                    else if (ChangeSuffix(ref token, "iviti", "ive"))
                     {
                         break;
                     }
@@ -200,8 +191,7 @@ namespace Clara.Analysis
                     {
                         break;
                     }
-
-                    if (RemoveSuffix(ref token, "ative"))
+                    else if (RemoveSuffix(ref token, "ative"))
                     {
                         break;
                     }
@@ -312,8 +302,7 @@ namespace Clara.Analysis
                     {
                         break;
                     }
-
-                    if (EndsWith(token, "ou", out j))
+                    else if (EndsWith(token, "ou", out j))
                     {
                         break;
                     }
@@ -370,7 +359,7 @@ namespace Clara.Analysis
 
             if (NumberOfConsoantSequences(token, j) > 1)
             {
-                token.Length = j + 1;
+                token.Remove(j + 1);
             }
         }
 
@@ -387,7 +376,7 @@ namespace Clara.Analysis
 
                 if (a > 1 || a == 1 && !HasCvcAt(token, token.Length - 2))
                 {
-                    token.Length--;
+                    token.Remove(token.Length - 1);
                 }
             }
 
@@ -395,7 +384,7 @@ namespace Clara.Analysis
             {
                 if (ContainsDoubleConsonantAt(token, token.Length - 1) && NumberOfConsoantSequences(token, token.Length - 1) > 1)
                 {
-                    token.Length--;
+                    token.Remove(token.Length - 1);
                 }
             }
         }
@@ -412,12 +401,7 @@ namespace Clara.Analysis
                 return false;
             }
 
-            for (var i = 0; i < replacement.Length; i++)
-            {
-                token[j + 1 + i] = replacement[i];
-            }
-
-            token.Length = j + 1 + replacement.Length;
+            token.Write(j + 1, replacement);
             return true;
         }
 
@@ -433,22 +417,19 @@ namespace Clara.Analysis
                 return false;
             }
 
-            token.Length = j + 1;
+            token.Remove(j + 1);
             return true;
         }
 
         private static bool EndsWith(Token token, string suffix, out int j)
         {
-            var span = token.ValueSpan;
+            var span = token.Span;
             var chars = suffix.AsSpan();
 
-            if (span.Length >= chars.Length)
+            if (span.EndsWith(chars))
             {
-                if (span.Slice(span.Length - chars.Length).SequenceEqual(chars))
-                {
-                    j = span.Length - chars.Length - 1;
-                    return true;
-                }
+                j = span.Length - chars.Length - 1;
+                return true;
             }
 
             j = 0;
@@ -537,9 +518,9 @@ namespace Clara.Analysis
             }
             else
             {
-                var ch = token[i];
+                var c = token[i];
 
-                if (ch == 'w' || ch == 'x' || ch == 'y')
+                if (c == 'w' || c == 'x' || c == 'y')
                 {
                     return false;
                 }

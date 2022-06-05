@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace Clara.Analysis
 {
@@ -15,6 +16,11 @@ namespace Clara.Analysis
             if (value is null)
             {
                 throw new ArgumentNullException(nameof(value));
+            }
+
+            if (!(value.Length <= MaximumLength))
+            {
+                throw new ArgumentException("Read only tokens must have length less than or equal to maximumum token length.", nameof(value));
             }
 
             this.value = value;
@@ -34,16 +40,77 @@ namespace Clara.Analysis
                 throw new ArgumentOutOfRangeException(nameof(length));
             }
 
+
+            if (!(chars.Length >= MaximumLength))
+            {
+                throw new ArgumentException("Writeable tokens must have character buffer length greater than or equal to maximumum token length.", nameof(chars));
+            }
+
             this.value = null;
             this.chars = chars;
             this.length = length;
         }
 
-        public bool IsEmpty
+        public char this[int index]
         {
             get
             {
-                return this.Length == 0;
+                if (this.chars is not null)
+                {
+                    if (index < 0 || index >= this.length)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(index));
+                    }
+
+                    return this.chars[index];
+                }
+                else if (this.value is not null)
+                {
+                    if (index < 0 || index >= this.value.Length)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(index));
+                    }
+
+                    return this.value[index];
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+            }
+
+            set
+            {
+                if (this.chars is null)
+                {
+                    throw new InvalidOperationException("Read only tokens cannot be modified.");
+                }
+
+                if (index < 0 || index >= this.length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+
+                this.chars[index] = value;
+            }
+        }
+
+        public int Length
+        {
+            get
+            {
+                if (this.chars is not null)
+                {
+                    return this.length;
+                }
+                else if (this.value is not null)
+                {
+                    return this.value.Length;
+                }
+                else
+                {
+                    return 0;
+                }
             }
         }
 
@@ -55,72 +122,22 @@ namespace Clara.Analysis
             }
         }
 
-        public ReadOnlySpan<char> ValueSpan
+        public ReadOnlySpan<char> Span
         {
             get
             {
-                if (this.value is not null)
-                {
-                    return this.value.AsSpan();
-                }
-
                 if (this.chars is not null)
                 {
                     return this.chars.AsSpan(0, this.length);
                 }
-
-                return ReadOnlySpan<char>.Empty;
-            }
-        }
-
-        public char this[int index]
-        {
-            get
-            {
-                if (this.chars is null)
+                else if (this.value is not null)
                 {
-                    throw new InvalidOperationException("Read only tokens cannot be modified.");
+                    return this.value.AsSpan();
                 }
-
-                return this.chars[index];
-            }
-
-            set
-            {
-                if (this.chars is null)
+                else
                 {
-                    throw new InvalidOperationException("Read only tokens cannot be modified.");
+                    return ReadOnlySpan<char>.Empty;
                 }
-
-                this.chars[index] = value;
-            }
-        }
-
-        public int Length
-        {
-            get
-            {
-                if (this.value is not null)
-                {
-                    return this.value.Length;
-                }
-
-                return this.length;
-            }
-
-            set
-            {
-                if (this.chars is null)
-                {
-                    throw new InvalidOperationException("Read only tokens cannot be modified.");
-                }
-
-                if (value < 0 || value > this.chars.Length || value > MaximumLength)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value));
-                }
-
-                this.length = value;
             }
         }
 
@@ -136,17 +153,110 @@ namespace Clara.Analysis
 
         public static implicit operator ReadOnlySpan<char>(Token value)
         {
-            return value.ValueSpan;
+            return value.Span;
         }
 
-        public void GetChars(out char[] chars)
+        public void CopyTo(StringBuilder builder)
+        {
+            if (this.value is not null)
+            {
+                builder.Append(this.value);
+            }
+            else if (this.chars is not null)
+            {
+                builder.Append(this.chars, 0, this.length);
+            }
+        }
+
+        public void Set(string chars)
+        {
+            this.Set(chars.AsSpan());
+        }
+
+        public void Set(ReadOnlySpan<char> chars)
         {
             if (this.chars is null)
             {
                 throw new InvalidOperationException("Read only tokens cannot be modified.");
             }
 
-            chars = this.chars;
+            if (chars.Length > MaximumLength)
+            {
+                throw new ArgumentException("Written length would exceed token maximum length.", nameof(chars));
+            }
+
+            chars.CopyTo(this.chars);
+
+            this.length = chars.Length;
+        }
+
+        public void Append(string chars)
+        {
+            this.Append(chars.AsSpan());
+        }
+
+        public void Append(ReadOnlySpan<char> chars)
+        {
+            if (this.chars is null)
+            {
+                throw new InvalidOperationException("Read only tokens cannot be modified.");
+            }
+
+            var startIndex = this.length;
+            var writtenLength = startIndex + chars.Length;
+
+            if (writtenLength > MaximumLength)
+            {
+                throw new ArgumentException("Written length would exceed token maximum length.", nameof(chars));
+            }
+
+            chars.CopyTo(this.chars.AsSpan(startIndex));
+
+            this.length = writtenLength;
+        }
+
+        public void Write(int startIndex, string chars)
+        {
+            this.Write(startIndex, chars.AsSpan());
+        }
+
+        public void Write(int startIndex, ReadOnlySpan<char> chars)
+        {
+            if (this.chars is null)
+            {
+                throw new InvalidOperationException("Read only tokens cannot be modified.");
+            }
+
+            if (!(this.length >= startIndex))
+            {
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+            }
+
+            var writtenLength = startIndex + chars.Length;
+
+            if (writtenLength > MaximumLength)
+            {
+                throw new ArgumentException("Written length would exceed token maximum length.", nameof(chars));
+            }
+
+            chars.CopyTo(this.chars.AsSpan(startIndex));
+
+            this.length = writtenLength;
+        }
+
+        public void Remove(int startIndex)
+        {
+            if (this.chars is null)
+            {
+                throw new InvalidOperationException("Read only tokens cannot be modified.");
+            }
+
+            if (!(this.length >= startIndex))
+            {
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+            }
+
+            this.length = startIndex;
         }
 
         public Token ToReadOnly()
@@ -161,8 +271,8 @@ namespace Clara.Analysis
 
         public bool Equals(Token other)
         {
-            var a = this.ValueSpan;
-            var b = other.ValueSpan;
+            var a = this.Span;
+            var b = other.Span;
 
             if (a.Length != b.Length)
             {
@@ -184,7 +294,7 @@ namespace Clara.Analysis
 
         public override int GetHashCode()
         {
-            var span = this.ValueSpan;
+            var span = this.Span;
 
             unchecked
             {
@@ -218,11 +328,7 @@ namespace Clara.Analysis
             {
                 if (this.length > 0)
                 {
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_1_OR_GREATER
-                    return new string(this.chars.AsSpan(0, this.length));
-#else
                     return new string(this.chars, 0, this.length);
-#endif
                 }
             }
 

@@ -43,7 +43,7 @@ namespace Clara.Analysis
             {
                 var result = this.pipeline(token);
 
-                if (!result.IsEmpty)
+                if (result.Length > 0)
                 {
                     yield return result.ToString();
                 }

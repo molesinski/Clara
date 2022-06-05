@@ -22,9 +22,9 @@ namespace Clara.Analysis
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
-            if (this.cache.TryGetValue(token, out var cachedStem))
+            if (this.cache.TryGetValue(token, out var cachedToken))
             {
-                return cachedStem;
+                return cachedToken;
             }
 
             if (this.count >= this.size)
@@ -32,15 +32,15 @@ namespace Clara.Analysis
                 return next(token);
             }
 
-            var tokenCopy = token.ToReadOnly();
-            var stemCopy = next(token).ToReadOnly();
+            var inputToken = token.ToReadOnly();
+            var outputToken = next(token).ToReadOnly();
 
-            if (this.cache.TryAdd(tokenCopy, stemCopy))
+            if (this.cache.TryAdd(inputToken, outputToken))
             {
                 Interlocked.Increment(ref this.count);
             }
 
-            return stemCopy;
+            return outputToken;
         }
     }
 }

@@ -45,7 +45,7 @@ namespace Clara.Analysis
             var current = text[0];
             var start = -1;
 
-            var chars = CharPool.Rent(this.maximumTokenLength * 2);
+            var chars = CharPool.Rent(Token.MaximumLength);
 
             try
             {

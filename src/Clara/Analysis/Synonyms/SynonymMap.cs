@@ -13,7 +13,7 @@ namespace Clara.Analysis.Synonyms
         private readonly IAnalyzer analyzer;
         private readonly SynonymNode root;
 
-        public SynonymMap(TextField field, IEnumerable<Synonym> synonyms, int maximumPermutatedPhraseTokenCount = 2)
+        public SynonymMap(TextField field, IEnumerable<Synonym> synonyms, int maximumPermutatedPhraseTokenCount = 1)
         {
             if (field is null)
             {
@@ -25,7 +25,7 @@ namespace Clara.Analysis.Synonyms
                 throw new ArgumentNullException(nameof(synonyms));
             }
 
-            if (maximumPermutatedPhraseTokenCount < 0 || maximumPermutatedPhraseTokenCount > 5)
+            if (maximumPermutatedPhraseTokenCount < 1 || maximumPermutatedPhraseTokenCount > 5)
             {
                 throw new ArgumentOutOfRangeException(nameof(maximumPermutatedPhraseTokenCount));
             }
@@ -539,7 +539,7 @@ namespace Clara.Analysis.Synonyms
                             tokenizedPhrase.Add(token);
                         }
 
-                        if (tokenizedPhrase.Count >= 1)
+                        if (tokenizedPhrase.Count > 0)
                         {
                             tokenizedPhrases.Add(tokenizedPhrase);
                         }
@@ -547,7 +547,7 @@ namespace Clara.Analysis.Synonyms
 
                     if (synonym is EquivalencySynonym)
                     {
-                        if (tokenizedPhrases.Count >= 2)
+                        if (tokenizedPhrases.Count > 1)
                         {
                             foreach (var tokenizedPhrase in tokenizedPhrases)
                             {
@@ -575,7 +575,7 @@ namespace Clara.Analysis.Synonyms
                     }
                     else if (synonym is ExplicitMappingSynonym explicitMappingSynonym)
                     {
-                        if (tokenizedPhrases.Count >= 1)
+                        if (tokenizedPhrases.Count > 0)
                         {
                             var replacementTokens = new List<string>();
 
@@ -584,7 +584,7 @@ namespace Clara.Analysis.Synonyms
                                 replacementTokens.Add(token);
                             }
 
-                            if (replacementTokens.Count < 1)
+                            if (!(replacementTokens.Count > 0))
                             {
                                 continue;
                             }
@@ -614,6 +614,10 @@ namespace Clara.Analysis.Synonyms
                                 }
                             }
                         }
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Unsupported synonym type definition encountered '{synonym.GetType().FullName}'.");
                     }
                 }
 

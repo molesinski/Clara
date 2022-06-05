@@ -12,7 +12,7 @@
                 {
                     if (token[length - 2] == '\'' || token[length - 2] == '\u2019' || token[length - 2] == '\uFF07')
                     {
-                        token.Length -= 2;
+                        token.Remove(length - 2);
                     }
                 }
             }

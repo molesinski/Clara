@@ -40,14 +40,21 @@ namespace Clara.Analysis
             while (this.enumerator.MoveNext())
             {
                 var token = this.enumerator.Current;
+                var length = token.Length;
 
-                if (token.IsEmpty)
+                if (length == 0)
                 {
                     continue;
                 }
 
+                if (length > this.charTermAttribute.Buffer.Length)
+                {
+                    this.charTermAttribute.ResizeBuffer(length);
+                }
+
                 this.charTermAttribute.SetEmpty();
-                this.charTermAttribute.Append(token.ToString());
+                token.Span.CopyTo(this.charTermAttribute.Buffer.AsSpan());
+                this.charTermAttribute.Length = length;
 
                 return true;
             }

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using J2N.IO;
 using Morfologik.Stemming.Polish;
 
@@ -24,11 +25,10 @@ namespace Clara.Analysis
                 var stemmer = stemmerContext.Stemmer;
                 var input = stemmerContext.Input;
                 var output = stemmerContext.Output;
-
-                token.GetChars(out var chars);
+                var chars = stemmerContext.Chars;
 
                 input.Clear();
-                input.Append(chars, 0, token.Length);
+                token.CopyTo(input);
 
                 var lemmas = stemmer.Lookup(input);
 
@@ -39,8 +39,9 @@ namespace Clara.Analysis
                     buffer = lemma.GetStemBytes(buffer);
 
                     var encoding = stemmer.Dictionary.Metadata.Decoder;
+                    var charCount = encoding.GetChars(buffer.Array, buffer.ArrayOffset, buffer.Limit, chars, 0);
 
-                    token.Length = encoding.GetChars(buffer.Array, buffer.ArrayOffset, buffer.Limit, chars, 0);
+                    token.Set(chars.AsSpan(0, charCount));
 
                     return token;
                 }
@@ -65,6 +66,7 @@ namespace Clara.Analysis
                 this.Stemmer = new PolishStemmer();
                 this.Input = new StringBuilder(capacity: Token.MaximumLength);
                 this.Output = ByteBuffer.Allocate(capacity: Token.MaximumLength * 2);
+                this.Chars = new char[Token.MaximumLength];
             }
 
             public PolishStemmer Stemmer { get; }
@@ -72,6 +74,8 @@ namespace Clara.Analysis
             public StringBuilder Input { get; }
 
             public ByteBuffer Output { get; }
+
+            public char[] Chars { get; }
         }
     }
 }

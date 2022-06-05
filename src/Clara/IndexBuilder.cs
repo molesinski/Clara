@@ -183,6 +183,8 @@ namespace Clara
             {
                 pair.Value.Dispose();
             }
+
+            this.fieldBuilders.Clear();
         }
     }
 }

@@ -43,8 +43,21 @@ namespace Clara.Analysis
             {
                 this.isIncremented = true;
 
+                var length = this.token.Length;
+
+                if (length == 0)
+                {
+                    return false;
+                }
+
+                if (length > this.charTermAttribute.Buffer.Length)
+                {
+                    this.charTermAttribute.ResizeBuffer(length);
+                }
+
                 this.charTermAttribute.SetEmpty();
-                this.charTermAttribute.Append(this.token.ToString());
+                this.token.Span.CopyTo(this.charTermAttribute.Buffer.AsSpan());
+                this.charTermAttribute.Length = length;
 
                 return true;
             }
