@@ -5,8 +5,8 @@ namespace Clara.Storage
 {
     internal sealed class TokenEncoderBuilder
     {
-        private readonly DictionarySlim<string, int> encoder = new(Allocator.Default);
-        private readonly DictionarySlim<int, string> decoder = new(Allocator.Default);
+        private readonly DictionarySlim<string, int> encoder = new(Allocator.Mixed);
+        private readonly DictionarySlim<int, string> decoder = new(Allocator.Mixed);
         private readonly bool copyOnBuild;
         private int nextId = 1;
 
@@ -40,8 +40,8 @@ namespace Clara.Storage
         {
             if (this.copyOnBuild)
             {
-                var encoder = new DictionarySlim<string, int>(Allocator.Default, this.encoder);
-                var decoder = new DictionarySlim<int, string>(Allocator.Default, this.decoder);
+                var encoder = new DictionarySlim<string, int>(Allocator.Mixed, this.encoder);
+                var decoder = new DictionarySlim<int, string>(Allocator.Mixed, this.decoder);
 
                 return new TokenEncoder(encoder, decoder);
             }

@@ -5,32 +5,29 @@ namespace Clara.Utils
 {
     public abstract class Allocator
     {
-        public static Allocator Default { get; } = new DefaultAllocator();
+        public static Allocator New { get; } = new NewAllocator();
 
         public static Allocator ArrayPool { get; } = new ArrayPoolAllocator();
 
-        public abstract int MinimumCapacity { get; }
+        public static Allocator Mixed { get; } = new MixedAllocator();
 
-        public int Size(int capacity)
-        {
-            return HashHelper.PowerOf2(Math.Max(capacity, this.MinimumCapacity));
-        }
+        public abstract int MinimumSize { get; }
 
-        public abstract TItem[] Allocate<TItem>(int size, bool clear = false);
+        public abstract TItem[] Allocate<TItem>(int size, bool clearArray = false);
 
         public abstract void Release<TItem>(TItem[] array);
 
-        private sealed class DefaultAllocator : Allocator
+        private sealed class NewAllocator : Allocator
         {
-            public override int MinimumCapacity
+            public override int MinimumSize
             {
                 get
                 {
-                    return 2;
+                    return 4;
                 }
             }
 
-            public override TItem[] Allocate<TItem>(int size, bool clear = false)
+            public override TItem[] Allocate<TItem>(int size, bool clearArray = false)
             {
                 return new TItem[size];
             }
@@ -42,7 +39,7 @@ namespace Clara.Utils
 
         private sealed class ArrayPoolAllocator : Allocator
         {
-            public override int MinimumCapacity
+            public override int MinimumSize
             {
                 get
                 {
@@ -50,11 +47,11 @@ namespace Clara.Utils
                 }
             }
 
-            public override TItem[] Allocate<TItem>(int size, bool clear = false)
+            public override TItem[] Allocate<TItem>(int size, bool clearArray = false)
             {
                 var array = ArrayPool<TItem>.Shared.Rent(size);
 
-                if (clear)
+                if (clearArray)
                 {
                     Array.Clear(array, 0, size);
                 }
@@ -64,6 +61,44 @@ namespace Clara.Utils
 
             public override void Release<TItem>(TItem[] array)
             {
+                ArrayPool<TItem>.Shared.Return(array, clearArray: false);
+            }
+        }
+
+        private sealed class MixedAllocator : Allocator
+        {
+            public override int MinimumSize
+            {
+                get
+                {
+                    return 4;
+                }
+            }
+
+            public override TItem[] Allocate<TItem>(int size, bool clearArray = false)
+            {
+                if (size < 16)
+                {
+                    return new TItem[size];
+                }
+
+                var array = ArrayPool<TItem>.Shared.Rent(size);
+
+                if (clearArray)
+                {
+                    Array.Clear(array, 0, size);
+                }
+
+                return array;
+            }
+
+            public override void Release<TItem>(TItem[] array)
+            {
+                if (array.Length < 16)
+                {
+                    return;
+                }
+
                 ArrayPool<TItem>.Shared.Return(array, clearArray: false);
             }
         }

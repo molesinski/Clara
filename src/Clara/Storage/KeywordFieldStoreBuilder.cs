@@ -28,12 +28,12 @@ namespace Clara.Storage
 
             if (field.IsFilterable)
             {
-                this.tokenDocuments = new(Allocator.Default);
+                this.tokenDocuments = new(Allocator.Mixed);
             }
 
             if (field.IsFacetable)
             {
-                this.documentTokens = new(Allocator.Default);
+                this.documentTokens = new(Allocator.Mixed);
             }
         }
 
@@ -50,7 +50,7 @@ namespace Clara.Storage
                 {
                     ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
-                    documents ??= new HashSetSlim<int>(Allocator.Default);
+                    documents ??= new HashSetSlim<int>(Allocator.Mixed);
 
                     documents.Add(documentId);
                 }
@@ -61,7 +61,7 @@ namespace Clara.Storage
                     {
                         ref var value = ref this.documentTokens.GetValueRefOrAddDefault(documentId, out _);
 
-                        value = tokens = new HashSetSlim<int>(Allocator.Default);
+                        value = tokens = new HashSetSlim<int>(Allocator.Mixed);
                     }
 
                     tokens.Add(tokenId);

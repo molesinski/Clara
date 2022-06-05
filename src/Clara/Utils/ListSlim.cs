@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 
 namespace Clara.Utils
 {
-    [DebuggerTypeProxy(typeof(PooledListDebugView<>))]
+    [DebuggerTypeProxy(typeof(ListDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
     public sealed class ListSlim<TItem> : IReadOnlyList<TItem>, IDisposable
         where TItem : notnull
@@ -43,7 +43,7 @@ namespace Clara.Utils
                 throw new ArgumentOutOfRangeException(nameof(capacity));
             }
 
-            var size = allocator.Size(capacity);
+            var size = HashHelper.PowerOf2(Math.Max(capacity, allocator.MinimumSize));
 
             this.allocator = allocator;
             this.count = 0;
@@ -64,7 +64,7 @@ namespace Clara.Utils
 
             if (source is ListSlim<TItem> other && other.count > 0)
             {
-                var size = allocator.Size(other.count);
+                var size = HashHelper.PowerOf2(Math.Max(other.count, allocator.MinimumSize));
 
                 this.allocator = allocator;
                 this.count = other.count;
@@ -77,7 +77,7 @@ namespace Clara.Utils
 
             if (source is IReadOnlyCollection<TItem> collection && collection.Count > 0)
             {
-                var size = allocator.Size(collection.Count);
+                var size = HashHelper.PowerOf2(Math.Max(collection.Count, allocator.MinimumSize));
 
                 this.allocator = allocator;
                 this.count = 0;
@@ -232,7 +232,7 @@ namespace Clara.Utils
 
         private void EnsureCapacity(int capacity)
         {
-            var newSize = this.allocator.Size(capacity);
+            var newSize = HashHelper.PowerOf2(Math.Max(capacity, this.allocator.MinimumSize));
 
             if (newSize <= this.entries.Length)
             {
@@ -359,12 +359,12 @@ namespace Clara.Utils
         }
     }
 
-    internal sealed class PooledListDebugView<TItem>
+    internal sealed class ListDebugView<TItem>
         where TItem : notnull
     {
         private readonly ListSlim<TItem> source;
 
-        public PooledListDebugView(ListSlim<TItem> source)
+        public ListDebugView(ListSlim<TItem> source)
         {
             if (source is null)
             {

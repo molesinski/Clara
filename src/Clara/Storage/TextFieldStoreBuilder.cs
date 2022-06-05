@@ -27,7 +27,7 @@ namespace Clara.Storage
             this.field = field;
             this.synonymMap = synonymMap ?? new SynonymMap(field, Array.Empty<Synonym>());
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
-            this.tokenDocuments = new(Allocator.Default);
+            this.tokenDocuments = new(Allocator.Mixed);
         }
 
         public override void Index(int documentId, TSource item)
@@ -45,7 +45,7 @@ namespace Clara.Storage
 
                 ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
-                documents ??= new HashSetSlim<int>(Allocator.Default);
+                documents ??= new HashSetSlim<int>(Allocator.Mixed);
 
                 documents.Add(documentId);
             }

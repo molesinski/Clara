@@ -4,16 +4,16 @@
     {
         internal static readonly int[] InitialBuckets = new int[1];
 
-        internal static int PowerOf2(int capacity)
+        internal static int PowerOf2(int value)
         {
-            if ((capacity & capacity - 1) == 0)
+            if ((value & value - 1) == 0)
             {
-                return capacity;
+                return value;
             }
 
             var size = 2;
 
-            while (size < capacity)
+            while (size < value)
             {
                 size <<= 1;
             }

@@ -50,7 +50,7 @@ namespace Clara
             this.tokenEncoder = tokenEncoder;
             this.documents = documents;
             this.fieldStores = fieldStores;
-            this.allDocuments = new HashSetSlim<int>(Allocator.Default, capacity: documents.Count);
+            this.allDocuments = new HashSetSlim<int>(Allocator.Mixed, capacity: documents.Count);
 
             foreach (var pair in documents)
             {

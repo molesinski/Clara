@@ -8,12 +8,12 @@ using System.Runtime.CompilerServices;
 
 namespace Clara.Utils
 {
-    [DebuggerTypeProxy(typeof(PooledHashSetSlimDebugView<>))]
+    [DebuggerTypeProxy(typeof(HashSetSlimDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
     public sealed class HashSetSlim<TItem> : IReadOnlyCollection<TItem>, IDisposable
         where TItem : notnull, IEquatable<TItem>
     {
-        private const int StackAllocThreshold = 256;
+        private const int StackAllocThreshold = 512;
 
         private static readonly Entry[] InitialEntries = new Entry[1];
 
@@ -56,11 +56,11 @@ namespace Clara.Utils
             }
 
             this.allocator = allocator;
-            this.size = this.allocator.Size(capacity);
+            this.size = HashHelper.PowerOf2(Math.Max(capacity, this.allocator.MinimumSize));
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
-            this.buckets = this.allocator.Allocate<int>(this.size, clear: true);
+            this.buckets = this.allocator.Allocate<int>(this.size, clearArray: true);
             this.entries = this.allocator.Allocate<Entry>(this.size);
         }
 
@@ -90,11 +90,11 @@ namespace Clara.Utils
             if (source is IReadOnlyCollection<TItem> collection && collection.Count > 0)
             {
                 this.allocator = allocator;
-                this.size = this.allocator.Size(collection.Count);
+                this.size = HashHelper.PowerOf2(Math.Max(collection.Count, this.allocator.MinimumSize));
                 this.count = 0;
                 this.lastIndex = 0;
                 this.freeList = -1;
-                this.buckets = this.allocator.Allocate<int>(this.size, clear: true);
+                this.buckets = this.allocator.Allocate<int>(this.size, clearArray: true);
                 this.entries = this.allocator.Allocate<Entry>(this.size);
             }
             else
@@ -548,7 +548,7 @@ namespace Clara.Utils
 
         private void EnsureCapacity(int capacity)
         {
-            var newSize = this.allocator.Size(capacity);
+            var newSize = HashHelper.PowerOf2(Math.Max(capacity, this.allocator.MinimumSize));
 
             if (newSize <= this.size)
             {
@@ -556,7 +556,7 @@ namespace Clara.Utils
             }
 
             var lastIndex = this.lastIndex;
-            var newBuckets = this.allocator.Allocate<int>(newSize, clear: true);
+            var newBuckets = this.allocator.Allocate<int>(newSize, clearArray: true);
             var newEntries = this.allocator.Allocate<Entry>(newSize);
 
             Array.Copy(this.entries, 0, newEntries, 0, lastIndex);
@@ -661,11 +661,11 @@ namespace Clara.Utils
         }
     }
 
-    internal sealed class PooledHashSetSlimDebugView<TItem> where TItem : IEquatable<TItem>
+    internal sealed class HashSetSlimDebugView<TItem> where TItem : IEquatable<TItem>
     {
         private readonly HashSetSlim<TItem> source;
 
-        public PooledHashSetSlimDebugView(HashSetSlim<TItem> source)
+        public HashSetSlimDebugView(HashSetSlim<TItem> source)
         {
             if (source is null)
             {

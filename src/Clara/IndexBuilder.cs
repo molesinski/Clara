@@ -89,7 +89,7 @@ namespace Clara
             }
 
             this.indexMapper = indexMapper;
-            this.documents = new DictionarySlim<int, TDocument>(Allocator.Default);
+            this.documents = new DictionarySlim<int, TDocument>(Allocator.Mixed);
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder();
             this.fieldBuilders = new Dictionary<Field, FieldStoreBuilder<TSource>>();
 

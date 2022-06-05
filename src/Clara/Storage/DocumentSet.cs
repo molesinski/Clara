@@ -8,7 +8,7 @@ namespace Clara.Storage
 {
     internal sealed class DocumentSet : IDocumentSet
     {
-        private static readonly HashSetSlim<int> Empty = new(Allocator.ArrayPool);
+        private static readonly HashSetSlim<int> Empty = new(Allocator.New);
 
         private readonly Dictionary<Field, BranchSet> branches = new();
         private readonly IReadOnlyCollection<int> allDocuments;

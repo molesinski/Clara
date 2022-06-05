@@ -32,16 +32,16 @@ namespace Clara.Storage
             this.separator = field.Separator;
             this.root = field.Root;
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
-            this.parentChildren = new(Allocator.Default);
+            this.parentChildren = new(Allocator.Mixed);
 
             if (field.IsFilterable)
             {
-                this.tokenDocuments = new(Allocator.Default);
+                this.tokenDocuments = new(Allocator.Mixed);
             }
 
             if (field.IsFacetable)
             {
-                this.documentTokens = new(Allocator.Default);
+                this.documentTokens = new(Allocator.Mixed);
             }
         }
 
@@ -63,7 +63,7 @@ namespace Clara.Storage
                     {
                         ref var children = ref this.parentChildren.GetValueRefOrAddDefault(parentId, out _);
 
-                        children ??= new HashSetSlim<int>(Allocator.Default);
+                        children ??= new HashSetSlim<int>(Allocator.Mixed);
                         children.Add(tokenId);
                     }
 
@@ -73,7 +73,7 @@ namespace Clara.Storage
                     {
                         ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
-                        documents ??= new HashSetSlim<int>(Allocator.Default);
+                        documents ??= new HashSetSlim<int>(Allocator.Mixed);
                         documents.Add(documentId);
                     }
 
@@ -83,7 +83,7 @@ namespace Clara.Storage
                         {
                             ref var value = ref this.documentTokens.GetValueRefOrAddDefault(documentId, out _);
 
-                            value = tokens = new HashSetSlim<int>(Allocator.Default);
+                            value = tokens = new HashSetSlim<int>(Allocator.Mixed);
                         }
 
                         tokens.Add(tokenId);

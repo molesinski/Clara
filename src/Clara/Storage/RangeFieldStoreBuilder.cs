@@ -26,12 +26,12 @@ namespace Clara.Storage
 
             if (field.IsFilterable)
             {
-                this.sortedDocumentValues = new(Allocator.Default);
+                this.sortedDocumentValues = new(Allocator.Mixed);
             }
 
             if (field.IsFacetable || field.IsSortable)
             {
-                this.documentValueMinMax = new(Allocator.Default);
+                this.documentValueMinMax = new(Allocator.Mixed);
             }
         }
 
