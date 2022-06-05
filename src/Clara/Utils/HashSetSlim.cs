@@ -10,16 +10,14 @@ namespace Clara.Utils
 {
     [DebuggerTypeProxy(typeof(PooledHashSetSlimDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
-    public sealed class PooledHashSetSlim<TItem> : IReadOnlyCollection<TItem>, IDisposable
+    public sealed class HashSetSlim<TItem> : IReadOnlyCollection<TItem>, IDisposable
         where TItem : notnull, IEquatable<TItem>
     {
-        private const int MinimumCapacity = 16;
         private const int StackAllocThreshold = 256;
 
-        private static readonly ArrayPool<int> BucketPool = ArrayPool<int>.Shared;
-        private static readonly ArrayPool<Entry> EntryPool = ArrayPool<Entry>.Shared;
         private static readonly Entry[] InitialEntries = new Entry[1];
 
+        private readonly Allocator allocator;
         private int size;
         private int count;
         private int lastIndex;
@@ -34,8 +32,14 @@ namespace Clara.Utils
             public int Next;
         }
 
-        public PooledHashSetSlim()
+        public HashSetSlim(Allocator allocator)
         {
+            if (allocator is null)
+            {
+                throw new ArgumentNullException(nameof(allocator));
+            }
+
+            this.allocator = allocator;
             this.size = 1;
             this.count = 0;
             this.lastIndex = 0;
@@ -44,38 +48,38 @@ namespace Clara.Utils
             this.entries = InitialEntries;
         }
 
-        public PooledHashSetSlim(int capacity)
+        public HashSetSlim(Allocator allocator, int capacity)
         {
             if (capacity < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(capacity));
             }
 
-            this.size = HashHelper.PowerOf2(Math.Max(capacity, MinimumCapacity));
+            this.allocator = allocator;
+            this.size = this.allocator.Size(capacity);
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
-            this.buckets = BucketPool.Rent(this.size);
-            this.entries = EntryPool.Rent(this.size);
-
-            Array.Clear(this.buckets, 0, this.size);
+            this.buckets = this.allocator.Allocate<int>(this.size, clear: true);
+            this.entries = this.allocator.Allocate<Entry>(this.size);
         }
 
-        public PooledHashSetSlim(IEnumerable<TItem> source)
+        public HashSetSlim(Allocator allocator, IEnumerable<TItem> source)
         {
             if (source is null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
 
-            if (source is PooledHashSetSlim<TItem> other && other.size > 1)
+            if (source is HashSetSlim<TItem> other && other.size > 1)
             {
+                this.allocator = allocator;
                 this.size = other.size;
                 this.count = other.count;
                 this.lastIndex = other.lastIndex;
                 this.freeList = other.freeList;
-                this.buckets = BucketPool.Rent(this.size);
-                this.entries = EntryPool.Rent(this.size);
+                this.buckets = this.allocator.Allocate<int>(this.size);
+                this.entries = this.allocator.Allocate<Entry>(this.size);
 
                 Array.Copy(other.buckets, 0, this.buckets, 0, this.size);
                 Array.Copy(other.entries, 0, this.entries, 0, this.lastIndex);
@@ -85,17 +89,17 @@ namespace Clara.Utils
 
             if (source is IReadOnlyCollection<TItem> collection && collection.Count > 0)
             {
-                this.size = HashHelper.PowerOf2(Math.Max(collection.Count, MinimumCapacity));
+                this.allocator = allocator;
+                this.size = this.allocator.Size(collection.Count);
                 this.count = 0;
                 this.lastIndex = 0;
                 this.freeList = -1;
-                this.buckets = BucketPool.Rent(this.size);
-                this.entries = EntryPool.Rent(this.size);
-
-                Array.Clear(this.buckets, 0, this.size);
+                this.buckets = this.allocator.Allocate<int>(this.size, clear: true);
+                this.entries = this.allocator.Allocate<Entry>(this.size);
             }
             else
             {
+                this.allocator = allocator;
                 this.size = 1;
                 this.count = 0;
                 this.lastIndex = 0;
@@ -252,7 +256,7 @@ namespace Clara.Utils
                 return;
             }
 
-            if (enumerable is PooledHashSetSlim<TItem> other)
+            if (enumerable is HashSetSlim<TItem> other)
             {
                 var count = this.count;
 
@@ -287,12 +291,12 @@ namespace Clara.Utils
                 }
                 else
                 {
-                    var array = BucketPool.Rent(intArrayLength);
+                    var array = this.allocator.Allocate<int>(intArrayLength);
                     var bitHelper = new BitHelper(array.AsSpan(0, intArrayLength), clear: true);
 
                     IntersectWith(enumerable, ref bitHelper, lastIndex);
 
-                    BucketPool.Return(array);
+                    this.allocator.Release(array);
                 }
             }
 
@@ -330,7 +334,7 @@ namespace Clara.Utils
                 throw new ArgumentNullException(nameof(enumerable));
             }
 
-            if (enumerable is PooledHashSetSlim<TItem> other)
+            if (enumerable is HashSetSlim<TItem> other)
             {
                 if (other.count == 0)
                 {
@@ -354,8 +358,8 @@ namespace Clara.Utils
                     this.count = other.count;
                     this.lastIndex = other.lastIndex;
                     this.freeList = other.freeList;
-                    this.buckets = BucketPool.Rent(this.size);
-                    this.entries = EntryPool.Rent(this.size);
+                    this.buckets = this.allocator.Allocate<int>(this.size);
+                    this.entries = this.allocator.Allocate<Entry>(this.size);
 
                     Array.Copy(other.buckets, 0, this.buckets, 0, this.size);
                     Array.Copy(other.entries, 0, this.entries, 0, this.lastIndex);
@@ -417,7 +421,7 @@ namespace Clara.Utils
                 return;
             }
 
-            if (enumerable is PooledHashSetSlim<TItem> other)
+            if (enumerable is HashSetSlim<TItem> other)
             {
                 var count = other.count;
 
@@ -470,8 +474,8 @@ namespace Clara.Utils
                 Array.Clear(this.entries, 0, this.lastIndex);
 #endif
 
-                BucketPool.Return(this.buckets);
-                EntryPool.Return(this.entries);
+                this.allocator.Release(this.buckets);
+                this.allocator.Release(this.entries);
             }
 
             this.size = 1;
@@ -544,7 +548,7 @@ namespace Clara.Utils
 
         private void EnsureCapacity(int capacity)
         {
-            var newSize = HashHelper.PowerOf2(Math.Max(capacity, MinimumCapacity));
+            var newSize = this.allocator.Size(capacity);
 
             if (newSize <= this.size)
             {
@@ -552,10 +556,9 @@ namespace Clara.Utils
             }
 
             var lastIndex = this.lastIndex;
-            var newBuckets = BucketPool.Rent(newSize);
-            var newEntries = EntryPool.Rent(newSize);
+            var newBuckets = this.allocator.Allocate<int>(newSize, clear: true);
+            var newEntries = this.allocator.Allocate<Entry>(newSize);
 
-            Array.Clear(newBuckets, 0, newSize);
             Array.Copy(this.entries, 0, newEntries, 0, lastIndex);
 
             while (lastIndex-- > 0)
@@ -582,8 +585,8 @@ namespace Clara.Utils
                 Array.Clear(this.entries, 0, this.lastIndex);
 #endif
 
-                BucketPool.Return(this.buckets);
-                EntryPool.Return(this.entries);
+                this.allocator.Release(this.buckets);
+                this.allocator.Release(this.entries);
             }
 
             this.size = newSize;
@@ -593,12 +596,12 @@ namespace Clara.Utils
 
         public struct Enumerator : IEnumerator<TItem>
         {
-            private readonly PooledHashSetSlim<TItem> source;
+            private readonly HashSetSlim<TItem> source;
             private int index;
             private int count;
             private TItem current;
 
-            internal Enumerator(PooledHashSetSlim<TItem> source)
+            internal Enumerator(HashSetSlim<TItem> source)
             {
                 this.source = source;
                 this.index = 0;
@@ -660,9 +663,9 @@ namespace Clara.Utils
 
     internal sealed class PooledHashSetSlimDebugView<TItem> where TItem : IEquatable<TItem>
     {
-        private readonly PooledHashSetSlim<TItem> source;
+        private readonly HashSetSlim<TItem> source;
 
-        public PooledHashSetSlimDebugView(PooledHashSetSlim<TItem> source)
+        public PooledHashSetSlimDebugView(HashSetSlim<TItem> source)
         {
             if (source is null)
             {

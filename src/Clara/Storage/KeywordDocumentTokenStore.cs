@@ -10,11 +10,11 @@ namespace Clara.Storage
         private static readonly HashSet<string> EmptySelectedValues = new();
 
         private readonly ITokenEncoder tokenEncoder;
-        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>> documentTokens;
+        private readonly DictionarySlim<int, HashSetSlim<int>> documentTokens;
 
         public KeywordDocumentTokenStore(
             ITokenEncoder tokenEncoder,
-            PooledDictionarySlim<int, PooledHashSetSlim<int>> documentTokens)
+            DictionarySlim<int, HashSetSlim<int>> documentTokens)
         {
             if (tokenEncoder is null)
             {
@@ -42,7 +42,7 @@ namespace Clara.Storage
                 }
             }
 
-            using var tokenCounts = new PooledDictionarySlim<int, int>();
+            using var tokenCounts = new DictionarySlim<int, int>(Allocator.ArrayPool);
 
             foreach (var documentId in documents)
             {
@@ -57,7 +57,7 @@ namespace Clara.Storage
                 }
             }
 
-            var values = new PooledListSlim<KeywordFacetValue>();
+            var values = new ListSlim<KeywordFacetValue>(Allocator.ArrayPool);
 
             foreach (var pair in tokenCounts)
             {

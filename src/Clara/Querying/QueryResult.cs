@@ -10,12 +10,12 @@ namespace Clara.Querying
     {
         private readonly IDocumentSet documentSet;
         private readonly List<FieldFacetResult> facetResults;
-        private readonly PooledDictionarySlim<int, TDocument> documents;
+        private readonly DictionarySlim<int, TDocument> documents;
 
         internal QueryResult(
             IDocumentSet documentSet,
             List<FieldFacetResult> facetResults,
-            PooledDictionarySlim<int, TDocument> documents)
+            DictionarySlim<int, TDocument> documents)
         {
             if (documentSet is null)
             {

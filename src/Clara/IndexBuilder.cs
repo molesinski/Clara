@@ -51,7 +51,7 @@ namespace Clara
     public sealed class IndexBuilder<TSource, TDocument> : IndexBuilder, IDisposable
     {
         private readonly IIndexMapper<TSource, TDocument> indexMapper;
-        private readonly PooledDictionarySlim<int, TDocument> documents;
+        private readonly DictionarySlim<int, TDocument> documents;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
         private readonly Dictionary<Field, FieldStoreBuilder<TSource>> fieldBuilders;
 
@@ -89,7 +89,7 @@ namespace Clara
             }
 
             this.indexMapper = indexMapper;
-            this.documents = new PooledDictionarySlim<int, TDocument>();
+            this.documents = new DictionarySlim<int, TDocument>(Allocator.Default);
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder();
             this.fieldBuilders = new Dictionary<Field, FieldStoreBuilder<TSource>>();
 

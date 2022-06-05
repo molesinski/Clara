@@ -9,14 +9,14 @@ namespace Clara.Storage
     {
         private readonly HashSet<string> rootSet;
         private readonly ITokenEncoder tokenEncoder;
-        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>> documentTokens;
-        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>> parentChildren;
+        private readonly DictionarySlim<int, HashSetSlim<int>> documentTokens;
+        private readonly DictionarySlim<int, HashSetSlim<int>> parentChildren;
 
         public HierarchyDocumentTokenStore(
             string root,
             ITokenEncoder tokenEncoder,
-            PooledDictionarySlim<int, PooledHashSetSlim<int>> documentTokens,
-            PooledDictionarySlim<int, PooledHashSetSlim<int>> parentChildren)
+            DictionarySlim<int, HashSetSlim<int>> documentTokens,
+            DictionarySlim<int, HashSetSlim<int>> parentChildren)
         {
             if (root is null)
             {
@@ -56,7 +56,7 @@ namespace Clara.Storage
                 }
             }
 
-            using var filteredTokens = new PooledHashSetSlim<int>();
+            using var filteredTokens = new HashSetSlim<int>(Allocator.ArrayPool);
 
             foreach (var selectedToken in selectedValues)
             {
@@ -71,7 +71,7 @@ namespace Clara.Storage
                 }
             }
 
-            using var tokenCounts = new PooledDictionarySlim<int, int>(capacity: filteredTokens.Count);
+            using var tokenCounts = new DictionarySlim<int, int>(Allocator.ArrayPool, capacity: filteredTokens.Count);
 
             foreach (var documentId in documents)
             {
@@ -89,7 +89,7 @@ namespace Clara.Storage
                 }
             }
 
-            var values = new PooledListSlim<HierarchyFacetValue>(capacity: selectedValues.Count + filteredTokens.Count);
+            var values = new ListSlim<HierarchyFacetValue>(Allocator.ArrayPool, capacity: selectedValues.Count + filteredTokens.Count);
             var selectedCount = 0;
 
             for (var i = 0; i < selectedValues.Count; i++)

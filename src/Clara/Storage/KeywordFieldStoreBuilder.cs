@@ -8,8 +8,8 @@ namespace Clara.Storage
     {
         private readonly KeywordField<TSource> field;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
-        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>>? tokenDocuments;
-        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>>? documentTokens;
+        private readonly DictionarySlim<int, HashSetSlim<int>>? tokenDocuments;
+        private readonly DictionarySlim<int, HashSetSlim<int>>? documentTokens;
 
         public KeywordFieldStoreBuilder(KeywordField<TSource> field, TokenEncoderStore tokenEncoderStore)
         {
@@ -28,19 +28,19 @@ namespace Clara.Storage
 
             if (field.IsFilterable)
             {
-                this.tokenDocuments = new();
+                this.tokenDocuments = new(Allocator.Default);
             }
 
             if (field.IsFacetable)
             {
-                this.documentTokens = new();
+                this.documentTokens = new(Allocator.Default);
             }
         }
 
         public override void Index(int documentId, TSource item)
         {
             var values = this.field.ValueMapper(item);
-            var tokens = default(PooledHashSetSlim<int>);
+            var tokens = default(HashSetSlim<int>);
 
             foreach (var token in values)
             {
@@ -50,7 +50,7 @@ namespace Clara.Storage
                 {
                     ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
-                    documents ??= new PooledHashSetSlim<int>();
+                    documents ??= new HashSetSlim<int>(Allocator.Default);
 
                     documents.Add(documentId);
                 }
@@ -61,7 +61,7 @@ namespace Clara.Storage
                     {
                         ref var value = ref this.documentTokens.GetValueRefOrAddDefault(documentId, out _);
 
-                        value = tokens = new PooledHashSetSlim<int>();
+                        value = tokens = new HashSetSlim<int>(Allocator.Default);
                     }
 
                     tokens.Add(tokenId);

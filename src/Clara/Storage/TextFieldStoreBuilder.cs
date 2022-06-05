@@ -10,7 +10,7 @@ namespace Clara.Storage
         private readonly TextField<TSource> field;
         private readonly ISynonymMap synonymMap;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
-        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>> tokenDocuments;
+        private readonly DictionarySlim<int, HashSetSlim<int>> tokenDocuments;
 
         public TextFieldStoreBuilder(TextField<TSource> field, TokenEncoderStore tokenEncoderStore, ISynonymMap? synonymMap)
         {
@@ -27,7 +27,7 @@ namespace Clara.Storage
             this.field = field;
             this.synonymMap = synonymMap ?? new SynonymMap(field, Array.Empty<Synonym>());
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
-            this.tokenDocuments = new();
+            this.tokenDocuments = new(Allocator.Default);
         }
 
         public override void Index(int documentId, TSource item)
@@ -45,7 +45,7 @@ namespace Clara.Storage
 
                 ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
-                documents ??= new PooledHashSetSlim<int>();
+                documents ??= new HashSetSlim<int>(Allocator.Default);
 
                 documents.Add(documentId);
             }

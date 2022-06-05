@@ -5,12 +5,12 @@ namespace Clara.Storage
 {
     internal sealed class TokenEncoder : ITokenEncoder, IDisposable
     {
-        private readonly PooledDictionarySlim<string, int> encoder;
-        private readonly PooledDictionarySlim<int, string> decoder;
+        private readonly DictionarySlim<string, int> encoder;
+        private readonly DictionarySlim<int, string> decoder;
 
         public TokenEncoder(
-            PooledDictionarySlim<string, int> encoder,
-            PooledDictionarySlim<int, string> decoder)
+            DictionarySlim<string, int> encoder,
+            DictionarySlim<int, string> decoder)
         {
             if (encoder is null)
             {

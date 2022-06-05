@@ -7,14 +7,14 @@ namespace Clara.Storage
 {
     internal sealed class HierarchyFieldStoreBuilder<TSource> : FieldStoreBuilder<TSource>
     {
-        private readonly PooledDictionarySlim<string, IEnumerable<string>> hierarchyDecodeCache = new();
+        private readonly DictionarySlim<string, IEnumerable<string>> hierarchyDecodeCache = new(Allocator.ArrayPool);
         private readonly HierarchyField<TSource> field;
         private readonly char separator;
         private readonly string root;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
-        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>> parentChildren;
-        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>>? tokenDocuments;
-        private readonly PooledDictionarySlim<int, PooledHashSetSlim<int>>? documentTokens;
+        private readonly DictionarySlim<int, HashSetSlim<int>> parentChildren;
+        private readonly DictionarySlim<int, HashSetSlim<int>>? tokenDocuments;
+        private readonly DictionarySlim<int, HashSetSlim<int>>? documentTokens;
 
         public HierarchyFieldStoreBuilder(HierarchyField<TSource> field, TokenEncoderStore tokenEncoderStore)
         {
@@ -32,23 +32,23 @@ namespace Clara.Storage
             this.separator = field.Separator;
             this.root = field.Root;
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
-            this.parentChildren = new();
+            this.parentChildren = new(Allocator.Default);
 
             if (field.IsFilterable)
             {
-                this.tokenDocuments = new();
+                this.tokenDocuments = new(Allocator.Default);
             }
 
             if (field.IsFacetable)
             {
-                this.documentTokens = new();
+                this.documentTokens = new(Allocator.Default);
             }
         }
 
         public override void Index(int documentId, TSource item)
         {
             var values = this.field.ValueMapper(item);
-            var tokens = default(PooledHashSetSlim<int>);
+            var tokens = default(HashSetSlim<int>);
 
             foreach (var hierarchyEncodedToken in values)
             {
@@ -63,7 +63,7 @@ namespace Clara.Storage
                     {
                         ref var children = ref this.parentChildren.GetValueRefOrAddDefault(parentId, out _);
 
-                        children ??= new PooledHashSetSlim<int>();
+                        children ??= new HashSetSlim<int>(Allocator.Default);
                         children.Add(tokenId);
                     }
 
@@ -73,7 +73,7 @@ namespace Clara.Storage
                     {
                         ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
-                        documents ??= new PooledHashSetSlim<int>();
+                        documents ??= new HashSetSlim<int>(Allocator.Default);
                         documents.Add(documentId);
                     }
 
@@ -83,7 +83,7 @@ namespace Clara.Storage
                         {
                             ref var value = ref this.documentTokens.GetValueRefOrAddDefault(documentId, out _);
 
-                            value = tokens = new PooledHashSetSlim<int>();
+                            value = tokens = new HashSetSlim<int>(Allocator.Default);
                         }
 
                         tokens.Add(tokenId);

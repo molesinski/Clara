@@ -23,13 +23,13 @@ namespace Clara
         private static readonly List<FieldFacetResult> EmptyFacetResults = new();
 
         private readonly TokenEncoder tokenEncoder;
-        private readonly PooledDictionarySlim<int, TDocument> documents;
+        private readonly DictionarySlim<int, TDocument> documents;
         private readonly Dictionary<Field, FieldStore> fieldStores;
-        private readonly PooledHashSetSlim<int> allDocuments;
+        private readonly HashSetSlim<int> allDocuments;
 
         internal Index(
             TokenEncoder tokenEncoder,
-            PooledDictionarySlim<int, TDocument> documents,
+            DictionarySlim<int, TDocument> documents,
             Dictionary<Field, FieldStore> fieldStores)
         {
             if (tokenEncoder is null)
@@ -50,7 +50,7 @@ namespace Clara
             this.tokenEncoder = tokenEncoder;
             this.documents = documents;
             this.fieldStores = fieldStores;
-            this.allDocuments = new PooledHashSetSlim<int>(capacity: documents.Count);
+            this.allDocuments = new HashSetSlim<int>(Allocator.Default, capacity: documents.Count);
 
             foreach (var pair in documents)
             {
@@ -74,13 +74,13 @@ namespace Clara
 
             if (query.IncludeDocuments is not null)
             {
-                var includedDocuments = default(PooledHashSetSlim<int>);
+                var includedDocuments = default(HashSetSlim<int>);
 
                 foreach (var includedDocument in query.IncludeDocuments)
                 {
                     if (includedDocument is not null)
                     {
-                        includedDocuments ??= new();
+                        includedDocuments ??= new(Allocator.ArrayPool);
 
                         if (this.tokenEncoder.TryEncode(includedDocument, out var documentId))
                         {
@@ -146,13 +146,13 @@ namespace Clara
 
             if (query.ExcludeDocuments is not null)
             {
-                var excludeDocuments = default(PooledHashSetSlim<int>);
+                var excludeDocuments = default(HashSetSlim<int>);
 
                 foreach (var excludeDocument in query.ExcludeDocuments)
                 {
                     if (excludeDocument is not null)
                     {
-                        excludeDocuments ??= new();
+                        excludeDocuments ??= new(Allocator.ArrayPool);
 
                         if (this.tokenEncoder.TryEncode(excludeDocument, out var documentId))
                         {

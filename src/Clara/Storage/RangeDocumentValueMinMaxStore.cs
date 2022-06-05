@@ -10,12 +10,12 @@ namespace Clara.Storage
     {
         private readonly TValue minValue;
         private readonly TValue maxValue;
-        private readonly PooledDictionarySlim<int, MinMax<TValue>> documentValueMinMax;
+        private readonly DictionarySlim<int, MinMax<TValue>> documentValueMinMax;
 
         public RangeDocumentValueMinMaxStore(
             TValue minValue,
             TValue maxValue,
-            PooledDictionarySlim<int, MinMax<TValue>> documentValueMinMax)
+            DictionarySlim<int, MinMax<TValue>> documentValueMinMax)
         {
             if (documentValueMinMax is null)
             {
