@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Clara.Utils;
 using Egothor.Stemmer;
 using Lucene.Net.Analysis.Pl;
 
@@ -35,9 +36,7 @@ namespace Clara.Analysis
 
                     if (builder.Length > 0)
                     {
-                        var stem = StringHelper.Create(builder);
-
-                        return new Token(stem);
+                        return new Token(builder.ToString());
                     }
                 }
 

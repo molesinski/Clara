@@ -57,7 +57,7 @@ namespace Clara.Storage
                 }
             }
 
-            var values = new PooledList<KeywordFacetValue>();
+            var values = new PooledListSlim<KeywordFacetValue>();
 
             foreach (var pair in tokenCounts)
             {

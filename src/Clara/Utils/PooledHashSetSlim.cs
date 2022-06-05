@@ -13,6 +13,7 @@ namespace Clara.Utils
     public sealed class PooledHashSetSlim<TItem> : IReadOnlyCollection<TItem>, IDisposable
         where TItem : notnull, IEquatable<TItem>
     {
+        private const int MinimumCapacity = 16;
         private const int StackAllocThreshold = 256;
 
         private static readonly ArrayPool<int> BucketPool = ArrayPool<int>.Shared;
@@ -50,7 +51,7 @@ namespace Clara.Utils
                 throw new ArgumentOutOfRangeException(nameof(capacity));
             }
 
-            this.size = HashHelper.Size(capacity);
+            this.size = HashHelper.PowerOf2(Math.Max(capacity, MinimumCapacity));
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
@@ -84,7 +85,7 @@ namespace Clara.Utils
 
             if (source is IReadOnlyCollection<TItem> collection && collection.Count > 0)
             {
-                this.size = HashHelper.Size(collection.Count);
+                this.size = HashHelper.PowerOf2(Math.Max(collection.Count, MinimumCapacity));
                 this.count = 0;
                 this.lastIndex = 0;
                 this.freeList = -1;
@@ -543,7 +544,7 @@ namespace Clara.Utils
 
         private void EnsureCapacity(int capacity)
         {
-            var newSize = HashHelper.Size(capacity);
+            var newSize = HashHelper.PowerOf2(Math.Max(capacity, MinimumCapacity));
 
             if (newSize <= this.size)
             {

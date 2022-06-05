@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Threading;
 
-namespace Clara.Analysis
+namespace Clara.Utils
 {
     public sealed class ObjectPool<TItem>
     {

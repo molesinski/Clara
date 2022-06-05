@@ -8,10 +8,10 @@ namespace Clara.Storage
     internal class RangeSortedDocumentValueStore<TValue> : IDisposable
         where TValue : struct, IComparable<TValue>
     {
-        private readonly PooledList<DocumentValue<TValue>> sortedDocumentValues;
+        private readonly PooledListSlim<DocumentValue<TValue>> sortedDocumentValues;
 
         public RangeSortedDocumentValueStore(
-            PooledList<DocumentValue<TValue>> sortedDocumentValues)
+            PooledListSlim<DocumentValue<TValue>> sortedDocumentValues)
         {
             if (sortedDocumentValues is null)
             {

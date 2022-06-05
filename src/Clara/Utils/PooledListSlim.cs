@@ -10,44 +10,46 @@ namespace Clara.Utils
 {
     [DebuggerTypeProxy(typeof(PooledListDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
-    public sealed class PooledList<TItem> : IReadOnlyList<TItem>, IDisposable
+    public sealed class PooledListSlim<TItem> : IReadOnlyList<TItem>, IDisposable
         where TItem : notnull
     {
+        private const int MinimumCapacity = 16;
+
         private static readonly ArrayPool<TItem> EntryPool = ArrayPool<TItem>.Shared;
         private static readonly TItem[] InitialEntries = new TItem[1];
 
         private int count;
         private TItem[] entries;
 
-        public PooledList()
+        public PooledListSlim()
         {
             this.count = 0;
             this.entries = InitialEntries;
         }
 
-        public PooledList(int capacity)
+        public PooledListSlim(int capacity)
         {
             if (capacity < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(capacity));
             }
 
-            var size = HashHelper.Size(capacity);
+            var size = HashHelper.PowerOf2(Math.Max(capacity, MinimumCapacity));
 
             this.count = 0;
             this.entries = EntryPool.Rent(size);
         }
 
-        public PooledList(IEnumerable<TItem> source)
+        public PooledListSlim(IEnumerable<TItem> source)
         {
             if (source is null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
 
-            if (source is PooledList<TItem> other && other.count > 0)
+            if (source is PooledListSlim<TItem> other && other.count > 0)
             {
-                var size = HashHelper.Size(other.count);
+                var size = HashHelper.PowerOf2(Math.Max(other.count, MinimumCapacity));
 
                 this.count = other.count;
                 this.entries = EntryPool.Rent(size);
@@ -59,7 +61,7 @@ namespace Clara.Utils
 
             if (source is IReadOnlyCollection<TItem> collection && collection.Count > 0)
             {
-                var size = HashHelper.Size(collection.Count);
+                var size = HashHelper.PowerOf2(Math.Max(collection.Count, MinimumCapacity));
 
                 this.count = 0;
                 this.entries = EntryPool.Rent(size);
@@ -195,10 +197,15 @@ namespace Clara.Utils
             if (this.entries.Length > 1)
             {
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
-                EntryPool.Return(this.entries, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<TItem>());
+                if (RuntimeHelpers.IsReferenceOrContainsReferences<TItem>())
+                {
+                    Array.Clear(this.entries, 0, this.count);
+                }
 #else
-                EntryPool.Return(this.entries, clearArray: true);
+                Array.Clear(this.entries, 0, this.count);
 #endif
+
+                EntryPool.Return(this.entries);
             }
 
             this.count = 0;
@@ -207,7 +214,7 @@ namespace Clara.Utils
 
         private void EnsureCapacity(int capacity)
         {
-            var newSize = HashHelper.Size(capacity);
+            var newSize = HashHelper.PowerOf2(Math.Max(capacity, MinimumCapacity));
 
             if (newSize <= this.entries.Length)
             {
@@ -221,10 +228,15 @@ namespace Clara.Utils
             if (this.entries.Length > 1)
             {
 #if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
-                EntryPool.Return(this.entries, clearArray: RuntimeHelpers.IsReferenceOrContainsReferences<TItem>());
+                if (RuntimeHelpers.IsReferenceOrContainsReferences<TItem>())
+                {
+                    Array.Clear(this.entries, 0, this.count);
+                }
 #else
-                EntryPool.Return(this.entries, clearArray: true);
+                Array.Clear(this.entries, 0, this.count);
 #endif
+
+                EntryPool.Return(this.entries);
             }
 
             this.entries = newEntries;
@@ -238,7 +250,7 @@ namespace Clara.Utils
             private int index;
             private TItem current;
 
-            public Enumerator(PooledList<TItem> source)
+            public Enumerator(PooledListSlim<TItem> source)
             {
                 this.entries = source.entries;
                 this.offset = 0;
@@ -247,7 +259,7 @@ namespace Clara.Utils
                 this.current = default!;
             }
 
-            public Enumerator(PooledList<TItem> source, int offset, int count)
+            public Enumerator(PooledListSlim<TItem> source, int offset, int count)
             {
                 this.entries = source.entries;
                 this.offset = offset;
@@ -301,11 +313,11 @@ namespace Clara.Utils
 
         private class RangeEnumerable : IEnumerable<TItem>
         {
-            private readonly PooledList<TItem> source;
+            private readonly PooledListSlim<TItem> source;
             private readonly int offset;
             private readonly int count;
 
-            public RangeEnumerable(PooledList<TItem> source, int offset, int count)
+            public RangeEnumerable(PooledListSlim<TItem> source, int offset, int count)
             {
                 this.source = source;
                 this.offset = offset;
@@ -332,9 +344,9 @@ namespace Clara.Utils
     internal sealed class PooledListDebugView<TItem>
         where TItem : notnull
     {
-        private readonly PooledList<TItem> source;
+        private readonly PooledListSlim<TItem> source;
 
-        public PooledListDebugView(PooledList<TItem> source)
+        public PooledListDebugView(PooledListSlim<TItem> source)
         {
             if (source is null)
             {

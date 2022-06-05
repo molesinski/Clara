@@ -89,7 +89,7 @@ namespace Clara.Storage
                 }
             }
 
-            var values = new PooledList<HierarchyFacetValue>(capacity: selectedValues.Count + filteredTokens.Count);
+            var values = new PooledListSlim<HierarchyFacetValue>(capacity: selectedValues.Count + filteredTokens.Count);
             var selectedCount = 0;
 
             for (var i = 0; i < selectedValues.Count; i++)

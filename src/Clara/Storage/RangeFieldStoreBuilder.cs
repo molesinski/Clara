@@ -10,7 +10,7 @@ namespace Clara.Storage
         private readonly RangeField<TSource, TValue> field;
         private readonly TValue minValue;
         private readonly TValue maxValue;
-        private readonly PooledList<DocumentValue<TValue>>? sortedDocumentValues;
+        private readonly PooledListSlim<DocumentValue<TValue>>? sortedDocumentValues;
         private readonly PooledDictionarySlim<int, MinMax<TValue>>? documentValueMinMax;
 
         public RangeFieldStoreBuilder(RangeField<TSource, TValue> field)

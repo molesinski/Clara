@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using Clara.Utils;
 using J2N.IO;
 using Morfologik.Stemming.Polish;
 
