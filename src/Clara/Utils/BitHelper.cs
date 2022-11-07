@@ -20,41 +20,27 @@ namespace Clara.Utils
 
         internal void MarkBit(int bitPosition)
         {
-            var bitArrayIndex = bitPosition / IntSize;
+            var bitArrayIndex = (uint)bitPosition / IntSize;
+            var span = this.span;
 
-            if ((uint)bitArrayIndex < (uint)this.span.Length)
+            if (bitArrayIndex < (uint)span.Length)
             {
-                this.span[bitArrayIndex] |= 1 << bitPosition % IntSize;
+                span[(int)bitArrayIndex] |= (1 << (int)((uint)bitPosition % IntSize));
             }
         }
 
         internal bool IsMarked(int bitPosition)
         {
-            var bitArrayIndex = bitPosition / IntSize;
+            var bitArrayIndex = (uint)bitPosition / IntSize;
+            var span = this.span;
 
-            return
-                (uint)bitArrayIndex < (uint)this.span.Length &&
-                (this.span[bitArrayIndex] & 1 << bitPosition % IntSize) != 0;
-        }
-
-        internal int FindFirstUnmarked(int startPosition = 0)
-        {
-            var i = startPosition;
-
-            for (var bi = i / IntSize; (uint)bi < (uint)this.span.Length; bi = ++i / IntSize)
-            {
-                if ((this.span[bi] & 1 << i % IntSize) == 0)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
+            return bitArrayIndex < (uint)span.Length
+                && (span[(int)bitArrayIndex] & (1 << ((int)((uint)bitPosition % IntSize)))) != 0;
         }
 
         internal static int ToIntArrayLength(int n)
         {
-            return n > 0 ? (n - 1) / IntSize + 1 : 0;
+            return n > 0 ? ((n - 1) / IntSize + 1) : 0;
         }
     }
 }

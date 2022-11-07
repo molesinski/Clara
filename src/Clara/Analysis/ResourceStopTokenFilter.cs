@@ -43,7 +43,7 @@ namespace Clara.Analysis
 
             while (reader.ReadLine() is string line)
             {
-                if (string.IsNullOrWhiteSpace(line))
+                if (string.IsNullOrWhiteSpace(line) || line[0] == '#')
                 {
                     continue;
                 }

@@ -12,7 +12,7 @@ namespace Clara.Utils
         private int count;
 
         public ObjectPool(Func<TItem> factory)
-            : this(factory, maximumCount: Environment.ProcessorCount)
+            : this(factory, maximumCount: Environment.ProcessorCount * 5)
         {
         }
 

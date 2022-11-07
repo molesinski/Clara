@@ -312,7 +312,7 @@ namespace Clara.Utils
                     }
                 }
 
-                for (var i = bitHelper.FindFirstUnmarked(); i < lastIndex; i = bitHelper.FindFirstUnmarked(i + 1))
+                for (var i = 0; i < lastIndex; i++)
                 {
                     ref var entry = ref this.entries[i];
 
