@@ -13,6 +13,9 @@ tab_width = 4
 indent_size = 2
 tab_width = 2
 
+[global.json]
+charset = latin1
+
 [*.cs]
 csharp_indent_block_contents = true
 csharp_indent_braces = false
