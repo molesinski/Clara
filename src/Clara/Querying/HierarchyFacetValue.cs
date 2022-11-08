@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Clara.Querying
 {
-    public readonly struct HierarchyFacetValue
+    public readonly record struct HierarchyFacetValue
     {
         public HierarchyFacetValue(string value, int count, IEnumerable<HierarchyFacetValue> children)
         {

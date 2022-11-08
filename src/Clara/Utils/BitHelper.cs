@@ -8,7 +8,7 @@ namespace Clara.Utils
 
         private readonly Span<int> span;
 
-        internal BitHelper(Span<int> span, bool clear)
+        public BitHelper(Span<int> span, bool clear)
         {
             if (clear)
             {
@@ -18,6 +18,11 @@ namespace Clara.Utils
             this.span = span;
         }
 
+        internal static int ToIntArrayLength(int n)
+        {
+            return n > 0 ? (((n - 1) / IntSize) + 1) : 0;
+        }
+
         internal void MarkBit(int bitPosition)
         {
             var bitArrayIndex = (uint)bitPosition / IntSize;
@@ -25,7 +30,7 @@ namespace Clara.Utils
 
             if (bitArrayIndex < (uint)span.Length)
             {
-                span[(int)bitArrayIndex] |= (1 << (int)((uint)bitPosition % IntSize));
+                span[(int)bitArrayIndex] |= 1 << (int)((uint)bitPosition % IntSize);
             }
         }
 
@@ -36,11 +41,6 @@ namespace Clara.Utils
 
             return bitArrayIndex < (uint)span.Length
                 && (span[(int)bitArrayIndex] & (1 << ((int)((uint)bitPosition % IntSize)))) != 0;
-        }
-
-        internal static int ToIntArrayLength(int n)
-        {
-            return n > 0 ? ((n - 1) / IntSize + 1) : 0;
         }
     }
 }

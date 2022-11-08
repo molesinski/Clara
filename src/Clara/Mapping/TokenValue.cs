@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Clara.Mapping
 {
-    public readonly struct TokenValue : IEnumerable<string>
+    public readonly record struct TokenValue : IEnumerable<string>
     {
         private readonly string? value;
         private readonly IEnumerable<string>? values;
@@ -18,26 +18,6 @@ namespace Clara.Mapping
         {
             this.value = default;
             this.values = values;
-        }
-
-        public static implicit operator TokenValue(string? value)
-        {
-            return new TokenValue(value);
-        }
-
-        public static implicit operator TokenValue(string[]? values)
-        {
-            return new TokenValue(values);
-        }
-
-        public static implicit operator TokenValue(List<string>? values)
-        {
-            return new TokenValue(values);
-        }
-
-        public static implicit operator TokenValue(HashSet<string>? values)
-        {
-            return new TokenValue(values);
         }
 
         public Enumerator GetEnumerator()

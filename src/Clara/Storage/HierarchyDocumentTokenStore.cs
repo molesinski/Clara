@@ -9,14 +9,14 @@ namespace Clara.Storage
     {
         private readonly HashSet<string> rootSet;
         private readonly ITokenEncoder tokenEncoder;
-        private readonly DictionarySlim<int, HashSetSlim<int>> documentTokens;
-        private readonly DictionarySlim<int, HashSetSlim<int>> parentChildren;
+        private readonly PooledDictionary<int, PooledSet<int>> documentTokens;
+        private readonly PooledDictionary<int, PooledSet<int>> parentChildren;
 
         public HierarchyDocumentTokenStore(
             string root,
             ITokenEncoder tokenEncoder,
-            DictionarySlim<int, HashSetSlim<int>> documentTokens,
-            DictionarySlim<int, HashSetSlim<int>> parentChildren)
+            PooledDictionary<int, PooledSet<int>> documentTokens,
+            PooledDictionary<int, PooledSet<int>> parentChildren)
         {
             if (root is null)
             {
@@ -44,6 +44,7 @@ namespace Clara.Storage
             this.parentChildren = parentChildren;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Transferred disposable ownership.")]
         public FieldFacetResult? Facet(HierarchyFacetExpression hierarchyFacetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
         {
             var selectedValues = this.rootSet;
@@ -56,7 +57,7 @@ namespace Clara.Storage
                 }
             }
 
-            using var filteredTokens = new HashSetSlim<int>(Allocator.ArrayPool);
+            using var filteredTokens = new PooledSet<int>(Allocator.ArrayPool);
 
             foreach (var selectedToken in selectedValues)
             {
@@ -71,7 +72,7 @@ namespace Clara.Storage
                 }
             }
 
-            using var tokenCounts = new DictionarySlim<int, int>(Allocator.ArrayPool, capacity: filteredTokens.Count);
+            using var tokenCounts = new PooledDictionary<int, int>(Allocator.ArrayPool, capacity: filteredTokens.Count);
 
             foreach (var documentId in documents)
             {
@@ -89,7 +90,7 @@ namespace Clara.Storage
                 }
             }
 
-            var values = new ListSlim<HierarchyFacetValue>(Allocator.ArrayPool, capacity: selectedValues.Count + filteredTokens.Count);
+            var values = new PooledList<HierarchyFacetValue>(Allocator.ArrayPool, capacity: selectedValues.Count + filteredTokens.Count);
             var selectedCount = 0;
 
             for (var i = 0; i < selectedValues.Count; i++)

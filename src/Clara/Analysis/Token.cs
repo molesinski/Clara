@@ -40,7 +40,6 @@ namespace Clara.Analysis
                 throw new ArgumentOutOfRangeException(nameof(length));
             }
 
-
             if (!(chars.Length >= MaximumLength))
             {
                 throw new ArgumentException("Writeable tokens must have character buffer length greater than or equal to maximumum token length.", nameof(chars));
@@ -49,50 +48,6 @@ namespace Clara.Analysis
             this.value = null;
             this.chars = chars;
             this.length = length;
-        }
-
-        public char this[int index]
-        {
-            get
-            {
-                if (this.chars is not null)
-                {
-                    if (index < 0 || index >= this.length)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index));
-                    }
-
-                    return this.chars[index];
-                }
-                else if (this.value is not null)
-                {
-                    if (index < 0 || index >= this.value.Length)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index));
-                    }
-
-                    return this.value[index];
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException(nameof(index));
-                }
-            }
-
-            set
-            {
-                if (this.chars is null)
-                {
-                    throw new InvalidOperationException("Read only tokens cannot be modified.");
-                }
-
-                if (index < 0 || index >= this.length)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(index));
-                }
-
-                this.chars[index] = value;
-            }
         }
 
         public int Length
@@ -141,6 +96,55 @@ namespace Clara.Analysis
             }
         }
 
+        public char this[int index]
+        {
+            get
+            {
+                if (this.chars is not null)
+                {
+                    if (index < 0 || index >= this.length)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(index));
+                    }
+
+                    return this.chars[index];
+                }
+                else if (this.value is not null)
+                {
+                    if (index < 0 || index >= this.value.Length)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(index));
+                    }
+
+                    return this.value[index];
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+            }
+
+            set
+            {
+                if (this.chars is null)
+                {
+                    throw new InvalidOperationException("Read only tokens cannot be modified.");
+                }
+
+                if (index < 0 || index >= this.length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+
+                this.chars[index] = value;
+            }
+        }
+
+        public static implicit operator ReadOnlySpan<char>(Token value)
+        {
+            return value.Span;
+        }
+
         public static bool operator ==(Token left, Token right)
         {
             return left.Equals(right);
@@ -151,13 +155,13 @@ namespace Clara.Analysis
             return !left.Equals(right);
         }
 
-        public static implicit operator ReadOnlySpan<char>(Token value)
-        {
-            return value.Span;
-        }
-
         public void CopyTo(StringBuilder builder)
         {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             if (this.value is not null)
             {
                 builder.Append(this.value);

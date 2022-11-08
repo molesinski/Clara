@@ -6,7 +6,7 @@ using Lucene.Net.Analysis.TokenAttributes;
 
 namespace Clara.Analysis
 {
-    public readonly struct TokenStreamEnumerable : IEnumerable<Token>
+    public sealed class TokenStreamEnumerable : IEnumerable<Token>
     {
         private readonly TokenStream tokenStream;
 
@@ -42,7 +42,7 @@ namespace Clara.Analysis
             private bool isStarted;
             private Token current;
 
-            public Enumerator(TokenStreamEnumerable source)
+            internal Enumerator(TokenStreamEnumerable source)
             {
                 this.tokenStream = source.tokenStream;
                 this.charTermAttribute = source.tokenStream.GetAttribute<ICharTermAttribute>();

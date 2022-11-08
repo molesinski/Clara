@@ -10,7 +10,7 @@ namespace Clara.Utils
 {
     [DebuggerTypeProxy(typeof(ListDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
-    public sealed class ListSlim<TItem> : IReadOnlyList<TItem>, IDisposable
+    public sealed class PooledList<TItem> : IReadOnlyList<TItem>, IDisposable
         where TItem : notnull
     {
         private static readonly TItem[] InitialEntries = new TItem[1];
@@ -19,7 +19,7 @@ namespace Clara.Utils
         private int count;
         private TItem[] entries;
 
-        public ListSlim(Allocator allocator)
+        public PooledList(Allocator allocator)
         {
             if (allocator is null)
             {
@@ -31,7 +31,7 @@ namespace Clara.Utils
             this.entries = InitialEntries;
         }
 
-        public ListSlim(Allocator allocator, int capacity)
+        public PooledList(Allocator allocator, int capacity)
         {
             if (allocator is null)
             {
@@ -50,7 +50,7 @@ namespace Clara.Utils
             this.entries = this.allocator.Allocate<TItem>(size);
         }
 
-        public ListSlim(Allocator allocator, IEnumerable<TItem> source)
+        public PooledList(Allocator allocator, IEnumerable<TItem> source)
         {
             if (allocator is null)
             {
@@ -62,7 +62,7 @@ namespace Clara.Utils
                 throw new ArgumentNullException(nameof(source));
             }
 
-            if (source is ListSlim<TItem> other && other.count > 0)
+            if (source is PooledList<TItem> other && other.count > 0)
             {
                 var size = HashHelper.PowerOf2(Math.Max(other.count, allocator.MinimumSize));
 
@@ -268,7 +268,7 @@ namespace Clara.Utils
             private int index;
             private TItem current;
 
-            public Enumerator(ListSlim<TItem> source)
+            internal Enumerator(PooledList<TItem> source)
             {
                 this.entries = source.entries;
                 this.offset = 0;
@@ -277,7 +277,7 @@ namespace Clara.Utils
                 this.current = default!;
             }
 
-            public Enumerator(ListSlim<TItem> source, int offset, int count)
+            internal Enumerator(PooledList<TItem> source, int offset, int count)
             {
                 this.entries = source.entries;
                 this.offset = offset;
@@ -331,11 +331,11 @@ namespace Clara.Utils
 
         private class RangeEnumerable : IEnumerable<TItem>
         {
-            private readonly ListSlim<TItem> source;
+            private readonly PooledList<TItem> source;
             private readonly int offset;
             private readonly int count;
 
-            public RangeEnumerable(ListSlim<TItem> source, int offset, int count)
+            public RangeEnumerable(PooledList<TItem> source, int offset, int count)
             {
                 this.source = source;
                 this.offset = offset;
@@ -362,9 +362,9 @@ namespace Clara.Utils
     internal sealed class ListDebugView<TItem>
         where TItem : notnull
     {
-        private readonly ListSlim<TItem> source;
+        private readonly PooledList<TItem> source;
 
-        public ListDebugView(ListSlim<TItem> source)
+        public ListDebugView(PooledList<TItem> source)
         {
             if (source is null)
             {

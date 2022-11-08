@@ -34,6 +34,26 @@ namespace Clara
             IEnumerable<ISynonymMap> synonymMaps,
             TokenEncoderStore tokenEncoderStore)
         {
+            if (source is null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            if (indexMapper is null)
+            {
+                throw new ArgumentNullException(nameof(indexMapper));
+            }
+
+            if (synonymMaps is null)
+            {
+                throw new ArgumentNullException(nameof(synonymMaps));
+            }
+
+            if (tokenEncoderStore is null)
+            {
+                throw new ArgumentNullException(nameof(tokenEncoderStore));
+            }
+
             lock (tokenEncoderStore.SyncRoot)
             {
                 using var builder = new IndexBuilder<TSource, TDocument>(indexMapper, synonymMaps, tokenEncoderStore);
@@ -51,9 +71,11 @@ namespace Clara
     public sealed class IndexBuilder<TSource, TDocument> : IndexBuilder, IDisposable
     {
         private readonly IIndexMapper<TSource, TDocument> indexMapper;
-        private readonly DictionarySlim<int, TDocument> documents;
-        private readonly TokenEncoderBuilder tokenEncoderBuilder;
+        private readonly PooledDictionary<int, TDocument> documents;
+        private readonly ITokenEncoderBuilder tokenEncoderBuilder;
         private readonly Dictionary<Field, FieldStoreBuilder<TSource>> fieldBuilders;
+        private bool isBuilt;
+        private bool isDisposed;
 
         public IndexBuilder(
             IIndexMapper<TSource, TDocument> indexMapper)
@@ -89,7 +111,7 @@ namespace Clara
             }
 
             this.indexMapper = indexMapper;
-            this.documents = new DictionarySlim<int, TDocument>(Allocator.Mixed);
+            this.documents = new PooledDictionary<int, TDocument>(Allocator.Mixed);
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder();
             this.fieldBuilders = new Dictionary<Field, FieldStoreBuilder<TSource>>();
 
@@ -136,6 +158,11 @@ namespace Clara
 
         public void Index(TSource item)
         {
+            if (this.isDisposed || this.isBuilt)
+            {
+                throw new InvalidOperationException("Current instance is already built or disposed.");
+            }
+
             if (item is null)
             {
                 throw new ArgumentNullException(nameof(item));
@@ -163,6 +190,11 @@ namespace Clara
 
         public Index<TDocument> Build()
         {
+            if (this.isDisposed || this.isBuilt)
+            {
+                throw new InvalidOperationException("Current instance is already built or disposed.");
+            }
+
             var tokenEncoder = this.tokenEncoderBuilder.Build();
             var fieldStores = new Dictionary<Field, FieldStore>();
 
@@ -174,17 +206,33 @@ namespace Clara
                 fieldStores.Add(field, builder.Build());
             }
 
-            return new Index<TDocument>(tokenEncoder, this.documents, fieldStores);
+            var index = new Index<TDocument>(tokenEncoder, this.documents, fieldStores);
+
+            this.isBuilt = true;
+
+            return index;
         }
 
         public void Dispose()
         {
-            foreach (var pair in this.fieldBuilders)
+            if (!this.isDisposed)
             {
-                pair.Value.Dispose();
-            }
+                if (!this.isBuilt)
+                {
+                    this.documents.Dispose();
+                }
 
-            this.fieldBuilders.Clear();
+                this.tokenEncoderBuilder.Dispose();
+
+                foreach (var pair in this.fieldBuilders)
+                {
+                    pair.Value.Dispose();
+                }
+
+                this.fieldBuilders.Clear();
+
+                this.isDisposed = true;
+            }
         }
     }
 }

@@ -7,14 +7,16 @@ namespace Clara.Storage
 {
     internal sealed class HierarchyFieldStoreBuilder<TSource> : FieldStoreBuilder<TSource>
     {
-        private readonly DictionarySlim<string, IEnumerable<string>> hierarchyDecodeCache = new(Allocator.ArrayPool);
+        private readonly PooledDictionary<string, IEnumerable<string>> hierarchyDecodeCache = new(Allocator.ArrayPool);
         private readonly HierarchyField<TSource> field;
         private readonly char separator;
         private readonly string root;
-        private readonly TokenEncoderBuilder tokenEncoderBuilder;
-        private readonly DictionarySlim<int, HashSetSlim<int>> parentChildren;
-        private readonly DictionarySlim<int, HashSetSlim<int>>? tokenDocuments;
-        private readonly DictionarySlim<int, HashSetSlim<int>>? documentTokens;
+        private readonly ITokenEncoderBuilder tokenEncoderBuilder;
+        private readonly PooledDictionary<int, PooledSet<int>>? parentChildren;
+        private readonly PooledDictionary<int, PooledSet<int>>? tokenDocuments;
+        private readonly PooledDictionary<int, PooledSet<int>>? documentTokens;
+        private bool isBuilt;
+        private bool isDisposed;
 
         public HierarchyFieldStoreBuilder(HierarchyField<TSource> field, TokenEncoderStore tokenEncoderStore)
         {
@@ -32,7 +34,6 @@ namespace Clara.Storage
             this.separator = field.Separator;
             this.root = field.Root;
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
-            this.parentChildren = new(Allocator.Mixed);
 
             if (field.IsFilterable)
             {
@@ -41,14 +42,21 @@ namespace Clara.Storage
 
             if (field.IsFacetable)
             {
+                this.parentChildren = new(Allocator.Mixed);
                 this.documentTokens = new(Allocator.Mixed);
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Transferred disposable ownership.")]
         public override void Index(int documentId, TSource item)
         {
+            if (this.isDisposed || this.isBuilt)
+            {
+                throw new InvalidOperationException("Current instance is already built or disposed.");
+            }
+
             var values = this.field.ValueMapper(item);
-            var tokens = default(HashSetSlim<int>);
+            var tokens = default(PooledSet<int>);
 
             foreach (var hierarchyEncodedToken in values)
             {
@@ -61,10 +69,13 @@ namespace Clara.Storage
 
                     if (parentId != -1)
                     {
-                        ref var children = ref this.parentChildren.GetValueRefOrAddDefault(parentId, out _);
+                        if (this.parentChildren is not null)
+                        {
+                            ref var children = ref this.parentChildren.GetValueRefOrAddDefault(parentId, out _);
 
-                        children ??= new HashSetSlim<int>(Allocator.Mixed);
-                        children.Add(tokenId);
+                            children ??= new PooledSet<int>(Allocator.Mixed);
+                            children.Add(tokenId);
+                        }
                     }
 
                     parentId = tokenId;
@@ -73,7 +84,7 @@ namespace Clara.Storage
                     {
                         ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
-                        documents ??= new HashSetSlim<int>(Allocator.Mixed);
+                        documents ??= new PooledSet<int>(Allocator.Mixed);
                         documents.Add(documentId);
                     }
 
@@ -83,12 +94,50 @@ namespace Clara.Storage
                         {
                             ref var value = ref this.documentTokens.GetValueRefOrAddDefault(documentId, out _);
 
-                            value = tokens = new HashSetSlim<int>(Allocator.Mixed);
+                            value = tokens = new PooledSet<int>(Allocator.Mixed);
                         }
 
                         tokens.Add(tokenId);
                     }
                 }
+            }
+        }
+
+        public override FieldStore Build()
+        {
+            if (this.isDisposed || this.isBuilt)
+            {
+                throw new InvalidOperationException("Current instance is already built or disposed.");
+            }
+
+            var tokenEncoder = this.tokenEncoderBuilder.Build();
+
+            var store =
+                new HierarchyFieldStore(
+                    tokenEncoder,
+                    this.tokenDocuments is not null ? new TokenDocumentStore(tokenEncoder, this.tokenDocuments) : null,
+                    this.documentTokens is not null && this.parentChildren is not null ? new HierarchyDocumentTokenStore(this.root, tokenEncoder, this.documentTokens, this.parentChildren) : null);
+
+            this.isBuilt = true;
+
+            return store;
+        }
+
+        public override void Dispose()
+        {
+            if (!this.isDisposed)
+            {
+                if (!this.isBuilt)
+                {
+                    this.tokenDocuments?.Dispose();
+                    this.documentTokens?.Dispose();
+                    this.parentChildren?.Dispose();
+                }
+
+                this.tokenEncoderBuilder.Dispose();
+                this.hierarchyDecodeCache.Dispose();
+
+                this.isDisposed = true;
             }
         }
 
@@ -112,22 +161,6 @@ namespace Clara.Storage
             }
 
             return decodedTokens;
-        }
-
-        public override FieldStore Build()
-        {
-            var tokenEncoder = this.tokenEncoderBuilder.Build();
-
-            return
-                new HierarchyFieldStore(
-                    tokenEncoder,
-                    this.tokenDocuments is not null ? new TokenDocumentStore(tokenEncoder, this.tokenDocuments) : null,
-                    this.documentTokens is not null ? new HierarchyDocumentTokenStore(this.root, tokenEncoder, this.documentTokens, this.parentChildren) : null);
-        }
-
-        public override void Dispose()
-        {
-            this.hierarchyDecodeCache.Dispose();
         }
     }
 }

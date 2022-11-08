@@ -33,8 +33,6 @@ namespace Clara.Storage
             throw new InvalidOperationException("Field does not support sorting.");
         }
 
-        public virtual void Dispose()
-        {
-        }
+        public abstract void Dispose();
     }
 }

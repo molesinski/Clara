@@ -13,6 +13,11 @@ trigger: none
 pr: none
 
 steps:
+- task: UseDotNet@2
+  displayName: 'Use .NET Core SDK'
+  inputs:
+    useGlobalJson: true
+
 - script: |
     dotnet restore "src/Clara/Clara.csproj"
     dotnet build "src/Clara/Clara.csproj" --no-restore -c Release /p:Version=$(major).$(minor).$(patch)

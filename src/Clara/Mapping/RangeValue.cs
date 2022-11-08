@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Clara.Mapping
 {
-    public readonly struct RangeValue<TValue> : IEnumerable<TValue>
+    public readonly record struct RangeValue<TValue> : IEnumerable<TValue>
         where TValue : struct, IComparable<TValue>
     {
         private readonly TValue? value;
@@ -20,26 +20,6 @@ namespace Clara.Mapping
         {
             this.value = default;
             this.values = values;
-        }
-
-        public static implicit operator RangeValue<TValue>(TValue? value)
-        {
-            return new RangeValue<TValue>(value);
-        }
-
-        public static implicit operator RangeValue<TValue>(TValue[]? values)
-        {
-            return new RangeValue<TValue>(values);
-        }
-
-        public static implicit operator RangeValue<TValue>(List<TValue>? values)
-        {
-            return new RangeValue<TValue>(values);
-        }
-
-        public static implicit operator RangeValue<TValue>(HashSet<TValue>? values)
-        {
-            return new RangeValue<TValue>(values);
         }
 
         public Enumerator GetEnumerator()

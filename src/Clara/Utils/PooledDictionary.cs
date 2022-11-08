@@ -8,13 +8,11 @@ using System.Runtime.CompilerServices;
 
 namespace Clara.Utils
 {
-    [DebuggerTypeProxy(typeof(HashSetSlimDebugView<>))]
+    [DebuggerTypeProxy(typeof(DictionarySlimDebugView<,>))]
     [DebuggerDisplay("Count = {Count}")]
-    public sealed class HashSetSlim<TItem> : IReadOnlyCollection<TItem>, IDisposable
-        where TItem : notnull, IEquatable<TItem>
+    public sealed class PooledDictionary<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TValue>>, IDisposable
+        where TKey : notnull, IEquatable<TKey>
     {
-        private const int StackAllocThreshold = 512;
-
         private static readonly Entry[] InitialEntries = new Entry[1];
 
         private readonly Allocator allocator;
@@ -25,14 +23,7 @@ namespace Clara.Utils
         private int[] buckets;
         private Entry[] entries;
 
-        [DebuggerDisplay("({Item})->{Next}")]
-        private struct Entry
-        {
-            public TItem Item;
-            public int Next;
-        }
-
-        public HashSetSlim(Allocator allocator)
+        public PooledDictionary(Allocator allocator)
         {
             if (allocator is null)
             {
@@ -48,8 +39,13 @@ namespace Clara.Utils
             this.entries = InitialEntries;
         }
 
-        public HashSetSlim(Allocator allocator, int capacity)
+        public PooledDictionary(Allocator allocator, int capacity)
         {
+            if (allocator is null)
+            {
+                throw new ArgumentNullException(nameof(allocator));
+            }
+
             if (capacity < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(capacity));
@@ -64,14 +60,19 @@ namespace Clara.Utils
             this.entries = this.allocator.Allocate<Entry>(this.size);
         }
 
-        public HashSetSlim(Allocator allocator, IEnumerable<TItem> source)
+        public PooledDictionary(Allocator allocator, IEnumerable<KeyValuePair<TKey, TValue>> source)
         {
+            if (allocator is null)
+            {
+                throw new ArgumentNullException(nameof(allocator));
+            }
+
             if (source is null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
 
-            if (source is HashSetSlim<TItem> other && other.size > 1)
+            if (source is PooledDictionary<TKey, TValue> other && other.count > 0)
             {
                 this.allocator = allocator;
                 this.size = other.size;
@@ -87,7 +88,7 @@ namespace Clara.Utils
                 return;
             }
 
-            if (source is IReadOnlyCollection<TItem> collection && collection.Count > 0)
+            if (source is IReadOnlyCollection<KeyValuePair<TKey, TValue>> collection && collection.Count > 0)
             {
                 this.allocator = allocator;
                 this.size = HashHelper.PowerOf2(Math.Max(collection.Count, this.allocator.MinimumSize));
@@ -108,9 +109,16 @@ namespace Clara.Utils
                 this.entries = InitialEntries;
             }
 
-            foreach (var item in source)
+            foreach (var pair in source)
             {
-                this.Add(item);
+                ref var value = ref this.GetValueRefOrAddDefault(pair.Key, out var exists);
+
+                if (exists)
+                {
+                    throw new ArgumentException("Collection contains one or more duplicated keys.", nameof(source));
+                }
+
+                value = pair.Value;
             }
         }
 
@@ -143,27 +151,23 @@ namespace Clara.Utils
             }
         }
 
-        public bool Contains(TItem item)
+        public bool TryGetValue(TKey key, out TValue value)
         {
-            return this.FindItemIndex(item) >= 0;
-        }
-
-        public bool Add(TItem item)
-        {
-            if (item is null)
+            if (key is null)
             {
-                throw new ArgumentNullException(nameof(item));
+                throw new ArgumentNullException(nameof(key));
             }
 
             var entries = this.entries;
             var collisionCount = 0;
-            var bucketIndex = item.GetHashCode() & this.size - 1;
 
-            for (var i = this.buckets[bucketIndex] - 1; i >= 0; i = entries[i].Next)
+            for (var i = this.buckets[key.GetHashCode() & this.size - 1] - 1; i >= 0; i = entries[i].Next)
             {
-                if (item.Equals(entries[i].Item))
+                if (key.Equals(entries[i].Key))
                 {
-                    return false;
+                    value = entries[i].Value;
+
+                    return true;
                 }
 
                 if (collisionCount == this.size)
@@ -174,20 +178,47 @@ namespace Clara.Utils
                 collisionCount++;
             }
 
-            this.Add(item, bucketIndex);
-
-            return true;
+            value = default!;
+            return false;
         }
 
-        public bool Remove(TItem item)
+        public bool ContainsKey(TKey key)
         {
-            if (item is null)
+            if (key is null)
             {
-                throw new ArgumentNullException(nameof(item));
+                throw new ArgumentNullException(nameof(key));
             }
 
             var entries = this.entries;
-            var bucketIndex = item.GetHashCode() & this.size - 1;
+            var collisionCount = 0;
+
+            for (var i = this.buckets[key.GetHashCode() & this.size - 1] - 1; i >= 0; i = entries[i].Next)
+            {
+                if (key.Equals(entries[i].Key))
+                {
+                    return true;
+                }
+
+                if (collisionCount == this.size)
+                {
+                    throw new InvalidOperationException("Concurrent operations are not supported.");
+                }
+
+                collisionCount++;
+            }
+
+            return false;
+        }
+
+        public bool Remove(TKey key)
+        {
+            if (key is null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            var entries = this.entries;
+            var bucketIndex = key.GetHashCode() & this.size - 1;
             var entryIndex = this.buckets[bucketIndex] - 1;
 
             var lastIndex = -1;
@@ -197,7 +228,7 @@ namespace Clara.Utils
             {
                 var candidate = entries[entryIndex];
 
-                if (candidate.Item.Equals(item))
+                if (candidate.Key.Equals(key))
                 {
                     if (lastIndex != -1)
                     {
@@ -237,213 +268,37 @@ namespace Clara.Utils
             return false;
         }
 
-        public void IntersectWith(IEnumerable<TItem> enumerable)
+        public ref TValue GetValueRefOrAddDefault(TKey key, out bool exists)
         {
-            if (enumerable is null)
+            if (key is null)
             {
-                throw new ArgumentNullException(nameof(enumerable));
+                throw new ArgumentNullException(nameof(key));
             }
 
-            if (this.Count == 0 || enumerable == this)
+            var entries = this.entries;
+            var collisionCount = 0;
+            var bucketIndex = key.GetHashCode() & this.size - 1;
+
+            for (var i = this.buckets[bucketIndex] - 1; i >= 0; i = entries[i].Next)
             {
-                return;
-            }
-
-            if (enumerable is IReadOnlyCollection<TItem> collection && collection.Count == 0)
-            {
-                this.Clear();
-
-                return;
-            }
-
-            if (enumerable is HashSetSlim<TItem> other)
-            {
-                var count = this.count;
-
-                for (var i = 0; count > 0; i++)
+                if (key.Equals(entries[i].Key))
                 {
-                    ref var entry = ref this.entries[i];
+                    exists = true;
 
-                    if (entry.Next >= -1)
-                    {
-                        count--;
-
-                        var item = entry.Item;
-
-                        if (!other.Contains(item))
-                        {
-                            this.Remove(item);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                var lastIndex = this.lastIndex;
-                var intArrayLength = BitHelper.ToIntArrayLength(lastIndex);
-
-                if (intArrayLength <= StackAllocThreshold)
-                {
-                    Span<int> span = stackalloc int[intArrayLength];
-                    var bitHelper = new BitHelper(span.Slice(0, intArrayLength), clear: true);
-
-                    IntersectWith(enumerable, ref bitHelper, lastIndex);
-                }
-                else
-                {
-                    var array = this.allocator.Allocate<int>(intArrayLength);
-                    var bitHelper = new BitHelper(array.AsSpan(0, intArrayLength), clear: true);
-
-                    IntersectWith(enumerable, ref bitHelper, lastIndex);
-
-                    this.allocator.Release(array);
-                }
-            }
-
-            void IntersectWith(IEnumerable<TItem> enumerable, ref BitHelper bitHelper, int lastIndex)
-            {
-                foreach (var item in enumerable)
-                {
-                    var index = this.FindItemIndex(item);
-
-                    if (index >= 0)
-                    {
-                        bitHelper.MarkBit(index);
-                    }
+                    return ref entries[i].Value;
                 }
 
-                for (var i = 0; i < lastIndex; i++)
+                if (collisionCount == this.size)
                 {
-                    ref var entry = ref this.entries[i];
-
-                    if (entry.Next >= -1)
-                    {
-                        if (!bitHelper.IsMarked(i))
-                        {
-                            this.Remove(entry.Item);
-                        }
-                    }
-                }
-            }
-        }
-
-        public void UnionWith(IEnumerable<TItem> enumerable)
-        {
-            if (enumerable is null)
-            {
-                throw new ArgumentNullException(nameof(enumerable));
-            }
-
-            if (enumerable is HashSetSlim<TItem> other)
-            {
-                if (other.count == 0)
-                {
-                    return;
+                    throw new InvalidOperationException("Concurrent operations are not supported.");
                 }
 
-                if (this.size > 1)
-                {
-                    if (this.count == 0)
-                    {
-                        if (this.size < other.count)
-                        {
-                            this.Dispose();
-                        }
-                    }
-                }
-
-                if (this.size == 1)
-                {
-                    this.size = other.size;
-                    this.count = other.count;
-                    this.lastIndex = other.lastIndex;
-                    this.freeList = other.freeList;
-                    this.buckets = this.allocator.Allocate<int>(this.size);
-                    this.entries = this.allocator.Allocate<Entry>(this.size);
-
-                    Array.Copy(other.buckets, 0, this.buckets, 0, this.size);
-                    Array.Copy(other.entries, 0, this.entries, 0, this.lastIndex);
-
-                    return;
-                }
-
-                this.EnsureCapacity(other.count);
-
-                var count = other.count;
-
-                for (var i = 0; count > 0; i++)
-                {
-                    ref var entry = ref other.entries[i];
-
-                    if (entry.Next >= -1)
-                    {
-                        count--;
-
-                        this.Add(entry.Item);
-                    }
-                }
-
-                return;
+                collisionCount++;
             }
 
-            if (enumerable is IReadOnlyCollection<TItem> collection)
-            {
-                if (collection.Count == 0)
-                {
-                    return;
-                }
+            exists = false;
 
-                this.EnsureCapacity(collection.Count);
-            }
-
-            foreach (var item in enumerable)
-            {
-                this.Add(item);
-            }
-        }
-
-        public void ExceptWith(IEnumerable<TItem> enumerable)
-        {
-            if (enumerable is null)
-            {
-                throw new ArgumentNullException(nameof(enumerable));
-            }
-
-            if (this.count == 0)
-            {
-                return;
-            }
-
-            if (enumerable == this)
-            {
-                this.Clear();
-
-                return;
-            }
-
-            if (enumerable is HashSetSlim<TItem> other)
-            {
-                var count = other.count;
-
-                for (var i = 0; count > 0; i++)
-                {
-                    ref var entry = ref other.entries[i];
-
-                    if (entry.Next >= -1)
-                    {
-                        count--;
-
-                        this.Remove(entry.Item);
-                    }
-                }
-
-                return;
-            }
-
-            foreach (var item in enumerable)
-            {
-                this.Remove(item);
-            }
+            return ref this.AddKey(key, bucketIndex);
         }
 
         public Enumerator GetEnumerator()
@@ -451,7 +306,7 @@ namespace Clara.Utils
             return new Enumerator(this);
         }
 
-        IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator()
+        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
             return new Enumerator(this);
         }
@@ -487,7 +342,7 @@ namespace Clara.Utils
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void Add(TItem item, int bucketIndex)
+        private ref TValue AddKey(TKey key, int bucketIndex)
         {
             var entries = this.entries;
             int entryIndex;
@@ -504,46 +359,21 @@ namespace Clara.Utils
                     this.EnsureCapacity(this.count + 1);
 
                     entries = this.entries;
-                    bucketIndex = item.GetHashCode() & this.size - 1;
+                    bucketIndex = key.GetHashCode() & this.size - 1;
                 }
 
                 entryIndex = this.count;
                 this.lastIndex++;
             }
 
-            entries[entryIndex].Item = item;
+            entries[entryIndex].Key = key;
+            entries[entryIndex].Value = default!;
             entries[entryIndex].Next = this.buckets[bucketIndex] - 1;
 
             this.buckets[bucketIndex] = entryIndex + 1;
             this.count++;
-        }
 
-        private int FindItemIndex(TItem item)
-        {
-            if (item is null)
-            {
-                throw new ArgumentNullException(nameof(item));
-            }
-
-            var entries = this.entries;
-            var collisionCount = 0;
-
-            for (var i = this.buckets[item.GetHashCode() & this.size - 1] - 1; i >= 0; i = entries[i].Next)
-            {
-                if (item.Equals(entries[i].Item))
-                {
-                    return i;
-                }
-
-                if (collisionCount == this.size)
-                {
-                    throw new InvalidOperationException("Concurrent operations are not supported.");
-                }
-
-                collisionCount++;
-            }
-
-            return -1;
+            return ref entries[entryIndex].Value;
         }
 
         private void EnsureCapacity(int capacity)
@@ -567,7 +397,7 @@ namespace Clara.Utils
 
                 if (entry.Next >= -1)
                 {
-                    var bucketIndex = entry.Item.GetHashCode() & newSize - 1;
+                    var bucketIndex = entry.Key.GetHashCode() & newSize - 1;
 
                     entry.Next = newBuckets[bucketIndex] - 1;
                     newBuckets[bucketIndex] = lastIndex + 1;
@@ -594,45 +424,22 @@ namespace Clara.Utils
             this.entries = newEntries;
         }
 
-        public struct Enumerator : IEnumerator<TItem>
+        public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>
         {
-            private readonly HashSetSlim<TItem> source;
+            private readonly PooledDictionary<TKey, TValue> source;
             private int index;
             private int count;
-            private TItem current;
+            private KeyValuePair<TKey, TValue> current;
 
-            internal Enumerator(HashSetSlim<TItem> source)
+            internal Enumerator(PooledDictionary<TKey, TValue> source)
             {
                 this.source = source;
                 this.index = 0;
                 this.count = this.source.count;
-                this.current = default!;
+                this.current = default;
             }
 
-            public bool MoveNext()
-            {
-                if (this.count == 0)
-                {
-                    this.current = default!;
-                    return false;
-                }
-
-                this.count--;
-
-                while (this.source.entries[this.index].Next < -1)
-                {
-                    this.index++;
-                }
-
-                ref var entry = ref this.source.entries[this.index];
-
-                this.index++;
-                this.current = entry.Item;
-
-                return true;
-            }
-
-            public TItem Current
+            public KeyValuePair<TKey, TValue> Current
             {
                 get
                 {
@@ -648,24 +455,56 @@ namespace Clara.Utils
                 }
             }
 
+            public bool MoveNext()
+            {
+                if (this.count == 0)
+                {
+                    this.current = default;
+                    return false;
+                }
+
+                this.count--;
+
+                while (this.source.entries[this.index].Next < -1)
+                {
+                    this.index++;
+                }
+
+                ref var entry = ref this.source.entries[this.index];
+
+                this.index++;
+                this.current = new KeyValuePair<TKey, TValue>(entry.Key, entry.Value);
+
+                return true;
+            }
+
             void IEnumerator.Reset()
             {
                 this.index = 0;
                 this.count = this.source.count;
-                this.current = default!;
+                this.current = default;
             }
 
             public void Dispose()
             {
             }
         }
+
+        [DebuggerDisplay("({Key}, {Value})->{Next}")]
+        private struct Entry
+        {
+            public TKey Key;
+            public TValue Value;
+            public int Next;
+        }
     }
 
-    internal sealed class HashSetSlimDebugView<TItem> where TItem : IEquatable<TItem>
+    internal sealed class DictionarySlimDebugView<TKey, TValue>
+        where TKey : IEquatable<TKey>
     {
-        private readonly HashSetSlim<TItem> source;
+        private readonly PooledDictionary<TKey, TValue> source;
 
-        public HashSetSlimDebugView(HashSetSlim<TItem> source)
+        public DictionarySlimDebugView(PooledDictionary<TKey, TValue> source)
         {
             if (source is null)
             {
@@ -676,7 +515,7 @@ namespace Clara.Utils
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public TItem[] Items
+        public KeyValuePair<TKey, TValue>[] Items
         {
             get
             {

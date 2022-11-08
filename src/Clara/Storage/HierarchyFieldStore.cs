@@ -6,12 +6,13 @@ namespace Clara.Storage
 {
     internal sealed class HierarchyFieldStore : FieldStore
     {
-        private readonly TokenEncoder tokenEncoder;
+        private readonly ITokenEncoder tokenEncoder;
         private readonly TokenDocumentStore? tokenDocumentStore;
         private readonly HierarchyDocumentTokenStore? documentTokenStore;
+        private bool isDisposed;
 
         public HierarchyFieldStore(
-            TokenEncoder tokenEncoder,
+            ITokenEncoder tokenEncoder,
             TokenDocumentStore? tokenDocumentStore,
             HierarchyDocumentTokenStore? documentTokenStore)
         {
@@ -29,6 +30,11 @@ namespace Clara.Storage
         {
             get
             {
+                if (this.isDisposed)
+                {
+                    throw new InvalidOperationException("Current instance is already disposed.");
+                }
+
                 if (this.tokenDocumentStore is not null)
                 {
                     return this.tokenDocumentStore.FilterOrder;
@@ -40,6 +46,11 @@ namespace Clara.Storage
 
         public override void Filter(FilterExpression filterExpression, DocumentSet documentSet)
         {
+            if (this.isDisposed)
+            {
+                throw new InvalidOperationException("Current instance is already disposed.");
+            }
+
             if (filterExpression is HierarchyFilterExpression hierarchyFilterExpression)
             {
                 if (this.tokenDocumentStore is not null)
@@ -54,6 +65,11 @@ namespace Clara.Storage
 
         public override FieldFacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
         {
+            if (this.isDisposed)
+            {
+                throw new InvalidOperationException("Current instance is already disposed.");
+            }
+
             if (facetExpression is HierarchyFacetExpression hierarchyFacetExpression)
             {
                 if (this.documentTokenStore is not null)
@@ -67,11 +83,14 @@ namespace Clara.Storage
 
         public override void Dispose()
         {
-            this.tokenEncoder.Dispose();
-            this.tokenDocumentStore?.Dispose();
-            this.documentTokenStore?.Dispose();
+            if (!this.isDisposed)
+            {
+                this.tokenEncoder.Dispose();
+                this.tokenDocumentStore?.Dispose();
+                this.documentTokenStore?.Dispose();
 
-            base.Dispose();
+                this.isDisposed = true;
+            }
         }
     }
 }

@@ -22,6 +22,11 @@ namespace Clara.Analysis
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
+            if (next is null)
+            {
+                throw new ArgumentNullException(nameof(next));
+            }
+
             if (this.cache.TryGetValue(token, out var cachedToken))
             {
                 return cachedToken;

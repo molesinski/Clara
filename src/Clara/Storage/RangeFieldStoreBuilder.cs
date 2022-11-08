@@ -10,8 +10,10 @@ namespace Clara.Storage
         private readonly RangeField<TSource, TValue> field;
         private readonly TValue minValue;
         private readonly TValue maxValue;
-        private readonly ListSlim<DocumentValue<TValue>>? sortedDocumentValues;
-        private readonly DictionarySlim<int, MinMax<TValue>>? documentValueMinMax;
+        private readonly PooledList<DocumentValue<TValue>>? sortedDocumentValues;
+        private readonly PooledDictionary<int, MinMax<TValue>>? documentValueMinMax;
+        private bool isBuilt;
+        private bool isDisposed;
 
         public RangeFieldStoreBuilder(RangeField<TSource, TValue> field)
         {
@@ -37,6 +39,11 @@ namespace Clara.Storage
 
         public override void Index(int documentId, TSource item)
         {
+            if (this.isDisposed || this.isBuilt)
+            {
+                throw new InvalidOperationException("Current instance is already built or disposed.");
+            }
+
             var values = this.field.ValueMapper(item);
 
             var hadValues = false;
@@ -79,10 +86,33 @@ namespace Clara.Storage
 
         public override FieldStore Build()
         {
-            return
+            if (this.isDisposed || this.isBuilt)
+            {
+                throw new InvalidOperationException("Current instance is already built or disposed.");
+            }
+
+            var store =
                 new RangeFieldStore<TValue>(
                     this.sortedDocumentValues is not null ? new RangeSortedDocumentValueStore<TValue>(this.sortedDocumentValues) : null,
                     this.documentValueMinMax is not null ? new RangeDocumentValueMinMaxStore<TValue>(this.minValue, this.maxValue, this.documentValueMinMax) : null);
+
+            this.isBuilt = true;
+
+            return store;
+        }
+
+        public override void Dispose()
+        {
+            if (!this.isDisposed)
+            {
+                if (!this.isBuilt)
+                {
+                    this.sortedDocumentValues?.Dispose();
+                    this.documentValueMinMax?.Dispose();
+                }
+
+                this.isDisposed = true;
+            }
         }
     }
 }

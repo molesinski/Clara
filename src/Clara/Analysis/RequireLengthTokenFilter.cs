@@ -30,6 +30,11 @@ namespace Clara.Analysis
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
+            if (next is null)
+            {
+                throw new ArgumentNullException(nameof(next));
+            }
+
             var length = token.Length;
 
             if (length < this.minimumLength || length > this.maximumLength)

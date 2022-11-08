@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Clara.Utils;
 using Lucene.Net.Analysis.En;
@@ -35,7 +36,7 @@ namespace Clara.Analysis
             }
         }
 
-        private class Stemmer : IEnumerable<Token>
+        private sealed class Stemmer : IEnumerable<Token>, IDisposable
         {
             private readonly SingleTokenStream stringStream;
             private readonly PorterStemFilter stemmer;
@@ -64,6 +65,12 @@ namespace Clara.Analysis
             IEnumerator IEnumerable.GetEnumerator()
             {
                 return new TokenStreamEnumerable(this.stemmer).GetEnumerator();
+            }
+
+            public void Dispose()
+            {
+                this.stemmer.Dispose();
+                this.stringStream.Dispose();
             }
         }
     }

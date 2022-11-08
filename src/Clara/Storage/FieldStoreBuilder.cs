@@ -10,9 +10,7 @@ namespace Clara.Storage
 
         public abstract FieldStore Build();
 
-        public virtual void Dispose()
-        {
-        }
+        public abstract void Dispose();
     }
 
     internal abstract class FieldStoreBuilder<TSource> : FieldStoreBuilder

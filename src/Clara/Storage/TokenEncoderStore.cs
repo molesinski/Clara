@@ -10,8 +10,8 @@ namespace Clara.Storage
 
         public object SyncRoot { get; } = new object();
 
-        internal abstract TokenEncoderBuilder CreateTokenEncoderBuilder();
+        internal abstract ITokenEncoderBuilder CreateTokenEncoderBuilder();
 
-        internal abstract TokenEncoderBuilder CreateTokenEncoderBuilder(Field field);
+        internal abstract ITokenEncoderBuilder CreateTokenEncoderBuilder(Field field);
     }
 }

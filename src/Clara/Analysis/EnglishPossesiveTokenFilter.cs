@@ -1,9 +1,16 @@
-﻿namespace Clara.Analysis
+﻿using System;
+
+namespace Clara.Analysis
 {
     public class EnglishPossesiveTokenFilter : ITokenFilter
     {
         public Token Process(Token token, TokenFilterDelegate next)
         {
+            if (next is null)
+            {
+                throw new ArgumentNullException(nameof(next));
+            }
+
             var length = token.Length;
 
             if (length >= 2)

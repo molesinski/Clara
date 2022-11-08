@@ -374,7 +374,7 @@ namespace Clara.Analysis
             {
                 var a = NumberOfConsoantSequences(token, token.Length - 1);
 
-                if (a > 1 || a == 1 && !HasCvcAt(token, token.Length - 2))
+                if (a > 1 || (a == 1 && !HasCvcAt(token, token.Length - 2)))
                 {
                     token.Remove(token.Length - 1);
                 }

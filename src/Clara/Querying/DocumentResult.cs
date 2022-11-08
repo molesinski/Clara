@@ -1,6 +1,6 @@
 ﻿namespace Clara.Querying
 {
-    public readonly struct DocumentResult<TDocument>
+    public readonly record struct DocumentResult<TDocument>
     {
         public DocumentResult(TDocument document)
         {

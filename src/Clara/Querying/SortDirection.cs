@@ -1,6 +1,6 @@
 ﻿namespace Clara.Querying
 {
-    public enum SortDirection : byte
+    public enum SortDirection
     {
         Ascending = 0,
         Descending,

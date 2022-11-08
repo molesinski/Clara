@@ -9,6 +9,7 @@ namespace Clara.Storage
     {
         private readonly RangeSortedDocumentValueStore<TValue>? sortedDocumentValueStore;
         private readonly RangeDocumentValueMinMaxStore<TValue>? documentValueMinMaxStore;
+        private bool isDisposed;
 
         public RangeFieldStore(
             RangeSortedDocumentValueStore<TValue>? sortedDocumentValueStore,
@@ -22,6 +23,11 @@ namespace Clara.Storage
         {
             get
             {
+                if (this.isDisposed)
+                {
+                    throw new InvalidOperationException("Current instance is already disposed.");
+                }
+
                 if (this.sortedDocumentValueStore is not null)
                 {
                     return this.sortedDocumentValueStore.FilterOrder;
@@ -33,6 +39,11 @@ namespace Clara.Storage
 
         public override void Filter(FilterExpression filterExpression, DocumentSet documentSet)
         {
+            if (this.isDisposed)
+            {
+                throw new InvalidOperationException("Current instance is already disposed.");
+            }
+
             if (filterExpression is RangeFilterExpression<TValue> rangeFilterExpression)
             {
                 if (this.sortedDocumentValueStore is not null)
@@ -47,6 +58,11 @@ namespace Clara.Storage
 
         public override FieldFacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
         {
+            if (this.isDisposed)
+            {
+                throw new InvalidOperationException("Current instance is already disposed.");
+            }
+
             if (facetExpression is RangeFacetExpression<TValue> rangeFacetExpression)
             {
                 if (this.documentValueMinMaxStore is not null)
@@ -60,6 +76,11 @@ namespace Clara.Storage
 
         public override SortedDocumentSet Sort(SortExpression sortExpression, DocumentSet documentSet)
         {
+            if (this.isDisposed)
+            {
+                throw new InvalidOperationException("Current instance is already disposed.");
+            }
+
             if (sortExpression is RangeSortExpression<TValue> rangeSortExpression)
             {
                 if (this.documentValueMinMaxStore is not null)
@@ -73,10 +94,13 @@ namespace Clara.Storage
 
         public override void Dispose()
         {
-            this.sortedDocumentValueStore?.Dispose();
-            this.documentValueMinMaxStore?.Dispose();
+            if (!this.isDisposed)
+            {
+                this.sortedDocumentValueStore?.Dispose();
+                this.documentValueMinMaxStore?.Dispose();
 
-            base.Dispose();
+                this.isDisposed = true;
+            }
         }
     }
 }

@@ -6,7 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".Solution", ".Solution", "{3D08CBF7-9259-4571-81E3-0BA282FB3695}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.globalconfig = .globalconfig
 		azure-pipelines.yml = azure-pipelines.yml
+		global.json = global.json
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
@@ -15,7 +17,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Clara", "src\Clara\Clara.cs
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Clara.Analysis.LuceneNet", "src\Clara.Analysis.LuceneNet\Clara.Analysis.LuceneNet.csproj", "{DCD7D293-F645-4C7C-8216-7640397D1926}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clara.Analysis.Morfologik", "src\Clara.Analysis.Morfologik\Clara.Analysis.Morfologik.csproj", "{8265C2E0-71D7-4FE2-9676-8877AD7945C8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Clara.Analysis.Morfologik", "src\Clara.Analysis.Morfologik\Clara.Analysis.Morfologik.csproj", "{8265C2E0-71D7-4FE2-9676-8877AD7945C8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5C71CA4F-34F6-4666-9704-EC203E131A7E}"
+	ProjectSection(SolutionItems) = preProject
+		.globalconfig = .globalconfig
+		src\Directory.Build.props = src\Directory.Build.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,6 +46,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5C71CA4F-34F6-4666-9704-EC203E131A7E} = {3D08CBF7-9259-4571-81E3-0BA282FB3695}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {96C3659A-5A45-48B9-89A2-B5B6CDF5CD91}

@@ -2,7 +2,7 @@
 
 namespace Clara.Querying
 {
-    public readonly struct KeywordFacetValue
+    public readonly record struct KeywordFacetValue
     {
         public KeywordFacetValue(string value, int count, bool isSelected)
         {

@@ -5,9 +5,9 @@ namespace Clara.Querying
 {
     public abstract class ValuesMatchExpression : MatchExpression
     {
-        private readonly List<string> values;
+        private readonly IReadOnlyList<string> values;
 
-        protected internal ValuesMatchExpression(List<string> values)
+        protected internal ValuesMatchExpression(IReadOnlyList<string> values)
         {
             if (values is null)
             {

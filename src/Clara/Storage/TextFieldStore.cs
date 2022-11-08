@@ -7,12 +7,13 @@ namespace Clara.Storage
     internal sealed class TextFieldStore : FieldStore
     {
         private readonly ISynonymMap synonymMap;
-        private readonly TokenEncoder tokenEncoder;
+        private readonly ITokenEncoder tokenEncoder;
         private readonly TokenDocumentStore tokenDocumentStore;
+        private bool isDisposed;
 
         public TextFieldStore(
             ISynonymMap synonymMap,
-            TokenEncoder tokenEncoder,
+            ITokenEncoder tokenEncoder,
             TokenDocumentStore tokenDocumentStore)
         {
             if (synonymMap is null)
@@ -39,12 +40,22 @@ namespace Clara.Storage
         {
             get
             {
+                if (this.isDisposed)
+                {
+                    throw new InvalidOperationException("Current instance is already disposed.");
+                }
+
                 return double.MinValue;
             }
         }
 
         public override void Filter(FilterExpression filterExpression, DocumentSet documentSet)
         {
+            if (this.isDisposed)
+            {
+                throw new InvalidOperationException("Current instance is already disposed.");
+            }
+
             if (filterExpression is TextFilterExpression textFilterExpression)
             {
                 var matchExpression = textFilterExpression.MatchExpression;
@@ -60,10 +71,13 @@ namespace Clara.Storage
 
         public override void Dispose()
         {
-            this.tokenEncoder.Dispose();
-            this.tokenDocumentStore.Dispose();
+            if (!this.isDisposed)
+            {
+                this.tokenEncoder.Dispose();
+                this.tokenDocumentStore.Dispose();
 
-            base.Dispose();
+                this.isDisposed = true;
+            }
         }
     }
 }

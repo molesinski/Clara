@@ -8,7 +8,7 @@ namespace Clara.Storage
     internal sealed class RangeSortedDocumentSet<TValue> : SortedDocumentSet
         where TValue : struct, IComparable<TValue>
     {
-        private readonly ListSlim<DocumentValue<TValue>> sortedDocuments;
+        private readonly PooledList<DocumentValue<TValue>> sortedDocuments;
 
         public RangeSortedDocumentSet(Func<int, TValue> valueSelector, IComparer<DocumentValue<TValue>> comparer, IDocumentSet documentSet)
         {
@@ -27,7 +27,7 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(documentSet));
             }
 
-            this.sortedDocuments = new ListSlim<DocumentValue<TValue>>(Allocator.ArrayPool, capacity: documentSet.Count);
+            this.sortedDocuments = new PooledList<DocumentValue<TValue>>(Allocator.ArrayPool, capacity: documentSet.Count);
 
             foreach (var documentId in documentSet)
             {

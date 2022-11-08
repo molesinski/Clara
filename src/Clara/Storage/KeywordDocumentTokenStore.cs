@@ -10,11 +10,11 @@ namespace Clara.Storage
         private static readonly HashSet<string> EmptySelectedValues = new();
 
         private readonly ITokenEncoder tokenEncoder;
-        private readonly DictionarySlim<int, HashSetSlim<int>> documentTokens;
+        private readonly PooledDictionary<int, PooledSet<int>> documentTokens;
 
         public KeywordDocumentTokenStore(
             ITokenEncoder tokenEncoder,
-            DictionarySlim<int, HashSetSlim<int>> documentTokens)
+            PooledDictionary<int, PooledSet<int>> documentTokens)
         {
             if (tokenEncoder is null)
             {
@@ -30,6 +30,7 @@ namespace Clara.Storage
             this.documentTokens = documentTokens;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Transferred disposable ownership.")]
         public FieldFacetResult? Facet(KeywordFacetExpression tokenFacetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
         {
             var selectedValues = EmptySelectedValues;
@@ -42,7 +43,7 @@ namespace Clara.Storage
                 }
             }
 
-            using var tokenCounts = new DictionarySlim<int, int>(Allocator.ArrayPool);
+            using var tokenCounts = new PooledDictionary<int, int>(Allocator.ArrayPool);
 
             foreach (var documentId in documents)
             {
@@ -57,7 +58,7 @@ namespace Clara.Storage
                 }
             }
 
-            var values = new ListSlim<KeywordFacetValue>(Allocator.ArrayPool);
+            var values = new PooledList<KeywordFacetValue>(Allocator.ArrayPool);
 
             foreach (var pair in tokenCounts)
             {

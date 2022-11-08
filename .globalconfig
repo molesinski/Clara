@@ -1,0 +1,3 @@
+﻿# Analyzer rules
+
+dotnet_diagnostic.CA1014.severity = silent

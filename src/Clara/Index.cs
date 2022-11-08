@@ -22,14 +22,15 @@ namespace Clara
         private static readonly HashSet<Field> EmptyFacetFields = new();
         private static readonly List<FieldFacetResult> EmptyFacetResults = new();
 
-        private readonly TokenEncoder tokenEncoder;
-        private readonly DictionarySlim<int, TDocument> documents;
+        private readonly ITokenEncoder tokenEncoder;
+        private readonly PooledDictionary<int, TDocument> documents;
         private readonly Dictionary<Field, FieldStore> fieldStores;
-        private readonly HashSetSlim<int> allDocuments;
+        private readonly PooledSet<int> allDocuments;
+        private bool isDisposed;
 
         internal Index(
-            TokenEncoder tokenEncoder,
-            DictionarySlim<int, TDocument> documents,
+            ITokenEncoder tokenEncoder,
+            PooledDictionary<int, TDocument> documents,
             Dictionary<Field, FieldStore> fieldStores)
         {
             if (tokenEncoder is null)
@@ -50,7 +51,7 @@ namespace Clara
             this.tokenEncoder = tokenEncoder;
             this.documents = documents;
             this.fieldStores = fieldStores;
-            this.allDocuments = new HashSetSlim<int>(Allocator.Mixed, capacity: documents.Count);
+            this.allDocuments = new PooledSet<int>(Allocator.Mixed, capacity: documents.Count);
 
             foreach (var pair in documents)
             {
@@ -60,11 +61,21 @@ namespace Clara
 
         public QueryBuilder QueryBuilder()
         {
+            if (this.isDisposed)
+            {
+                throw new InvalidOperationException("Current instance is already disposed.");
+            }
+
             return new QueryBuilder(this);
         }
 
         public QueryResult<TDocument> Query(Query query)
         {
+            if (this.isDisposed)
+            {
+                throw new InvalidOperationException("Current instance is already disposed.");
+            }
+
             if (query is null)
             {
                 throw new ArgumentNullException(nameof(query));
@@ -74,24 +85,34 @@ namespace Clara
 
             if (query.IncludeDocuments is not null)
             {
-                var includedDocuments = default(HashSetSlim<int>);
+                var includedDocuments = default(PooledSet<int>);
 
-                foreach (var includedDocument in query.IncludeDocuments)
+                try
                 {
-                    if (includedDocument is not null)
+                    foreach (var includedDocument in query.IncludeDocuments)
                     {
-                        includedDocuments ??= new(Allocator.ArrayPool);
-
-                        if (this.tokenEncoder.TryEncode(includedDocument, out var documentId))
+                        if (includedDocument is not null)
                         {
-                            includedDocuments.Add(documentId);
+                            includedDocuments ??= new(Allocator.ArrayPool);
+
+                            if (this.tokenEncoder.TryEncode(includedDocument, out var documentId))
+                            {
+                                includedDocuments.Add(documentId);
+                            }
                         }
                     }
-                }
 
-                if (includedDocuments is not null)
+                    if (includedDocuments is not null)
+                    {
+                        documentSet = new DocumentSet(includedDocuments);
+                        includedDocuments = null;
+                    }
+                }
+                finally
                 {
-                    documentSet = new DocumentSet(includedDocuments);
+#pragma warning disable CA1508
+                    includedDocuments?.Dispose();
+#pragma warning restore CA1508
                 }
             }
 
@@ -146,26 +167,31 @@ namespace Clara
 
             if (query.ExcludeDocuments is not null)
             {
-                var excludeDocuments = default(HashSetSlim<int>);
+                var excludeDocuments = default(PooledSet<int>);
 
-                foreach (var excludeDocument in query.ExcludeDocuments)
+                try
                 {
-                    if (excludeDocument is not null)
+                    foreach (var excludeDocument in query.ExcludeDocuments)
                     {
-                        excludeDocuments ??= new(Allocator.ArrayPool);
-
-                        if (this.tokenEncoder.TryEncode(excludeDocument, out var documentId))
+                        if (excludeDocument is not null)
                         {
-                            excludeDocuments.Add(documentId);
+                            excludeDocuments ??= new(Allocator.ArrayPool);
+
+                            if (this.tokenEncoder.TryEncode(excludeDocument, out var documentId))
+                            {
+                                excludeDocuments.Add(documentId);
+                            }
                         }
                     }
+
+                    if (excludeDocuments is not null)
+                    {
+                        documentSet.ExceptWith(excludeDocuments);
+                    }
                 }
-
-                if (excludeDocuments is not null)
+                finally
                 {
-                    documentSet.ExceptWith(excludeDocuments);
-
-                    excludeDocuments.Dispose();
+                    excludeDocuments?.Dispose();
                 }
             }
 
@@ -227,16 +253,21 @@ namespace Clara
 
         public void Dispose()
         {
-            this.tokenEncoder.Dispose();
-            this.documents.Dispose();
-            this.allDocuments.Dispose();
-
-            foreach (var pair in this.fieldStores)
+            if (!this.isDisposed)
             {
-                pair.Value.Dispose();
-            }
+                this.tokenEncoder.Dispose();
+                this.documents.Dispose();
+                this.allDocuments.Dispose();
 
-            this.fieldStores.Clear();
+                foreach (var pair in this.fieldStores)
+                {
+                    pair.Value.Dispose();
+                }
+
+                this.fieldStores.Clear();
+
+                this.isDisposed = true;
+            }
         }
 
         internal override bool HasField(Field field)

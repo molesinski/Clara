@@ -1,6 +1,8 @@
-﻿namespace Clara.Storage
+﻿using System;
+
+namespace Clara.Storage
 {
-    internal interface ITokenEncoder
+    internal interface ITokenEncoder : IDisposable
     {
         string Decode(int id);
 

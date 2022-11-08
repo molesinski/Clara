@@ -9,11 +9,11 @@ namespace Clara.Storage
     internal sealed class TokenDocumentStore : IDisposable
     {
         private readonly ITokenEncoder tokenEncoder;
-        private readonly DictionarySlim<int, HashSetSlim<int>> tokenDocuments;
+        private readonly PooledDictionary<int, PooledSet<int>> tokenDocuments;
 
         public TokenDocumentStore(
             ITokenEncoder tokenEncoder,
-            DictionarySlim<int, HashSetSlim<int>> tokenDocuments)
+            PooledDictionary<int, PooledSet<int>> tokenDocuments)
         {
             if (tokenEncoder is null)
             {
@@ -44,6 +44,7 @@ namespace Clara.Storage
 
         public double FilterOrder { get; }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Transferred disposable ownership.")]
         public void Filter(Field field, MatchExpression matchExpression, DocumentSet documentSet)
         {
             if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
@@ -66,7 +67,7 @@ namespace Clara.Storage
                 }
                 else
                 {
-                    var anyMatches = new HashSetSlim<int>(Allocator.ArrayPool);
+                    var anyMatches = new PooledSet<int>(Allocator.ArrayPool);
 
                     foreach (var token in anyValuesMatchExpression.Values)
                     {
@@ -103,8 +104,8 @@ namespace Clara.Storage
             }
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
-                var anyMatches = new HashSetSlim<int>(Allocator.ArrayPool);
-                using var tempSet = new HashSetSlim<int>(Allocator.ArrayPool);
+                var anyMatches = new PooledSet<int>(Allocator.ArrayPool);
+                using var tempSet = new PooledSet<int>(Allocator.ArrayPool);
 
                 foreach (var expression in orMatchExpression.Expressions)
                 {
@@ -119,7 +120,7 @@ namespace Clara.Storage
             }
             else if (matchExpression is AndMatchExpression andMatchExpression)
             {
-                using var tempSet = new HashSetSlim<int>(Allocator.ArrayPool);
+                using var tempSet = new PooledSet<int>(Allocator.ArrayPool);
 
                 foreach (var expression in andMatchExpression.Expressions)
                 {
@@ -136,7 +137,17 @@ namespace Clara.Storage
             }
         }
 
-        private void Filter(MatchExpression matchExpression, HashSetSlim<int> resultSet)
+        public void Dispose()
+        {
+            foreach (var pair in this.tokenDocuments)
+            {
+                pair.Value.Dispose();
+            }
+
+            this.tokenDocuments.Dispose();
+        }
+
+        private void Filter(MatchExpression matchExpression, PooledSet<int> resultSet)
         {
             if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
             {
@@ -181,7 +192,7 @@ namespace Clara.Storage
             }
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
-                using var tempSet = new HashSetSlim<int>(Allocator.ArrayPool);
+                using var tempSet = new PooledSet<int>(Allocator.ArrayPool);
 
                 foreach (var expression in orMatchExpression.Expressions)
                 {
@@ -194,7 +205,7 @@ namespace Clara.Storage
             }
             else if (matchExpression is AndMatchExpression andMatchExpression)
             {
-                using var tempSet = new HashSetSlim<int>(Allocator.ArrayPool);
+                using var tempSet = new PooledSet<int>(Allocator.ArrayPool);
                 var isFirst = true;
 
                 foreach (var expression in andMatchExpression.Expressions)
@@ -218,16 +229,6 @@ namespace Clara.Storage
             {
                 throw new InvalidOperationException("Unsupported token expression encountered.");
             }
-        }
-
-        public void Dispose()
-        {
-            foreach (var pair in this.tokenDocuments)
-            {
-                pair.Value.Dispose();
-            }
-
-            this.tokenDocuments.Dispose();
         }
     }
 }
