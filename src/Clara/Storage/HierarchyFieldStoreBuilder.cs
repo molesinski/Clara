@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Clara.Mapping;
+﻿using Clara.Mapping;
 using Clara.Utils;
 
 namespace Clara.Storage
@@ -47,7 +45,6 @@ namespace Clara.Storage
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Transferred disposable ownership.")]
         public override void Index(int documentId, TSource item)
         {
             if (this.isDisposed || this.isBuilt)

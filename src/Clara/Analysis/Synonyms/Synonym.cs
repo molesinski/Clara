@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Clara.Analysis.Synonyms
+﻿namespace Clara.Analysis.Synonyms
 {
     public abstract class Synonym
     {

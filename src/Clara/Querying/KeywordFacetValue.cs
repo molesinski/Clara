@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Clara.Querying
+﻿namespace Clara.Querying
 {
     public readonly record struct KeywordFacetValue
     {

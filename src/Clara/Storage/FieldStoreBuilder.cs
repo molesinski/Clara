@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Clara.Storage
+﻿namespace Clara.Storage
 {
     internal abstract class FieldStoreBuilder : IDisposable
     {

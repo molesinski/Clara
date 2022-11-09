@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Clara.Querying
+﻿namespace Clara.Querying
 {
     public sealed class AllValuesMatchExpression : ValuesMatchExpression
     {

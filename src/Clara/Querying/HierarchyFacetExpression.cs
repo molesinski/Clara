@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Clara.Mapping;
+﻿using Clara.Mapping;
 
 namespace Clara.Querying
 {

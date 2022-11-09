@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Clara.Querying;
+﻿using Clara.Querying;
 using Clara.Utils;
 
 namespace Clara.Storage
@@ -30,7 +28,6 @@ namespace Clara.Storage
             this.documentTokens = documentTokens;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Transferred disposable ownership.")]
         public FieldFacetResult? Facet(KeywordFacetExpression tokenFacetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
         {
             var selectedValues = EmptySelectedValues;

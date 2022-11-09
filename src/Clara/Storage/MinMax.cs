@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Clara.Storage
+﻿namespace Clara.Storage
 {
     internal readonly struct MinMax<TValue>
         where TValue : struct, IComparable<TValue>

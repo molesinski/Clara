@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Clara.Mapping
+﻿namespace Clara.Mapping
 {
     public sealed class DoubleField<TSource> : RangeField<TSource, double>
     {

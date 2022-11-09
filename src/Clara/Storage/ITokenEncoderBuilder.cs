@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Clara.Storage
+﻿namespace Clara.Storage
 {
     internal interface ITokenEncoderBuilder : IDisposable
     {

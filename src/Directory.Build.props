@@ -1,10 +1,13 @@
 ﻿<Project>
 
   <PropertyGroup>
-    <ImplicitUsings>disable</ImplicitUsings>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
+    <Features>strict</Features>
+    <AnalysisLevel>latest</AnalysisLevel>
     <AnalysisMode>all</AnalysisMode>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
@@ -15,7 +18,9 @@
     <Copyright>Copyright Maciej Olesiński</Copyright>
     <RepositoryUrl>https://github.com/molesinski/Clara</RepositoryUrl>
     <PackageProjectUrl>https://github.com/molesinski/Clara</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>

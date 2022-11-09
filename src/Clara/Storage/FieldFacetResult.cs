@@ -1,5 +1,4 @@
-﻿using System;
-using Clara.Querying;
+﻿using Clara.Querying;
 
 namespace Clara.Storage
 {

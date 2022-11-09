@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Clara.Querying;
+﻿using Clara.Querying;
 using Clara.Utils;
 
 namespace Clara.Storage

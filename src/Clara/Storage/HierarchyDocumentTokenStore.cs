@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Clara.Querying;
+﻿using Clara.Querying;
 using Clara.Utils;
 
 namespace Clara.Storage
@@ -44,7 +42,6 @@ namespace Clara.Storage
             this.parentChildren = parentChildren;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Transferred disposable ownership.")]
         public FieldFacetResult? Facet(HierarchyFacetExpression hierarchyFacetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
         {
             var selectedValues = this.rootSet;

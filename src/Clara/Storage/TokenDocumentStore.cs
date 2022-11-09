@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Clara.Mapping;
+﻿using Clara.Mapping;
 using Clara.Querying;
 using Clara.Utils;
 
@@ -44,7 +42,6 @@ namespace Clara.Storage
 
         public double FilterOrder { get; }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Transferred disposable ownership.")]
         public void Filter(Field field, MatchExpression matchExpression, DocumentSet documentSet)
         {
             if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)

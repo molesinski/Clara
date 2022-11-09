@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Clara.Mapping;
+﻿using Clara.Mapping;
 using Clara.Querying;
 using Clara.Storage;
 using Clara.Utils;
@@ -110,9 +107,7 @@ namespace Clara
                 }
                 finally
                 {
-#pragma warning disable CA1508
                     includedDocuments?.Dispose();
-#pragma warning restore CA1508
                 }
             }
 

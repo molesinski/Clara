@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Lucene.Net.Analysis;
+﻿using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.TokenAttributes;
 
 namespace Clara.Analysis

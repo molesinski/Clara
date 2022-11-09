@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Clara.Mapping
+﻿namespace Clara.Mapping
 {
     public interface IIndexMapper<TSource, TDocument>
     {

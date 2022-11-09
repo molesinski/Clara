@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Clara.Analysis.Synonyms
+﻿namespace Clara.Analysis.Synonyms
 {
     public sealed class EquivalencySynonym : Synonym
     {

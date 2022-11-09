@@ -1,5 +1,4 @@
-﻿using System;
-using Clara.Analysis.Synonyms;
+﻿using Clara.Analysis.Synonyms;
 using Clara.Mapping;
 using Clara.Utils;
 
@@ -32,7 +31,6 @@ namespace Clara.Storage
             this.tokenDocuments = new(Allocator.Mixed);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Transferred disposable ownership.")]
         public override void Index(int documentId, TSource item)
         {
             if (this.isDisposed || this.isBuilt)

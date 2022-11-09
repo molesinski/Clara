@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Clara.Analysis
+﻿namespace Clara.Analysis
 {
     public interface ITokenizer
     {

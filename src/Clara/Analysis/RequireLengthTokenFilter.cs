@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Clara.Analysis
+﻿namespace Clara.Analysis
 {
     public class RequireLengthTokenFilter : ITokenFilter
     {

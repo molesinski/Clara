@@ -1,5 +1,4 @@
-﻿using System;
-using Clara.Analysis.Synonyms;
+﻿using Clara.Analysis.Synonyms;
 using Clara.Querying;
 
 namespace Clara.Storage

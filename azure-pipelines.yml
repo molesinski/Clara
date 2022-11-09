@@ -14,14 +14,40 @@ pr: none
 
 steps:
 - task: UseDotNet@2
-  displayName: 'Use .NET Core SDK'
+  displayName: 'Use 3.1 .NET Core Runtime'
+  inputs:
+    packageType: "runtime"
+    version: "3.1.x"
+    
+- task: UseDotNet@2
+  displayName: 'Use 6.0 .NET Core Runtime'
+  inputs:
+    packageType: "runtime"
+    version: "6.0.x"
+
+- task: UseDotNet@2
+  displayName: 'Use latest .NET Core SDK'
   inputs:
     useGlobalJson: true
 
 - script: |
     dotnet restore "src/Clara/Clara.csproj"
+    dotnet restore "src/Clara.Tests/Clara.Tests.csproj"
     dotnet build "src/Clara/Clara.csproj" --no-restore -c Release /p:Version=$(major).$(minor).$(patch)
+    dotnet build "src/Clara.Tests/Clara.Tests.csproj" --no-restore -c Release /p:Version=$(major).$(minor).$(patch)
   displayName: Restore and build projects
+
+- script: |
+    dotnet test "src/Clara.Tests/Clara.Tests.csproj" --no-build -c Release -l trx --results-directory $(Common.TestResultsDirectory) /p:Version=$(major).$(minor).$(patch)
+  displayName: Run tests
+
+- task: PublishTestResults@2
+  inputs:
+    searchFolder: "$(Common.TestResultsDirectory)"
+    testRunner: VSTest
+    testResultsFiles: "**/*.trx"
+  condition: succeededOrFailed()
+  displayName: Publish test results
 
 - script: |
     dotnet pack "src/Clara/Clara.csproj" --no-build -c Release -o $(Build.ArtifactStagingDirectory) /p:Version=$(major).$(minor).$(patch)

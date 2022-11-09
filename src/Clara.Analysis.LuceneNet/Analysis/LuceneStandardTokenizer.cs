@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using Clara.Utils;
+﻿using Clara.Utils;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Util;
 

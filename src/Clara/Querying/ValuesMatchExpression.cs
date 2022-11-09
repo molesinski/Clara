@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Clara.Querying
+﻿namespace Clara.Querying
 {
     public abstract class ValuesMatchExpression : MatchExpression
     {
