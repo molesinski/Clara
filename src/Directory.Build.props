@@ -19,7 +19,6 @@
     <RepositoryUrl>https://github.com/molesinski/Clara</RepositoryUrl>
     <PackageProjectUrl>https://github.com/molesinski/Clara</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
