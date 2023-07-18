@@ -21,7 +21,9 @@
             return n > 0 ? (((n - 1) / IntSize) + 1) : 0;
         }
 
+#pragma warning disable IDE0251 // Make member 'readonly'
         internal void MarkBit(int bitPosition)
+#pragma warning restore IDE0251 // Make member 'readonly'
         {
             var bitArrayIndex = (uint)bitPosition / IntSize;
             var span = this.span;
@@ -32,7 +34,7 @@
             }
         }
 
-        internal bool IsMarked(int bitPosition)
+        internal readonly bool IsMarked(int bitPosition)
         {
             var bitArrayIndex = (uint)bitPosition / IntSize;
             var span = this.span;

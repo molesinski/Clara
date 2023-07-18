@@ -9,9 +9,16 @@ indent_style = space
 indent_size = 4
 tab_width = 4
 
-[*.{csproj,props,targets,json,config,yaml,yml,xml}]
+[*.{csproj,dcproj,props,targets,json,config,conf,cmd,sh,yaml,yml,xml}]
 indent_size = 2
 tab_width = 2
+
+[*.{cmd,js,json}]
+charset = utf-8
+
+[*.{conf,sh}]
+charset = utf-8
+end_of_line = lf
 
 [global.json]
 charset = latin1
@@ -145,7 +152,7 @@ dotnet_naming_style.pascal_case.required_prefix =
 dotnet_naming_style.pascal_case.required_suffix = 
 dotnet_naming_style.pascal_case.word_separator = 
 dotnet_naming_style.pascal_case.capitalization = pascal_case
-dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_coalesce_expression = true:silent
 dotnet_style_null_propagation = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
 dotnet_style_prefer_auto_properties = true:silent
@@ -183,12 +190,6 @@ dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
 
 # Analyzer rules
-
-dotnet_diagnostic.CA1716.severity = silent
-dotnet_diagnostic.CA1711.severity = silent
-dotnet_diagnostic.CA2225.severity = silent
-
-dotnet_diagnostic.IDE0074.severity = silent
 
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.DocumentationRules.severity = none
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.LayoutRules.severity = error

@@ -167,7 +167,7 @@ namespace Clara.Storage
             this.branches.Clear();
         }
 
-        private class BranchSet : IDisposable
+        private sealed class BranchSet : IDisposable
         {
             private readonly IReadOnlyCollection<int> allDocuments;
             private PooledSet<int>? documents;

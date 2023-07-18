@@ -101,7 +101,9 @@ namespace Clara.Storage
             }
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
+#pragma warning disable CA2000 // Dispose objects before losing scope
                 var anyMatches = new PooledSet<int>(Allocator.ArrayPool);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 using var tempSet = new PooledSet<int>(Allocator.ArrayPool);
 
                 foreach (var expression in orMatchExpression.Expressions)

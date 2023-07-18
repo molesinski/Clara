@@ -19,7 +19,7 @@ namespace Clara.Analysis
 
             if (!(value.Length <= MaximumLength))
             {
-                throw new ArgumentException("Read only tokens must have length less than or equal to maximumum token length.", nameof(value));
+                throw new ArgumentException("Read only tokens must have length less than or equal to maximum token length.", nameof(value));
             }
 
             this.value = value;
@@ -41,7 +41,7 @@ namespace Clara.Analysis
 
             if (!(chars.Length >= MaximumLength))
             {
-                throw new ArgumentException("Writeable tokens must have character buffer length greater than or equal to maximumum token length.", nameof(chars));
+                throw new ArgumentException("Writeable tokens must have character buffer length greater than or equal to maximum token length.", nameof(chars));
             }
 
             this.value = null;
@@ -49,7 +49,7 @@ namespace Clara.Analysis
             this.length = length;
         }
 
-        public int Length
+        public readonly int Length
         {
             get
             {
@@ -68,7 +68,7 @@ namespace Clara.Analysis
             }
         }
 
-        public bool IsReadOnly
+        public readonly bool IsReadOnly
         {
             get
             {
@@ -76,7 +76,7 @@ namespace Clara.Analysis
             }
         }
 
-        public ReadOnlySpan<char> Span
+        public readonly ReadOnlySpan<char> Span
         {
             get
             {
@@ -95,7 +95,7 @@ namespace Clara.Analysis
             }
         }
 
-        public char this[int index]
+        public readonly char this[int index]
         {
             get
             {
@@ -139,11 +139,6 @@ namespace Clara.Analysis
             }
         }
 
-        public static implicit operator ReadOnlySpan<char>(Token value)
-        {
-            return value.Span;
-        }
-
         public static bool operator ==(Token left, Token right)
         {
             return left.Equals(right);
@@ -154,7 +149,7 @@ namespace Clara.Analysis
             return !left.Equals(right);
         }
 
-        public void CopyTo(StringBuilder builder)
+        public readonly void CopyTo(StringBuilder builder)
         {
             if (builder is null)
             {
@@ -262,7 +257,7 @@ namespace Clara.Analysis
             this.length = startIndex;
         }
 
-        public Token ToReadOnly()
+        public readonly Token AsReadOnly()
         {
             if (!this.IsReadOnly)
             {
@@ -272,7 +267,7 @@ namespace Clara.Analysis
             return this;
         }
 
-        public bool Equals(Token other)
+        public readonly bool Equals(Token other)
         {
             var a = this.Span;
             var b = other.Span;
@@ -285,7 +280,7 @@ namespace Clara.Analysis
             return a.SequenceEqual(b);
         }
 
-        public override bool Equals(object? obj)
+        public override readonly bool Equals(object? obj)
         {
             if (obj is not Token other)
             {
@@ -295,7 +290,7 @@ namespace Clara.Analysis
             return this.Equals(other);
         }
 
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             var span = this.Span;
 
@@ -320,7 +315,7 @@ namespace Clara.Analysis
             }
         }
 
-        public override string ToString()
+        public override readonly string ToString()
         {
             if (this.value is not null)
             {

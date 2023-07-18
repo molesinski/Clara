@@ -70,7 +70,9 @@ namespace Clara.Storage
                         {
                             ref var children = ref this.parentChildren.GetValueRefOrAddDefault(parentId, out _);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
                             children ??= new PooledSet<int>(Allocator.Mixed);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                             children.Add(tokenId);
                         }
                     }
@@ -81,7 +83,9 @@ namespace Clara.Storage
                     {
                         ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
                         documents ??= new PooledSet<int>(Allocator.Mixed);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                         documents.Add(documentId);
                     }
 
@@ -91,7 +95,9 @@ namespace Clara.Storage
                         {
                             ref var value = ref this.documentTokens.GetValueRefOrAddDefault(documentId, out _);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
                             value = tokens = new PooledSet<int>(Allocator.Mixed);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                         }
 
                         tokens.Add(tokenId);

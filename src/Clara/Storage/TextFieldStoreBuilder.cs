@@ -51,7 +51,9 @@ namespace Clara.Storage
 
                 ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
                 documents ??= new PooledSet<int>(Allocator.Mixed);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
                 documents.Add(documentId);
             }

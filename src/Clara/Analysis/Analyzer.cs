@@ -68,7 +68,7 @@
             return pipeline;
         }
 
-        private class EmptyTokenizer : ITokenizer
+        private sealed class EmptyTokenizer : ITokenizer
         {
             public IEnumerable<Token> GetTokens(string text)
             {

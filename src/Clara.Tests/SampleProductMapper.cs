@@ -1,4 +1,5 @@
-﻿using Clara.Analysis;
+﻿using System.Globalization;
+using Clara.Analysis;
 using Clara.Mapping;
 
 namespace Clara.Tests
@@ -37,7 +38,12 @@ namespace Clara.Tests
 
         public string GetDocumentKey(SampleProduct item)
         {
-            return item.Id.ToString();
+            if (item is null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
+
+            return item.Id.ToString(CultureInfo.InvariantCulture);
         }
 
         public SampleProduct GetDocument(SampleProduct item)

@@ -3,7 +3,7 @@ using Clara.Utils;
 
 namespace Clara.Storage
 {
-    internal class RangeDocumentValueMinMaxStore<TValue> : IDisposable
+    internal sealed class RangeDocumentValueMinMaxStore<TValue> : IDisposable
         where TValue : struct, IComparable<TValue>
     {
         private readonly TValue minValue;

@@ -3,7 +3,7 @@ using Clara.Utils;
 
 namespace Clara.Storage
 {
-    internal class KeywordDocumentTokenStore : IDisposable
+    internal sealed class KeywordDocumentTokenStore : IDisposable
     {
         private static readonly HashSet<string> EmptySelectedValues = new();
 
@@ -55,7 +55,9 @@ namespace Clara.Storage
                 }
             }
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var values = new PooledList<KeywordFacetValue>(Allocator.ArrayPool);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
             foreach (var pair in tokenCounts)
             {

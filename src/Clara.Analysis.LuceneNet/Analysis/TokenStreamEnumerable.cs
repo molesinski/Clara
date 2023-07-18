@@ -48,7 +48,7 @@ namespace Clara.Analysis
                 this.current = default;
             }
 
-            public Token Current
+            public readonly Token Current
             {
                 get
                 {
@@ -56,7 +56,7 @@ namespace Clara.Analysis
                 }
             }
 
-            object IEnumerator.Current
+            readonly object IEnumerator.Current
             {
                 get
                 {
@@ -110,6 +110,9 @@ namespace Clara.Analysis
                 {
                     this.tokenStream.End();
                 }
+
+                this.isStarted = false;
+                this.current = default;
             }
         }
     }

@@ -70,7 +70,7 @@ namespace Clara.Mapping
                 this.current = default;
             }
 
-            public TValue Current
+            public readonly TValue Current
             {
                 get
                 {
@@ -78,7 +78,7 @@ namespace Clara.Mapping
                 }
             }
 
-            object IEnumerator.Current
+            readonly object IEnumerator.Current
             {
                 get
                 {

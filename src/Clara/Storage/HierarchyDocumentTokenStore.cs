@@ -3,7 +3,7 @@ using Clara.Utils;
 
 namespace Clara.Storage
 {
-    internal class HierarchyDocumentTokenStore : IDisposable
+    internal sealed class HierarchyDocumentTokenStore : IDisposable
     {
         private readonly HashSet<string> rootSet;
         private readonly ITokenEncoder tokenEncoder;
@@ -87,7 +87,9 @@ namespace Clara.Storage
                 }
             }
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var values = new PooledList<HierarchyFacetValue>(Allocator.ArrayPool, capacity: selectedValues.Count + filteredTokens.Count);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             var selectedCount = 0;
 
             for (var i = 0; i < selectedValues.Count; i++)

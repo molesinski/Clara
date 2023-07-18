@@ -354,7 +354,7 @@ namespace Clara.Analysis.Synonyms
             public SynonymNode? Node { get; }
         }
 
-        private class SynonymNode
+        private sealed class SynonymNode
         {
             private static readonly string SynonymTokenPrefix = string.Concat("__", Guid.NewGuid().ToString().Substring(0, 8), "__");
 
@@ -631,7 +631,7 @@ namespace Clara.Analysis.Synonyms
             }
         }
 
-        private class SynonymTokens
+        private sealed class SynonymTokens
         {
             public SynonymTokens(string syntheticToken)
             {

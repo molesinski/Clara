@@ -84,30 +84,24 @@ namespace Clara
             {
                 var includedDocuments = default(PooledSet<int>);
 
-                try
+                foreach (var includedDocument in query.IncludeDocuments)
                 {
-                    foreach (var includedDocument in query.IncludeDocuments)
+                    if (includedDocument is not null)
                     {
-                        if (includedDocument is not null)
-                        {
-                            includedDocuments ??= new(Allocator.ArrayPool);
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                        includedDocuments ??= new(Allocator.ArrayPool);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
-                            if (this.tokenEncoder.TryEncode(includedDocument, out var documentId))
-                            {
-                                includedDocuments.Add(documentId);
-                            }
+                        if (this.tokenEncoder.TryEncode(includedDocument, out var documentId))
+                        {
+                            includedDocuments.Add(documentId);
                         }
                     }
-
-                    if (includedDocuments is not null)
-                    {
-                        documentSet = new DocumentSet(includedDocuments);
-                        includedDocuments = null;
-                    }
                 }
-                finally
+
+                if (includedDocuments is not null)
                 {
-                    includedDocuments?.Dispose();
+                    documentSet = new DocumentSet(includedDocuments);
                 }
             }
 

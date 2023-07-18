@@ -283,7 +283,7 @@ namespace Clara.Utils
                 this.current = default!;
             }
 
-            public TItem Current
+            public readonly TItem Current
             {
                 get
                 {
@@ -291,7 +291,7 @@ namespace Clara.Utils
                 }
             }
 
-            object IEnumerator.Current
+            readonly object IEnumerator.Current
             {
                 get
                 {
@@ -321,12 +321,12 @@ namespace Clara.Utils
                 this.current = default!;
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
             }
         }
 
-        private class RangeEnumerable : IEnumerable<TItem>
+        private sealed class RangeEnumerable : IEnumerable<TItem>
         {
             private readonly PooledList<TItem> source;
             private readonly int offset;

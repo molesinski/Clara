@@ -35,8 +35,8 @@ namespace Clara.Analysis
                 return next(token);
             }
 
-            var inputToken = token.ToReadOnly();
-            var outputToken = next(token).ToReadOnly();
+            var inputToken = token.AsReadOnly();
+            var outputToken = next(token).AsReadOnly();
 
             if (this.cache.TryAdd(inputToken, outputToken))
             {

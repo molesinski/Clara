@@ -40,7 +40,7 @@ namespace Clara.Tests
         public string? Thumbnail { get; set; }
 
         [JsonPropertyName("images")]
-        public string[]? Images { get; set; }
+        public IEnumerable<string>? Images { get; set; }
 
         public string GetText()
         {

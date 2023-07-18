@@ -110,7 +110,7 @@ namespace Clara.Storage
                 this.current = default;
             }
 
-            public int Current
+            public readonly int Current
             {
                 get
                 {
@@ -118,7 +118,7 @@ namespace Clara.Storage
                 }
             }
 
-            object IEnumerator.Current
+            readonly object IEnumerator.Current
             {
                 get
                 {
@@ -148,7 +148,7 @@ namespace Clara.Storage
                 this.current = default;
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
             }
         }

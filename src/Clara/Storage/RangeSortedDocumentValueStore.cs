@@ -3,7 +3,7 @@ using Clara.Utils;
 
 namespace Clara.Storage
 {
-    internal class RangeSortedDocumentValueStore<TValue> : IDisposable
+    internal sealed class RangeSortedDocumentValueStore<TValue> : IDisposable
         where TValue : struct, IComparable<TValue>
     {
         private readonly PooledList<DocumentValue<TValue>> sortedDocumentValues;

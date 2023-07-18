@@ -7,7 +7,9 @@ namespace Clara.Utils
 {
     [DebuggerTypeProxy(typeof(DictionarySlimDebugView<,>))]
     [DebuggerDisplay("Count = {Count}")]
+#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
     public sealed class PooledDictionary<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TValue>>, IDisposable
+#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
         where TKey : notnull, IEquatable<TKey>
     {
         private static readonly Entry[] InitialEntries = new Entry[1];
@@ -436,7 +438,7 @@ namespace Clara.Utils
                 this.current = default;
             }
 
-            public KeyValuePair<TKey, TValue> Current
+            public readonly KeyValuePair<TKey, TValue> Current
             {
                 get
                 {
@@ -444,7 +446,7 @@ namespace Clara.Utils
                 }
             }
 
-            object IEnumerator.Current
+            readonly object IEnumerator.Current
             {
                 get
                 {
@@ -482,7 +484,7 @@ namespace Clara.Utils
                 this.current = default;
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
             }
         }
