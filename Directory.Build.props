@@ -10,9 +10,6 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <Authors>Maciej Olesiński</Authors>
     <Description>Simple, yet feature complete, in memory search engine.</Description>
     <Copyright>Copyright Maciej Olesiński</Copyright>

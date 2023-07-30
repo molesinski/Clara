@@ -1,18 +1,5 @@
-﻿vol
-o.o.
-mgr
-godz
-zł
-www
-pl
-ul
-tel
-hab
-prof
-inż
-dr
-i
-u
+﻿# From https://github.com/apache/lucene/blob/main/lucene/analysis/stempel/src/resources/org/apache/lucene/analysis/pl/stopwords.txt
+
 aby
 albo
 ale
@@ -47,6 +34,7 @@ gdyby
 gdyż
 gdzie
 go
+i
 ich
 im
 inne
@@ -155,6 +143,7 @@ tym
 tys
 tzw
 tę
+u
 w
 we
 wie
@@ -168,15 +157,3 @@ zaś
 ze
 że
 żeby
-ii
-iii
-iv
-vi
-vii
-viii
-ix
-xi
-xii
-xiii
-xiv
-xv

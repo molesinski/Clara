@@ -1,11 +1,12 @@
 ﻿using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Clara.Analysis
 {
-    public abstract class ResourceStopTokenFilter : StopTokenFilter
+    public abstract class SnowballResourceStopTokenFilter : StopTokenFilter
     {
-        protected ResourceStopTokenFilter(Assembly assembly, string name, Encoding encoding)
+        protected internal SnowballResourceStopTokenFilter(Assembly assembly, string name, Encoding encoding)
             : base(LoadStopwords(assembly, name, encoding))
         {
         }
@@ -40,12 +41,29 @@ namespace Clara.Analysis
 
             while (reader.ReadLine() is string line)
             {
-                if (string.IsNullOrWhiteSpace(line) || line[0] == '#')
+#pragma warning disable CA1307 // Specify StringComparison for clarity
+                var commentIndex = line.IndexOf('|');
+#pragma warning restore CA1307 // Specify StringComparison for clarity
+
+                if (commentIndex >= 0)
+                {
+                    line = line.Substring(0, commentIndex);
+                }
+
+                if (string.IsNullOrWhiteSpace(line))
                 {
                     continue;
                 }
 
-                stopwords.Add(line.Trim());
+                var words = Regex.Split(line, "\\s+", RegexOptions.Compiled);
+
+                foreach (var word in words)
+                {
+                    if (!string.IsNullOrWhiteSpace(word))
+                    {
+                        stopwords.Add(word);
+                    }
+                }
             }
 
             return stopwords;

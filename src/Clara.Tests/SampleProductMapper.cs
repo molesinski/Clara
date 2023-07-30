@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Text;
 using Clara.Analysis;
 using Clara.Mapping;
 
@@ -17,7 +18,7 @@ namespace Clara.Tests
                 new RequireNonDigitsTokenFilter(),
                 new EnglishPorterStemTokenFilter());
 
-        public static readonly TextField<SampleProduct> Text = new(o => o.GetText(), Analyzer);
+        public static readonly TextField<SampleProduct> Text = new(ToText, Analyzer);
         public static readonly DoubleField<SampleProduct> Price = new(o => new RangeValue<double>(o.Price), isFilterable: true, isFacetable: true, isSortable: true);
         public static readonly DoubleField<SampleProduct> DiscountPercentage = new(o => new RangeValue<double>(o.DiscountPercentage), isFilterable: true, isFacetable: true, isSortable: true);
         public static readonly DoubleField<SampleProduct> Rating = new(o => new RangeValue<double>(o.Rating), isFilterable: true, isFacetable: true, isSortable: true);
@@ -49,6 +50,23 @@ namespace Clara.Tests
         public SampleProduct GetDocument(SampleProduct item)
         {
             return item;
+        }
+
+        private static string ToText(SampleProduct product)
+        {
+            var builder = new StringBuilder();
+
+            builder.AppendFormat(CultureInfo.InvariantCulture, "{0}", product.Id);
+            builder.AppendLine();
+            builder.Append(product.Title);
+            builder.AppendLine();
+            builder.Append(product.Description);
+            builder.AppendLine();
+            builder.Append(product.Brand);
+            builder.AppendLine();
+            builder.Append(product.Category);
+
+            return builder.ToString();
         }
     }
 }

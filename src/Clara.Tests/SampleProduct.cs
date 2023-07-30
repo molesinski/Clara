@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -7,7 +6,7 @@ namespace Clara.Tests
 {
     public sealed class SampleProduct
     {
-        public static IEnumerable<SampleProduct> Data { get; } = LoadEmbeddedResource();
+        public static IReadOnlyCollection<SampleProduct> Items { get; } = LoadEmbeddedResource();
 
         [JsonPropertyName("id")]
         public int Id { get; set; }
@@ -40,22 +39,9 @@ namespace Clara.Tests
         public string? Thumbnail { get; set; }
 
         [JsonPropertyName("images")]
-        public IEnumerable<string>? Images { get; set; }
+        public IReadOnlyCollection<string>? Images { get; set; }
 
-        public string GetText()
-        {
-            var builder = new StringBuilder();
-
-            builder.AppendFormat(CultureInfo.InvariantCulture, "{0}{1}", this.Id, Environment.NewLine);
-            builder.AppendLine(this.Title);
-            builder.AppendLine(this.Description);
-            builder.AppendLine(this.Brand);
-            builder.AppendLine(this.Category);
-
-            return builder.ToString();
-        }
-
-        private static IEnumerable<SampleProduct> LoadEmbeddedResource()
+        private static SampleProduct[] LoadEmbeddedResource()
         {
             //// Data from https://dummyjson.com/products
 
@@ -66,7 +52,7 @@ namespace Clara.Tests
                 using var reader = new StreamReader(stream, Encoding.UTF8);
 
                 var data = reader.ReadToEnd();
-                var result = JsonSerializer.Deserialize<List<SampleProduct>>(data);
+                var result = JsonSerializer.Deserialize<SampleProduct[]>(data);
 
                 if (result is not null)
                 {
@@ -74,7 +60,7 @@ namespace Clara.Tests
                 }
             }
 
-            return Enumerable.Empty<SampleProduct>();
+            return Array.Empty<SampleProduct>();
         }
     }
 }

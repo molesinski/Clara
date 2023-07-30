@@ -5,12 +5,12 @@ using Morfologik.Stemming.Polish;
 
 namespace Clara.Analysis
 {
-    public class PolishMorfologikStemTokenFilter : ITokenFilter
+    public class PolishStemTokenFilter : ITokenFilter
     {
         private readonly ObjectPool<StemmerContext> pool;
         private readonly bool tokenOnEmptyStem;
 
-        public PolishMorfologikStemTokenFilter(bool tokenOnEmptyStem = true)
+        public PolishStemTokenFilter(bool tokenOnEmptyStem = true)
         {
             this.pool = new(() => new());
             this.tokenOnEmptyStem = tokenOnEmptyStem;

@@ -1,21 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net462;netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup>
+    <TargetFrameworks>net462;netstandard2.0;netstandard2.1;net6.0;net7.0</TargetFrameworks>
     <PackageId>Clara</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Analysis\EnglishStopTokenFilter.txt" />
-    <None Remove="Analysis\PolishStopTokenFilter.txt" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Analysis\EnglishStopTokenFilter.txt" />
-    <EmbeddedResource Include="Analysis\PolishStopTokenFilter.txt" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0' or $(TargetFramework) == 'net462'">

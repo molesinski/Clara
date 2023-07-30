@@ -3,15 +3,17 @@
   <PropertyGroup>
     <TargetFrameworks>net462;netstandard2.0;netstandard2.1;net6.0;net7.0</TargetFrameworks>
     <RootNamespace>Clara</RootNamespace>
-    <PackageId>Clara.Analysis.Morfologik</PackageId>
+    <PackageId>Clara.Analysis.Snowball</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Analysis\PolishStopTokenFilter.txt" />
+    <None Remove="Analysis\LithuanianStopTokenFilter.txt" />
+    <None Remove="Analysis\SwedishStopTokenFilter.txt" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Analysis\PolishStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\SwedishStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\LithuanianStopTokenFilter.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Morfologik.Polish" Version="2.1.7" />
+    <PackageReference Include="libstemmer.net" Version="2.2.3" />
   </ItemGroup>
 
 </Project>

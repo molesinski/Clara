@@ -4,7 +4,7 @@ using Lucene.Net.Analysis.TokenAttributes;
 
 namespace Clara.Analysis
 {
-    public sealed class TokenStreamEnumerable : IEnumerable<Token>
+    internal sealed class TokenStreamEnumerable : IEnumerable<Token>
     {
         private readonly TokenStream tokenStream;
 
