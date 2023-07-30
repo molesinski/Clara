@@ -5,9 +5,9 @@ using System.Runtime.CompilerServices;
 
 namespace Clara.Utils
 {
-    [DebuggerTypeProxy(typeof(HashSetSlimDebugView<>))]
+    [DebuggerTypeProxy(typeof(PooledHashSetDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
-    public sealed class PooledSet<TItem> : IReadOnlyCollection<TItem>, IDisposable
+    public sealed class PooledHashSet<TItem> : IReadOnlyCollection<TItem>, IDisposable
         where TItem : notnull, IEquatable<TItem>
     {
         private const int StackAllocThreshold = 512;
@@ -22,7 +22,7 @@ namespace Clara.Utils
         private int[] buckets;
         private Entry[] entries;
 
-        public PooledSet(Allocator allocator)
+        public PooledHashSet(Allocator allocator)
         {
             if (allocator is null)
             {
@@ -38,7 +38,7 @@ namespace Clara.Utils
             this.entries = InitialEntries;
         }
 
-        public PooledSet(Allocator allocator, int capacity)
+        public PooledHashSet(Allocator allocator, int capacity)
         {
             if (capacity < 0)
             {
@@ -54,14 +54,14 @@ namespace Clara.Utils
             this.entries = this.allocator.Allocate<Entry>(this.size);
         }
 
-        public PooledSet(Allocator allocator, IEnumerable<TItem> source)
+        public PooledHashSet(Allocator allocator, IEnumerable<TItem> source)
         {
             if (source is null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
 
-            if (source is PooledSet<TItem> other && other.size > 1)
+            if (source is PooledHashSet<TItem> other && other.size > 1)
             {
                 this.allocator = allocator;
                 this.size = other.size;
@@ -246,7 +246,7 @@ namespace Clara.Utils
                 return;
             }
 
-            if (enumerable is PooledSet<TItem> other)
+            if (enumerable is PooledHashSet<TItem> other)
             {
                 var count = this.count;
 
@@ -324,7 +324,7 @@ namespace Clara.Utils
                 throw new ArgumentNullException(nameof(enumerable));
             }
 
-            if (enumerable is PooledSet<TItem> other)
+            if (enumerable is PooledHashSet<TItem> other)
             {
                 if (other.count == 0)
                 {
@@ -411,7 +411,7 @@ namespace Clara.Utils
                 return;
             }
 
-            if (enumerable is PooledSet<TItem> other)
+            if (enumerable is PooledHashSet<TItem> other)
             {
                 var count = other.count;
 
@@ -586,12 +586,12 @@ namespace Clara.Utils
 
         public struct Enumerator : IEnumerator<TItem>
         {
-            private readonly PooledSet<TItem> source;
+            private readonly PooledHashSet<TItem> source;
             private int index;
             private int count;
             private TItem current;
 
-            internal Enumerator(PooledSet<TItem> source)
+            internal Enumerator(PooledHashSet<TItem> source)
             {
                 this.source = source;
                 this.index = 0;
@@ -658,12 +658,12 @@ namespace Clara.Utils
         }
     }
 
-    internal sealed class HashSetSlimDebugView<TItem>
+    internal sealed class PooledHashSetDebugView<TItem>
         where TItem : IEquatable<TItem>
     {
-        private readonly PooledSet<TItem> source;
+        private readonly PooledHashSet<TItem> source;
 
-        public HashSetSlimDebugView(PooledSet<TItem> source)
+        public PooledHashSetDebugView(PooledHashSet<TItem> source)
         {
             if (source is null)
             {

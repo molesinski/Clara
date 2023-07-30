@@ -9,7 +9,7 @@ namespace Clara.Storage
         private readonly TextField<TSource> field;
         private readonly ISynonymMap synonymMap;
         private readonly ITokenEncoderBuilder tokenEncoderBuilder;
-        private readonly PooledDictionary<int, PooledSet<int>> tokenDocuments;
+        private readonly PooledDictionary<int, PooledHashSet<int>> tokenDocuments;
         private bool isBuilt;
         private bool isDisposed;
 
@@ -52,7 +52,7 @@ namespace Clara.Storage
                 ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                documents ??= new PooledSet<int>(Allocator.Mixed);
+                documents ??= new PooledHashSet<int>(Allocator.Mixed);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
                 documents.Add(documentId);

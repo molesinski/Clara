@@ -22,7 +22,7 @@ namespace Clara
         private readonly ITokenEncoder tokenEncoder;
         private readonly PooledDictionary<int, TDocument> documents;
         private readonly Dictionary<Field, FieldStore> fieldStores;
-        private readonly PooledSet<int> allDocuments;
+        private readonly PooledHashSet<int> allDocuments;
         private bool isDisposed;
 
         internal Index(
@@ -48,7 +48,7 @@ namespace Clara
             this.tokenEncoder = tokenEncoder;
             this.documents = documents;
             this.fieldStores = fieldStores;
-            this.allDocuments = new PooledSet<int>(Allocator.Mixed, capacity: documents.Count);
+            this.allDocuments = new PooledHashSet<int>(Allocator.Mixed, capacity: documents.Count);
 
             foreach (var pair in documents)
             {
@@ -82,7 +82,7 @@ namespace Clara
 
             if (query.IncludeDocuments is not null)
             {
-                var includedDocuments = default(PooledSet<int>);
+                var includedDocuments = default(PooledHashSet<int>);
 
                 foreach (var includedDocument in query.IncludeDocuments)
                 {
@@ -156,7 +156,7 @@ namespace Clara
 
             if (query.ExcludeDocuments is not null)
             {
-                var excludeDocuments = default(PooledSet<int>);
+                var excludeDocuments = default(PooledHashSet<int>);
 
                 try
                 {

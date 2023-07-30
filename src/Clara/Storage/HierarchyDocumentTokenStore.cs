@@ -7,14 +7,14 @@ namespace Clara.Storage
     {
         private readonly HashSet<string> rootSet;
         private readonly ITokenEncoder tokenEncoder;
-        private readonly PooledDictionary<int, PooledSet<int>> documentTokens;
-        private readonly PooledDictionary<int, PooledSet<int>> parentChildren;
+        private readonly PooledDictionary<int, PooledHashSet<int>> documentTokens;
+        private readonly PooledDictionary<int, PooledHashSet<int>> parentChildren;
 
         public HierarchyDocumentTokenStore(
             string root,
             ITokenEncoder tokenEncoder,
-            PooledDictionary<int, PooledSet<int>> documentTokens,
-            PooledDictionary<int, PooledSet<int>> parentChildren)
+            PooledDictionary<int, PooledHashSet<int>> documentTokens,
+            PooledDictionary<int, PooledHashSet<int>> parentChildren)
         {
             if (root is null)
             {
@@ -54,7 +54,7 @@ namespace Clara.Storage
                 }
             }
 
-            using var filteredTokens = new PooledSet<int>(Allocator.ArrayPool);
+            using var filteredTokens = new PooledHashSet<int>(Allocator.ArrayPool);
 
             foreach (var selectedToken in selectedValues)
             {

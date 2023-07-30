@@ -5,16 +5,16 @@ using System.Runtime.CompilerServices;
 
 namespace Clara.Utils
 {
-    [DebuggerTypeProxy(typeof(PooledDictionaryDebugView<,>))]
+    [DebuggerTypeProxy(typeof(DictionarySlimDebugView<,>))]
     [DebuggerDisplay("Count = {Count}")]
-#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
-    public sealed class PooledDictionary<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TValue>>, IDisposable
-#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
+#pragma warning disable CA1710 // Identifiers should have correct suffix
+    public sealed class DictionarySlim<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TValue>>
+#pragma warning restore CA1710 // Identifiers should have correct suffix
         where TKey : notnull, IEquatable<TKey>
     {
+        private const int MinimumSize = 4;
         private static readonly Entry[] InitialEntries = new Entry[1];
 
-        private readonly Allocator allocator;
         private int size;
         private int count;
         private int lastIndex;
@@ -22,14 +22,8 @@ namespace Clara.Utils
         private int[] buckets;
         private Entry[] entries;
 
-        public PooledDictionary(Allocator allocator)
+        public DictionarySlim()
         {
-            if (allocator is null)
-            {
-                throw new ArgumentNullException(nameof(allocator));
-            }
-
-            this.allocator = allocator;
             this.size = 1;
             this.count = 0;
             this.lastIndex = 0;
@@ -38,7 +32,7 @@ namespace Clara.Utils
             this.entries = InitialEntries;
         }
 
-        public PooledDictionary(Allocator allocator, int capacity)
+        public DictionarySlim(Allocator allocator, int capacity)
         {
             if (allocator is null)
             {
@@ -50,16 +44,15 @@ namespace Clara.Utils
                 throw new ArgumentOutOfRangeException(nameof(capacity));
             }
 
-            this.allocator = allocator;
-            this.size = HashHelper.PowerOf2(Math.Max(capacity, this.allocator.MinimumSize));
+            this.size = HashHelper.PowerOf2(Math.Max(capacity, MinimumSize));
             this.count = 0;
             this.lastIndex = 0;
             this.freeList = -1;
-            this.buckets = this.allocator.Allocate<int>(this.size, clearArray: true);
-            this.entries = this.allocator.Allocate<Entry>(this.size);
+            this.buckets = new int[this.size];
+            this.entries = new Entry[this.size];
         }
 
-        public PooledDictionary(Allocator allocator, IEnumerable<KeyValuePair<TKey, TValue>> source)
+        public DictionarySlim(Allocator allocator, IEnumerable<KeyValuePair<TKey, TValue>> source)
         {
             if (allocator is null)
             {
@@ -71,15 +64,14 @@ namespace Clara.Utils
                 throw new ArgumentNullException(nameof(source));
             }
 
-            if (source is PooledDictionary<TKey, TValue> other && other.count > 0)
+            if (source is DictionarySlim<TKey, TValue> other && other.count > 0)
             {
-                this.allocator = allocator;
                 this.size = other.size;
                 this.count = other.count;
                 this.lastIndex = other.lastIndex;
                 this.freeList = other.freeList;
-                this.buckets = this.allocator.Allocate<int>(this.size);
-                this.entries = this.allocator.Allocate<Entry>(this.size);
+                this.buckets = new int[this.size];
+                this.entries = new Entry[this.size];
 
                 Array.Copy(other.buckets, 0, this.buckets, 0, this.size);
                 Array.Copy(other.entries, 0, this.entries, 0, this.lastIndex);
@@ -89,17 +81,15 @@ namespace Clara.Utils
 
             if (source is IReadOnlyCollection<KeyValuePair<TKey, TValue>> collection && collection.Count > 0)
             {
-                this.allocator = allocator;
-                this.size = HashHelper.PowerOf2(Math.Max(collection.Count, this.allocator.MinimumSize));
+                this.size = HashHelper.PowerOf2(Math.Max(collection.Count, MinimumSize));
                 this.count = 0;
                 this.lastIndex = 0;
                 this.freeList = -1;
-                this.buckets = this.allocator.Allocate<int>(this.size, clearArray: true);
-                this.entries = this.allocator.Allocate<Entry>(this.size);
+                this.buckets = new int[this.size];
+                this.entries = new Entry[this.size];
             }
             else
             {
-                this.allocator = allocator;
                 this.size = 1;
                 this.count = 0;
                 this.lastIndex = 0;
@@ -315,31 +305,6 @@ namespace Clara.Utils
             return new Enumerator(this);
         }
 
-        public void Dispose()
-        {
-            if (this.size > 1)
-            {
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
-                if (RuntimeHelpers.IsReferenceOrContainsReferences<Entry>())
-                {
-                    Array.Clear(this.entries, 0, this.lastIndex);
-                }
-#else
-                Array.Clear(this.entries, 0, this.lastIndex);
-#endif
-
-                this.allocator.Release(this.buckets);
-                this.allocator.Release(this.entries);
-            }
-
-            this.size = 1;
-            this.count = 0;
-            this.lastIndex = 0;
-            this.freeList = -1;
-            this.buckets = HashHelper.InitialBuckets;
-            this.entries = InitialEntries;
-        }
-
         [MethodImpl(MethodImplOptions.NoInlining)]
         private ref TValue AddKey(TKey key, int bucketIndex)
         {
@@ -377,7 +342,7 @@ namespace Clara.Utils
 
         private void EnsureCapacity(int capacity)
         {
-            var newSize = HashHelper.PowerOf2(Math.Max(capacity, this.allocator.MinimumSize));
+            var newSize = HashHelper.PowerOf2(Math.Max(capacity, MinimumSize));
 
             if (newSize <= this.size)
             {
@@ -385,8 +350,8 @@ namespace Clara.Utils
             }
 
             var lastIndex = this.lastIndex;
-            var newBuckets = this.allocator.Allocate<int>(newSize, clearArray: true);
-            var newEntries = this.allocator.Allocate<Entry>(newSize);
+            var newBuckets = new int[newSize];
+            var newEntries = new Entry[newSize];
 
             Array.Copy(this.entries, 0, newEntries, 0, lastIndex);
 
@@ -413,9 +378,6 @@ namespace Clara.Utils
 #else
                 Array.Clear(this.entries, 0, this.lastIndex);
 #endif
-
-                this.allocator.Release(this.buckets);
-                this.allocator.Release(this.entries);
             }
 
             this.size = newSize;
@@ -425,12 +387,12 @@ namespace Clara.Utils
 
         public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>
         {
-            private readonly PooledDictionary<TKey, TValue> source;
+            private readonly DictionarySlim<TKey, TValue> source;
             private int index;
             private int count;
             private KeyValuePair<TKey, TValue> current;
 
-            internal Enumerator(PooledDictionary<TKey, TValue> source)
+            internal Enumerator(DictionarySlim<TKey, TValue> source)
             {
                 this.source = source;
                 this.index = 0;
@@ -498,12 +460,12 @@ namespace Clara.Utils
         }
     }
 
-    internal sealed class PooledDictionaryDebugView<TKey, TValue>
+    internal sealed class DictionarySlimDebugView<TKey, TValue>
         where TKey : IEquatable<TKey>
     {
-        private readonly PooledDictionary<TKey, TValue> source;
+        private readonly DictionarySlim<TKey, TValue> source;
 
-        public PooledDictionaryDebugView(PooledDictionary<TKey, TValue> source)
+        public DictionarySlimDebugView(DictionarySlim<TKey, TValue> source)
         {
             if (source is null)
             {

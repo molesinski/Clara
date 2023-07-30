@@ -10,9 +10,9 @@ namespace Clara.Storage
         private readonly char separator;
         private readonly string root;
         private readonly ITokenEncoderBuilder tokenEncoderBuilder;
-        private readonly PooledDictionary<int, PooledSet<int>>? parentChildren;
-        private readonly PooledDictionary<int, PooledSet<int>>? tokenDocuments;
-        private readonly PooledDictionary<int, PooledSet<int>>? documentTokens;
+        private readonly PooledDictionary<int, PooledHashSet<int>>? parentChildren;
+        private readonly PooledDictionary<int, PooledHashSet<int>>? tokenDocuments;
+        private readonly PooledDictionary<int, PooledHashSet<int>>? documentTokens;
         private bool isBuilt;
         private bool isDisposed;
 
@@ -53,7 +53,7 @@ namespace Clara.Storage
             }
 
             var values = this.field.ValueMapper(item);
-            var tokens = default(PooledSet<int>);
+            var tokens = default(PooledHashSet<int>);
 
             foreach (var hierarchyEncodedToken in values)
             {
@@ -71,7 +71,7 @@ namespace Clara.Storage
                             ref var children = ref this.parentChildren.GetValueRefOrAddDefault(parentId, out _);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                            children ??= new PooledSet<int>(Allocator.Mixed);
+                            children ??= new PooledHashSet<int>(Allocator.Mixed);
 #pragma warning restore CA2000 // Dispose objects before losing scope
                             children.Add(tokenId);
                         }
@@ -84,7 +84,7 @@ namespace Clara.Storage
                         ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                        documents ??= new PooledSet<int>(Allocator.Mixed);
+                        documents ??= new PooledHashSet<int>(Allocator.Mixed);
 #pragma warning restore CA2000 // Dispose objects before losing scope
                         documents.Add(documentId);
                     }
@@ -96,7 +96,7 @@ namespace Clara.Storage
                             ref var value = ref this.documentTokens.GetValueRefOrAddDefault(documentId, out _);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                            value = tokens = new PooledSet<int>(Allocator.Mixed);
+                            value = tokens = new PooledHashSet<int>(Allocator.Mixed);
 #pragma warning restore CA2000 // Dispose objects before losing scope
                         }
 

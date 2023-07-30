@@ -7,11 +7,11 @@ namespace Clara.Storage
     internal sealed class TokenDocumentStore : IDisposable
     {
         private readonly ITokenEncoder tokenEncoder;
-        private readonly PooledDictionary<int, PooledSet<int>> tokenDocuments;
+        private readonly PooledDictionary<int, PooledHashSet<int>> tokenDocuments;
 
         public TokenDocumentStore(
             ITokenEncoder tokenEncoder,
-            PooledDictionary<int, PooledSet<int>> tokenDocuments)
+            PooledDictionary<int, PooledHashSet<int>> tokenDocuments)
         {
             if (tokenEncoder is null)
             {
@@ -64,7 +64,7 @@ namespace Clara.Storage
                 }
                 else
                 {
-                    var anyMatches = new PooledSet<int>(Allocator.ArrayPool);
+                    var anyMatches = new PooledHashSet<int>(Allocator.ArrayPool);
 
                     foreach (var token in anyValuesMatchExpression.Values)
                     {
@@ -102,9 +102,9 @@ namespace Clara.Storage
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                var anyMatches = new PooledSet<int>(Allocator.ArrayPool);
+                var anyMatches = new PooledHashSet<int>(Allocator.ArrayPool);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                using var tempSet = new PooledSet<int>(Allocator.ArrayPool);
+                using var tempSet = new PooledHashSet<int>(Allocator.ArrayPool);
 
                 foreach (var expression in orMatchExpression.Expressions)
                 {
@@ -119,7 +119,7 @@ namespace Clara.Storage
             }
             else if (matchExpression is AndMatchExpression andMatchExpression)
             {
-                using var tempSet = new PooledSet<int>(Allocator.ArrayPool);
+                using var tempSet = new PooledHashSet<int>(Allocator.ArrayPool);
 
                 foreach (var expression in andMatchExpression.Expressions)
                 {
@@ -146,7 +146,7 @@ namespace Clara.Storage
             this.tokenDocuments.Dispose();
         }
 
-        private void Filter(MatchExpression matchExpression, PooledSet<int> resultSet)
+        private void Filter(MatchExpression matchExpression, PooledHashSet<int> resultSet)
         {
             if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
             {
@@ -191,7 +191,7 @@ namespace Clara.Storage
             }
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
-                using var tempSet = new PooledSet<int>(Allocator.ArrayPool);
+                using var tempSet = new PooledHashSet<int>(Allocator.ArrayPool);
 
                 foreach (var expression in orMatchExpression.Expressions)
                 {
@@ -204,7 +204,7 @@ namespace Clara.Storage
             }
             else if (matchExpression is AndMatchExpression andMatchExpression)
             {
-                using var tempSet = new PooledSet<int>(Allocator.ArrayPool);
+                using var tempSet = new PooledHashSet<int>(Allocator.ArrayPool);
                 var isFirst = true;
 
                 foreach (var expression in andMatchExpression.Expressions)

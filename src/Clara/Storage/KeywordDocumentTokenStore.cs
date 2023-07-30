@@ -8,11 +8,11 @@ namespace Clara.Storage
         private static readonly HashSet<string> EmptySelectedValues = new();
 
         private readonly ITokenEncoder tokenEncoder;
-        private readonly PooledDictionary<int, PooledSet<int>> documentTokens;
+        private readonly PooledDictionary<int, PooledHashSet<int>> documentTokens;
 
         public KeywordDocumentTokenStore(
             ITokenEncoder tokenEncoder,
-            PooledDictionary<int, PooledSet<int>> documentTokens)
+            PooledDictionary<int, PooledHashSet<int>> documentTokens)
         {
             if (tokenEncoder is null)
             {
