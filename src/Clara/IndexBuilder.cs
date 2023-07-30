@@ -54,7 +54,7 @@ namespace Clara
 
             lock (tokenEncoderStore.SyncRoot)
             {
-                using var builder = new IndexBuilder<TSource, TDocument>(indexMapper, synonymMaps, tokenEncoderStore);
+                var builder = new IndexBuilder<TSource, TDocument>(indexMapper, synonymMaps, tokenEncoderStore);
 
                 foreach (var item in source)
                 {
@@ -66,14 +66,13 @@ namespace Clara
         }
     }
 
-    public sealed class IndexBuilder<TSource, TDocument> : IndexBuilder, IDisposable
+    public sealed class IndexBuilder<TSource, TDocument> : IndexBuilder
     {
         private readonly IIndexMapper<TSource, TDocument> indexMapper;
-        private readonly PooledDictionary<int, TDocument> documents;
+        private readonly DictionarySlim<int, TDocument> documents;
         private readonly ITokenEncoderBuilder tokenEncoderBuilder;
         private readonly Dictionary<Field, FieldStoreBuilder<TSource>> fieldBuilders;
         private bool isBuilt;
-        private bool isDisposed;
 
         public IndexBuilder(
             IIndexMapper<TSource, TDocument> indexMapper)
@@ -109,7 +108,7 @@ namespace Clara
             }
 
             this.indexMapper = indexMapper;
-            this.documents = new PooledDictionary<int, TDocument>(Allocator.Mixed);
+            this.documents = new DictionarySlim<int, TDocument>();
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder();
             this.fieldBuilders = new Dictionary<Field, FieldStoreBuilder<TSource>>();
 
@@ -130,7 +129,7 @@ namespace Clara
             {
                 if (!fields.Contains(synonymMap.Field))
                 {
-                    throw new InvalidOperationException("Syononym map references field not belonging to current index mapper fields.");
+                    throw new InvalidOperationException("Synonym map references field not belonging to current index mapper fields.");
                 }
 
                 if (fieldSynonymMaps.ContainsKey(synonymMap.Field))
@@ -156,9 +155,9 @@ namespace Clara
 
         public void Index(TSource item)
         {
-            if (this.isDisposed || this.isBuilt)
+            if (this.isBuilt)
             {
-                throw new InvalidOperationException("Current instance is already built or disposed.");
+                throw new InvalidOperationException("Current instance is already built.");
             }
 
             if (item is null)
@@ -188,9 +187,9 @@ namespace Clara
 
         public Index<TDocument> Build()
         {
-            if (this.isDisposed || this.isBuilt)
+            if (this.isBuilt)
             {
-                throw new InvalidOperationException("Current instance is already built or disposed.");
+                throw new InvalidOperationException("Current instance is already built.");
             }
 
             var tokenEncoder = this.tokenEncoderBuilder.Build();
@@ -209,28 +208,6 @@ namespace Clara
             this.isBuilt = true;
 
             return index;
-        }
-
-        public void Dispose()
-        {
-            if (!this.isDisposed)
-            {
-                if (!this.isBuilt)
-                {
-                    this.documents.Dispose();
-                }
-
-                this.tokenEncoderBuilder.Dispose();
-
-                foreach (var pair in this.fieldBuilders)
-                {
-                    pair.Value.Dispose();
-                }
-
-                this.fieldBuilders.Clear();
-
-                this.isDisposed = true;
-            }
         }
     }
 }

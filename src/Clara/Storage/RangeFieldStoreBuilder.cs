@@ -9,10 +9,9 @@ namespace Clara.Storage
         private readonly RangeField<TSource, TValue> field;
         private readonly TValue minValue;
         private readonly TValue maxValue;
-        private readonly PooledList<DocumentValue<TValue>>? sortedDocumentValues;
-        private readonly PooledDictionary<int, MinMax<TValue>>? documentValueMinMax;
+        private readonly ListSlim<DocumentValue<TValue>>? sortedDocumentValues;
+        private readonly DictionarySlim<int, MinMax<TValue>>? documentValueMinMax;
         private bool isBuilt;
-        private bool isDisposed;
 
         public RangeFieldStoreBuilder(RangeField<TSource, TValue> field)
         {
@@ -27,20 +26,20 @@ namespace Clara.Storage
 
             if (field.IsFilterable)
             {
-                this.sortedDocumentValues = new(Allocator.Mixed);
+                this.sortedDocumentValues = new();
             }
 
             if (field.IsFacetable || field.IsSortable)
             {
-                this.documentValueMinMax = new(Allocator.Mixed);
+                this.documentValueMinMax = new();
             }
         }
 
         public override void Index(int documentId, TSource item)
         {
-            if (this.isDisposed || this.isBuilt)
+            if (this.isBuilt)
             {
-                throw new InvalidOperationException("Current instance is already built or disposed.");
+                throw new InvalidOperationException("Current instance is already built.");
             }
 
             var values = this.field.ValueMapper(item);
@@ -85,9 +84,9 @@ namespace Clara.Storage
 
         public override FieldStore Build()
         {
-            if (this.isDisposed || this.isBuilt)
+            if (this.isBuilt)
             {
-                throw new InvalidOperationException("Current instance is already built or disposed.");
+                throw new InvalidOperationException("Current instance is already built.");
             }
 
             var store =
@@ -98,20 +97,6 @@ namespace Clara.Storage
             this.isBuilt = true;
 
             return store;
-        }
-
-        public override void Dispose()
-        {
-            if (!this.isDisposed)
-            {
-                if (!this.isBuilt)
-                {
-                    this.sortedDocumentValues?.Dispose();
-                    this.documentValueMinMax?.Dispose();
-                }
-
-                this.isDisposed = true;
-            }
         }
     }
 }

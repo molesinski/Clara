@@ -12,21 +12,20 @@ namespace Clara.Tests
         {
             var brand = SampleProduct.Data.First().Brand;
 
-            using var tokenEncoderStore = new SharedTokenEncoderStore();
+            var tokenEncoderStore = new SharedTokenEncoderStore();
 
             for (var i = 0; i < 3; i++)
             {
                 var index = default(Index<SampleProduct>);
 
-                using (var builder = new IndexBuilder<SampleProduct, SampleProduct>(new SampleProductMapper()))
-                {
-                    foreach (var item in SampleProduct.Data)
-                    {
-                        builder.Index(item);
-                    }
+                var builder = new IndexBuilder<SampleProduct, SampleProduct>(new SampleProductMapper());
 
-                    index = builder.Build();
+                foreach (var item in SampleProduct.Data)
+                {
+                    builder.Index(item);
                 }
+
+                index = builder.Build();
 
                 for (var j = 0; j < 3; j++)
                 {

@@ -1,14 +1,12 @@
 ﻿namespace Clara.Storage
 {
-    internal abstract class FieldStoreBuilder : IDisposable
+    internal abstract class FieldStoreBuilder
     {
         protected internal FieldStoreBuilder()
         {
         }
 
         public abstract FieldStore Build();
-
-        public abstract void Dispose();
     }
 
     internal abstract class FieldStoreBuilder<TSource> : FieldStoreBuilder

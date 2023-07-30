@@ -273,10 +273,12 @@ namespace Clara.Utils
                 }
                 else
                 {
-                    var array = new int[intArrayLength];
+                    var array = ArrayPool<int>.Shared.Rent(intArrayLength);
                     var bitHelper = new BitHelper(array.AsSpan(0, intArrayLength), clear: true);
 
                     IntersectWith(enumerable, ref bitHelper, lastIndex);
+
+                    ArrayPool<int>.Shared.Return(array);
                 }
             }
 

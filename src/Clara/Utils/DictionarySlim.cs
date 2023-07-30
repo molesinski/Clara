@@ -32,13 +32,8 @@ namespace Clara.Utils
             this.entries = InitialEntries;
         }
 
-        public DictionarySlim(Allocator allocator, int capacity)
+        public DictionarySlim(int capacity)
         {
-            if (allocator is null)
-            {
-                throw new ArgumentNullException(nameof(allocator));
-            }
-
             if (capacity < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(capacity));
@@ -52,13 +47,8 @@ namespace Clara.Utils
             this.entries = new Entry[this.size];
         }
 
-        public DictionarySlim(Allocator allocator, IEnumerable<KeyValuePair<TKey, TValue>> source)
+        public DictionarySlim(IEnumerable<KeyValuePair<TKey, TValue>> source)
         {
-            if (allocator is null)
-            {
-                throw new ArgumentNullException(nameof(allocator));
-            }
-
             if (source is null)
             {
                 throw new ArgumentNullException(nameof(source));

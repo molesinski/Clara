@@ -3,13 +3,13 @@ using Clara.Utils;
 
 namespace Clara.Storage
 {
-    internal sealed class RangeSortedDocumentValueStore<TValue> : IDisposable
+    internal sealed class RangeSortedDocumentValueStore<TValue>
         where TValue : struct, IComparable<TValue>
     {
-        private readonly PooledList<DocumentValue<TValue>> sortedDocumentValues;
+        private readonly ListSlim<DocumentValue<TValue>> sortedDocumentValues;
 
         public RangeSortedDocumentValueStore(
-            PooledList<DocumentValue<TValue>> sortedDocumentValues)
+            ListSlim<DocumentValue<TValue>> sortedDocumentValues)
         {
             if (sortedDocumentValues is null)
             {
@@ -34,11 +34,6 @@ namespace Clara.Storage
             var rangeMatches = new DocumentValueRange<TValue>(this.sortedDocumentValues, from, to);
 
             documentSet.IntersectWith(field, rangeMatches);
-        }
-
-        public void Dispose()
-        {
-            this.sortedDocumentValues.Dispose();
         }
 
         private readonly struct DocumentValueComparer : IComparer<DocumentValue<TValue>>

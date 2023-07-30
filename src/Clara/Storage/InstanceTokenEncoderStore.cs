@@ -17,11 +17,10 @@ namespace Clara.Storage
 
         private sealed class TokenEncoderBuilder : ITokenEncoderBuilder
         {
-            private readonly PooledDictionary<string, int> encoder = new(Allocator.Mixed);
-            private readonly PooledDictionary<int, string> decoder = new(Allocator.Mixed);
+            private readonly DictionarySlim<string, int> encoder = new();
+            private readonly DictionarySlim<int, string> decoder = new();
             private int nextId = 1;
             private bool isBuilt;
-            private bool isDisposed;
 
             public int Encode(string token)
             {
@@ -30,9 +29,9 @@ namespace Clara.Storage
                     throw new ArgumentNullException(nameof(token));
                 }
 
-                if (this.isDisposed || this.isBuilt)
+                if (this.isBuilt)
                 {
-                    throw new InvalidOperationException("Current instance is already built or disposed.");
+                    throw new InvalidOperationException("Current instance is already built.");
                 }
 
                 ref var id = ref this.encoder.GetValueRefOrAddDefault(token, out var exists);
@@ -51,9 +50,9 @@ namespace Clara.Storage
 
             public ITokenEncoder Build()
             {
-                if (this.isDisposed || this.isBuilt)
+                if (this.isBuilt)
                 {
-                    throw new InvalidOperationException("Current instance is already built or disposed.");
+                    throw new InvalidOperationException("Current instance is already built.");
                 }
 
                 var encoder = new TokenEncoder(this.encoder, this.decoder);
@@ -63,29 +62,14 @@ namespace Clara.Storage
                 return encoder;
             }
 
-            public void Dispose()
-            {
-                if (!this.isDisposed)
-                {
-                    if (!this.isBuilt)
-                    {
-                        this.encoder.Dispose();
-                        this.decoder.Dispose();
-                    }
-
-                    this.isDisposed = true;
-                }
-            }
-
             private sealed class TokenEncoder : ITokenEncoder
             {
-                private readonly PooledDictionary<string, int> encoder;
-                private readonly PooledDictionary<int, string> decoder;
-                private bool isDisposed;
+                private readonly DictionarySlim<string, int> encoder;
+                private readonly DictionarySlim<int, string> decoder;
 
                 public TokenEncoder(
-                    PooledDictionary<string, int> encoder,
-                    PooledDictionary<int, string> decoder)
+                    DictionarySlim<string, int> encoder,
+                    DictionarySlim<int, string> decoder)
                 {
                     if (encoder is null)
                     {
@@ -103,38 +87,17 @@ namespace Clara.Storage
 
                 public bool TryEncode(string token, out int id)
                 {
-                    if (this.isDisposed)
-                    {
-                        throw new InvalidOperationException("Current instance is already disposed.");
-                    }
-
                     return this.encoder.TryGetValue(token, out id);
                 }
 
                 public string Decode(int id)
                 {
-                    if (this.isDisposed)
-                    {
-                        throw new InvalidOperationException("Current instance is already disposed.");
-                    }
-
                     if (!this.decoder.TryGetValue(id, out var token))
                     {
                         throw new InvalidOperationException("Specified id does not correspond to any encoded token.");
                     }
 
                     return token;
-                }
-
-                public void Dispose()
-                {
-                    if (!this.isDisposed)
-                    {
-                        this.encoder.Dispose();
-                        this.decoder.Dispose();
-
-                        this.isDisposed = true;
-                    }
                 }
             }
         }

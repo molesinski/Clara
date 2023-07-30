@@ -1,6 +1,6 @@
 ﻿namespace Clara.Storage
 {
-    internal interface ITokenEncoderBuilder : IDisposable
+    internal interface ITokenEncoderBuilder
     {
         ITokenEncoder Build();
 

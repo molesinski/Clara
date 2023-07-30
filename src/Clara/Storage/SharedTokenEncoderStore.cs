@@ -3,44 +3,18 @@ using Clara.Utils;
 
 namespace Clara.Storage
 {
-    public sealed class SharedTokenEncoderStore : TokenEncoderStore, IDisposable
+    public sealed class SharedTokenEncoderStore : TokenEncoderStore
     {
         private readonly TokenEncoderBuilder builder = new();
         private readonly Dictionary<Field, TokenEncoderBuilder> fieldBuilders = new();
-        private bool isDisposed;
-
-        public void Dispose()
-        {
-            if (!this.isDisposed)
-            {
-                this.builder.Dispose();
-
-                foreach (var builder in this.fieldBuilders)
-                {
-                    builder.Value.Dispose();
-                }
-
-                this.isDisposed = true;
-            }
-        }
 
         internal override ITokenEncoderBuilder CreateTokenEncoderBuilder()
         {
-            if (this.isDisposed)
-            {
-                throw new InvalidOperationException("Current instance is already disposed.");
-            }
-
             return new TokenEncoderBuilderWrapper(this.builder);
         }
 
         internal override ITokenEncoderBuilder CreateTokenEncoderBuilder(Field field)
         {
-            if (this.isDisposed)
-            {
-                throw new InvalidOperationException("Current instance is already disposed.");
-            }
-
             if (!this.fieldBuilders.TryGetValue(field, out var builder))
             {
                 this.fieldBuilders.Add(field, builder = new TokenEncoderBuilder());
@@ -67,29 +41,19 @@ namespace Clara.Storage
             {
                 return this.tokenEncoderBuilder.Build();
             }
-
-            public void Dispose()
-            {
-            }
         }
 
         private sealed class TokenEncoderBuilder : ITokenEncoderBuilder
         {
-            private readonly PooledDictionary<string, int> encoder = new(Allocator.Mixed);
-            private readonly PooledDictionary<int, string> decoder = new(Allocator.Mixed);
+            private readonly DictionarySlim<string, int> encoder = new();
+            private readonly DictionarySlim<int, string> decoder = new();
             private int nextId = 1;
-            private bool isDisposed;
 
             public int Encode(string token)
             {
                 if (token is null)
                 {
                     throw new ArgumentNullException(nameof(token));
-                }
-
-                if (this.isDisposed)
-                {
-                    throw new InvalidOperationException("Current instance is already disposed.");
                 }
 
                 ref var id = ref this.encoder.GetValueRefOrAddDefault(token, out var exists);
@@ -108,37 +72,20 @@ namespace Clara.Storage
 
             public ITokenEncoder Build()
             {
-                if (this.isDisposed)
-                {
-                    throw new InvalidOperationException("Current instance is already disposed.");
-                }
-
-                var encoder = new PooledDictionary<string, int>(Allocator.Mixed, this.encoder);
-                var decoder = new PooledDictionary<int, string>(Allocator.Mixed, this.decoder);
+                var encoder = new DictionarySlim<string, int>(this.encoder);
+                var decoder = new DictionarySlim<int, string>(this.decoder);
 
                 return new TokenEncoder(encoder, decoder);
             }
 
-            public void Dispose()
-            {
-                if (!this.isDisposed)
-                {
-                    this.encoder.Dispose();
-                    this.decoder.Dispose();
-
-                    this.isDisposed = true;
-                }
-            }
-
             private sealed class TokenEncoder : ITokenEncoder
             {
-                private readonly PooledDictionary<string, int> encoder;
-                private readonly PooledDictionary<int, string> decoder;
-                private bool isDisposed;
+                private readonly DictionarySlim<string, int> encoder;
+                private readonly DictionarySlim<int, string> decoder;
 
                 public TokenEncoder(
-                    PooledDictionary<string, int> encoder,
-                    PooledDictionary<int, string> decoder)
+                    DictionarySlim<string, int> encoder,
+                    DictionarySlim<int, string> decoder)
                 {
                     if (encoder is null)
                     {
@@ -156,38 +103,17 @@ namespace Clara.Storage
 
                 public bool TryEncode(string token, out int id)
                 {
-                    if (this.isDisposed)
-                    {
-                        throw new InvalidOperationException("Current instance is already disposed.");
-                    }
-
                     return this.encoder.TryGetValue(token, out id);
                 }
 
                 public string Decode(int id)
                 {
-                    if (this.isDisposed)
-                    {
-                        throw new InvalidOperationException("Current instance is already disposed.");
-                    }
-
                     if (!this.decoder.TryGetValue(id, out var token))
                     {
                         throw new InvalidOperationException("Specified id does not correspond to any encoded token.");
                     }
 
                     return token;
-                }
-
-                public void Dispose()
-                {
-                    if (!this.isDisposed)
-                    {
-                        this.encoder.Dispose();
-                        this.decoder.Dispose();
-
-                        this.isDisposed = true;
-                    }
                 }
             }
         }

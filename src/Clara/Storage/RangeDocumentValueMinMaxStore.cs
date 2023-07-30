@@ -3,17 +3,17 @@ using Clara.Utils;
 
 namespace Clara.Storage
 {
-    internal sealed class RangeDocumentValueMinMaxStore<TValue> : IDisposable
+    internal sealed class RangeDocumentValueMinMaxStore<TValue>
         where TValue : struct, IComparable<TValue>
     {
         private readonly TValue minValue;
         private readonly TValue maxValue;
-        private readonly PooledDictionary<int, MinMax<TValue>> documentValueMinMax;
+        private readonly DictionarySlim<int, MinMax<TValue>> documentValueMinMax;
 
         public RangeDocumentValueMinMaxStore(
             TValue minValue,
             TValue maxValue,
-            PooledDictionary<int, MinMax<TValue>> documentValueMinMax)
+            DictionarySlim<int, MinMax<TValue>> documentValueMinMax)
         {
             if (documentValueMinMax is null)
             {
@@ -95,11 +95,6 @@ namespace Clara.Storage
                     DocumentValueComparer<TValue>.Ascending,
                     documentSet);
             }
-        }
-
-        public void Dispose()
-        {
-            this.documentValueMinMax.Dispose();
         }
     }
 }

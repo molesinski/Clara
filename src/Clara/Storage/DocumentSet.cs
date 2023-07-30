@@ -84,28 +84,6 @@ namespace Clara.Storage
             }
         }
 
-        public void IntersectWith(Field field, PooledHashSet<int> documents)
-        {
-            if (this.documents is null)
-            {
-                this.documents = documents;
-            }
-            else
-            {
-                this.documents.IntersectWith(documents);
-
-                foreach (var pair in this.branches)
-                {
-                    if (pair.Key != field)
-                    {
-                        pair.Value.IntersectWith(documents);
-                    }
-                }
-
-                documents.Dispose();
-            }
-        }
-
         public void IntersectWith(Field field, IEnumerable<int> documents)
         {
             if (this.documents is null)

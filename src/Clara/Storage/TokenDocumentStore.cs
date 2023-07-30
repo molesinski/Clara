@@ -4,14 +4,14 @@ using Clara.Utils;
 
 namespace Clara.Storage
 {
-    internal sealed class TokenDocumentStore : IDisposable
+    internal sealed class TokenDocumentStore
     {
         private readonly ITokenEncoder tokenEncoder;
-        private readonly PooledDictionary<int, PooledHashSet<int>> tokenDocuments;
+        private readonly DictionarySlim<int, HashSetSlim<int>> tokenDocuments;
 
         public TokenDocumentStore(
             ITokenEncoder tokenEncoder,
-            PooledDictionary<int, PooledHashSet<int>> tokenDocuments)
+            DictionarySlim<int, HashSetSlim<int>> tokenDocuments)
         {
             if (tokenEncoder is null)
             {
@@ -54,7 +54,7 @@ namespace Clara.Storage
                     {
                         if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
                         {
-                            documentSet.IntersectWith(field, (IEnumerable<int>)documents);
+                            documentSet.IntersectWith(field, documents);
 
                             return;
                         }
@@ -64,7 +64,7 @@ namespace Clara.Storage
                 }
                 else
                 {
-                    var anyMatches = new PooledHashSet<int>(Allocator.ArrayPool);
+                    using var anyMatches = new PooledHashSet<int>(Allocator.ArrayPool);
 
                     foreach (var token in anyValuesMatchExpression.Values)
                     {
@@ -88,7 +88,7 @@ namespace Clara.Storage
                     {
                         if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
                         {
-                            documentSet.IntersectWith(field, (IEnumerable<int>)documents);
+                            documentSet.IntersectWith(field, documents);
 
                             continue;
                         }
@@ -101,9 +101,7 @@ namespace Clara.Storage
             }
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                var anyMatches = new PooledHashSet<int>(Allocator.ArrayPool);
-#pragma warning restore CA2000 // Dispose objects before losing scope
+                using var anyMatches = new PooledHashSet<int>(Allocator.ArrayPool);
                 using var tempSet = new PooledHashSet<int>(Allocator.ArrayPool);
 
                 foreach (var expression in orMatchExpression.Expressions)
@@ -127,23 +125,13 @@ namespace Clara.Storage
 
                     this.Filter(expression, tempSet);
 
-                    documentSet.IntersectWith(field, (IEnumerable<int>)tempSet);
+                    documentSet.IntersectWith(field, tempSet);
                 }
             }
             else
             {
                 throw new InvalidOperationException("Unsupported token expression encountered.");
             }
-        }
-
-        public void Dispose()
-        {
-            foreach (var pair in this.tokenDocuments)
-            {
-                pair.Value.Dispose();
-            }
-
-            this.tokenDocuments.Dispose();
         }
 
         private void Filter(MatchExpression matchExpression, PooledHashSet<int> resultSet)

@@ -3,18 +3,18 @@ using Clara.Utils;
 
 namespace Clara.Storage
 {
-    internal sealed class HierarchyDocumentTokenStore : IDisposable
+    internal sealed class HierarchyDocumentTokenStore
     {
         private readonly HashSet<string> rootSet;
         private readonly ITokenEncoder tokenEncoder;
-        private readonly PooledDictionary<int, PooledHashSet<int>> documentTokens;
-        private readonly PooledDictionary<int, PooledHashSet<int>> parentChildren;
+        private readonly DictionarySlim<int, HashSetSlim<int>> documentTokens;
+        private readonly DictionarySlim<int, HashSetSlim<int>> parentChildren;
 
         public HierarchyDocumentTokenStore(
             string root,
             ITokenEncoder tokenEncoder,
-            PooledDictionary<int, PooledHashSet<int>> documentTokens,
-            PooledDictionary<int, PooledHashSet<int>> parentChildren)
+            DictionarySlim<int, HashSetSlim<int>> documentTokens,
+            DictionarySlim<int, HashSetSlim<int>> parentChildren)
         {
             if (root is null)
             {
@@ -134,22 +134,6 @@ namespace Clara.Storage
             values.Sort(0, selectedCount, HierarchyFacetValueComparer.Instance);
 
             return new FieldFacetResult(hierarchyFacetExpression.CreateResult(values.Range(0, selectedCount)), values);
-        }
-
-        public void Dispose()
-        {
-            foreach (var pair in this.documentTokens)
-            {
-                pair.Value.Dispose();
-            }
-
-            foreach (var pair in this.parentChildren)
-            {
-                pair.Value.Dispose();
-            }
-
-            this.documentTokens.Dispose();
-            this.parentChildren.Dispose();
         }
 
         private sealed class HierarchyFacetValueComparer : IComparer<HierarchyFacetValue>

@@ -3,16 +3,16 @@ using Clara.Utils;
 
 namespace Clara.Storage
 {
-    internal sealed class KeywordDocumentTokenStore : IDisposable
+    internal sealed class KeywordDocumentTokenStore
     {
         private static readonly HashSet<string> EmptySelectedValues = new();
 
         private readonly ITokenEncoder tokenEncoder;
-        private readonly PooledDictionary<int, PooledHashSet<int>> documentTokens;
+        private readonly DictionarySlim<int, HashSetSlim<int>> documentTokens;
 
         public KeywordDocumentTokenStore(
             ITokenEncoder tokenEncoder,
-            PooledDictionary<int, PooledHashSet<int>> documentTokens)
+            DictionarySlim<int, HashSetSlim<int>> documentTokens)
         {
             if (tokenEncoder is null)
             {
@@ -78,16 +78,6 @@ namespace Clara.Storage
             values.Sort(KeywordFacetValueComparer.Instance);
 
             return new FieldFacetResult(tokenFacetExpression.CreateResult(values), values);
-        }
-
-        public void Dispose()
-        {
-            foreach (var pair in this.documentTokens)
-            {
-                pair.Value.Dispose();
-            }
-
-            this.documentTokens.Dispose();
         }
 
         public sealed class KeywordFacetValueComparer : IComparer<KeywordFacetValue>

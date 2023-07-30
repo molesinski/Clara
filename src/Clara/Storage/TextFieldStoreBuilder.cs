@@ -9,9 +9,8 @@ namespace Clara.Storage
         private readonly TextField<TSource> field;
         private readonly ISynonymMap synonymMap;
         private readonly ITokenEncoderBuilder tokenEncoderBuilder;
-        private readonly PooledDictionary<int, PooledHashSet<int>> tokenDocuments;
+        private readonly DictionarySlim<int, HashSetSlim<int>> tokenDocuments;
         private bool isBuilt;
-        private bool isDisposed;
 
         public TextFieldStoreBuilder(TextField<TSource> field, TokenEncoderStore tokenEncoderStore, ISynonymMap? synonymMap)
         {
@@ -28,14 +27,14 @@ namespace Clara.Storage
             this.field = field;
             this.synonymMap = synonymMap ?? new SynonymMap(field, Array.Empty<Synonym>());
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
-            this.tokenDocuments = new(Allocator.Mixed);
+            this.tokenDocuments = new();
         }
 
         public override void Index(int documentId, TSource item)
         {
-            if (this.isDisposed || this.isBuilt)
+            if (this.isBuilt)
             {
-                throw new InvalidOperationException("Current instance is already built or disposed.");
+                throw new InvalidOperationException("Current instance is already built.");
             }
 
             var text = this.field.ValueMapper(item);
@@ -51,9 +50,7 @@ namespace Clara.Storage
 
                 ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                documents ??= new PooledHashSet<int>(Allocator.Mixed);
-#pragma warning restore CA2000 // Dispose objects before losing scope
+                documents ??= new HashSetSlim<int>();
 
                 documents.Add(documentId);
             }
@@ -61,9 +58,9 @@ namespace Clara.Storage
 
         public override FieldStore Build()
         {
-            if (this.isDisposed || this.isBuilt)
+            if (this.isBuilt)
             {
-                throw new InvalidOperationException("Current instance is already built or disposed.");
+                throw new InvalidOperationException("Current instance is already built.");
             }
 
             var tokenEncoder = this.tokenEncoderBuilder.Build();
@@ -71,27 +68,11 @@ namespace Clara.Storage
             var store =
                 new TextFieldStore(
                     this.synonymMap,
-                    tokenEncoder,
                     new TokenDocumentStore(tokenEncoder, this.tokenDocuments));
 
             this.isBuilt = true;
 
             return store;
-        }
-
-        public override void Dispose()
-        {
-            if (!this.isDisposed)
-            {
-                if (!this.isBuilt)
-                {
-                    this.tokenDocuments.Dispose();
-                }
-
-                this.tokenEncoderBuilder.Dispose();
-
-                this.isDisposed = true;
-            }
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Clara.Storage
 {
-    internal abstract class FieldStore : IDisposable
+    internal abstract class FieldStore
     {
         protected FieldStore()
         {
@@ -30,7 +30,5 @@ namespace Clara.Storage
         {
             throw new InvalidOperationException("Field does not support sorting.");
         }
-
-        public abstract void Dispose();
     }
 }

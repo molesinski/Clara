@@ -14,20 +14,19 @@ namespace Clara
         internal abstract bool HasField(Field field);
     }
 
-    public sealed class Index<TDocument> : Index, IDisposable
+    public sealed class Index<TDocument> : Index
     {
         private static readonly HashSet<Field> EmptyFacetFields = new();
         private static readonly List<FieldFacetResult> EmptyFacetResults = new();
 
         private readonly ITokenEncoder tokenEncoder;
-        private readonly PooledDictionary<int, TDocument> documents;
+        private readonly DictionarySlim<int, TDocument> documents;
         private readonly Dictionary<Field, FieldStore> fieldStores;
-        private readonly PooledHashSet<int> allDocuments;
-        private bool isDisposed;
+        private readonly HashSetSlim<int> allDocuments;
 
         internal Index(
             ITokenEncoder tokenEncoder,
-            PooledDictionary<int, TDocument> documents,
+            DictionarySlim<int, TDocument> documents,
             Dictionary<Field, FieldStore> fieldStores)
         {
             if (tokenEncoder is null)
@@ -48,7 +47,7 @@ namespace Clara
             this.tokenEncoder = tokenEncoder;
             this.documents = documents;
             this.fieldStores = fieldStores;
-            this.allDocuments = new PooledHashSet<int>(Allocator.Mixed, capacity: documents.Count);
+            this.allDocuments = new HashSetSlim<int>(capacity: documents.Count);
 
             foreach (var pair in documents)
             {
@@ -58,21 +57,11 @@ namespace Clara
 
         public QueryBuilder QueryBuilder()
         {
-            if (this.isDisposed)
-            {
-                throw new InvalidOperationException("Current instance is already disposed.");
-            }
-
             return new QueryBuilder(this);
         }
 
         public QueryResult<TDocument> Query(Query query)
         {
-            if (this.isDisposed)
-            {
-                throw new InvalidOperationException("Current instance is already disposed.");
-            }
-
             if (query is null)
             {
                 throw new ArgumentNullException(nameof(query));
@@ -105,10 +94,7 @@ namespace Clara
                 }
             }
 
-            if (documentSet is null)
-            {
-                documentSet = new DocumentSet((IReadOnlyCollection<int>)this.allDocuments);
-            }
+            documentSet ??= new DocumentSet((IReadOnlyCollection<int>)this.allDocuments);
 
             if (query.Filters.Count > 0)
             {
@@ -238,25 +224,6 @@ namespace Clara
             }
 
             return new QueryResult<TDocument>(documentResult, facetResults, this.documents);
-        }
-
-        public void Dispose()
-        {
-            if (!this.isDisposed)
-            {
-                this.tokenEncoder.Dispose();
-                this.documents.Dispose();
-                this.allDocuments.Dispose();
-
-                foreach (var pair in this.fieldStores)
-                {
-                    pair.Value.Dispose();
-                }
-
-                this.fieldStores.Clear();
-
-                this.isDisposed = true;
-            }
         }
 
         internal override bool HasField(Field field)

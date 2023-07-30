@@ -281,12 +281,12 @@ namespace Clara.Utils
                 }
                 else
                 {
-                    var array = this.allocator.Allocate<int>(intArrayLength);
+                    var array = ArrayPool<int>.Shared.Rent(intArrayLength);
                     var bitHelper = new BitHelper(array.AsSpan(0, intArrayLength), clear: true);
 
                     IntersectWith(enumerable, ref bitHelper, lastIndex);
 
-                    this.allocator.Release(array);
+                    ArrayPool<int>.Shared.Return(array);
                 }
             }
 

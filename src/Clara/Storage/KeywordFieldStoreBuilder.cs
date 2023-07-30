@@ -7,10 +7,9 @@ namespace Clara.Storage
     {
         private readonly KeywordField<TSource> field;
         private readonly ITokenEncoderBuilder tokenEncoderBuilder;
-        private readonly PooledDictionary<int, PooledHashSet<int>>? tokenDocuments;
-        private readonly PooledDictionary<int, PooledHashSet<int>>? documentTokens;
+        private readonly DictionarySlim<int, HashSetSlim<int>>? tokenDocuments;
+        private readonly DictionarySlim<int, HashSetSlim<int>>? documentTokens;
         private bool isBuilt;
-        private bool isDisposed;
 
         public KeywordFieldStoreBuilder(KeywordField<TSource> field, TokenEncoderStore tokenEncoderStore)
         {
@@ -29,24 +28,24 @@ namespace Clara.Storage
 
             if (field.IsFilterable)
             {
-                this.tokenDocuments = new(Allocator.Mixed);
+                this.tokenDocuments = new();
             }
 
             if (field.IsFacetable)
             {
-                this.documentTokens = new(Allocator.Mixed);
+                this.documentTokens = new();
             }
         }
 
         public override void Index(int documentId, TSource item)
         {
-            if (this.isDisposed || this.isBuilt)
+            if (this.isBuilt)
             {
-                throw new InvalidOperationException("Current instance is already built or disposed.");
+                throw new InvalidOperationException("Current instance is already built.");
             }
 
             var values = this.field.ValueMapper(item);
-            var tokens = default(PooledHashSet<int>);
+            var tokens = default(HashSetSlim<int>);
 
             foreach (var token in values)
             {
@@ -56,10 +55,7 @@ namespace Clara.Storage
                 {
                     ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                    documents ??= new PooledHashSet<int>(Allocator.Mixed);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-
+                    documents ??= new();
                     documents.Add(documentId);
                 }
 
@@ -69,9 +65,7 @@ namespace Clara.Storage
                     {
                         ref var value = ref this.documentTokens.GetValueRefOrAddDefault(documentId, out _);
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                        value = tokens = new PooledHashSet<int>(Allocator.Mixed);
-#pragma warning restore CA2000 // Dispose objects before losing scope
+                        value = tokens = new();
                     }
 
                     tokens.Add(tokenId);
@@ -81,38 +75,21 @@ namespace Clara.Storage
 
         public override FieldStore Build()
         {
-            if (this.isDisposed || this.isBuilt)
+            if (this.isBuilt)
             {
-                throw new InvalidOperationException("Current instance is already built or disposed.");
+                throw new InvalidOperationException("Current instance is already built.");
             }
 
             var tokenEncoder = this.tokenEncoderBuilder.Build();
 
             var store =
                 new KeywordFieldStore(
-                    tokenEncoder,
                     this.tokenDocuments is not null ? new TokenDocumentStore(tokenEncoder, this.tokenDocuments) : null,
                     this.documentTokens is not null ? new KeywordDocumentTokenStore(tokenEncoder, this.documentTokens) : null);
 
             this.isBuilt = true;
 
             return store;
-        }
-
-        public override void Dispose()
-        {
-            if (!this.isDisposed)
-            {
-                if (!this.isBuilt)
-                {
-                    this.tokenDocuments?.Dispose();
-                    this.documentTokens?.Dispose();
-                }
-
-                this.tokenEncoderBuilder.Dispose();
-
-                this.isDisposed = true;
-            }
         }
     }
 }
