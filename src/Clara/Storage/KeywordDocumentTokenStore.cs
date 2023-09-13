@@ -34,9 +34,9 @@ namespace Clara.Storage
 
             if (filterExpression is TokenFilterExpression tokenFilterExpression)
             {
-                if (tokenFilterExpression.MatchExpression is ValuesMatchExpression valuesMatchExpression)
+                if (tokenFilterExpression.ValuesExpression.Values.Count > 0)
                 {
-                    selectedValues = new HashSet<string>(valuesMatchExpression.Values);
+                    selectedValues = new HashSet<string>(tokenFilterExpression.ValuesExpression.Values);
                 }
             }
 

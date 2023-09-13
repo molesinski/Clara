@@ -4,11 +4,11 @@ using Clara.Storage;
 
 namespace Clara.Mapping
 {
-    public abstract class TextField : TokenField
+    public abstract class TextField : Field
     {
         protected internal TextField(IAnalyzer analyzer)
             : base(
-                isFilterable: true,
+                isFilterable: false,
                 isFacetable: false,
                 isSortable: false)
         {

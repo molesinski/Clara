@@ -34,7 +34,7 @@ namespace Clara.Storage
             {
                 if (this.tokenDocumentStore is not null)
                 {
-                    this.tokenDocumentStore.Filter(hierarchyFilterExpression.Field, hierarchyFilterExpression.MatchExpression, documentSet);
+                    this.tokenDocumentStore.Filter(hierarchyFilterExpression.Field, hierarchyFilterExpression.ValuesExpression, documentSet);
                     return;
                 }
             }

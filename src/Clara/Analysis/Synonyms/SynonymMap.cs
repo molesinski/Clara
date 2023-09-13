@@ -82,7 +82,7 @@ namespace Clara.Analysis.Synonyms
             }
         }
 
-        public MatchExpression Filter(MatchExpression matchExpression)
+        public MatchExpression Process(MatchExpression matchExpression)
         {
             if (matchExpression is null)
             {
@@ -94,7 +94,7 @@ namespace Clara.Analysis.Synonyms
                 return matchExpression;
             }
 
-            if (matchExpression is AllValuesMatchExpression allValuesMatchExpression)
+            if (matchExpression is AllMatchExpression allValuesMatchExpression)
             {
                 var expressions = new List<MatchExpression>();
                 var tokens = new List<string>();
@@ -118,7 +118,7 @@ namespace Clara.Analysis.Synonyms
 
                 return Match.And(expressions);
             }
-            else if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
+            else if (matchExpression is AnyMatchExpression anyValuesMatchExpression)
             {
                 var expressions = new List<MatchExpression>();
                 var tokens = new List<string>();

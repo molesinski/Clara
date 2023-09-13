@@ -94,7 +94,19 @@ namespace Clara
                 }
             }
 
-            documentSet ??= new DocumentSet((IReadOnlyCollection<int>)this.allDocuments);
+            documentSet ??= new DocumentSet(this.allDocuments);
+
+            if (query.Search is SearchExpression searchExpression)
+            {
+                var field = searchExpression.Field;
+
+                if (!this.fieldStores.TryGetValue(field, out var store))
+                {
+                    throw new InvalidOperationException("Search expression references field not belonging to current index.");
+                }
+
+                store.Search(searchExpression, documentSet);
+            }
 
             if (query.Filters.Count > 0)
             {

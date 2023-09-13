@@ -4,24 +4,24 @@ namespace Clara.Querying
 {
     public abstract class TokenFilterExpression : FilterExpression
     {
-        protected internal TokenFilterExpression(TokenField field, MatchExpression matchExpression)
+        protected internal TokenFilterExpression(TokenField field, ValuesExpression valuesExpression)
             : base(field)
         {
-            if (matchExpression is null)
+            if (valuesExpression is null)
             {
-                throw new ArgumentNullException(nameof(matchExpression));
+                throw new ArgumentNullException(nameof(valuesExpression));
             }
 
-            this.MatchExpression = matchExpression;
+            this.ValuesExpression = valuesExpression;
         }
 
-        public MatchExpression MatchExpression { get; }
+        public ValuesExpression ValuesExpression { get; }
 
         public override bool IsEmpty
         {
             get
             {
-                return this.MatchExpression is EmptyMatchExpression;
+                return this.ValuesExpression is EmptyValuesExpression;
             }
         }
 
@@ -29,7 +29,7 @@ namespace Clara.Querying
         {
             get
             {
-                return this.MatchExpression is AnyValuesMatchExpression;
+                return this.ValuesExpression is AnyValuesExpression;
             }
         }
     }

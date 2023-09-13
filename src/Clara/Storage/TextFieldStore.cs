@@ -1,29 +1,38 @@
-﻿using Clara.Analysis.Synonyms;
+﻿using Clara.Analysis;
+using Clara.Analysis.Synonyms;
 using Clara.Querying;
 
 namespace Clara.Storage
 {
     internal sealed class TextFieldStore : FieldStore
     {
+        private readonly IAnalyzer analyzer;
         private readonly ISynonymMap synonymMap;
-        private readonly TokenDocumentStore tokenDocumentStore;
+        private readonly TextDocumentStore textDocumentStore;
 
         public TextFieldStore(
+            IAnalyzer analyzer,
             ISynonymMap synonymMap,
-            TokenDocumentStore tokenDocumentStore)
+            TextDocumentStore textDocumentStore)
         {
+            if (analyzer is null)
+            {
+                throw new ArgumentNullException(nameof(analyzer));
+            }
+
             if (synonymMap is null)
             {
                 throw new ArgumentNullException(nameof(synonymMap));
             }
 
-            if (tokenDocumentStore is null)
+            if (textDocumentStore is null)
             {
-                throw new ArgumentNullException(nameof(tokenDocumentStore));
+                throw new ArgumentNullException(nameof(textDocumentStore));
             }
 
+            this.analyzer = analyzer;
             this.synonymMap = synonymMap;
-            this.tokenDocumentStore = tokenDocumentStore;
+            this.textDocumentStore = textDocumentStore;
         }
 
         public override double FilterOrder
@@ -34,19 +43,24 @@ namespace Clara.Storage
             }
         }
 
-        public override void Filter(FilterExpression filterExpression, DocumentSet documentSet)
+        public override void Search(SearchExpression searchExpression, DocumentSet documentSet)
         {
-            if (filterExpression is TextFilterExpression textFilterExpression)
+            var tokens = this.analyzer.GetTokens(searchExpression.Text).ToList();
+
+            if (tokens.Count == 0)
             {
-                var matchExpression = textFilterExpression.MatchExpression;
-
-                matchExpression = this.synonymMap.Filter(matchExpression);
-
-                this.tokenDocumentStore.Filter(textFilterExpression.Field, matchExpression, documentSet);
+                documentSet.Clear();
                 return;
             }
 
-            base.Filter(filterExpression, documentSet);
+            var matchExpression =
+                searchExpression.Mode == SearchMode.All
+                    ? Match.All(tokens)
+                    : Match.Any(tokens);
+
+            matchExpression = this.synonymMap.Process(matchExpression);
+
+            this.textDocumentStore.Search(searchExpression.Field, matchExpression, documentSet);
         }
     }
 }

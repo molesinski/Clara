@@ -34,7 +34,7 @@ namespace Clara.Storage
             {
                 if (this.tokenDocumentStore is not null)
                 {
-                    this.tokenDocumentStore.Filter(keywordFilterExpression.Field, keywordFilterExpression.MatchExpression, documentSet);
+                    this.tokenDocumentStore.Filter(keywordFilterExpression.Field, keywordFilterExpression.ValuesExpression, documentSet);
                     return;
                 }
             }

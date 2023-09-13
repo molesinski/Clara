@@ -35,7 +35,7 @@ namespace Clara.Tests
                     var brand = SampleProduct.Items.First().Brand;
 
                     var queryBuilder = index.QueryBuilder()
-                        .Filter(SampleProductMapper.Brand, Match.Any(brand));
+                        .Filter(SampleProductMapper.Brand, Values.Any(brand));
 
                     using var result = index.Query(queryBuilder.Query);
 

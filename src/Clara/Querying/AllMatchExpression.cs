@@ -1,10 +1,10 @@
 ﻿namespace Clara.Querying
 {
-    public abstract class ValuesMatchExpression : MatchExpression
+    public sealed class AllMatchExpression : MatchExpression
     {
-        private readonly IReadOnlyList<string> values;
+        private readonly IReadOnlyCollection<string> values;
 
-        protected internal ValuesMatchExpression(IReadOnlyList<string> values)
+        internal AllMatchExpression(IReadOnlyCollection<string> values)
         {
             if (values is null)
             {
@@ -14,7 +14,7 @@
             this.values = values;
         }
 
-        public IReadOnlyList<string> Values
+        public IReadOnlyCollection<string> Values
         {
             get
             {

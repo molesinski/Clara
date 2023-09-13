@@ -2,8 +2,91 @@
 {
     public static class Match
     {
-        public static MatchExpression Empty()
+        public static MatchExpression All(string? value)
         {
+            if (value is not null)
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    return new AllMatchExpression(new[] { value });
+                }
+            }
+
+            return EmptyMatchExpression.Instance;
+        }
+
+        public static MatchExpression All(params string?[] values)
+        {
+            return All((IEnumerable<string?>)values);
+        }
+
+        public static MatchExpression All(IEnumerable<string?>? values)
+        {
+            if (values is not null)
+            {
+                var result = new HashSet<string>();
+
+                foreach (var value in values)
+                {
+                    if (value is not null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            result.Add(value);
+                        }
+                    }
+                }
+
+                if (result.Count > 0)
+                {
+                    return new AllMatchExpression(result);
+                }
+            }
+
+            return EmptyMatchExpression.Instance;
+        }
+
+        public static MatchExpression Any(string? value)
+        {
+            if (value is not null)
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    return new AnyMatchExpression(new[] { value });
+                }
+            }
+
+            return EmptyMatchExpression.Instance;
+        }
+
+        public static MatchExpression Any(params string?[] values)
+        {
+            return Any((IEnumerable<string?>)values);
+        }
+
+        public static MatchExpression Any(IEnumerable<string?>? values)
+        {
+            if (values is not null)
+            {
+                var result = new HashSet<string>();
+
+                foreach (var value in values)
+                {
+                    if (value is not null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            result.Add(value);
+                        }
+                    }
+                }
+
+                if (result.Count > 0)
+                {
+                    return new AnyMatchExpression(result);
+                }
+            }
+
             return EmptyMatchExpression.Instance;
         }
 
@@ -113,94 +196,6 @@
                 if (result.Count > 1)
                 {
                     return new OrMatchExpression(result);
-                }
-            }
-
-            return EmptyMatchExpression.Instance;
-        }
-
-        public static MatchExpression All(string? value)
-        {
-            if (value is not null)
-            {
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    return new AllValuesMatchExpression(new List<string> { value });
-                }
-            }
-
-            return EmptyMatchExpression.Instance;
-        }
-
-        public static MatchExpression All(params string?[] values)
-        {
-            return All((IEnumerable<string?>)values);
-        }
-
-        public static MatchExpression All(IEnumerable<string?>? values)
-        {
-            if (values is not null)
-            {
-                var result = new List<string>();
-
-                foreach (var value in values)
-                {
-                    if (value is not null)
-                    {
-                        if (!string.IsNullOrWhiteSpace(value))
-                        {
-                            result.Add(value);
-                        }
-                    }
-                }
-
-                if (result.Count > 0)
-                {
-                    return new AllValuesMatchExpression(result);
-                }
-            }
-
-            return EmptyMatchExpression.Instance;
-        }
-
-        public static MatchExpression Any(string? value)
-        {
-            if (value is not null)
-            {
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    return new AnyValuesMatchExpression(new List<string> { value });
-                }
-            }
-
-            return EmptyMatchExpression.Instance;
-        }
-
-        public static MatchExpression Any(params string?[] values)
-        {
-            return Any((IEnumerable<string?>)values);
-        }
-
-        public static MatchExpression Any(IEnumerable<string?>? values)
-        {
-            if (values is not null)
-            {
-                var result = new List<string>();
-
-                foreach (var value in values)
-                {
-                    if (value is not null)
-                    {
-                        if (!string.IsNullOrWhiteSpace(value))
-                        {
-                            result.Add(value);
-                        }
-                    }
-                }
-
-                if (result.Count > 0)
-                {
-                    return new AnyValuesMatchExpression(result);
                 }
             }
 

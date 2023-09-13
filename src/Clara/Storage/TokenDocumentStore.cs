@@ -42,179 +42,47 @@ namespace Clara.Storage
 
         public double FilterOrder { get; }
 
-        public void Filter(Field field, MatchExpression matchExpression, DocumentSet documentSet)
+        public void Filter(Field field, ValuesExpression valuesExpression, DocumentSet documentSet)
         {
-            if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
-            {
-                if (anyValuesMatchExpression.Values.Count == 1)
-                {
-                    var token = anyValuesMatchExpression.Values[0];
-
-                    if (this.tokenEncoder.TryEncode(token, out var tokenId))
-                    {
-                        if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
-                        {
-                            documentSet.IntersectWith(field, documents);
-
-                            return;
-                        }
-                    }
-
-                    documentSet.Clear();
-                }
-                else
-                {
-                    using var anyMatches = new PooledHashSet<int>(Allocator.ArrayPool);
-
-                    foreach (var token in anyValuesMatchExpression.Values)
-                    {
-                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
-                        {
-                            if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
-                            {
-                                anyMatches.UnionWith(documents);
-                            }
-                        }
-                    }
-
-                    documentSet.IntersectWith(field, anyMatches);
-                }
-            }
-            else if (matchExpression is AllValuesMatchExpression allValuesMatchExpression)
-            {
-                foreach (var token in allValuesMatchExpression.Values)
-                {
-                    if (this.tokenEncoder.TryEncode(token, out var tokenId))
-                    {
-                        if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
-                        {
-                            documentSet.IntersectWith(field, documents);
-
-                            continue;
-                        }
-                    }
-
-                    documentSet.Clear();
-
-                    break;
-                }
-            }
-            else if (matchExpression is OrMatchExpression orMatchExpression)
+            if (valuesExpression is AnyValuesExpression anyValuesExpression)
             {
                 using var anyMatches = new PooledHashSet<int>(Allocator.ArrayPool);
-                using var tempSet = new PooledHashSet<int>(Allocator.ArrayPool);
 
-                foreach (var expression in orMatchExpression.Expressions)
+                foreach (var token in anyValuesExpression.Values)
                 {
-                    tempSet.Clear();
-
-                    this.Filter(expression, tempSet);
-
-                    anyMatches.UnionWith(tempSet);
+                    if (this.tokenEncoder.TryEncode(token, out var tokenId))
+                    {
+                        if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
+                        {
+                            anyMatches.UnionWith(documents);
+                        }
+                    }
                 }
 
                 documentSet.IntersectWith(field, anyMatches);
             }
-            else if (matchExpression is AndMatchExpression andMatchExpression)
+            else if (valuesExpression is AllValuesExpression allValuesExpression)
             {
-                using var tempSet = new PooledHashSet<int>(Allocator.ArrayPool);
-
-                foreach (var expression in andMatchExpression.Expressions)
-                {
-                    tempSet.Clear();
-
-                    this.Filter(expression, tempSet);
-
-                    documentSet.IntersectWith(field, tempSet);
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException("Unsupported token expression encountered.");
-            }
-        }
-
-        private void Filter(MatchExpression matchExpression, PooledHashSet<int> resultSet)
-        {
-            if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
-            {
-                foreach (var token in anyValuesMatchExpression.Values)
+                foreach (var token in allValuesExpression.Values)
                 {
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
                         if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
                         {
-                            resultSet.UnionWith(documents);
-                        }
-                    }
-                }
-            }
-            else if (matchExpression is AllValuesMatchExpression allValuesMatchExpression)
-            {
-                var isFirst = true;
-
-                foreach (var token in allValuesMatchExpression.Values)
-                {
-                    if (this.tokenEncoder.TryEncode(token, out var tokenId))
-                    {
-                        if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
-                        {
-                            if (isFirst)
-                            {
-                                isFirst = false;
-                                resultSet.UnionWith(documents);
-                            }
-                            else
-                            {
-                                resultSet.IntersectWith(documents);
-                            }
+                            documentSet.IntersectWith(field, documents);
 
                             continue;
                         }
                     }
 
-                    resultSet.Clear();
+                    documentSet.Clear();
+
                     break;
-                }
-            }
-            else if (matchExpression is OrMatchExpression orMatchExpression)
-            {
-                using var tempSet = new PooledHashSet<int>(Allocator.ArrayPool);
-
-                foreach (var expression in orMatchExpression.Expressions)
-                {
-                    tempSet.Clear();
-
-                    this.Filter(expression, tempSet);
-
-                    resultSet.UnionWith(tempSet);
-                }
-            }
-            else if (matchExpression is AndMatchExpression andMatchExpression)
-            {
-                using var tempSet = new PooledHashSet<int>(Allocator.ArrayPool);
-                var isFirst = true;
-
-                foreach (var expression in andMatchExpression.Expressions)
-                {
-                    tempSet.Clear();
-
-                    this.Filter(expression, tempSet);
-
-                    if (isFirst)
-                    {
-                        isFirst = false;
-                        resultSet.UnionWith(tempSet);
-                    }
-                    else
-                    {
-                        resultSet.IntersectWith(tempSet);
-                    }
                 }
             }
             else
             {
-                throw new InvalidOperationException("Unsupported token expression encountered.");
+                throw new InvalidOperationException("Unsupported values expression encountered.");
             }
         }
     }

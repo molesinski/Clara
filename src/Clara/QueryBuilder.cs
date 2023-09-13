@@ -25,23 +25,28 @@ namespace Clara
             }
         }
 
-        public QueryBuilder Filter(TextField field, MatchExpression matchExpression)
+        public QueryBuilder Search(TextField field, string text, SearchMode mode = SearchMode.All)
         {
-            this.query.AddFilter(new TextFilterExpression(field, matchExpression));
+            if (this.query.Search is not null)
+            {
+                throw new InvalidOperationException("Search expression already has been set.");
+            }
+
+            this.query.Search = new SearchExpression(field, text, mode);
 
             return this;
         }
 
-        public QueryBuilder Filter(KeywordField field, MatchExpression matchExpression)
+        public QueryBuilder Filter(KeywordField field, ValuesExpression valuesExpression)
         {
-            this.query.AddFilter(new KeywordFilterExpression(field, matchExpression));
+            this.query.AddFilter(new KeywordFilterExpression(field, valuesExpression));
 
             return this;
         }
 
-        public QueryBuilder Filter(HierarchyField field, MatchExpression matchExpression)
+        public QueryBuilder Filter(HierarchyField field, ValuesExpression valuesExpression)
         {
-            this.query.AddFilter(new HierarchyFilterExpression(field, matchExpression));
+            this.query.AddFilter(new HierarchyFilterExpression(field, valuesExpression));
 
             return this;
         }

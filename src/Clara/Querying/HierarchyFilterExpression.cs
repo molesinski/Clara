@@ -4,8 +4,8 @@ namespace Clara.Querying
 {
     public sealed class HierarchyFilterExpression : TokenFilterExpression
     {
-        public HierarchyFilterExpression(HierarchyField field, MatchExpression matchExpression)
-            : base(field, matchExpression)
+        public HierarchyFilterExpression(HierarchyField field, ValuesExpression valuesExpression)
+            : base(field, valuesExpression)
         {
         }
 

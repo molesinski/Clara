@@ -6,6 +6,7 @@
         private static readonly List<FacetExpression> EmptyFacets = new();
 
         private readonly Index index;
+        private SearchExpression? search;
         private List<FilterExpression> filters = EmptyFilters;
         private List<FacetExpression> facets = EmptyFacets;
         private SortExpression? sort;
@@ -18,6 +19,38 @@
             }
 
             this.index = index;
+        }
+
+        public SearchExpression? Search
+        {
+            get
+            {
+                return this.search;
+            }
+
+            set
+            {
+                if (value is null)
+                {
+                    this.search = null;
+
+                    return;
+                }
+
+                if (value.IsEmpty)
+                {
+                    this.search = null;
+
+                    return;
+                }
+
+                if (!this.index.HasField(value.Field))
+                {
+                    throw new InvalidOperationException("Search expression references field not belonging to current index.");
+                }
+
+                this.search = value;
+            }
         }
 
         public IReadOnlyCollection<FilterExpression> Filters
@@ -48,6 +81,7 @@
                 if (value is null)
                 {
                     this.sort = null;
+
                     return;
                 }
 

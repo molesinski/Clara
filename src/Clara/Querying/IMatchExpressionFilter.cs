@@ -2,6 +2,6 @@
 {
     public interface IMatchExpressionFilter
     {
-        MatchExpression Filter(MatchExpression matchExpression);
+        MatchExpression Process(MatchExpression matchExpression);
     }
 }

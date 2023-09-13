@@ -16,6 +16,11 @@ namespace Clara.Querying
                 throw new ArgumentException("Sorting is not enabled for given field.", nameof(field));
             }
 
+            if (!Enum.IsDefined(typeof(SortDirection), direction))
+            {
+                throw new ArgumentOutOfRangeException(nameof(direction));
+            }
+
             this.Field = field;
             this.Direction = direction;
         }

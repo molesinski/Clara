@@ -6,6 +6,6 @@
         {
         }
 
-        internal static MatchExpression Instance { get; } = new EmptyMatchExpression();
+        internal static EmptyMatchExpression Instance { get; } = new EmptyMatchExpression();
     }
 }
