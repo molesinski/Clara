@@ -9,7 +9,7 @@ namespace Clara.Storage
         private readonly RangeField<TSource, TValue> field;
         private readonly TValue minValue;
         private readonly TValue maxValue;
-        private readonly ListSlim<DocumentValue<TValue>>? sortedDocumentValues;
+        private readonly ListSlim<DocumentValue<TValue>>? documentValues;
         private readonly DictionarySlim<int, MinMax<TValue>>? documentValueMinMax;
         private bool isBuilt;
 
@@ -26,7 +26,7 @@ namespace Clara.Storage
 
             if (field.IsFilterable)
             {
-                this.sortedDocumentValues = new();
+                this.documentValues = new();
             }
 
             if (field.IsFacetable || field.IsSortable)
@@ -52,9 +52,9 @@ namespace Clara.Storage
             {
                 hadValues = true;
 
-                if (this.sortedDocumentValues is not null)
+                if (this.documentValues is not null)
                 {
-                    this.sortedDocumentValues.Add(new DocumentValue<TValue>(documentId, value));
+                    this.documentValues.Add(new DocumentValue<TValue>(documentId, value));
                 }
 
                 if (this.documentValueMinMax is not null)
@@ -91,8 +91,8 @@ namespace Clara.Storage
 
             var store =
                 new RangeFieldStore<TValue>(
-                    this.sortedDocumentValues is not null ? new RangeSortedDocumentValueStore<TValue>(this.sortedDocumentValues) : null,
-                    this.documentValueMinMax is not null ? new RangeDocumentValueMinMaxStore<TValue>(this.minValue, this.maxValue, this.documentValueMinMax) : null);
+                    this.documentValues is not null ? new RangeSortedDocumentValueStore<TValue>(this.documentValues) : null,
+                    this.documentValueMinMax is not null ? new RangeDocumentValueMinMaxStore<TValue>(this.field, this.minValue, this.maxValue, this.documentValueMinMax) : null);
 
             this.isBuilt = true;
 

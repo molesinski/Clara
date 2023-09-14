@@ -2,11 +2,22 @@
 
 namespace Clara.Querying
 {
-    public sealed class HierarchyFacetResult : TokenFacetResult<HierarchyFacetValue>
+    public sealed class HierarchyFacetResult : TokenFacetResult<HierarchyFacetValue>, IDisposable
     {
-        public HierarchyFacetResult(HierarchyField field, IEnumerable<HierarchyFacetValue> values)
-            : base(field, values)
+        private readonly IDisposable? disposable;
+
+        internal HierarchyFacetResult(
+            HierarchyField field,
+            IEnumerable<HierarchyFacetValue> values,
+            IDisposable? disposable)
+                : base(field, values)
         {
+            this.disposable = disposable;
+        }
+
+        public void Dispose()
+        {
+            this.disposable?.Dispose();
         }
     }
 }

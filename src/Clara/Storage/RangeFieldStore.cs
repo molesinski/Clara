@@ -43,13 +43,13 @@ namespace Clara.Storage
             base.Filter(filterExpression, documentSet);
         }
 
-        public override FieldFacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
+        public override FacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
         {
-            if (facetExpression is RangeFacetExpression<TValue> rangeFacetExpression)
+            if (facetExpression is RangeFacetExpression<TValue>)
             {
                 if (this.documentValueMinMaxStore is not null)
                 {
-                    return this.documentValueMinMaxStore.Facet(rangeFacetExpression, documents);
+                    return this.documentValueMinMaxStore.Facet(documents);
                 }
             }
 

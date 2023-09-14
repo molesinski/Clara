@@ -9,16 +9,16 @@ namespace Clara.Storage
         private readonly ListSlim<DocumentValue<TValue>> sortedDocumentValues;
 
         public RangeSortedDocumentValueStore(
-            ListSlim<DocumentValue<TValue>> sortedDocumentValues)
+            ListSlim<DocumentValue<TValue>> documentValues)
         {
-            if (sortedDocumentValues is null)
+            if (documentValues is null)
             {
-                throw new ArgumentNullException(nameof(sortedDocumentValues));
+                throw new ArgumentNullException(nameof(documentValues));
             }
 
-            sortedDocumentValues.Sort(default(DocumentValueComparer));
+            documentValues.Sort(default(DocumentValueComparer));
 
-            this.sortedDocumentValues = sortedDocumentValues;
+            this.sortedDocumentValues = documentValues;
         }
 
         public double FilterOrder

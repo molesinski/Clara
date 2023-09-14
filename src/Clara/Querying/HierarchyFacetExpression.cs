@@ -8,15 +8,5 @@ namespace Clara.Querying
             : base(field)
         {
         }
-
-        public override FacetResult CreateResult(IEnumerable<HierarchyFacetValue> values)
-        {
-            if (values is null)
-            {
-                throw new ArgumentNullException(nameof(values));
-            }
-
-            return new HierarchyFacetResult((HierarchyField)this.Field, values);
-        }
     }
 }

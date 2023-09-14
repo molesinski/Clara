@@ -1,4 +1,5 @@
-﻿using Clara.Querying;
+﻿using Clara.Mapping;
+using Clara.Querying;
 using Clara.Utils;
 
 namespace Clara.Storage
@@ -6,26 +7,34 @@ namespace Clara.Storage
     internal sealed class RangeDocumentValueMinMaxStore<TValue>
         where TValue : struct, IComparable<TValue>
     {
+        private readonly RangeField<TValue> field;
         private readonly TValue minValue;
         private readonly TValue maxValue;
         private readonly DictionarySlim<int, MinMax<TValue>> documentValueMinMax;
 
         public RangeDocumentValueMinMaxStore(
+            RangeField<TValue> field,
             TValue minValue,
             TValue maxValue,
             DictionarySlim<int, MinMax<TValue>> documentValueMinMax)
         {
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
             if (documentValueMinMax is null)
             {
                 throw new ArgumentNullException(nameof(documentValueMinMax));
             }
 
+            this.field = field;
             this.minValue = minValue;
             this.maxValue = maxValue;
             this.documentValueMinMax = documentValueMinMax;
         }
 
-        public FieldFacetResult? Facet(RangeFacetExpression<TValue> rangeFacetExpression, IEnumerable<int> documents)
+        public FacetResult? Facet(IEnumerable<int> documents)
         {
             var hasMinMax = false;
             var min = this.maxValue;
@@ -51,7 +60,7 @@ namespace Clara.Storage
 
             if (hasMinMax)
             {
-                return new FieldFacetResult(rangeFacetExpression.CreateResult(min, max));
+                return new RangeFacetResult<TValue>(this.field, min, max);
             }
 
             return null;
@@ -64,36 +73,38 @@ namespace Clara.Storage
                 var documentValueMinMax = this.documentValueMinMax;
                 var minValue = this.minValue;
 
-                return new RangeSortedDocumentSet<TValue>(
-                    o =>
-                    {
-                        if (documentValueMinMax.TryGetValue(o, out var maxMax))
+                return
+                    new SortedDocumentSet<TValue>(
+                        documentSet,
+                        o =>
                         {
-                            return maxMax.Max;
-                        }
+                            if (documentValueMinMax.TryGetValue(o, out var maxMax))
+                            {
+                                return maxMax.Max;
+                            }
 
-                        return minValue;
-                    },
-                    DocumentValueComparer<TValue>.Descending,
-                    documentSet);
+                            return minValue;
+                        },
+                        DocumentValueComparer<TValue>.Descending);
             }
             else
             {
                 var documentValueMinMax = this.documentValueMinMax;
                 var maxValue = this.maxValue;
 
-                return new RangeSortedDocumentSet<TValue>(
-                    o =>
-                    {
-                        if (documentValueMinMax.TryGetValue(o, out var maxMax))
+                return
+                    new SortedDocumentSet<TValue>(
+                        documentSet,
+                        o =>
                         {
-                            return maxMax.Min;
-                        }
+                            if (documentValueMinMax.TryGetValue(o, out var maxMax))
+                            {
+                                return maxMax.Min;
+                            }
 
-                        return maxValue;
-                    },
-                    DocumentValueComparer<TValue>.Ascending,
-                    documentSet);
+                            return maxValue;
+                        },
+                        DocumentValueComparer<TValue>.Ascending);
             }
         }
     }

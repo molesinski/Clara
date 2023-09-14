@@ -9,7 +9,5 @@ namespace Clara.Querying
             : base(field)
         {
         }
-
-        public abstract FacetResult CreateResult(IEnumerable<TValue> values);
     }
 }

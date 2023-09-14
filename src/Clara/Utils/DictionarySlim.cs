@@ -13,6 +13,7 @@ namespace Clara.Utils
         where TKey : notnull, IEquatable<TKey>
     {
         private const int MinimumSize = 4;
+        private const int StackAllocThreshold = 512;
         private static readonly Entry[] InitialEntries = new Entry[1];
 
         private int size;
@@ -109,6 +110,21 @@ namespace Clara.Utils
             }
         }
 
+        public TValue this[TKey key]
+        {
+            get
+            {
+                var index = this.FindEntry(key);
+
+                if (index >= 0)
+                {
+                    return this.entries[index].Value;
+                }
+
+                throw new KeyNotFoundException($"The given key '{key}' was not present in the dictionary.");
+            }
+        }
+
         public void Clear()
         {
             if (this.count > 0)
@@ -163,30 +179,7 @@ namespace Clara.Utils
 
         public bool ContainsKey(TKey key)
         {
-            if (key is null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            var entries = this.entries;
-            var collisionCount = 0;
-
-            for (var i = this.buckets[key.GetHashCode() & this.size - 1] - 1; i >= 0; i = entries[i].Next)
-            {
-                if (key.Equals(entries[i].Key))
-                {
-                    return true;
-                }
-
-                if (collisionCount == this.size)
-                {
-                    throw new InvalidOperationException("Concurrent operations are not supported.");
-                }
-
-                collisionCount++;
-            }
-
-            return false;
+            return this.FindEntry(key) >= 0;
         }
 
         public bool Remove(TKey key)
@@ -280,6 +273,242 @@ namespace Clara.Utils
             return ref this.AddKey(key, bucketIndex);
         }
 
+        public void IntersectWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, Func<TValue, TValue, TValue> valueCombiner)
+        {
+            if (enumerable is null)
+            {
+                throw new ArgumentNullException(nameof(enumerable));
+            }
+
+            if (valueCombiner is null)
+            {
+                throw new ArgumentNullException(nameof(valueCombiner));
+            }
+
+            if (this.Count == 0 || enumerable == this)
+            {
+                return;
+            }
+
+            if (enumerable is IReadOnlyCollection<KeyValuePair<TKey, TValue>> collection && collection.Count == 0)
+            {
+                this.Clear();
+
+                return;
+            }
+
+            if (enumerable is DictionarySlim<TKey, TValue> other)
+            {
+                var count = this.count;
+
+                for (var i = 0; count > 0; i++)
+                {
+                    ref var entry = ref this.entries[i];
+
+                    if (entry.Next >= -1)
+                    {
+                        count--;
+
+                        var key = entry.Key;
+
+                        if (other.TryGetValue(key, out var value))
+                        {
+                            entry.Value = valueCombiner(entry.Value, value);
+                        }
+                        else
+                        {
+                            this.Remove(key);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var lastIndex = this.lastIndex;
+                var intArrayLength = BitHelper.ToIntArrayLength(lastIndex);
+
+                if (intArrayLength <= StackAllocThreshold)
+                {
+                    Span<int> span = stackalloc int[intArrayLength];
+                    var bitHelper = new BitHelper(span.Slice(0, intArrayLength), clear: true);
+
+                    IntersectWith(enumerable, ref bitHelper, lastIndex);
+                }
+                else
+                {
+                    var array = ArrayPool<int>.Shared.Rent(intArrayLength);
+                    var bitHelper = new BitHelper(array.AsSpan(0, intArrayLength), clear: true);
+
+                    IntersectWith(enumerable, ref bitHelper, lastIndex);
+
+                    ArrayPool<int>.Shared.Return(array);
+                }
+            }
+
+            void IntersectWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, ref BitHelper bitHelper, int lastIndex)
+            {
+                foreach (var item in enumerable)
+                {
+                    var index = this.FindEntry(item.Key);
+
+                    if (index >= 0)
+                    {
+                        bitHelper.MarkBit(index);
+
+                        ref var entry = ref this.entries[index];
+
+                        entry.Value = valueCombiner(entry.Value, item.Value);
+                    }
+                }
+
+                for (var i = 0; i < lastIndex; i++)
+                {
+                    ref var entry = ref this.entries[i];
+
+                    if (entry.Next >= -1)
+                    {
+                        if (!bitHelper.IsMarked(i))
+                        {
+                            this.Remove(entry.Key);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void UnionWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, Func<TValue, TValue, TValue> valueCombiner)
+        {
+            if (enumerable is null)
+            {
+                throw new ArgumentNullException(nameof(enumerable));
+            }
+
+            if (valueCombiner is null)
+            {
+                throw new ArgumentNullException(nameof(valueCombiner));
+            }
+
+            if (enumerable is DictionarySlim<TKey, TValue> other)
+            {
+                if (other.count == 0)
+                {
+                    return;
+                }
+
+                if (this.size > 1)
+                {
+                    if (this.count == 0)
+                    {
+                        if (this.size < other.count)
+                        {
+                            this.size = 1;
+                            this.count = 0;
+                            this.lastIndex = 0;
+                            this.freeList = -1;
+                            this.buckets = HashHelper.InitialBuckets;
+                            this.entries = InitialEntries;
+                        }
+                    }
+                }
+
+                if (this.size == 1)
+                {
+                    this.size = other.size;
+                    this.count = other.count;
+                    this.lastIndex = other.lastIndex;
+                    this.freeList = other.freeList;
+                    this.buckets = new int[this.size];
+                    this.entries = new Entry[this.size];
+
+                    Array.Copy(other.buckets, 0, this.buckets, 0, this.size);
+                    Array.Copy(other.entries, 0, this.entries, 0, this.lastIndex);
+
+                    return;
+                }
+
+                this.EnsureCapacity(other.count);
+
+                var count = other.count;
+
+                for (var i = 0; count > 0; i++)
+                {
+                    ref var entry = ref other.entries[i];
+
+                    if (entry.Next >= -1)
+                    {
+                        count--;
+
+                        ref var value = ref this.GetValueRefOrAddDefault(entry.Key, out _);
+
+                        value = valueCombiner(value, entry.Value);
+                    }
+                }
+
+                return;
+            }
+
+            if (enumerable is IReadOnlyCollection<KeyValuePair<TKey, TValue>> collection)
+            {
+                if (collection.Count == 0)
+                {
+                    return;
+                }
+
+                this.EnsureCapacity(collection.Count);
+            }
+
+            foreach (var item in enumerable)
+            {
+                ref var value = ref this.GetValueRefOrAddDefault(item.Key, out _);
+
+                value = valueCombiner(value, item.Value);
+            }
+        }
+
+        public void ExceptWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable)
+        {
+            if (enumerable is null)
+            {
+                throw new ArgumentNullException(nameof(enumerable));
+            }
+
+            if (this.count == 0)
+            {
+                return;
+            }
+
+            if (enumerable == this)
+            {
+                this.Clear();
+
+                return;
+            }
+
+            if (enumerable is DictionarySlim<TKey, TValue> other)
+            {
+                var count = other.count;
+
+                for (var i = 0; count > 0; i++)
+                {
+                    ref var entry = ref other.entries[i];
+
+                    if (entry.Next >= -1)
+                    {
+                        count--;
+
+                        this.Remove(entry.Key);
+                    }
+                }
+
+                return;
+            }
+
+            foreach (var item in enumerable)
+            {
+                this.Remove(item.Key);
+            }
+        }
+
         public Enumerator GetEnumerator()
         {
             return new Enumerator(this);
@@ -328,6 +557,34 @@ namespace Clara.Utils
             this.count++;
 
             return ref entries[entryIndex].Value;
+        }
+
+        private int FindEntry(TKey key)
+        {
+            if (key is null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            var entries = this.entries;
+            var collisionCount = 0;
+
+            for (var i = this.buckets[key.GetHashCode() & this.size - 1] - 1; i >= 0; i = entries[i].Next)
+            {
+                if (key.Equals(entries[i].Key))
+                {
+                    return i;
+                }
+
+                if (collisionCount == this.size)
+                {
+                    throw new InvalidOperationException("Concurrent operations are not supported.");
+                }
+
+                collisionCount++;
+            }
+
+            return -1;
         }
 
         private void EnsureCapacity(int capacity)

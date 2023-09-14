@@ -6,7 +6,7 @@ namespace Clara.Mapping
 {
     public abstract class TextField : Field
     {
-        protected internal TextField(IAnalyzer analyzer)
+        protected internal TextField(IAnalyzer analyzer, Weight? weight = null)
             : base(
                 isFilterable: false,
                 isFacetable: false,
@@ -18,9 +18,12 @@ namespace Clara.Mapping
             }
 
             this.Analyzer = analyzer;
+            this.Weight = weight ?? Weight.BM25;
         }
 
         public IAnalyzer Analyzer { get; }
+
+        public Weight Weight { get; }
     }
 
     public sealed class TextField<TSource> : TextField

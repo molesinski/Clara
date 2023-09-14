@@ -7,92 +7,144 @@ namespace Clara.Storage
     internal sealed class TextDocumentStore
     {
         private readonly ITokenEncoder tokenEncoder;
-        private readonly DictionarySlim<int, HashSetSlim<int>> tokenDocuments;
+        private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
 
         public TextDocumentStore(
             ITokenEncoder tokenEncoder,
-            DictionarySlim<int, HashSetSlim<int>> tokenDocuments)
+            DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
+            DictionarySlim<int, int> documentLengths,
+            Weight weight)
         {
             if (tokenEncoder is null)
             {
                 throw new ArgumentNullException(nameof(tokenEncoder));
             }
 
-            if (tokenDocuments is null)
+            if (tokenDocumentScores is null)
             {
-                throw new ArgumentNullException(nameof(tokenDocuments));
+                throw new ArgumentNullException(nameof(tokenDocumentScores));
             }
 
+            if (weight is null)
+            {
+                throw new ArgumentNullException(nameof(weight));
+            }
+
+            weight.Process(tokenDocumentScores, documentLengths);
+
             this.tokenEncoder = tokenEncoder;
-            this.tokenDocuments = tokenDocuments;
+            this.tokenDocumentScores = tokenDocumentScores;
         }
 
-        public void Search(Field field, MatchExpression matchExpression, DocumentSet documentSet)
+        public DocumentScoring Search(Field field, MatchExpression matchExpression, DocumentSet documentSet)
         {
             if (matchExpression is AnyMatchExpression anyValuesMatchExpression)
             {
-                using var anyMatches = new PooledHashSet<int>(Allocator.ArrayPool);
+                var documentScores = new PooledDictionary<int, float>(Allocator.ArrayPool);
 
                 foreach (var token in anyValuesMatchExpression.Values)
                 {
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
-                        if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
+                        if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                         {
-                            anyMatches.UnionWith(documents);
+                            documentScores.UnionWith(documents, ValueCombiner.Sum);
                         }
                     }
                 }
 
-                documentSet.IntersectWith(field, anyMatches);
+                documentSet.IntersectWith(field, documentScores);
+
+                return new DocumentScoring(documentScores);
             }
             else if (matchExpression is AllMatchExpression allValuesMatchExpression)
             {
+                var documentScores = new PooledDictionary<int, float>(Allocator.ArrayPool);
+                var isFirst = true;
+
                 foreach (var token in allValuesMatchExpression.Values)
                 {
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
-                        if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
+                        if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                         {
-                            documentSet.IntersectWith(field, documents);
+                            if (isFirst)
+                            {
+                                documentScores.UnionWith(documents, ValueCombiner.Sum);
+                                isFirst = false;
+                            }
+                            else
+                            {
+                                documentScores.IntersectWith(documents, ValueCombiner.Sum);
+                            }
 
                             continue;
                         }
                     }
 
-                    documentSet.Clear();
+                    documentScores.Clear();
 
                     break;
                 }
+
+                documentSet.IntersectWith(field, documentScores);
+
+                return new DocumentScoring(documentScores);
             }
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
-                using var anyMatches = new PooledHashSet<int>(Allocator.ArrayPool);
-                using var tempSet = new PooledHashSet<int>(Allocator.ArrayPool);
+                var documentScores = new PooledDictionary<int, float>(Allocator.ArrayPool);
 
-                foreach (var expression in orMatchExpression.Expressions)
+                using (var tempScores = new PooledDictionary<int, float>(Allocator.ArrayPool))
                 {
-                    tempSet.Clear();
+                    foreach (var expression in orMatchExpression.Expressions)
+                    {
+                        tempScores.Clear();
 
-                    this.Search(expression, tempSet);
+                        this.SearchPartial(expression, tempScores);
 
-                    anyMatches.UnionWith(tempSet);
+                        documentScores.UnionWith(tempScores, ValueCombiner.Max);
+                    }
                 }
 
-                documentSet.IntersectWith(field, anyMatches);
+                documentSet.IntersectWith(field, documentScores);
+
+                return new DocumentScoring(documentScores);
             }
             else if (matchExpression is AndMatchExpression andMatchExpression)
             {
-                using var tempSet = new PooledHashSet<int>(Allocator.ArrayPool);
+                var documentScores = new PooledDictionary<int, float>(Allocator.ArrayPool);
+                var isFirst = true;
 
-                foreach (var expression in andMatchExpression.Expressions)
+                using (var tempScores = new PooledDictionary<int, float>(Allocator.ArrayPool))
                 {
-                    tempSet.Clear();
+                    foreach (var expression in andMatchExpression.Expressions)
+                    {
+                        tempScores.Clear();
 
-                    this.Search(expression, tempSet);
+                        this.SearchPartial(expression, tempScores);
 
-                    documentSet.IntersectWith(field, tempSet);
+                        if (isFirst)
+                        {
+                            documentScores.UnionWith(tempScores, ValueCombiner.Max);
+                            isFirst = false;
+                        }
+                        else
+                        {
+                            documentScores.IntersectWith(tempScores, ValueCombiner.Max);
+                        }
+                    }
                 }
+
+                documentSet.IntersectWith(field, documentScores);
+
+                return new DocumentScoring(documentScores);
+            }
+            else if (matchExpression is EmptyMatchExpression)
+            {
+                documentSet.Clear();
+
+                return new DocumentScoring(new PooledDictionary<int, float>(Allocator.ArrayPool));
             }
             else
             {
@@ -100,7 +152,7 @@ namespace Clara.Storage
             }
         }
 
-        private void Search(MatchExpression matchExpression, PooledHashSet<int> resultSet)
+        private void SearchPartial(MatchExpression matchExpression, PooledDictionary<int, float> partialScores)
         {
             if (matchExpression is AnyMatchExpression anyValuesMatchExpression)
             {
@@ -108,9 +160,9 @@ namespace Clara.Storage
                 {
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
-                        if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
+                        if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                         {
-                            resultSet.UnionWith(documents);
+                            partialScores.UnionWith(documents, ValueCombiner.Sum);
                         }
                     }
                 }
@@ -123,60 +175,66 @@ namespace Clara.Storage
                 {
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
-                        if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
+                        if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                         {
                             if (isFirst)
                             {
+                                partialScores.UnionWith(documents, ValueCombiner.Sum);
                                 isFirst = false;
-                                resultSet.UnionWith(documents);
                             }
                             else
                             {
-                                resultSet.IntersectWith(documents);
+                                partialScores.IntersectWith(documents, ValueCombiner.Sum);
                             }
 
                             continue;
                         }
                     }
 
-                    resultSet.Clear();
+                    partialScores.Clear();
+
                     break;
                 }
             }
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
-                using var tempSet = new PooledHashSet<int>(Allocator.ArrayPool);
+                using var tempScores = new PooledDictionary<int, float>(Allocator.ArrayPool);
 
                 foreach (var expression in orMatchExpression.Expressions)
                 {
-                    tempSet.Clear();
+                    tempScores.Clear();
 
-                    this.Search(expression, tempSet);
+                    this.SearchPartial(expression, tempScores);
 
-                    resultSet.UnionWith(tempSet);
+                    partialScores.UnionWith(tempScores, ValueCombiner.Max);
                 }
             }
             else if (matchExpression is AndMatchExpression andMatchExpression)
             {
-                using var tempSet = new PooledHashSet<int>(Allocator.ArrayPool);
                 var isFirst = true;
+
+                using var tempScores = new PooledDictionary<int, float>(Allocator.ArrayPool);
 
                 foreach (var expression in andMatchExpression.Expressions)
                 {
-                    tempSet.Clear();
+                    tempScores.Clear();
 
-                    this.Search(expression, tempSet);
+                    this.SearchPartial(expression, tempScores);
 
                     if (isFirst)
                     {
+                        partialScores.UnionWith(tempScores, ValueCombiner.Max);
                         isFirst = false;
-                        resultSet.UnionWith(tempSet);
                     }
                     else
                     {
-                        resultSet.IntersectWith(tempSet);
+                        partialScores.IntersectWith(tempScores, ValueCombiner.Max);
                     }
                 }
+            }
+            else if (matchExpression is EmptyMatchExpression)
+            {
+                partialScores.Clear();
             }
             else
             {

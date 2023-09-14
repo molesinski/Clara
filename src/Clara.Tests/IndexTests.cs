@@ -15,8 +15,6 @@ namespace Clara.Tests
 
             for (var i = 0; i < 3; i++)
             {
-                var index = default(Index<SampleProduct>);
-
                 var builder =
                     new IndexBuilder<SampleProduct, SampleProduct>(
                         new SampleProductMapper(),
@@ -28,16 +26,16 @@ namespace Clara.Tests
                     builder.Index(item);
                 }
 
-                index = builder.Build();
+                var index = builder.Build();
 
                 for (var j = 0; j < 3; j++)
                 {
                     var brand = SampleProduct.Items.First().Brand;
 
-                    var queryBuilder = index.QueryBuilder()
-                        .Filter(SampleProductMapper.Brand, Values.Any(brand));
-
-                    using var result = index.Query(queryBuilder.Query);
+                    using var result = index.Query(
+                        index.QueryBuilder()
+                            .Filter(SampleProductMapper.Brand, Values.Any(brand))
+                            .Query);
 
                     var input = new HashSet<SampleProduct>(SampleProduct.Items.Where(x => x.Brand == brand));
                     var output = new HashSet<SampleProduct>(result.Documents.Select(x => x.Document));
@@ -45,6 +43,59 @@ namespace Clara.Tests
                     Debug.Assert(input.SetEquals(output), "Resulting product sets must be equal");
                 }
             }
+        }
+
+        [Fact]
+        public void Search()
+        {
+            var tokenEncoderStore = new SharedTokenEncoderStore();
+
+            var synonymMap = new SynonymMap(
+                SampleProductMapper.Text,
+                new Synonym[]
+                {
+                    new EquivalencySynonym(new[] { "apple", "samsung" }),
+                    //// new ExplicitMappingSynonym(new[] { "samsung" }, "apple"),
+                    //// new ExplicitMappingSynonym(new[] { "apple" }, "samsung"),
+                });
+
+            var builder =
+                new IndexBuilder<SampleProduct, SampleProduct>(
+                    new SampleProductMapper(),
+                    new[] { synonymMap },
+                    tokenEncoderStore);
+
+            foreach (var item in SampleProduct.Items)
+            {
+                builder.Index(item);
+            }
+
+            var index = builder.Build();
+
+            using var result = index.Query(
+                index.QueryBuilder()
+                    .Search(SampleProductMapper.Text, "apple smartphone")
+                    .Query);
+
+            var documents = result.Documents
+                .Select(x => new DocumentResultView(x))
+                .ToList();
+        }
+
+        private record struct DocumentResultView
+        {
+            public DocumentResultView(DocumentResult<SampleProduct> product)
+            {
+                this.Key = product.Key;
+                this.Score = product.Score;
+                this.Text = SampleProductMapper.ToText(product.Document);
+            }
+
+            public string Key { get; }
+
+            public float Score { get; }
+
+            public string Text { get; }
         }
     }
 }

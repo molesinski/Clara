@@ -17,7 +17,7 @@ namespace Clara
     public sealed class Index<TDocument> : Index
     {
         private static readonly HashSet<Field> EmptyFacetFields = new();
-        private static readonly List<FieldFacetResult> EmptyFacetResults = new();
+        private static readonly List<FacetResult> EmptyFacetResults = new();
 
         private readonly ITokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, TDocument> documents;
@@ -96,6 +96,8 @@ namespace Clara
 
             documentSet ??= new DocumentSet(this.allDocuments);
 
+            var documentScoring = DocumentScoring.Empty;
+
             if (query.Search is SearchExpression searchExpression)
             {
                 var field = searchExpression.Field;
@@ -105,7 +107,7 @@ namespace Clara
                     throw new InvalidOperationException("Search expression references field not belonging to current index.");
                 }
 
-                store.Search(searchExpression, documentSet);
+                documentScoring = store.Search(searchExpression, documentSet);
             }
 
             if (query.Filters.Count > 0)
@@ -144,7 +146,7 @@ namespace Clara
                     {
                         if (facetFields.Contains(field))
                         {
-                            documentSet.Branch(field);
+                            documentSet.BranchForFaceting(field);
                         }
                     }
 
@@ -186,12 +188,12 @@ namespace Clara
 
             if (query.Facets.Count > 0)
             {
-                facetResults = new List<FieldFacetResult>(capacity: query.Facets.Count);
+                facetResults = new List<FacetResult>(capacity: query.Facets.Count);
 
                 foreach (var facetExpression in query.Facets)
                 {
                     var field = facetExpression.Field;
-                    var facetDocuments = documentSet.GetMatches(field);
+                    var facetDocuments = documentSet.GetFacetDocuments(field);
 
                     if (facetDocuments.Count > 0)
                     {
@@ -221,7 +223,7 @@ namespace Clara
                 }
             }
 
-            var documentResult = (IDocumentSet)documentSet;
+            var sortedDocumentSet = (IDocumentSet)documentSet;
 
             if (query.Sort is SortExpression sortExpression)
             {
@@ -232,10 +234,23 @@ namespace Clara
                     throw new InvalidOperationException("Sort expression references field not belonging to current index.");
                 }
 
-                documentResult = store.Sort(sortExpression, documentSet);
+                sortedDocumentSet = store.Sort(sortExpression, documentSet);
+            }
+            else if (!documentScoring.IsEmpty)
+            {
+                sortedDocumentSet = new SortedDocumentSet<float>(
+                    documentSet,
+                    documentScoring.GetScore,
+                    DocumentValueComparer<float>.Descending);
             }
 
-            return new QueryResult<TDocument>(documentResult, facetResults, this.documents);
+            return
+                new QueryResult<TDocument>(
+                    this.tokenEncoder,
+                    this.documents,
+                    sortedDocumentSet,
+                    documentScoring,
+                    facetResults);
         }
 
         internal override bool HasField(Field field)

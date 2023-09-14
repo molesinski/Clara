@@ -1,4 +1,5 @@
-﻿using Clara.Querying;
+﻿using Clara.Mapping;
+using Clara.Querying;
 using Clara.Utils;
 
 namespace Clara.Storage
@@ -6,16 +7,23 @@ namespace Clara.Storage
     internal sealed class HierarchyDocumentTokenStore
     {
         private readonly HashSet<string> rootSet;
+        private readonly HierarchyField field;
         private readonly ITokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, HashSetSlim<int>> documentTokens;
         private readonly DictionarySlim<int, HashSetSlim<int>> parentChildren;
 
         public HierarchyDocumentTokenStore(
+            HierarchyField field,
             string root,
             ITokenEncoder tokenEncoder,
             DictionarySlim<int, HashSetSlim<int>> documentTokens,
             DictionarySlim<int, HashSetSlim<int>> parentChildren)
         {
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
             if (root is null)
             {
                 throw new ArgumentNullException(nameof(root));
@@ -37,12 +45,13 @@ namespace Clara.Storage
             }
 
             this.rootSet = new HashSet<string> { root };
+            this.field = field;
             this.tokenEncoder = tokenEncoder;
             this.documentTokens = documentTokens;
             this.parentChildren = parentChildren;
         }
 
-        public FieldFacetResult? Facet(HierarchyFacetExpression hierarchyFacetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
+        public FacetResult Facet(FilterExpression? filterExpression, IEnumerable<int> documents)
         {
             var selectedValues = this.rootSet;
 
@@ -87,9 +96,7 @@ namespace Clara.Storage
                 }
             }
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var values = new PooledList<HierarchyFacetValue>(Allocator.ArrayPool, capacity: selectedValues.Count + filteredTokens.Count);
-#pragma warning restore CA2000 // Dispose objects before losing scope
             var selectedCount = 0;
 
             for (var i = 0; i < selectedValues.Count; i++)
@@ -102,7 +109,7 @@ namespace Clara.Storage
                 if (this.tokenEncoder.TryEncode(selectedToken, out var parentId))
                 {
                     var parent = this.tokenEncoder.Decode(parentId);
-                    tokenCounts.TryGetValue(parentId, out var parentCount);
+                    var parentCount = tokenCounts[parentId];
 
                     if (this.parentChildren.TryGetValue(parentId, out var children))
                     {
@@ -133,7 +140,7 @@ namespace Clara.Storage
 
             values.Sort(0, selectedCount, HierarchyFacetValueComparer.Instance);
 
-            return new FieldFacetResult(hierarchyFacetExpression.CreateResult(values.Range(0, selectedCount)), values);
+            return new HierarchyFacetResult(this.field, values.Range(0, selectedCount), values);
         }
 
         private sealed class HierarchyFacetValueComparer : IComparer<HierarchyFacetValue>

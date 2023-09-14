@@ -8,7 +8,7 @@ namespace Clara.Storage
     {
         private static readonly PooledHashSet<int> Empty = new(Allocator.New);
 
-        private readonly Dictionary<Field, BranchSet> branches = new();
+        private readonly Dictionary<Field, BranchResult> branches = new();
         private readonly IReadOnlyCollection<int> allDocuments;
         private PooledHashSet<int>? documents;
 
@@ -42,7 +42,7 @@ namespace Clara.Storage
             }
         }
 
-        public IReadOnlyCollection<int> GetMatches(Field field)
+        public IReadOnlyCollection<int> GetFacetDocuments(Field field)
         {
             if (this.branches.TryGetValue(field, out var facetDocuments))
             {
@@ -50,6 +50,18 @@ namespace Clara.Storage
             }
 
             return this.documents ?? this.allDocuments;
+        }
+
+        public void BranchForFaceting(Field field)
+        {
+            if (this.documents is null)
+            {
+                this.branches.Add(field, new BranchResult(this.allDocuments));
+            }
+            else
+            {
+                this.branches.Add(field, new BranchResult(new PooledHashSet<int>(Allocator.ArrayPool, this.documents)));
+            }
         }
 
         public void Clear()
@@ -72,15 +84,23 @@ namespace Clara.Storage
             this.branches.Clear();
         }
 
-        public void Branch(Field field)
+        public void IntersectWith(Field field, IEnumerable<KeyValuePair<int, float>> documentScores)
         {
             if (this.documents is null)
             {
-                this.branches.Add(field, new BranchSet(this.allDocuments));
+                this.documents = new PooledHashSet<int>(Allocator.ArrayPool, documentScores.Select(x => x.Key));
             }
             else
             {
-                this.branches.Add(field, new BranchSet(new PooledHashSet<int>(Allocator.ArrayPool, this.documents)));
+                this.documents.IntersectWith(documentScores.Select(x => x.Key));
+
+                foreach (var pair in this.branches)
+                {
+                    if (pair.Key != field)
+                    {
+                        pair.Value.IntersectWith(documentScores.Select(x => x.Key));
+                    }
+                }
             }
         }
 
@@ -145,12 +165,12 @@ namespace Clara.Storage
             this.branches.Clear();
         }
 
-        private sealed class BranchSet : IDisposable
+        private sealed class BranchResult : IDisposable
         {
             private readonly IReadOnlyCollection<int> allDocuments;
             private PooledHashSet<int>? documents;
 
-            public BranchSet(IReadOnlyCollection<int> allDocuments)
+            public BranchResult(IReadOnlyCollection<int> allDocuments)
             {
                 if (allDocuments is null)
                 {
@@ -161,7 +181,7 @@ namespace Clara.Storage
                 this.documents = null;
             }
 
-            public BranchSet(PooledHashSet<int> documents)
+            public BranchResult(PooledHashSet<int> documents)
             {
                 if (documents is null)
                 {

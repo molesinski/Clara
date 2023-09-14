@@ -46,7 +46,7 @@ namespace Clara.Storage
         {
             if (valuesExpression is AnyValuesExpression anyValuesExpression)
             {
-                using var anyMatches = new PooledHashSet<int>(Allocator.ArrayPool);
+                using var tempSet = new PooledHashSet<int>(Allocator.ArrayPool);
 
                 foreach (var token in anyValuesExpression.Values)
                 {
@@ -54,12 +54,12 @@ namespace Clara.Storage
                     {
                         if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
                         {
-                            anyMatches.UnionWith(documents);
+                            tempSet.UnionWith(documents);
                         }
                     }
                 }
 
-                documentSet.IntersectWith(field, anyMatches);
+                documentSet.IntersectWith(field, tempSet);
             }
             else if (valuesExpression is AllValuesExpression allValuesExpression)
             {
@@ -79,6 +79,10 @@ namespace Clara.Storage
 
                     break;
                 }
+            }
+            else if (valuesExpression is EmptyValuesExpression)
+            {
+                documentSet.Clear();
             }
             else
             {

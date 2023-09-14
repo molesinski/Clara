@@ -85,7 +85,7 @@ namespace Clara.Storage
             var store =
                 new KeywordFieldStore(
                     this.tokenDocuments is not null ? new TokenDocumentStore(tokenEncoder, this.tokenDocuments) : null,
-                    this.documentTokens is not null ? new KeywordDocumentTokenStore(tokenEncoder, this.documentTokens) : null);
+                    this.documentTokens is not null ? new KeywordDocumentTokenStore(this.field, tokenEncoder, this.documentTokens) : null);
 
             this.isBuilt = true;
 

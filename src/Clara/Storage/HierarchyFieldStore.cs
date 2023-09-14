@@ -42,13 +42,13 @@ namespace Clara.Storage
             base.Filter(filterExpression, documentSet);
         }
 
-        public override FieldFacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
+        public override FacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
         {
-            if (facetExpression is HierarchyFacetExpression hierarchyFacetExpression)
+            if (facetExpression is HierarchyFacetExpression)
             {
                 if (this.documentTokenStore is not null)
                 {
-                    return this.documentTokenStore.Facet(hierarchyFacetExpression, filterExpression, documents);
+                    return this.documentTokenStore.Facet(filterExpression, documents);
                 }
             }
 

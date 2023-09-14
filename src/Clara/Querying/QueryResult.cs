@@ -5,23 +5,22 @@ namespace Clara.Querying
 {
     public sealed class QueryResult<TDocument> : IDisposable
     {
-        private readonly IDocumentSet documentSet;
-        private readonly List<FieldFacetResult> facetResults;
+        private readonly ITokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, TDocument> documents;
+        private readonly IDocumentSet documentSet;
+        private readonly IDocumentScoring documentScoring;
+        private readonly IEnumerable<FacetResult> facetResults;
 
         internal QueryResult(
+            ITokenEncoder tokenEncoder,
+            DictionarySlim<int, TDocument> documents,
             IDocumentSet documentSet,
-            List<FieldFacetResult> facetResults,
-            DictionarySlim<int, TDocument> documents)
+            IDocumentScoring documentScoring,
+            IEnumerable<FacetResult> facetResults)
         {
-            if (documentSet is null)
+            if (tokenEncoder is null)
             {
-                throw new ArgumentNullException(nameof(documentSet));
-            }
-
-            if (facetResults is null)
-            {
-                throw new ArgumentNullException(nameof(facetResults));
+                throw new ArgumentNullException(nameof(tokenEncoder));
             }
 
             if (documents is null)
@@ -29,7 +28,24 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(documents));
             }
 
+            if (documentSet is null)
+            {
+                throw new ArgumentNullException(nameof(documentSet));
+            }
+
+            if (documentScoring is null)
+            {
+                throw new ArgumentNullException(nameof(documentScoring));
+            }
+
+            if (facetResults is null)
+            {
+                throw new ArgumentNullException(nameof(facetResults));
+            }
+
+            this.tokenEncoder = tokenEncoder;
             this.documentSet = documentSet;
+            this.documentScoring = documentScoring;
             this.facetResults = facetResults;
             this.documents = documents;
         }
@@ -46,14 +62,14 @@ namespace Clara.Querying
         {
             get
             {
-                return this.documentSet
-                    .Select(
-                        o =>
-                        {
-                            this.documents.TryGetValue(o, out var document);
+                foreach (var documentId in this.documentSet)
+                {
+                    var key = this.tokenEncoder.Decode(documentId);
+                    var document = this.documents[documentId];
+                    var score = this.documentScoring.GetScore(documentId);
 
-                            return new DocumentResult<TDocument>(document);
-                        });
+                    yield return new DocumentResult<TDocument>(key, document, score);
+                }
             }
         }
 
@@ -61,18 +77,21 @@ namespace Clara.Querying
         {
             get
             {
-                return this.facetResults
-                    .Select(o => o.FacetResult);
+                return this.facetResults;
             }
         }
 
         public void Dispose()
         {
             this.documentSet.Dispose();
+            this.documentScoring.Dispose();
 
-            foreach (var fieldFacet in this.facetResults)
+            foreach (var facetResult in this.facetResults)
             {
-                fieldFacet.Dispose();
+                if (facetResult is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
             }
         }
     }

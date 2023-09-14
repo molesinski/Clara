@@ -9,10 +9,5 @@ namespace Clara.Querying
             : base(field)
         {
         }
-
-        public virtual RangeFacetResult<TValue> CreateResult(TValue min, TValue max)
-        {
-            return new RangeFacetResult<TValue>((RangeField<TValue>)this.Field, min, max);
-        }
     }
 }

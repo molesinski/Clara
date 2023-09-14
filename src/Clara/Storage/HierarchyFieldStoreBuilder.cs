@@ -111,7 +111,7 @@ namespace Clara.Storage
             var store =
                 new HierarchyFieldStore(
                     this.tokenDocuments is not null ? new TokenDocumentStore(tokenEncoder, this.tokenDocuments) : null,
-                    this.documentTokens is not null && this.parentChildren is not null ? new HierarchyDocumentTokenStore(this.root, tokenEncoder, this.documentTokens, this.parentChildren) : null);
+                    this.documentTokens is not null && this.parentChildren is not null ? new HierarchyDocumentTokenStore(this.field, this.root, tokenEncoder, this.documentTokens, this.parentChildren) : null);
 
             this.isBuilt = true;
 

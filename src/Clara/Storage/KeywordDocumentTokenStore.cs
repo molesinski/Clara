@@ -1,4 +1,5 @@
-﻿using Clara.Querying;
+﻿using Clara.Mapping;
+using Clara.Querying;
 using Clara.Utils;
 
 namespace Clara.Storage
@@ -6,14 +7,20 @@ namespace Clara.Storage
     internal sealed class KeywordDocumentTokenStore
     {
         private static readonly HashSet<string> EmptySelectedValues = new();
-
+        private readonly KeywordField field;
         private readonly ITokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, HashSetSlim<int>> documentTokens;
 
         public KeywordDocumentTokenStore(
+            KeywordField field,
             ITokenEncoder tokenEncoder,
             DictionarySlim<int, HashSetSlim<int>> documentTokens)
         {
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
             if (tokenEncoder is null)
             {
                 throw new ArgumentNullException(nameof(tokenEncoder));
@@ -24,11 +31,12 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(documentTokens));
             }
 
+            this.field = field;
             this.tokenEncoder = tokenEncoder;
             this.documentTokens = documentTokens;
         }
 
-        public FieldFacetResult? Facet(KeywordFacetExpression tokenFacetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
+        public FacetResult? Facet(FilterExpression? filterExpression, IEnumerable<int> documents)
         {
             var selectedValues = EmptySelectedValues;
 
@@ -55,9 +63,7 @@ namespace Clara.Storage
                 }
             }
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
             var values = new PooledList<KeywordFacetValue>(Allocator.ArrayPool);
-#pragma warning restore CA2000 // Dispose objects before losing scope
 
             foreach (var pair in tokenCounts)
             {
@@ -77,7 +83,7 @@ namespace Clara.Storage
 
             values.Sort(KeywordFacetValueComparer.Instance);
 
-            return new FieldFacetResult(tokenFacetExpression.CreateResult(values), values);
+            return new KeywordFacetResult(this.field, values, values);
         }
 
         public sealed class KeywordFacetValueComparer : IComparer<KeywordFacetValue>

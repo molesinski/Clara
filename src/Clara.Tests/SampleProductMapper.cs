@@ -26,6 +26,28 @@ namespace Clara.Tests
         public static readonly KeywordField<SampleProduct> Brand = new(o => new TokenValue(o.Brand), isFilterable: true, isFacetable: true);
         public static readonly KeywordField<SampleProduct> Category = new(o => new TokenValue(o.Category), isFilterable: true, isFacetable: true);
 
+        public static string ToText(SampleProduct product)
+        {
+            if (product is null)
+            {
+                throw new ArgumentNullException(nameof(product));
+            }
+
+            var builder = new StringBuilder();
+
+            builder.AppendFormat(CultureInfo.InvariantCulture, "{0}", product.Id);
+            builder.AppendLine();
+            builder.Append(product.Title);
+            builder.AppendLine();
+            builder.Append(product.Description);
+            builder.AppendLine();
+            builder.Append(product.Brand);
+            builder.AppendLine();
+            builder.Append(product.Category);
+
+            return builder.ToString();
+        }
+
         public IEnumerable<Field> GetFields()
         {
             yield return Text;
@@ -50,23 +72,6 @@ namespace Clara.Tests
         public SampleProduct GetDocument(SampleProduct item)
         {
             return item;
-        }
-
-        private static string ToText(SampleProduct product)
-        {
-            var builder = new StringBuilder();
-
-            builder.AppendFormat(CultureInfo.InvariantCulture, "{0}", product.Id);
-            builder.AppendLine();
-            builder.Append(product.Title);
-            builder.AppendLine();
-            builder.Append(product.Description);
-            builder.AppendLine();
-            builder.Append(product.Brand);
-            builder.AppendLine();
-            builder.Append(product.Category);
-
-            return builder.ToString();
         }
     }
 }

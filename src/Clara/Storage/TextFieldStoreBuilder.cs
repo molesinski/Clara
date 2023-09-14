@@ -9,7 +9,8 @@ namespace Clara.Storage
         private readonly TextField<TSource> field;
         private readonly ISynonymMap synonymMap;
         private readonly ITokenEncoderBuilder tokenEncoderBuilder;
-        private readonly DictionarySlim<int, HashSetSlim<int>> tokenDocuments;
+        private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
+        private readonly DictionarySlim<int, int> documentLengths;
         private bool isBuilt;
 
         public TextFieldStoreBuilder(TextField<TSource> field, TokenEncoderStore tokenEncoderStore, ISynonymMap? synonymMap)
@@ -27,7 +28,8 @@ namespace Clara.Storage
             this.field = field;
             this.synonymMap = synonymMap ?? new SynonymMap(field, Array.Empty<Synonym>());
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
-            this.tokenDocuments = new();
+            this.tokenDocumentScores = new();
+            this.documentLengths = new();
         }
 
         public override void Index(int documentId, TSource item)
@@ -48,11 +50,17 @@ namespace Clara.Storage
             {
                 var tokenId = this.tokenEncoderBuilder.Encode(token);
 
-                ref var documents = ref this.tokenDocuments.GetValueRefOrAddDefault(tokenId, out _);
+                ref var documents = ref this.tokenDocumentScores.GetValueRefOrAddDefault(tokenId, out _);
 
-                documents ??= new HashSetSlim<int>();
+                documents ??= new DictionarySlim<int, float>();
 
-                documents.Add(documentId);
+                ref var score = ref documents.GetValueRefOrAddDefault(documentId, out _);
+
+                score++;
+
+                ref var length = ref this.documentLengths.GetValueRefOrAddDefault(documentId, out _);
+
+                length++;
             }
         }
 
@@ -69,7 +77,7 @@ namespace Clara.Storage
                 new TextFieldStore(
                     this.field.Analyzer,
                     this.synonymMap,
-                    new TextDocumentStore(tokenEncoder, this.tokenDocuments));
+                    new TextDocumentStore(tokenEncoder, this.tokenDocumentScores, this.documentLengths, this.field.Weight));
 
             this.isBuilt = true;
 

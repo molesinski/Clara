@@ -16,7 +16,7 @@ namespace Clara.Storage
             }
         }
 
-        public virtual void Search(SearchExpression searchExpression, DocumentSet documentSet)
+        public virtual DocumentScoring Search(SearchExpression searchExpression, DocumentSet documentSet)
         {
             throw new InvalidOperationException("Field does not support searching.");
         }
@@ -26,7 +26,7 @@ namespace Clara.Storage
             throw new InvalidOperationException("Field does not support filtering.");
         }
 
-        public virtual FieldFacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
+        public virtual FacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
         {
             throw new InvalidOperationException("Field does not support faceting.");
         }

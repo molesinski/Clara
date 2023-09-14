@@ -127,7 +127,7 @@ namespace Clara.Utils
 
         public bool Contains(TItem item)
         {
-            return this.FindItemIndex(item) >= 0;
+            return this.FindItem(item) >= 0;
         }
 
         public bool Add(TItem item)
@@ -286,7 +286,7 @@ namespace Clara.Utils
             {
                 foreach (var item in enumerable)
                 {
-                    var index = this.FindItemIndex(item);
+                    var index = this.FindItem(item);
 
                     if (index >= 0)
                     {
@@ -480,7 +480,7 @@ namespace Clara.Utils
             this.count++;
         }
 
-        private int FindItemIndex(TItem item)
+        private int FindItem(TItem item)
         {
             if (item is null)
             {
