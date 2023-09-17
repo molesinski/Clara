@@ -24,7 +24,7 @@ namespace Clara.Storage
     internal sealed class SortedDocumentSet<TValue> : SortedDocumentSet
         where TValue : struct, IComparable<TValue>
     {
-        private readonly PooledList<DocumentValue<TValue>> sortedDocuments;
+        private readonly ObjectPoolLease<ListSlim<DocumentValue<TValue>>> sortedDocuments;
 
         public SortedDocumentSet(
             IDocumentSet documentSet,
@@ -46,16 +46,16 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(comparer));
             }
 
-            this.sortedDocuments = new PooledList<DocumentValue<TValue>>(Allocator.ArrayPool, capacity: documentSet.Count);
+            this.sortedDocuments = ListSlim<DocumentValue<TValue>>.ObjectPool.Lease();
 
             foreach (var documentId in documentSet)
             {
                 var value = valueSelector(documentId);
 
-                this.sortedDocuments.Add(new DocumentValue<TValue>(documentId, value));
+                this.sortedDocuments.Instance.Add(new DocumentValue<TValue>(documentId, value));
             }
 
-            this.sortedDocuments.Sort(comparer);
+            this.sortedDocuments.Instance.Sort(comparer);
 
             documentSet.Dispose();
         }
@@ -64,13 +64,13 @@ namespace Clara.Storage
         {
             get
             {
-                return this.sortedDocuments.Count;
+                return this.sortedDocuments.Instance.Count;
             }
         }
 
         public override IEnumerator<int> GetEnumerator()
         {
-            return this.sortedDocuments
+            return this.sortedDocuments.Instance
                 .Select(o => o.DocumentId)
                 .GetEnumerator();
         }

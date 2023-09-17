@@ -63,22 +63,22 @@ namespace Clara.Storage
                 }
             }
 
-            using var filteredTokens = new PooledHashSet<int>(Allocator.ArrayPool);
+            using var filteredTokens = HashSetSlim<int>.ObjectPool.Lease();
 
             foreach (var selectedToken in selectedValues)
             {
                 if (this.tokenEncoder.TryEncode(selectedToken, out var parentId))
                 {
-                    filteredTokens.Add(parentId);
+                    filteredTokens.Instance.Add(parentId);
 
                     if (this.parentChildren.TryGetValue(parentId, out var children))
                     {
-                        filteredTokens.UnionWith(children);
+                        filteredTokens.Instance.UnionWith(children);
                     }
                 }
             }
 
-            using var tokenCounts = new PooledDictionary<int, int>(Allocator.ArrayPool, capacity: filteredTokens.Count);
+            using var tokenCounts = DictionarySlim<int, int>.ObjectPool.Lease();
 
             foreach (var documentId in documents)
             {
@@ -86,9 +86,9 @@ namespace Clara.Storage
                 {
                     foreach (var tokenId in tokenIds)
                     {
-                        if (filteredTokens.Contains(tokenId))
+                        if (filteredTokens.Instance.Contains(tokenId))
                         {
-                            ref var count = ref tokenCounts.GetValueRefOrAddDefault(tokenId, out _);
+                            ref var count = ref tokenCounts.Instance.GetValueRefOrAddDefault(tokenId, out _);
 
                             count++;
                         }
@@ -96,12 +96,12 @@ namespace Clara.Storage
                 }
             }
 
-            var values = new PooledList<HierarchyFacetValue>(Allocator.ArrayPool, capacity: selectedValues.Count + filteredTokens.Count);
+            var values = ListSlim<HierarchyFacetValue>.ObjectPool.Lease();
             var selectedCount = 0;
 
             for (var i = 0; i < selectedValues.Count; i++)
             {
-                values.Add(default);
+                values.Instance.Add(default);
             }
 
             foreach (var selectedToken in selectedValues)
@@ -109,38 +109,38 @@ namespace Clara.Storage
                 if (this.tokenEncoder.TryEncode(selectedToken, out var parentId))
                 {
                     var parent = this.tokenEncoder.Decode(parentId);
-                    var parentCount = tokenCounts[parentId];
+                    var parentCount = tokenCounts.Instance[parentId];
 
                     if (this.parentChildren.TryGetValue(parentId, out var children))
                     {
-                        var offset = values.Count;
+                        var offset = values.Instance.Count;
                         var count = 0;
 
                         foreach (var childId in children)
                         {
-                            if (tokenCounts.TryGetValue(childId, out var childCount))
+                            if (tokenCounts.Instance.TryGetValue(childId, out var childCount))
                             {
                                 var child = this.tokenEncoder.Decode(childId);
 
-                                values.Add(new HierarchyFacetValue(child, childCount));
+                                values.Instance.Add(new HierarchyFacetValue(child, childCount));
                                 count++;
                             }
                         }
 
-                        values.Sort(offset, count, HierarchyFacetValueComparer.Instance);
+                        values.Instance.Sort(offset, count, HierarchyFacetValueComparer.Instance);
 
-                        values[selectedCount++] = new HierarchyFacetValue(parent, parentCount, values.Range(offset, count));
+                        values.Instance[selectedCount++] = new HierarchyFacetValue(parent, parentCount, values.Instance.Range(offset, count));
                     }
                     else
                     {
-                        values[selectedCount++] = new HierarchyFacetValue(parent, parentCount);
+                        values.Instance[selectedCount++] = new HierarchyFacetValue(parent, parentCount);
                     }
                 }
             }
 
-            values.Sort(0, selectedCount, HierarchyFacetValueComparer.Instance);
+            values.Instance.Sort(0, selectedCount, HierarchyFacetValueComparer.Instance);
 
-            return new HierarchyFacetResult(this.field, values.Range(0, selectedCount), values);
+            return new HierarchyFacetResult(this.field, values.Instance.Range(0, selectedCount), values);
         }
 
         private sealed class HierarchyFacetValueComparer : IComparer<HierarchyFacetValue>

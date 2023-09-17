@@ -20,37 +20,30 @@ namespace Clara.Analysis
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
-            var builder = this.pool.Get();
+            using var builder = this.pool.Lease();
 
-            try
+            var tokenString = token.ToString();
+            var result = this.stemmer.GetLastOnPath(tokenString);
+
+            if (result is not null)
             {
-                var tokenString = token.ToString();
-                var result = this.stemmer.GetLastOnPath(tokenString);
+                builder.Instance.Clear();
+                builder.Instance.Append(tokenString);
 
-                if (result is not null)
+                Diff.Apply(builder.Instance, result);
+
+                if (builder.Instance.Length > 0)
                 {
-                    builder.Clear();
-                    builder.Append(tokenString);
-
-                    Diff.Apply(builder, result);
-
-                    if (builder.Length > 0)
-                    {
-                        return new Token(builder.ToString());
-                    }
+                    return new Token(builder.Instance.ToString());
                 }
-
-                if (this.tokenOnEmptyStem)
-                {
-                    return token;
-                }
-
-                return default;
             }
-            finally
+
+            if (this.tokenOnEmptyStem)
             {
-                this.pool.Return(builder);
+                return token;
             }
+
+            return default;
         }
     }
 }

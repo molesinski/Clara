@@ -46,20 +46,37 @@ namespace Clara.Storage
         {
             if (valuesExpression is AnyValuesExpression anyValuesExpression)
             {
-                using var tempSet = new PooledHashSet<int>(Allocator.ArrayPool);
-
-                foreach (var token in anyValuesExpression.Values)
+                if (anyValuesExpression.Values.Count == 1)
                 {
+                    var token = anyValuesExpression.Values.First();
+
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
                         if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
                         {
-                            tempSet.UnionWith(documents);
+                            documentSet.IntersectWith(field, documents);
+
+                            return;
                         }
                     }
                 }
+                else
+                {
+                    using var tempSet = HashSetSlim<int>.ObjectPool.Lease();
 
-                documentSet.IntersectWith(field, tempSet);
+                    foreach (var token in anyValuesExpression.Values)
+                    {
+                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
+                        {
+                            if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
+                            {
+                                tempSet.Instance.UnionWith(documents);
+                            }
+                        }
+                    }
+
+                    documentSet.IntersectWith(field, tempSet.Instance);
+                }
             }
             else if (valuesExpression is AllValuesExpression allValuesExpression)
             {

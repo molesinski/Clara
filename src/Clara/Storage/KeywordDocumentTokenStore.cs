@@ -48,7 +48,7 @@ namespace Clara.Storage
                 }
             }
 
-            using var tokenCounts = new PooledDictionary<int, int>(Allocator.ArrayPool);
+            using var tokenCounts = DictionarySlim<int, int>.ObjectPool.Lease();
 
             foreach (var documentId in documents)
             {
@@ -56,34 +56,34 @@ namespace Clara.Storage
                 {
                     foreach (var tokenId in tokenIds)
                     {
-                        ref var count = ref tokenCounts.GetValueRefOrAddDefault(tokenId, out _);
+                        ref var count = ref tokenCounts.Instance.GetValueRefOrAddDefault(tokenId, out _);
 
                         count++;
                     }
                 }
             }
 
-            var values = new PooledList<KeywordFacetValue>(Allocator.ArrayPool);
+            var values = ListSlim<KeywordFacetValue>.ObjectPool.Lease();
 
-            foreach (var pair in tokenCounts)
+            foreach (var pair in tokenCounts.Instance)
             {
                 var tokenId = pair.Key;
                 var count = pair.Value;
                 var token = this.tokenEncoder.Decode(tokenId);
                 var isSelected = selectedValues.Contains(token);
 
-                values.Add(new KeywordFacetValue(token, count, isSelected));
+                values.Instance.Add(new KeywordFacetValue(token, count, isSelected));
                 selectedValues.Remove(token);
             }
 
             foreach (var token in selectedValues)
             {
-                values.Add(new KeywordFacetValue(token, count: 0, isSelected: true));
+                values.Instance.Add(new KeywordFacetValue(token, count: 0, isSelected: true));
             }
 
-            values.Sort(KeywordFacetValueComparer.Instance);
+            values.Instance.Sort(KeywordFacetValueComparer.Instance);
 
-            return new KeywordFacetResult(this.field, values, values);
+            return new KeywordFacetResult(this.field, values.Instance, values);
         }
 
         public sealed class KeywordFacetValueComparer : IComparer<KeywordFacetValue>

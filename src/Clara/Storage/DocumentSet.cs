@@ -6,11 +6,9 @@ namespace Clara.Storage
 {
     internal sealed class DocumentSet : IDocumentSet
     {
-        private static readonly PooledHashSet<int> Empty = new(Allocator.New);
-
         private readonly Dictionary<Field, BranchResult> branches = new();
         private readonly IReadOnlyCollection<int> allDocuments;
-        private PooledHashSet<int>? documents;
+        private ObjectPoolLease<HashSetSlim<int>>? documents;
 
         public DocumentSet(IReadOnlyCollection<int> allDocuments)
         {
@@ -23,14 +21,9 @@ namespace Clara.Storage
             this.documents = null;
         }
 
-        public DocumentSet(PooledHashSet<int> documents)
+        public DocumentSet(ObjectPoolLease<HashSetSlim<int>> documents)
         {
-            if (documents is null)
-            {
-                throw new ArgumentNullException(nameof(documents));
-            }
-
-            this.allDocuments = Empty;
+            this.allDocuments = Array.Empty<int>();
             this.documents = documents;
         }
 
@@ -38,7 +31,7 @@ namespace Clara.Storage
         {
             get
             {
-                return (this.documents ?? this.allDocuments).Count;
+                return (this.documents?.Instance ?? this.allDocuments).Count;
             }
         }
 
@@ -49,7 +42,7 @@ namespace Clara.Storage
                 return facetDocuments.Documents;
             }
 
-            return this.documents ?? this.allDocuments;
+            return this.documents?.Instance ?? this.allDocuments;
         }
 
         public void BranchForFaceting(Field field)
@@ -60,7 +53,7 @@ namespace Clara.Storage
             }
             else
             {
-                this.branches.Add(field, new BranchResult(new PooledHashSet<int>(Allocator.ArrayPool, this.documents)));
+                this.branches.Add(field, new BranchResult(this.documents.Value.Instance));
             }
         }
 
@@ -68,12 +61,11 @@ namespace Clara.Storage
         {
             if (this.documents is null)
             {
-                this.documents = Empty;
+                this.documents = HashSetSlim<int>.ObjectPool.Lease();
             }
             else
             {
-                this.documents.Dispose();
-                this.documents = Empty;
+                this.documents.Value.Instance.Clear();
             }
 
             foreach (var pair in this.branches)
@@ -88,11 +80,12 @@ namespace Clara.Storage
         {
             if (this.documents is null)
             {
-                this.documents = new PooledHashSet<int>(Allocator.ArrayPool, documentScores.Select(x => x.Key));
+                this.documents = HashSetSlim<int>.ObjectPool.Lease();
+                this.documents.Value.Instance.UnionWith(documentScores.Select(x => x.Key));
             }
             else
             {
-                this.documents.IntersectWith(documentScores.Select(x => x.Key));
+                this.documents.Value.Instance.IntersectWith(documentScores.Select(x => x.Key));
 
                 foreach (var pair in this.branches)
                 {
@@ -108,11 +101,12 @@ namespace Clara.Storage
         {
             if (this.documents is null)
             {
-                this.documents = new PooledHashSet<int>(Allocator.ArrayPool, documents);
+                this.documents = HashSetSlim<int>.ObjectPool.Lease();
+                this.documents.Value.Instance.UnionWith(documents);
             }
             else
             {
-                this.documents.IntersectWith(documents);
+                this.documents.Value.Instance.IntersectWith(documents);
 
                 foreach (var pair in this.branches)
                 {
@@ -128,10 +122,11 @@ namespace Clara.Storage
         {
             if (this.documents is null)
             {
-                this.documents = new PooledHashSet<int>(Allocator.ArrayPool, this.allDocuments);
+                this.documents = HashSetSlim<int>.ObjectPool.Lease();
+                this.documents.Value.Instance.UnionWith(this.allDocuments);
             }
 
-            this.documents.ExceptWith(documents);
+            this.documents.Value.Instance.ExceptWith(documents);
 
             foreach (var pair in this.branches)
             {
@@ -141,7 +136,7 @@ namespace Clara.Storage
 
         public IEnumerator<int> GetEnumerator()
         {
-            return (this.documents ?? this.allDocuments).GetEnumerator();
+            return (this.documents?.Instance ?? this.allDocuments).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -151,11 +146,7 @@ namespace Clara.Storage
 
         public void Dispose()
         {
-            if (this.documents is not null)
-            {
-                this.documents.Dispose();
-                this.documents = null;
-            }
+            this.documents?.Dispose();
 
             foreach (var pair in this.branches)
             {
@@ -168,7 +159,7 @@ namespace Clara.Storage
         private sealed class BranchResult : IDisposable
         {
             private readonly IReadOnlyCollection<int> allDocuments;
-            private PooledHashSet<int>? documents;
+            private ObjectPoolLease<HashSetSlim<int>>? branchDocuments;
 
             public BranchResult(IReadOnlyCollection<int> allDocuments)
             {
@@ -178,70 +169,52 @@ namespace Clara.Storage
                 }
 
                 this.allDocuments = allDocuments;
-                this.documents = null;
+                this.branchDocuments = null;
             }
 
-            public BranchResult(PooledHashSet<int> documents)
+            public BranchResult(HashSetSlim<int> branchDocuments)
             {
-                if (documents is null)
-                {
-                    throw new ArgumentNullException(nameof(documents));
-                }
+                this.allDocuments = Array.Empty<int>();
 
-                this.allDocuments = Empty;
-                this.documents = documents;
+                this.branchDocuments = HashSetSlim<int>.ObjectPool.Lease();
+                this.branchDocuments.Value.Instance.UnionWith(branchDocuments);
             }
 
             public IReadOnlyCollection<int> Documents
             {
                 get
                 {
-                    return this.documents ?? this.allDocuments;
-                }
-            }
-
-            public void Clear()
-            {
-                if (this.documents is null)
-                {
-                    this.documents = Empty;
-                }
-                else
-                {
-                    this.documents.Dispose();
-                    this.documents = Empty;
+                    return this.branchDocuments?.Instance ?? this.allDocuments;
                 }
             }
 
             public void IntersectWith(IEnumerable<int> documents)
             {
-                if (this.documents is null)
+                if (this.branchDocuments is null)
                 {
-                    this.documents = new PooledHashSet<int>(Allocator.ArrayPool, documents);
+                    this.branchDocuments = HashSetSlim<int>.ObjectPool.Lease();
+                    this.branchDocuments.Value.Instance.UnionWith(documents);
                 }
                 else
                 {
-                    this.documents.IntersectWith(documents);
+                    this.branchDocuments.Value.Instance.IntersectWith(documents);
                 }
             }
 
             public void ExceptWith(IEnumerable<int> documents)
             {
-                if (this.documents is null)
+                if (this.branchDocuments is null)
                 {
-                    this.documents = new PooledHashSet<int>(Allocator.ArrayPool, this.allDocuments);
+                    this.branchDocuments = HashSetSlim<int>.ObjectPool.Lease();
+                    this.branchDocuments.Value.Instance.UnionWith(this.allDocuments);
                 }
 
-                this.documents.ExceptWith(documents);
+                this.branchDocuments.Value.Instance.ExceptWith(documents);
             }
 
             public void Dispose()
             {
-                if (this.documents is not null)
-                {
-                    this.documents.Dispose();
-                    this.documents = null;
-                }
+                this.branchDocuments?.Dispose();
             }
         }
     }

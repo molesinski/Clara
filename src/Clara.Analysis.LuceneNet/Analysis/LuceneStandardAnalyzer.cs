@@ -25,21 +25,13 @@ namespace Clara.Analysis
                 yield break;
             }
 
-            var analyzer = this.pool.Get();
+            using var analyzer = this.pool.Lease();
+            using var input = new StringReader(text);
+            using var tokenStream = analyzer.Instance.GetTokenStream(string.Empty, input);
 
-            try
+            foreach (var token in new TokenStreamEnumerable(tokenStream))
             {
-                using var input = new StringReader(text);
-                using var tokenStream = analyzer.GetTokenStream(string.Empty, input);
-
-                foreach (var token in new TokenStreamEnumerable(tokenStream))
-                {
-                    yield return token.ToString();
-                }
-            }
-            finally
-            {
-                this.pool.Return(analyzer);
+                yield return token.ToString();
             }
         }
     }

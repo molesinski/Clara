@@ -15,23 +15,16 @@ namespace Clara.Analysis
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
-            var stemmer = this.pool.Get();
+            using var stemmer = this.pool.Lease();
 
-            try
+            stemmer.Instance.SetToken(token);
+
+            foreach (var stem in stemmer.Instance)
             {
-                stemmer.SetToken(token);
-
-                foreach (var stem in stemmer)
-                {
-                    return stem;
-                }
-
-                return default;
+                return stem;
             }
-            finally
-            {
-                this.pool.Return(stemmer);
-            }
+
+            return default;
         }
 
         private sealed class Stemmer : IEnumerable<Token>, IDisposable

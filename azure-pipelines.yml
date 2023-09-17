@@ -14,19 +14,13 @@ pr: none
 
 steps:
 - task: UseDotNet@2
-  displayName: 'Use 3.1 .NET Core Runtime'
-  inputs:
-    packageType: "runtime"
-    version: "3.1.x"
-    
-- task: UseDotNet@2
-  displayName: 'Use 6.0 .NET Core Runtime'
+  displayName: 'Use 6.0 .NET Runtime'
   inputs:
     packageType: "runtime"
     version: "6.0.x"
-
+    
 - task: UseDotNet@2
-  displayName: 'Use latest .NET Core SDK'
+  displayName: 'Use latest .NET SDK'
   inputs:
     useGlobalJson: true
 

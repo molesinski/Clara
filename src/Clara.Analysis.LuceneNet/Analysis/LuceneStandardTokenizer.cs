@@ -15,23 +15,15 @@ namespace Clara.Analysis
 
         public IEnumerable<Token> GetTokens(string text)
         {
-            var tokenizer = this.pool.Get();
+            using var tokenizer = this.pool.Lease();
+            using var reader = new StringReader(text);
+            using var disposable = tokenizer;
 
-            try
+            tokenizer.Instance.SetReader(reader);
+
+            foreach (var token in new TokenStreamEnumerable(tokenizer.Instance))
             {
-                using var reader = new StringReader(text);
-                using var disposable = tokenizer;
-
-                tokenizer.SetReader(reader);
-
-                foreach (var token in new TokenStreamEnumerable(tokenizer))
-                {
-                    yield return token;
-                }
-            }
-            finally
-            {
-                this.pool.Return(tokenizer);
+                yield return token;
             }
         }
     }

@@ -1,53 +1,81 @@
-﻿using System.Collections.Concurrent;
-
-namespace Clara.Utils
+﻿namespace Clara.Utils
 {
     public sealed class ObjectPool<TItem>
+        where TItem : class
     {
-        private readonly ConcurrentBag<TItem> objects = new();
+        private readonly Item[] items;
         private readonly Func<TItem> factory;
-        private readonly int maximumCount;
-        private int count;
+        private readonly Action<TItem> resetter;
 
         public ObjectPool(Func<TItem> factory)
-            : this(factory, maximumCount: Environment.ProcessorCount * 5)
+            : this(factory, _ => { })
         {
         }
 
-        public ObjectPool(Func<TItem> factory, int maximumCount)
+        public ObjectPool(Func<TItem> factory, Action<TItem> resetter)
+            : this(factory, resetter, size: Environment.ProcessorCount * 5)
+        {
+        }
+
+        public ObjectPool(Func<TItem> factory, Action<TItem> resetter, int size)
         {
             if (factory is null)
             {
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            if (maximumCount < 0)
+            if (resetter is null)
             {
-                throw new ArgumentOutOfRangeException(nameof(maximumCount));
+                throw new ArgumentNullException(nameof(resetter));
             }
 
+            if (size <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(size));
+            }
+
+            this.items = new Item[size];
             this.factory = factory;
-            this.maximumCount = maximumCount;
+            this.resetter = resetter;
         }
 
-        public TItem Get()
+        public ObjectPoolLease<TItem> Lease()
         {
-            if (this.objects.TryTake(out var item))
+            var instance = default(TItem);
+
+            for (var i = 0; i < this.items.Length; i++)
             {
-                Interlocked.Decrement(ref this.count);
-                return item;
+                instance = this.items[i].Value;
+
+                if (instance is not null)
+                {
+                    if (instance == Interlocked.CompareExchange(ref this.items[i].Value!, null, instance))
+                    {
+                        return new ObjectPoolLease<TItem>(this, instance);
+                    }
+                }
             }
 
-            return this.factory();
+            return new ObjectPoolLease<TItem>(this, this.factory());
         }
 
-        public void Return(TItem item)
+        internal void Return(TItem instance)
         {
-            if (this.count < this.maximumCount)
+            this.resetter(instance);
+
+            for (var i = 0; i < this.items.Length; i++)
             {
-                this.objects.Add(item);
-                Interlocked.Increment(ref this.count);
+                if (this.items[i].Value is null)
+                {
+                    this.items[i].Value = instance;
+                    break;
+                }
             }
+        }
+
+        private struct Item
+        {
+            public TItem Value;
         }
     }
 }

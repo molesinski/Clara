@@ -8,9 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Clara\Clara.csproj" />
-    <ProjectReference Include="..\Clara.Analysis.LuceneNet\Clara.Analysis.LuceneNet.csproj" />
-    <ProjectReference Include="..\Clara.Analysis.Morfologik\Clara.Analysis.Morfologik.csproj" />
-    <ProjectReference Include="..\Clara.Analysis.Snowball\Clara.Analysis.Snowball.csproj" />
   </ItemGroup>
 
   <ItemGroup>

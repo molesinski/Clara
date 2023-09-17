@@ -18,45 +18,38 @@ namespace Clara.Analysis
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
-            var stemmerContext = this.pool.Get();
+            using var stemmerContext = this.pool.Lease();
 
-            try
+            var stemmer = stemmerContext.Instance.Stemmer;
+            var input = stemmerContext.Instance.Input;
+            var output = stemmerContext.Instance.Output;
+            var chars = stemmerContext.Instance.Chars;
+
+            input.Clear();
+            token.CopyTo(input);
+
+            var lemmas = stemmer.Lookup(input);
+
+            foreach (var lemma in lemmas)
             {
-                var stemmer = stemmerContext.Stemmer;
-                var input = stemmerContext.Input;
-                var output = stemmerContext.Output;
-                var chars = stemmerContext.Chars;
+                var buffer = output;
+                buffer.Clear();
+                buffer = lemma.GetStemBytes(buffer);
 
-                input.Clear();
-                token.CopyTo(input);
+                var encoding = stemmer.Dictionary.Metadata.Decoder;
+                var charCount = encoding.GetChars(buffer.Array, buffer.ArrayOffset, buffer.Limit, chars, 0);
 
-                var lemmas = stemmer.Lookup(input);
+                token.Set(chars.AsSpan(0, charCount));
 
-                foreach (var lemma in lemmas)
-                {
-                    var buffer = output;
-                    buffer.Clear();
-                    buffer = lemma.GetStemBytes(buffer);
-
-                    var encoding = stemmer.Dictionary.Metadata.Decoder;
-                    var charCount = encoding.GetChars(buffer.Array, buffer.ArrayOffset, buffer.Limit, chars, 0);
-
-                    token.Set(chars.AsSpan(0, charCount));
-
-                    return token;
-                }
-
-                if (this.tokenOnEmptyStem)
-                {
-                    return token;
-                }
-
-                return default;
+                return token;
             }
-            finally
+
+            if (this.tokenOnEmptyStem)
             {
-                this.pool.Return(stemmerContext);
+                return token;
             }
+
+            return default;
         }
 
         private sealed class StemmerContext

@@ -40,26 +40,47 @@ namespace Clara.Storage
         {
             if (matchExpression is AnyMatchExpression anyValuesMatchExpression)
             {
-                var documentScores = new PooledDictionary<int, float>(Allocator.ArrayPool);
-
-                foreach (var token in anyValuesMatchExpression.Values)
+                if (anyValuesMatchExpression.Values.Count == 1)
                 {
+                    var token = anyValuesMatchExpression.Values.First();
+
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
                         if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                         {
-                            documentScores.UnionWith(documents, ValueCombiner.Sum);
+                            documentSet.IntersectWith(field, documents);
+
+                            return DocumentScoring.From(documents);
                         }
                     }
+
+                    documentSet.Clear();
+
+                    return DocumentScoring.Empty;
                 }
+                else
+                {
+                    var documentScores = DictionarySlim<int, float>.ObjectPool.Lease();
 
-                documentSet.IntersectWith(field, documentScores);
+                    foreach (var token in anyValuesMatchExpression.Values)
+                    {
+                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
+                        {
+                            if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
+                            {
+                                documentScores.Instance.UnionWith(documents, ValueCombiner.Sum);
+                            }
+                        }
+                    }
 
-                return new DocumentScoring(documentScores);
+                    documentSet.IntersectWith(field, documentScores.Instance);
+
+                    return DocumentScoring.From(documentScores);
+                }
             }
             else if (matchExpression is AllMatchExpression allValuesMatchExpression)
             {
-                var documentScores = new PooledDictionary<int, float>(Allocator.ArrayPool);
+                var documentScores = DictionarySlim<int, float>.ObjectPool.Lease();
                 var isFirst = true;
 
                 foreach (var token in allValuesMatchExpression.Values)
@@ -70,81 +91,81 @@ namespace Clara.Storage
                         {
                             if (isFirst)
                             {
-                                documentScores.UnionWith(documents, ValueCombiner.Sum);
+                                documentScores.Instance.UnionWith(documents, ValueCombiner.Sum);
                                 isFirst = false;
                             }
                             else
                             {
-                                documentScores.IntersectWith(documents, ValueCombiner.Sum);
+                                documentScores.Instance.IntersectWith(documents, ValueCombiner.Sum);
                             }
 
                             continue;
                         }
                     }
 
-                    documentScores.Clear();
+                    documentScores.Instance.Clear();
 
                     break;
                 }
 
-                documentSet.IntersectWith(field, documentScores);
+                documentSet.IntersectWith(field, documentScores.Instance);
 
-                return new DocumentScoring(documentScores);
+                return DocumentScoring.From(documentScores);
             }
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
-                var documentScores = new PooledDictionary<int, float>(Allocator.ArrayPool);
+                var documentScores = DictionarySlim<int, float>.ObjectPool.Lease();
 
-                using (var tempScores = new PooledDictionary<int, float>(Allocator.ArrayPool))
+                using (var tempScores = DictionarySlim<int, float>.ObjectPool.Lease())
                 {
                     foreach (var expression in orMatchExpression.Expressions)
                     {
-                        tempScores.Clear();
+                        tempScores.Instance.Clear();
 
-                        this.SearchPartial(expression, tempScores);
+                        this.SearchPartial(expression, tempScores.Instance);
 
-                        documentScores.UnionWith(tempScores, ValueCombiner.Max);
+                        documentScores.Instance.UnionWith(tempScores.Instance, ValueCombiner.Max);
                     }
                 }
 
-                documentSet.IntersectWith(field, documentScores);
+                documentSet.IntersectWith(field, documentScores.Instance);
 
-                return new DocumentScoring(documentScores);
+                return DocumentScoring.From(documentScores);
             }
             else if (matchExpression is AndMatchExpression andMatchExpression)
             {
-                var documentScores = new PooledDictionary<int, float>(Allocator.ArrayPool);
+                var documentScores = DictionarySlim<int, float>.ObjectPool.Lease();
                 var isFirst = true;
 
-                using (var tempScores = new PooledDictionary<int, float>(Allocator.ArrayPool))
+                using (var tempScores = DictionarySlim<int, float>.ObjectPool.Lease())
                 {
                     foreach (var expression in andMatchExpression.Expressions)
                     {
-                        tempScores.Clear();
+                        tempScores.Instance.Clear();
 
-                        this.SearchPartial(expression, tempScores);
+                        this.SearchPartial(expression, tempScores.Instance);
 
                         if (isFirst)
                         {
-                            documentScores.UnionWith(tempScores, ValueCombiner.Max);
+                            documentScores.Instance.UnionWith(tempScores.Instance, ValueCombiner.Max);
                             isFirst = false;
                         }
                         else
                         {
-                            documentScores.IntersectWith(tempScores, ValueCombiner.Max);
+                            documentScores.Instance.IntersectWith(tempScores.Instance, ValueCombiner.Max);
                         }
                     }
                 }
 
-                documentSet.IntersectWith(field, documentScores);
+                documentSet.IntersectWith(field, documentScores.Instance);
 
-                return new DocumentScoring(documentScores);
+                return DocumentScoring.From(documentScores);
             }
             else if (matchExpression is EmptyMatchExpression)
             {
                 documentSet.Clear();
 
-                return new DocumentScoring(new PooledDictionary<int, float>(Allocator.ArrayPool));
+                return DocumentScoring.Empty;
             }
             else
             {
@@ -152,7 +173,7 @@ namespace Clara.Storage
             }
         }
 
-        private void SearchPartial(MatchExpression matchExpression, PooledDictionary<int, float> partialScores)
+        private void SearchPartial(MatchExpression matchExpression, DictionarySlim<int, float> partialScores)
         {
             if (matchExpression is AnyMatchExpression anyValuesMatchExpression)
             {
@@ -198,37 +219,37 @@ namespace Clara.Storage
             }
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
-                using var tempScores = new PooledDictionary<int, float>(Allocator.ArrayPool);
+                using var tempScores = DictionarySlim<int, float>.ObjectPool.Lease();
 
                 foreach (var expression in orMatchExpression.Expressions)
                 {
-                    tempScores.Clear();
+                    tempScores.Instance.Clear();
 
-                    this.SearchPartial(expression, tempScores);
+                    this.SearchPartial(expression, tempScores.Instance);
 
-                    partialScores.UnionWith(tempScores, ValueCombiner.Max);
+                    partialScores.UnionWith(tempScores.Instance, ValueCombiner.Max);
                 }
             }
             else if (matchExpression is AndMatchExpression andMatchExpression)
             {
                 var isFirst = true;
 
-                using var tempScores = new PooledDictionary<int, float>(Allocator.ArrayPool);
+                using var tempScores = DictionarySlim<int, float>.ObjectPool.Lease();
 
                 foreach (var expression in andMatchExpression.Expressions)
                 {
-                    tempScores.Clear();
+                    tempScores.Instance.Clear();
 
-                    this.SearchPartial(expression, tempScores);
+                    this.SearchPartial(expression, tempScores.Instance);
 
                     if (isFirst)
                     {
-                        partialScores.UnionWith(tempScores, ValueCombiner.Max);
+                        partialScores.UnionWith(tempScores.Instance, ValueCombiner.Max);
                         isFirst = false;
                     }
                     else
                     {
-                        partialScores.IntersectWith(tempScores, ValueCombiner.Max);
+                        partialScores.IntersectWith(tempScores.Instance, ValueCombiner.Max);
                     }
                 }
             }

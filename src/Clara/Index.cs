@@ -71,26 +71,24 @@ namespace Clara
 
             if (query.IncludeDocuments is not null)
             {
-                var includedDocuments = default(PooledHashSet<int>);
+                var includedDocuments = default(ObjectPoolLease<HashSetSlim<int>>?);
 
                 foreach (var includedDocument in query.IncludeDocuments)
                 {
                     if (includedDocument is not null)
                     {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                        includedDocuments ??= new(Allocator.ArrayPool);
-#pragma warning restore CA2000 // Dispose objects before losing scope
+                        includedDocuments ??= HashSetSlim<int>.ObjectPool.Lease();
 
                         if (this.tokenEncoder.TryEncode(includedDocument, out var documentId))
                         {
-                            includedDocuments.Add(documentId);
+                            includedDocuments.Value.Instance.Add(documentId);
                         }
                     }
                 }
 
                 if (includedDocuments is not null)
                 {
-                    documentSet = new DocumentSet(includedDocuments);
+                    documentSet = new DocumentSet(includedDocuments.Value);
                 }
             }
 
@@ -156,7 +154,7 @@ namespace Clara
 
             if (query.ExcludeDocuments is not null)
             {
-                var excludeDocuments = default(PooledHashSet<int>);
+                var excludeDocuments = default(ObjectPoolLease<HashSetSlim<int>>?);
 
                 try
                 {
@@ -164,18 +162,18 @@ namespace Clara
                     {
                         if (excludeDocument is not null)
                         {
-                            excludeDocuments ??= new(Allocator.ArrayPool);
+                            excludeDocuments ??= HashSetSlim<int>.ObjectPool.Lease();
 
                             if (this.tokenEncoder.TryEncode(excludeDocument, out var documentId))
                             {
-                                excludeDocuments.Add(documentId);
+                                excludeDocuments.Value.Instance.Add(documentId);
                             }
                         }
                     }
 
                     if (excludeDocuments is not null)
                     {
-                        documentSet.ExceptWith(excludeDocuments);
+                        documentSet.ExceptWith(excludeDocuments.Value.Instance);
                     }
                 }
                 finally

@@ -14,23 +14,16 @@ namespace Clara.Analysis
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
-            var stemmer = this.pool.Get();
+            using var stemmer = this.pool.Lease();
 
-            try
+            var stem = stemmer.Instance.Stem(token.ToString());
+
+            if (stem.Length > 0)
             {
-                var stem = stemmer.Stem(token.ToString());
-
-                if (stem.Length > 0)
-                {
-                    return new Token(stem);
-                }
-
-                return default;
+                return new Token(stem);
             }
-            finally
-            {
-                this.pool.Return(stemmer);
-            }
+
+            return default;
         }
     }
 }
