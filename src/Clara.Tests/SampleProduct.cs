@@ -35,11 +35,11 @@ namespace Clara.Tests
         [JsonPropertyName("category")]
         public string? Category { get; set; }
 
-        [JsonPropertyName("thumbnail")]
-        public string? Thumbnail { get; set; }
+        //// [JsonPropertyName("thumbnail")]
+        //// public string? Thumbnail { get; set; }
 
-        [JsonPropertyName("images")]
-        public IReadOnlyCollection<string>? Images { get; set; }
+        //// [JsonPropertyName("images")]
+        //// public IReadOnlyCollection<string>? Images { get; set; }
 
         private static SampleProduct[] LoadEmbeddedResource()
         {

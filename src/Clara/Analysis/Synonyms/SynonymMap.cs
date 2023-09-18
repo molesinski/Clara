@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using Clara.Mapping;
 using Clara.Querying;
-using Clara.Utils;
 
 namespace Clara.Analysis.Synonyms
 {

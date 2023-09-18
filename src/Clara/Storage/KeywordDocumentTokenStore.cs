@@ -6,7 +6,6 @@ namespace Clara.Storage
 {
     internal sealed class KeywordDocumentTokenStore
     {
-        private static readonly HashSet<string> EmptySelectedValues = new();
         private readonly KeywordField field;
         private readonly ITokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, HashSetSlim<int>> documentTokens;
@@ -38,13 +37,13 @@ namespace Clara.Storage
 
         public FacetResult? Facet(FilterExpression? filterExpression, IEnumerable<int> documents)
         {
-            var selectedValues = EmptySelectedValues;
+            using var selectedValues = HashSetSlim<string>.ObjectPool.Lease();
 
             if (filterExpression is TokenFilterExpression tokenFilterExpression)
             {
                 if (tokenFilterExpression.ValuesExpression.Values.Count > 0)
                 {
-                    selectedValues = new HashSet<string>(tokenFilterExpression.ValuesExpression.Values);
+                    selectedValues.Instance.UnionWith(tokenFilterExpression.ValuesExpression.Values);
                 }
             }
 
@@ -70,13 +69,13 @@ namespace Clara.Storage
                 var tokenId = pair.Key;
                 var count = pair.Value;
                 var token = this.tokenEncoder.Decode(tokenId);
-                var isSelected = selectedValues.Contains(token);
+                var isSelected = selectedValues.Instance.Contains(token);
 
                 values.Instance.Add(new KeywordFacetValue(token, count, isSelected));
-                selectedValues.Remove(token);
+                selectedValues.Instance.Remove(token);
             }
 
-            foreach (var token in selectedValues)
+            foreach (var token in selectedValues.Instance)
             {
                 values.Instance.Add(new KeywordFacetValue(token, count: 0, isSelected: true));
             }

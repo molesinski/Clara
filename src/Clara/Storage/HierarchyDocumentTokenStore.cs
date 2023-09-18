@@ -6,7 +6,7 @@ namespace Clara.Storage
 {
     internal sealed class HierarchyDocumentTokenStore
     {
-        private readonly HashSet<string> rootSet;
+        private readonly string root;
         private readonly HierarchyField field;
         private readonly ITokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, HashSetSlim<int>> documentTokens;
@@ -44,7 +44,7 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(parentChildren));
             }
 
-            this.rootSet = new HashSet<string> { root };
+            this.root = root;
             this.field = field;
             this.tokenEncoder = tokenEncoder;
             this.documentTokens = documentTokens;
@@ -53,19 +53,22 @@ namespace Clara.Storage
 
         public FacetResult Facet(FilterExpression? filterExpression, IEnumerable<int> documents)
         {
-            var selectedValues = this.rootSet;
+            using var selectedValues = HashSetSlim<string>.ObjectPool.Lease();
+
+            selectedValues.Instance.Add(this.root);
 
             if (filterExpression is TokenFilterExpression tokenFilterExpression)
             {
                 if (tokenFilterExpression.ValuesExpression.Values.Count > 0)
                 {
-                    selectedValues = new HashSet<string>(tokenFilterExpression.ValuesExpression.Values);
+                    selectedValues.Instance.Clear();
+                    selectedValues.Instance.UnionWith(tokenFilterExpression.ValuesExpression.Values);
                 }
             }
 
             using var filteredTokens = HashSetSlim<int>.ObjectPool.Lease();
 
-            foreach (var selectedToken in selectedValues)
+            foreach (var selectedToken in selectedValues.Instance)
             {
                 if (this.tokenEncoder.TryEncode(selectedToken, out var parentId))
                 {
@@ -99,12 +102,12 @@ namespace Clara.Storage
             var values = ListSlim<HierarchyFacetValue>.ObjectPool.Lease();
             var selectedCount = 0;
 
-            for (var i = 0; i < selectedValues.Count; i++)
+            for (var i = 0; i < selectedValues.Instance.Count; i++)
             {
                 values.Instance.Add(default);
             }
 
-            foreach (var selectedToken in selectedValues)
+            foreach (var selectedToken in selectedValues.Instance)
             {
                 if (this.tokenEncoder.TryEncode(selectedToken, out var parentId))
                 {

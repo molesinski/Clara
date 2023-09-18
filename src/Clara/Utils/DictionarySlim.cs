@@ -16,6 +16,8 @@ namespace Clara.Utils
         private const int StackAllocThreshold = 512;
         private static readonly Entry[] InitialEntries = new Entry[1];
 
+        private readonly KeysCollection keys;
+
         private int size;
         private int count;
         private int lastIndex;
@@ -25,6 +27,7 @@ namespace Clara.Utils
 
         public DictionarySlim()
         {
+            this.keys = new KeysCollection(this);
             this.size = 1;
             this.count = 0;
             this.lastIndex = 0;
@@ -40,6 +43,7 @@ namespace Clara.Utils
                 throw new ArgumentOutOfRangeException(nameof(capacity));
             }
 
+            this.keys = new KeysCollection(this);
             this.size = HashHelper.PowerOf2(Math.Max(capacity, MinimumSize));
             this.count = 0;
             this.lastIndex = 0;
@@ -57,6 +61,7 @@ namespace Clara.Utils
 
             if (source is DictionarySlim<TKey, TValue> other && other.count > 0)
             {
+                this.keys = new KeysCollection(this);
                 this.size = other.size;
                 this.count = other.count;
                 this.lastIndex = other.lastIndex;
@@ -72,6 +77,7 @@ namespace Clara.Utils
 
             if (source is IReadOnlyCollection<KeyValuePair<TKey, TValue>> collection && collection.Count > 0)
             {
+                this.keys = new KeysCollection(this);
                 this.size = HashHelper.PowerOf2(Math.Max(collection.Count, MinimumSize));
                 this.count = 0;
                 this.lastIndex = 0;
@@ -81,6 +87,7 @@ namespace Clara.Utils
             }
             else
             {
+                this.keys = new KeysCollection(this);
                 this.size = 1;
                 this.count = 0;
                 this.lastIndex = 0;
@@ -114,6 +121,14 @@ namespace Clara.Utils
             }
         }
 
+        public KeysCollection Keys
+        {
+            get
+            {
+                return this.keys;
+            }
+        }
+
         public TValue this[TKey key]
         {
             get
@@ -135,7 +150,7 @@ namespace Clara.Utils
             {
                 Array.Clear(this.buckets, 0, this.size);
 
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
                 if (RuntimeHelpers.IsReferenceOrContainsReferences<Entry>())
                 {
                     Array.Clear(this.entries, 0, this.lastIndex);
@@ -621,7 +636,7 @@ namespace Clara.Utils
 
             if (this.size > 1)
             {
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
                 if (RuntimeHelpers.IsReferenceOrContainsReferences<Entry>())
                 {
                     Array.Clear(this.entries, 0, this.lastIndex);
@@ -702,12 +717,118 @@ namespace Clara.Utils
             }
         }
 
+        public struct KeysEnumerator : IEnumerator<TKey>
+        {
+            private readonly DictionarySlim<TKey, TValue> source;
+            private int index;
+            private int count;
+            private TKey current;
+
+            internal KeysEnumerator(DictionarySlim<TKey, TValue> source)
+            {
+                this.source = source;
+                this.index = 0;
+                this.count = this.source.count;
+                this.current = default!;
+            }
+
+            public readonly TKey Current
+            {
+                get
+                {
+                    return this.current;
+                }
+            }
+
+            readonly object IEnumerator.Current
+            {
+                get
+                {
+                    return this.current;
+                }
+            }
+
+            public bool MoveNext()
+            {
+                if (this.count == 0)
+                {
+                    this.current = default!;
+                    return false;
+                }
+
+                this.count--;
+
+                while (this.source.entries[this.index].Next < -1)
+                {
+                    this.index++;
+                }
+
+                ref var entry = ref this.source.entries[this.index];
+
+                this.index++;
+                this.current = entry.Key;
+
+                return true;
+            }
+
+            void IEnumerator.Reset()
+            {
+                this.index = 0;
+                this.count = this.source.count;
+                this.current = default!;
+            }
+
+            public readonly void Dispose()
+            {
+            }
+        }
+
         [DebuggerDisplay("({Key}, {Value})->{Next}")]
         private struct Entry
         {
             public TKey Key;
             public TValue Value;
             public int Next;
+        }
+
+#pragma warning disable CA1034 // Nested types should not be visible
+        public class KeysCollection : IReadOnlyCollection<TKey>, IReadOnlyHashCollection<TKey>
+#pragma warning restore CA1034 // Nested types should not be visible
+        {
+            private readonly DictionarySlim<TKey, TValue> source;
+
+            internal KeysCollection(DictionarySlim<TKey, TValue> source)
+            {
+                this.source = source;
+            }
+
+            public int Count
+            {
+                get
+                {
+                    return this.source.Count;
+                }
+            }
+
+            public bool Contains(TKey item)
+            {
+                return this.source.ContainsKey(item);
+            }
+
+            public KeysEnumerator GetEnumerator()
+            {
+                return new KeysEnumerator(this.source);
+            }
+
+            IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
+            {
+                return new KeysEnumerator(this.source);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return new KeysEnumerator(this.source);
+            }
         }
     }
 

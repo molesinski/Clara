@@ -48,7 +48,7 @@ namespace Clara.Storage
                     {
                         if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                         {
-                            documentSet.IntersectWith(field, documents);
+                            documentSet.IntersectWith(field, documents.Keys);
 
                             return DocumentScoring.From(documents);
                         }
@@ -73,7 +73,7 @@ namespace Clara.Storage
                         }
                     }
 
-                    documentSet.IntersectWith(field, documentScores.Instance);
+                    documentSet.IntersectWith(field, documentScores.Instance.Keys);
 
                     return DocumentScoring.From(documentScores);
                 }
@@ -108,7 +108,7 @@ namespace Clara.Storage
                     break;
                 }
 
-                documentSet.IntersectWith(field, documentScores.Instance);
+                documentSet.IntersectWith(field, documentScores.Instance.Keys);
 
                 return DocumentScoring.From(documentScores);
             }
@@ -128,7 +128,7 @@ namespace Clara.Storage
                     }
                 }
 
-                documentSet.IntersectWith(field, documentScores.Instance);
+                documentSet.IntersectWith(field, documentScores.Instance.Keys);
 
                 return DocumentScoring.From(documentScores);
             }
@@ -157,7 +157,7 @@ namespace Clara.Storage
                     }
                 }
 
-                documentSet.IntersectWith(field, documentScores.Instance);
+                documentSet.IntersectWith(field, documentScores.Instance.Keys);
 
                 return DocumentScoring.From(documentScores);
             }

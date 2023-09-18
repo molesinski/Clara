@@ -71,7 +71,7 @@ namespace Clara.Storage
         public override IEnumerator<int> GetEnumerator()
         {
             return this.sortedDocuments.Instance
-                .Select(o => o.DocumentId)
+                .Select(x => x.DocumentId)
                 .GetEnumerator();
         }
 

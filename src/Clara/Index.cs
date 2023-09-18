@@ -16,9 +16,6 @@ namespace Clara
 
     public sealed class Index<TDocument> : Index
     {
-        private static readonly HashSet<Field> EmptyFacetFields = new();
-        private static readonly List<FacetResult> EmptyFacetResults = new();
-
         private readonly ITokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, TDocument> documents;
         private readonly Dictionary<Field, FieldStore> fieldStores;
@@ -110,23 +107,26 @@ namespace Clara
 
             if (query.Filters.Count > 0)
             {
-                var facetFields = EmptyFacetFields;
+                using var facetFields = HashSetSlim<Field>.ObjectPool.Lease();
 
                 if (query.Facets.Count > 0)
                 {
-                    facetFields = new HashSet<Field>();
-
                     foreach (var facet in query.Facets)
                     {
-                        facetFields.Add(facet.Field);
+                        facetFields.Instance.Add(facet.Field);
                     }
                 }
 
-                var filterExpressions = query.Filters.ToArray();
+                using var filterExpressions = ListSlim<FilterExpression>.ObjectPool.Lease();
 
-                Array.Sort(filterExpressions, new FilterExpressionComparer(facetFields, this.fieldStores));
+                foreach (var filterExpression in query.Filters)
+                {
+                    filterExpressions.Instance.Add(filterExpression);
+                }
 
-                foreach (var filterExpression in filterExpressions)
+                filterExpressions.Instance.Sort(new FilterExpressionComparer(facetFields.Instance, this.fieldStores));
+
+                foreach (var filterExpression in filterExpressions.Instance)
                 {
                     if (documentSet.Count == 0)
                     {
@@ -142,7 +142,7 @@ namespace Clara
 
                     if (filterExpression.IsBranchingRequiredForFaceting)
                     {
-                        if (facetFields.Contains(field))
+                        if (facetFields.Instance.Contains(field))
                         {
                             documentSet.BranchForFaceting(field);
                         }
@@ -182,12 +182,10 @@ namespace Clara
                 }
             }
 
-            var facetResults = EmptyFacetResults;
+            var facetResults = ListSlim<FacetResult>.ObjectPool.Lease();
 
             if (query.Facets.Count > 0)
             {
-                facetResults = new List<FacetResult>(capacity: query.Facets.Count);
-
                 foreach (var facetExpression in query.Facets)
                 {
                     var field = facetExpression.Field;
@@ -215,7 +213,7 @@ namespace Clara
 
                         if (facetResult is not null)
                         {
-                            facetResults.Add(facetResult);
+                            facetResults.Instance.Add(facetResult);
                         }
                     }
                 }
@@ -261,12 +259,14 @@ namespace Clara
             return this.fieldStores.ContainsKey(field);
         }
 
-        private sealed class FilterExpressionComparer : IComparer<FilterExpression>
+        private readonly struct FilterExpressionComparer : IComparer<FilterExpression>
         {
-            private readonly HashSet<Field> facetFields;
+            private readonly HashSetSlim<Field> facetFields;
             private readonly Dictionary<Field, FieldStore> fieldStores;
 
-            public FilterExpressionComparer(HashSet<Field> facetFields, Dictionary<Field, FieldStore> fieldStores)
+            public FilterExpressionComparer(
+                HashSetSlim<Field> facetFields,
+                Dictionary<Field, FieldStore> fieldStores)
             {
                 if (facetFields is null)
                 {

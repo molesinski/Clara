@@ -9,14 +9,14 @@ namespace Clara.Querying
         private readonly DictionarySlim<int, TDocument> documents;
         private readonly IDocumentSet documentSet;
         private readonly IDocumentScoring documentScoring;
-        private readonly IEnumerable<FacetResult> facetResults;
+        private readonly ObjectPoolLease<ListSlim<FacetResult>> facetResults;
 
         internal QueryResult(
             ITokenEncoder tokenEncoder,
             DictionarySlim<int, TDocument> documents,
             IDocumentSet documentSet,
             IDocumentScoring documentScoring,
-            IEnumerable<FacetResult> facetResults)
+            ObjectPoolLease<ListSlim<FacetResult>> facetResults)
         {
             if (tokenEncoder is null)
             {
@@ -36,11 +36,6 @@ namespace Clara.Querying
             if (documentScoring is null)
             {
                 throw new ArgumentNullException(nameof(documentScoring));
-            }
-
-            if (facetResults is null)
-            {
-                throw new ArgumentNullException(nameof(facetResults));
             }
 
             this.tokenEncoder = tokenEncoder;
@@ -77,22 +72,20 @@ namespace Clara.Querying
         {
             get
             {
-                return this.facetResults;
+                return this.facetResults.Instance;
             }
         }
 
         public void Dispose()
         {
+            foreach (var facetResult in this.facetResults.Instance)
+            {
+                (facetResult as IDisposable)?.Dispose();
+            }
+
             this.documentSet.Dispose();
             this.documentScoring.Dispose();
-
-            foreach (var facetResult in this.facetResults)
-            {
-                if (facetResult is IDisposable disposable)
-                {
-                    disposable.Dispose();
-                }
-            }
+            this.facetResults.Dispose();
         }
     }
 }

@@ -8,7 +8,7 @@ namespace Clara.Utils
     [DebuggerTypeProxy(typeof(HashSetSlimDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
 #pragma warning disable CA1710 // Identifiers should have correct suffix
-    public sealed class HashSetSlim<TItem> : IReadOnlyCollection<TItem>
+    public sealed class HashSetSlim<TItem> : IReadOnlyCollection<TItem>, IReadOnlyHashCollection<TItem>
 #pragma warning restore CA1710 // Identifiers should have correct suffix
         where TItem : notnull, IEquatable<TItem>
     {
@@ -114,7 +114,7 @@ namespace Clara.Utils
             {
                 Array.Clear(this.buckets, 0, this.size);
 
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
                 if (RuntimeHelpers.IsReferenceOrContainsReferences<Entry>())
                 {
                     Array.Clear(this.entries, 0, this.lastIndex);
@@ -242,7 +242,7 @@ namespace Clara.Utils
                 return;
             }
 
-            if (enumerable is HashSetSlim<TItem> other)
+            if (enumerable is IReadOnlyHashCollection<TItem> hashCollection)
             {
                 var count = this.count;
 
@@ -256,7 +256,7 @@ namespace Clara.Utils
 
                         var item = entry.Item;
 
-                        if (!other.Contains(item))
+                        if (!hashCollection.Contains(item))
                         {
                             this.Remove(item);
                         }
@@ -542,7 +542,7 @@ namespace Clara.Utils
 
             if (this.size > 1)
             {
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP3_0_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
                 if (RuntimeHelpers.IsReferenceOrContainsReferences<Entry>())
                 {
                     Array.Clear(this.entries, 0, this.lastIndex);

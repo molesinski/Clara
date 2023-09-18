@@ -76,27 +76,6 @@ namespace Clara.Storage
             this.branches.Clear();
         }
 
-        public void IntersectWith(Field field, IEnumerable<KeyValuePair<int, float>> documentScores)
-        {
-            if (this.documents is null)
-            {
-                this.documents = HashSetSlim<int>.ObjectPool.Lease();
-                this.documents.Value.Instance.UnionWith(documentScores.Select(x => x.Key));
-            }
-            else
-            {
-                this.documents.Value.Instance.IntersectWith(documentScores.Select(x => x.Key));
-
-                foreach (var pair in this.branches)
-                {
-                    if (pair.Key != field)
-                    {
-                        pair.Value.IntersectWith(documentScores.Select(x => x.Key));
-                    }
-                }
-            }
-        }
-
         public void IntersectWith(Field field, IEnumerable<int> documents)
         {
             if (this.documents is null)

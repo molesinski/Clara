@@ -1,6 +1,6 @@
-﻿namespace Clara.Utils
+﻿namespace Clara.Analysis.Synonyms
 {
-    public static class PermutationHelper
+    internal static class PermutationHelper
     {
         public static IEnumerable<IEnumerable<TItem>> Identity<TItem>(IEnumerable<TItem> source)
         {
