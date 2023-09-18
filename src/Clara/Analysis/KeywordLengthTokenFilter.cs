@@ -1,11 +1,11 @@
 ﻿namespace Clara.Analysis
 {
-    public class RequireLengthTokenFilter : ITokenFilter
+    public class KeywordLengthTokenFilter : ITokenFilter
     {
         private readonly int minimumLength;
         private readonly int maximumLength;
 
-        public RequireLengthTokenFilter(int minimumLength = 1, int maximumLength = Token.MaximumLength)
+        public KeywordLengthTokenFilter(int minimumLength = 1, int maximumLength = Token.MaximumLength)
         {
             if (minimumLength < 0 || minimumLength > Token.MaximumLength)
             {

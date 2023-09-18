@@ -12,11 +12,11 @@ namespace Clara.Tests
                 new BasicTokenizer(),
                 new LowerInvariantTokenFilter(),
                 new CachingTokenFilter(),
-                new EnglishPossesiveTokenFilter(),
-                new EnglishStopTokenFilter(),
-                new RequireLengthTokenFilter(),
-                new RequireNonDigitsTokenFilter(),
-                new EnglishPorterStemTokenFilter());
+                new KeywordLengthTokenFilter(),
+                new KeywordDigitsTokenFilter(),
+                new PorterPossessiveTokenFilter(),
+                new PorterStopTokenFilter(),
+                new PorterStemTokenFilter());
 
         public static readonly TextField<SampleProduct> Text = new(ToText, Analyzer);
         public static readonly DoubleField<SampleProduct> Price = new(o => new RangeValue<double>(o.Price), isFilterable: true, isFacetable: true, isSortable: true);

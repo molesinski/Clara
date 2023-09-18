@@ -8,11 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Analysis\EnglishStopTokenFilter.txt" />
+    <None Remove="Analysis\PorterStopTokenFilter.txt" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Analysis\EnglishStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\PorterStopTokenFilter.txt" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0' or $(TargetFramework) == 'net462'">

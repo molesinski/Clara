@@ -624,8 +624,8 @@ namespace Clara.Analysis.Synonyms
                 {
                     return
                         maximumPermutatedPhraseTokenCount > 1 && phraseTokens.Count <= maximumPermutatedPhraseTokenCount
-                            ? PermutationHelper.Permutate(phraseTokens)
-                            : PermutationHelper.Identity(phraseTokens);
+                            ? phraseTokens.Permutate()
+                                : new[] { phraseTokens };
                 }
             }
         }

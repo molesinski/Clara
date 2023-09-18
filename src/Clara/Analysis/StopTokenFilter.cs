@@ -1,8 +1,10 @@
-﻿namespace Clara.Analysis
+﻿using Clara.Utils;
+
+namespace Clara.Analysis
 {
     public class StopTokenFilter : ITokenFilter
     {
-        private readonly HashSet<Token> stopwords = new();
+        private readonly HashSetSlim<Token> stopwords = new();
 
         public StopTokenFilter(IEnumerable<string> stopwords)
         {
@@ -14,6 +16,14 @@
             foreach (var stopword in stopwords)
             {
                 this.stopwords.Add(new Token(stopword));
+            }
+        }
+
+        public IEnumerable<Token> Stopwords
+        {
+            get
+            {
+                return this.stopwords;
             }
         }
 

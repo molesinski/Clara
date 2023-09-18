@@ -6,11 +6,11 @@ namespace Clara.Analysis
 {
     public sealed class LuceneStandardAnalyzer : IAnalyzer
     {
-        private readonly ObjectPool<StandardAnalyzer> pool;
+        private readonly ObjectPool<AnalyzerContext> pool;
 
         public LuceneStandardAnalyzer()
         {
-            this.pool = new(() => new(LuceneVersion.LUCENE_48));
+            this.pool = new(() => new());
         }
 
         public IEnumerable<string> GetTokens(string text)
@@ -25,14 +25,29 @@ namespace Clara.Analysis
                 yield break;
             }
 
-            using var analyzer = this.pool.Lease();
-            using var input = new StringReader(text);
-            using var tokenStream = analyzer.Instance.GetTokenStream(string.Empty, input);
+            using var context = this.pool.Lease();
 
-            foreach (var token in new TokenStreamEnumerable(tokenStream))
+            context.Instance.Reader.Reset(text);
+
+            using var tokenStream = context.Instance.Analyzer.GetTokenStream(string.Empty, context.Instance.Reader);
+
+            foreach (var token in new ReadOnlyTokenStreamEnumerable(tokenStream))
             {
                 yield return token.ToString();
             }
+        }
+
+        private sealed class AnalyzerContext
+        {
+            public AnalyzerContext()
+            {
+                this.Reader = new ResettableStringReader();
+                this.Analyzer = new StandardAnalyzer(LuceneVersion.LUCENE_48);
+            }
+
+            public ResettableStringReader Reader { get; }
+
+            public StandardAnalyzer Analyzer { get; }
         }
     }
 }

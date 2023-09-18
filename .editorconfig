@@ -8,6 +8,7 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 4
 tab_width = 4
+spelling_exclusion_path = spelling.dic
 
 [*.{csproj,dcproj,props,targets,json,config,conf,cmd,sh,yaml,yml,xml}]
 indent_size = 2
@@ -96,7 +97,7 @@ csharp_style_prefer_range_operator = false:silent
 csharp_style_prefer_readonly_struct = true:suggestion
 csharp_style_prefer_switch_expression = true:suggestion
 csharp_style_prefer_top_level_statements = false:silent
-csharp_style_prefer_tuple_swap = true:suggestion
+csharp_style_prefer_tuple_swap = false:silent
 csharp_style_prefer_utf8_string_literals = true:suggestion
 csharp_style_throw_expression = false:suggestion
 csharp_style_unused_value_assignment_preference = discard_variable:suggestion

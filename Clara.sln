@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".Solution", ".Solution", "{
 		global.json = global.json
 		LICENSE = LICENSE
 		README.md = README.md
+		spelling.dic = spelling.dic
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Clara", "src\Clara\Clara.csproj", "{ACB43A6C-A950-40C5-87E3-FCAD92F016B5}"
@@ -27,7 +28,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Clara.Tests", "src\Clara.Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Clara.Analysis.Snowball", "src\Clara.Analysis.Snowball\Clara.Analysis.Snowball.csproj", "{2FE6F8BD-936E-47A7-B37A-5B2D3C0BB35F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Clara.Benchmarks", "src\Clara.Benchmarks\Clara.Benchmarks.csproj", "{E2ACFD85-9EEB-4F4A-A7F0-773153E96223}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Clara.Benchmarks", "src\Clara.Benchmarks\Clara.Benchmarks.csproj", "{E2ACFD85-9EEB-4F4A-A7F0-773153E96223}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

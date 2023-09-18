@@ -8,13 +8,63 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Analysis\ArabicStopTokenFilter.txt" />
+    <None Remove="Analysis\ArmenianStopTokenFilter.txt" />
+    <None Remove="Analysis\BasqueStopTokenFilter.txt" />
+    <None Remove="Analysis\CatalanStopTokenFilter.txt" />
+    <None Remove="Analysis\DanishStopTokenFilter.txt" />
+    <None Remove="Analysis\DutchStopTokenFilter.txt" />
+    <None Remove="Analysis\EnglishStopTokenFilter.txt" />
+    <None Remove="Analysis\FinnishStopTokenFilter.txt" />
+    <None Remove="Analysis\FrenchStopTokenFilter.txt" />
+    <None Remove="Analysis\GermanStopTokenFilter.txt" />
+    <None Remove="Analysis\GreekStopTokenFilter.txt" />
+    <None Remove="Analysis\HindiStopTokenFilter.txt" />
+    <None Remove="Analysis\HungarianStopTokenFilter.txt" />
+    <None Remove="Analysis\IndonesianStopTokenFilter.txt" />
+    <None Remove="Analysis\IrishStopTokenFilter.txt" />
+    <None Remove="Analysis\ItalianStopTokenFilter.txt" />
     <None Remove="Analysis\LithuanianStopTokenFilter.txt" />
+    <None Remove="Analysis\NepaliStopTokenFilter.txt" />
+    <None Remove="Analysis\NorwegianStopTokenFilter.txt" />
+    <None Remove="Analysis\PortugueseStopTokenFilter.txt" />
+    <None Remove="Analysis\RomanianStopTokenFilter.txt" />
+    <None Remove="Analysis\RussianStopTokenFilter.txt" />
+    <None Remove="Analysis\SerbianStopTokenFilter.txt" />
+    <None Remove="Analysis\SpanishStopTokenFilter.txt" />
     <None Remove="Analysis\SwedishStopTokenFilter.txt" />
+    <None Remove="Analysis\TamilStopTokenFilter.txt" />
+    <None Remove="Analysis\TurkishStopTokenFilter.txt" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Analysis\SwedishStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\ArabicStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\ArmenianStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\BasqueStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\CatalanStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\DanishStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\DutchStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\EnglishStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\FinnishStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\FrenchStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\GermanStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\GreekStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\HindiStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\HungarianStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\IndonesianStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\IrishStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\ItalianStopTokenFilter.txt" />
     <EmbeddedResource Include="Analysis\LithuanianStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\NepaliStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\NorwegianStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\PortugueseStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\RomanianStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\RussianStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\SerbianStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\SpanishStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\SwedishStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\TamilStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\TurkishStopTokenFilter.txt" />
   </ItemGroup>
 
   <ItemGroup>

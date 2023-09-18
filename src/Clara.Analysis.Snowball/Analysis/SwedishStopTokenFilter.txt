@@ -1,6 +1,4 @@
-﻿ | From https://raw.githubusercontent.com/apache/lucene/main/lucene/analysis/common/src/resources/org/apache/lucene/analysis/snowball/swedish_stop.txt
-
- | From https://snowballstem.org/algorithms/swedish/stop.txt
+﻿ | From https://snowballstem.org/algorithms/swedish/stop.txt
  | This file is distributed under the BSD License.
  | See https://snowballstem.org/license.html
  | Also see https://opensource.org/licenses/bsd-license.html

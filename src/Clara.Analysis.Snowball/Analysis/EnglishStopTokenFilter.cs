@@ -2,7 +2,7 @@
 
 namespace Clara.Analysis
 {
-    public sealed class EnglishStopTokenFilter : ResourceStopTokenFilter
+    public sealed class EnglishStopTokenFilter : SnowballResourceStopTokenFilter
     {
         public EnglishStopTokenFilter()
             : base(

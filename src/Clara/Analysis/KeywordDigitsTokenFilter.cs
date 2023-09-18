@@ -1,6 +1,6 @@
 ﻿namespace Clara.Analysis
 {
-    public class RequireNonDigitsTokenFilter : ITokenFilter
+    public class KeywordDigitsTokenFilter : ITokenFilter
     {
         public Token Process(Token token, TokenFilterDelegate next)
         {

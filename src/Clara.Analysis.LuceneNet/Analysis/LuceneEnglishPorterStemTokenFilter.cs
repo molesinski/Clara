@@ -43,19 +43,19 @@ namespace Clara.Analysis
                 this.stringStream.SetToken(token);
             }
 
-            public TokenStreamEnumerable.Enumerator GetEnumerator()
+            public ReadOnlyTokenStreamEnumerable.Enumerator GetEnumerator()
             {
-                return new TokenStreamEnumerable(this.stemmer).GetEnumerator();
+                return new ReadOnlyTokenStreamEnumerable(this.stemmer).GetEnumerator();
             }
 
             IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
             {
-                return new TokenStreamEnumerable(this.stemmer).GetEnumerator();
+                return new ReadOnlyTokenStreamEnumerable(this.stemmer).GetEnumerator();
             }
 
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return new TokenStreamEnumerable(this.stemmer).GetEnumerator();
+                return new ReadOnlyTokenStreamEnumerable(this.stemmer).GetEnumerator();
             }
 
             public void Dispose()

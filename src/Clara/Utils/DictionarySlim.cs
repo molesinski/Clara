@@ -717,72 +717,6 @@ namespace Clara.Utils
             }
         }
 
-        public struct KeysEnumerator : IEnumerator<TKey>
-        {
-            private readonly DictionarySlim<TKey, TValue> source;
-            private int index;
-            private int count;
-            private TKey current;
-
-            internal KeysEnumerator(DictionarySlim<TKey, TValue> source)
-            {
-                this.source = source;
-                this.index = 0;
-                this.count = this.source.count;
-                this.current = default!;
-            }
-
-            public readonly TKey Current
-            {
-                get
-                {
-                    return this.current;
-                }
-            }
-
-            readonly object IEnumerator.Current
-            {
-                get
-                {
-                    return this.current;
-                }
-            }
-
-            public bool MoveNext()
-            {
-                if (this.count == 0)
-                {
-                    this.current = default!;
-                    return false;
-                }
-
-                this.count--;
-
-                while (this.source.entries[this.index].Next < -1)
-                {
-                    this.index++;
-                }
-
-                ref var entry = ref this.source.entries[this.index];
-
-                this.index++;
-                this.current = entry.Key;
-
-                return true;
-            }
-
-            void IEnumerator.Reset()
-            {
-                this.index = 0;
-                this.count = this.source.count;
-                this.current = default!;
-            }
-
-            public readonly void Dispose()
-            {
-            }
-        }
-
         [DebuggerDisplay("({Key}, {Value})->{Next}")]
         private struct Entry
         {
@@ -815,19 +749,85 @@ namespace Clara.Utils
                 return this.source.ContainsKey(item);
             }
 
-            public KeysEnumerator GetEnumerator()
+            public Enumerator GetEnumerator()
             {
-                return new KeysEnumerator(this.source);
+                return new Enumerator(this.source);
             }
 
             IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
             {
-                return new KeysEnumerator(this.source);
+                return new Enumerator(this.source);
             }
 
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return new KeysEnumerator(this.source);
+                return new Enumerator(this.source);
+            }
+
+            public struct Enumerator : IEnumerator<TKey>
+            {
+                private readonly DictionarySlim<TKey, TValue> source;
+                private int index;
+                private int count;
+                private TKey current;
+
+                internal Enumerator(DictionarySlim<TKey, TValue> source)
+                {
+                    this.source = source;
+                    this.index = 0;
+                    this.count = this.source.count;
+                    this.current = default!;
+                }
+
+                public readonly TKey Current
+                {
+                    get
+                    {
+                        return this.current;
+                    }
+                }
+
+                readonly object IEnumerator.Current
+                {
+                    get
+                    {
+                        return this.current;
+                    }
+                }
+
+                public bool MoveNext()
+                {
+                    if (this.count == 0)
+                    {
+                        this.current = default!;
+                        return false;
+                    }
+
+                    this.count--;
+
+                    while (this.source.entries[this.index].Next < -1)
+                    {
+                        this.index++;
+                    }
+
+                    ref var entry = ref this.source.entries[this.index];
+
+                    this.index++;
+                    this.current = entry.Key;
+
+                    return true;
+                }
+
+                void IEnumerator.Reset()
+                {
+                    this.index = 0;
+                    this.count = this.source.count;
+                    this.current = default!;
+                }
+
+                public readonly void Dispose()
+                {
+                }
             }
         }
     }

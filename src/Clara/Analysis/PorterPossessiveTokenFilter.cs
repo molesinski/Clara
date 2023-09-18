@@ -1,6 +1,6 @@
 ﻿namespace Clara.Analysis
 {
-    public class EnglishPossesiveTokenFilter : ITokenFilter
+    public class PorterPossessiveTokenFilter : ITokenFilter
     {
         public Token Process(Token token, TokenFilterDelegate next)
         {

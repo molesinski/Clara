@@ -1,6 +1,6 @@
 ﻿namespace Clara.Analysis
 {
-    public class EnglishPorterStemTokenFilter : ITokenFilter
+    public class PorterStemTokenFilter : ITokenFilter
     {
         public Token Process(Token token, TokenFilterDelegate next)
         {
@@ -37,7 +37,7 @@
 
             if (EndsWith(token, "eed", out var j))
             {
-                if (NumberOfConsoantSequences(token, j) > 0)
+                if (NumberOfConsonantSequences(token, j) > 0)
                 {
                     token.Remove(token.Length - 1);
                 }
@@ -59,7 +59,7 @@
                         token.Remove(token.Length - 1);
                     }
                 }
-                else if (NumberOfConsoantSequences(token, token.Length - 1) == 1 && HasCvcAt(token, token.Length - 1))
+                else if (NumberOfConsonantSequences(token, token.Length - 1) == 1 && HasCvcAt(token, token.Length - 1))
                 {
                     token.Append("e");
                 }
@@ -355,7 +355,7 @@
                     return;
             }
 
-            if (NumberOfConsoantSequences(token, j) > 1)
+            if (NumberOfConsonantSequences(token, j) > 1)
             {
                 token.Remove(j + 1);
             }
@@ -370,7 +370,7 @@
 
             if (token[token.Length - 1] == 'e')
             {
-                var a = NumberOfConsoantSequences(token, token.Length - 1);
+                var a = NumberOfConsonantSequences(token, token.Length - 1);
 
                 if (a > 1 || (a == 1 && !HasCvcAt(token, token.Length - 2)))
                 {
@@ -380,7 +380,7 @@
 
             if (token[token.Length - 1] == 'l')
             {
-                if (ContainsDoubleConsonantAt(token, token.Length - 1) && NumberOfConsoantSequences(token, token.Length - 1) > 1)
+                if (ContainsDoubleConsonantAt(token, token.Length - 1) && NumberOfConsonantSequences(token, token.Length - 1) > 1)
                 {
                     token.Remove(token.Length - 1);
                 }
@@ -394,7 +394,7 @@
                 return false;
             }
 
-            if (NumberOfConsoantSequences(token, j) < 1)
+            if (NumberOfConsonantSequences(token, j) < 1)
             {
                 return false;
             }
@@ -410,7 +410,7 @@
                 return false;
             }
 
-            if (NumberOfConsoantSequences(token, j) < 1)
+            if (NumberOfConsonantSequences(token, j) < 1)
             {
                 return false;
             }
@@ -447,7 +447,7 @@
             return false;
         }
 
-        private static int NumberOfConsoantSequences(Token token, int j)
+        private static int NumberOfConsonantSequences(Token token, int j)
         {
             var n = 0;
             var i = 0;

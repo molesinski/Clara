@@ -4,18 +4,27 @@ using Lucene.Net.Analysis.TokenAttributes;
 
 namespace Clara.Analysis
 {
-    internal sealed class TokenStreamEnumerable : IEnumerable<Token>
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+    public readonly struct TokenStreamEnumerable : IEnumerable<Token>
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         private readonly TokenStream tokenStream;
+        private readonly char[] chars;
 
-        public TokenStreamEnumerable(TokenStream tokenStream)
+        public TokenStreamEnumerable(TokenStream tokenStream, char[] chars)
         {
             if (tokenStream is null)
             {
                 throw new ArgumentNullException(nameof(tokenStream));
             }
 
+            if (chars is null)
+            {
+                throw new ArgumentNullException(nameof(chars));
+            }
+
             this.tokenStream = tokenStream;
+            this.chars = chars;
         }
 
         public Enumerator GetEnumerator()
@@ -37,6 +46,7 @@ namespace Clara.Analysis
         {
             private readonly TokenStream tokenStream;
             private readonly ICharTermAttribute charTermAttribute;
+            private readonly char[] chars;
             private bool isStarted;
             private Token current;
 
@@ -44,6 +54,7 @@ namespace Clara.Analysis
             {
                 this.tokenStream = source.tokenStream;
                 this.charTermAttribute = source.tokenStream.GetAttribute<ICharTermAttribute>();
+                this.chars = source.chars;
                 this.isStarted = false;
                 this.current = default;
             }
@@ -81,11 +92,11 @@ namespace Clara.Analysis
                         return true;
                     }
 
-#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
-                    this.current = new Token(new string(this.charTermAttribute.Buffer.AsSpan(0, this.charTermAttribute.Length)));
-#else
-                    this.current = new Token(new string(this.charTermAttribute.Buffer, 0, this.charTermAttribute.Length));
-#endif
+                    var length = this.charTermAttribute.Length;
+
+                    Array.Copy(this.charTermAttribute.Buffer, this.chars, length);
+
+                    this.current = new Token(this.chars, length);
 
                     return true;
                 }

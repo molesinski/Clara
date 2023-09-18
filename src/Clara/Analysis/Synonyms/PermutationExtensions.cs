@@ -1,27 +1,15 @@
 ﻿namespace Clara.Analysis.Synonyms
 {
-    internal static class PermutationHelper
+    public static class PermutationExtensions
     {
-        public static IEnumerable<IEnumerable<TItem>> Identity<TItem>(IEnumerable<TItem> source)
+        public static IEnumerable<IEnumerable<TItem>> Permutate<TItem>(this IEnumerable<TItem> source)
         {
             if (source is null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
 
-            yield return source;
-        }
-
-        public static IEnumerable<IEnumerable<TItem>> Permutate<TItem>(IEnumerable<TItem> source)
-        {
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            var list = source as IReadOnlyList<TItem>;
-
-            if (list is null)
+            if (source is not IReadOnlyList<TItem> list)
             {
                 list = source.ToList();
             }
@@ -35,7 +23,7 @@
 
             if (length == 1)
             {
-                yield return source;
+                yield return list;
                 yield break;
             }
 

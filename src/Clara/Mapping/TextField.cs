@@ -18,7 +18,7 @@ namespace Clara.Mapping
             }
 
             this.Analyzer = analyzer;
-            this.Weight = weight ?? Weight.BM25;
+            this.Weight = weight ?? Weight.Default;
         }
 
         public IAnalyzer Analyzer { get; }

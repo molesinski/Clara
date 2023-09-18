@@ -13,7 +13,7 @@ namespace Clara.Analysis
 
         public LucenePolishStempelStemTokenFilter(bool tokenOnEmptyStem = true)
         {
-            this.pool = new(() => new(capacity: Token.MaximumLength));
+            this.pool = new(() => new(capacity: Token.MaximumLength), builder => builder.Clear());
             this.stemmer = PolishAnalyzer.DefaultTable;
             this.tokenOnEmptyStem = tokenOnEmptyStem;
         }
@@ -27,7 +27,6 @@ namespace Clara.Analysis
 
             if (result is not null)
             {
-                builder.Instance.Clear();
                 builder.Instance.Append(tokenString);
 
                 Diff.Apply(builder.Instance, result);
