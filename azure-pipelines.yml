@@ -26,8 +26,12 @@ steps:
 
 - script: |
     dotnet restore "src/Clara/Clara.csproj"
+    dotnet restore "src/Clara.Analysis.Morfologik/Clara.Analysis.Morfologik.csproj"
+    dotnet restore "src/Clara.Analysis.Snowball/Clara.Analysis.Snowball.csproj"
     dotnet restore "src/Clara.Tests/Clara.Tests.csproj"
     dotnet build "src/Clara/Clara.csproj" --no-restore -c Release /p:Version=$(major).$(minor).$(patch)
+    dotnet build "src/Clara.Analysis.Morfologik/Clara.Analysis.Morfologik.csproj" --no-restore -c Release /p:Version=$(major).$(minor).$(patch)
+    dotnet build "src/Clara.Analysis.Snowball/Clara.Analysis.Snowball.csproj" --no-restore -c Release /p:Version=$(major).$(minor).$(patch)
     dotnet build "src/Clara.Tests/Clara.Tests.csproj" --no-restore -c Release /p:Version=$(major).$(minor).$(patch)
   displayName: Restore and build projects
 
@@ -45,6 +49,8 @@ steps:
 
 - script: |
     dotnet pack "src/Clara/Clara.csproj" --no-build -c Release -o $(Build.ArtifactStagingDirectory) /p:Version=$(major).$(minor).$(patch)
+    dotnet pack "src/Clara.Analysis.Morfologik/Clara.Analysis.Morfologik.csproj" --no-build -c Release -o $(Build.ArtifactStagingDirectory) /p:Version=$(major).$(minor).$(patch)
+    dotnet pack "src/Clara.Analysis.Snowball/Clara.Analysis.Snowball.csproj" --no-build -c Release -o $(Build.ArtifactStagingDirectory) /p:Version=$(major).$(minor).$(patch)
   displayName: Pack project
 
 - task: NuGetCommand@2

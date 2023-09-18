@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace Clara.Analysis
 {
-    public abstract class SnowballResourceStopTokenFilter : StopTokenFilter
+    public abstract partial class SnowballResourceStopTokenFilter : StopTokenFilter
     {
         protected internal SnowballResourceStopTokenFilter(Assembly assembly, string name, Encoding encoding)
             : base(LoadStopwords(assembly, name, encoding))
@@ -41,9 +41,11 @@ namespace Clara.Analysis
 
             while (reader.ReadLine() is string line)
             {
-#pragma warning disable CA1307 // Specify StringComparison for clarity
+#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
+                var commentIndex = line.IndexOf('|', StringComparison.Ordinal);
+#else
                 var commentIndex = line.IndexOf('|');
-#pragma warning restore CA1307 // Specify StringComparison for clarity
+#endif
 
                 if (commentIndex >= 0)
                 {
@@ -55,7 +57,7 @@ namespace Clara.Analysis
                     continue;
                 }
 
-                var words = Regex.Split(line, "\\s+", RegexOptions.Compiled);
+                var words = Split(line);
 
                 foreach (var word in words)
                 {
@@ -68,5 +70,20 @@ namespace Clara.Analysis
 
             return stopwords;
         }
+
+#if NET7_0_OR_GREATER
+        private static IEnumerable<string> Split(string text)
+        {
+            return WhitespaceRegex().Split(text);
+        }
+
+        [GeneratedRegex("\\s+", RegexOptions.Compiled)]
+        private static partial Regex WhitespaceRegex();
+#else
+        private static IEnumerable<string> Split(string text)
+        {
+            return Regex.Split(text, "\\s+", RegexOptions.Compiled);
+        }
+#endif
     }
 }
