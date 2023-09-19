@@ -7,6 +7,8 @@
     <PackageId>Clara</PackageId>
   </PropertyGroup>
 
+  <Import Project="../../Package.props" />
+
   <ItemGroup>
     <None Remove="Analysis\PorterStopTokenFilter.txt" />
   </ItemGroup>

@@ -1,0 +1,19 @@
+﻿<Project>
+
+  <PropertyGroup>
+    <Authors>Maciej Olesiński</Authors>
+    <Description>Simple, yet feature complete, in memory search engine.</Description>
+    <Copyright>Copyright Maciej Olesiński</Copyright>
+    <RepositoryUrl>https://github.com/molesinski/Clara</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/molesinski/Clara</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

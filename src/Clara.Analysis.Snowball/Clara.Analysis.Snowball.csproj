@@ -7,6 +7,8 @@
     <PackageId>Clara.Analysis.Snowball</PackageId>
   </PropertyGroup>
 
+  <Import Project="../../Package.props" />
+
   <ItemGroup>
     <None Remove="Analysis\ArabicStopTokenFilter.txt" />
     <None Remove="Analysis\ArmenianStopTokenFilter.txt" />

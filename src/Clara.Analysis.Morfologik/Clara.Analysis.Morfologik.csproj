@@ -7,6 +7,8 @@
     <PackageId>Clara.Analysis.Morfologik</PackageId>
   </PropertyGroup>
 
+  <Import Project="../../Package.props" />
+
   <ItemGroup>
     <None Remove="Analysis\PolishStopTokenFilter.txt" />
   </ItemGroup>

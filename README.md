@@ -21,6 +21,10 @@ Simple, yet feature complete, in memory search engine.
 - Result sorting document score or range fields
 - Fluent query builder
 
+## Getting started
+
+For example usage check sample test or benchmark project contents.
+
 ## Supported languages
 
 ### Internally
