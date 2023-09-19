@@ -1,10 +1,8 @@
-﻿using Clara.Utils;
-
-namespace Clara.Analysis
+﻿namespace Clara.Analysis
 {
     public class KeywordTokenFilter : ITokenFilter
     {
-        private readonly HashSetSlim<Token> keywords = new();
+        private readonly HashSet<Token> keywords = new();
 
         public KeywordTokenFilter(IEnumerable<string> keywords)
         {
@@ -19,7 +17,7 @@ namespace Clara.Analysis
             }
         }
 
-        public IEnumerable<Token> Keywords
+        public IReadOnlyCollection<Token> Keywords
         {
             get
             {

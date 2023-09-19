@@ -74,7 +74,7 @@ namespace Clara
                 {
                     if (includedDocument is not null)
                     {
-                        includedDocuments ??= HashSetSlim<int>.ObjectPool.Lease();
+                        includedDocuments ??= SharedObjectPools.DocumentSets.Lease();
 
                         if (this.tokenEncoder.TryEncode(includedDocument, out var documentId))
                         {
@@ -107,7 +107,7 @@ namespace Clara
 
             if (query.Filters.Count > 0)
             {
-                using var facetFields = HashSetSlim<Field>.ObjectPool.Lease();
+                using var facetFields = SharedObjectPools.FieldSets.Lease();
 
                 if (query.Facets.Count > 0)
                 {
@@ -117,7 +117,7 @@ namespace Clara
                     }
                 }
 
-                using var filterExpressions = ListSlim<FilterExpression>.ObjectPool.Lease();
+                using var filterExpressions = SharedObjectPools.FilterExpressions.Lease();
 
                 foreach (var filterExpression in query.Filters)
                 {
@@ -144,7 +144,7 @@ namespace Clara
                     {
                         if (facetFields.Instance.Contains(field))
                         {
-                            documentSet.BranchForFaceting(field);
+                            documentSet.Facet(field);
                         }
                     }
 
@@ -162,7 +162,7 @@ namespace Clara
                     {
                         if (excludeDocument is not null)
                         {
-                            excludeDocuments ??= HashSetSlim<int>.ObjectPool.Lease();
+                            excludeDocuments ??= SharedObjectPools.DocumentSets.Lease();
 
                             if (this.tokenEncoder.TryEncode(excludeDocument, out var documentId))
                             {
@@ -182,7 +182,7 @@ namespace Clara
                 }
             }
 
-            var facetResults = ListSlim<FacetResult>.ObjectPool.Lease();
+            var facetResults = SharedObjectPools.FacetResults.Lease();
 
             if (query.Facets.Count > 0)
             {

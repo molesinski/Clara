@@ -6,16 +6,11 @@ namespace Clara.Analysis
 {
     public class LuceneStandardTokenizer : ITokenizer
     {
-        private readonly ObjectPool<TokenizerContext> pool;
-
-        public LuceneStandardTokenizer()
-        {
-            this.pool = new(() => new());
-        }
+        private static readonly ObjectPool<TokenizerContext> Pool = new(() => new());
 
         public IEnumerable<Token> GetTokens(string text)
         {
-            using var context = this.pool.Lease();
+            using var context = Pool.Lease();
 
             context.Instance.Reader.Reset(text);
             context.Instance.Tokenizer.SetReader(context.Instance.Reader);

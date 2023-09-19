@@ -14,15 +14,16 @@ Simple, yet feature complete, in memory search engine.
 - Stemmers and stopwords handling for 30 languages
 - Text, keyword, hierarchy and range (any comparable structure values) fields
 - Synonym maps with multi word synonym support
-- Fully configurable and extendable analysis pipeline
+- Fully configurable and extendable text analysis pipeline
 - Searching with BM25 weighted document scoring
 - Filtering on any field type by values or range
 - Faceting without restricting facet value list by filtered values
 - Result sorting document score or range fields
+- Fluent query builder
 
 ## Supported languages
 
-### internally
+### Internally
 
 Porter
 

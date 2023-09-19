@@ -8,13 +8,8 @@ namespace Clara.Mapping
         protected internal KeywordField(bool isFilterable, bool isFacetable)
             : base(
                 isFilterable: isFilterable,
-                isFacetable: isFacetable,
-                isSortable: false)
+                isFacetable: isFacetable)
         {
-            if (!isFilterable && !isFacetable)
-            {
-                throw new InvalidOperationException("Either filtering or faceting must be enabled for given field.");
-            }
         }
     }
 

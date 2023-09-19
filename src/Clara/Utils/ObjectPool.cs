@@ -3,6 +3,8 @@
     public sealed class ObjectPool<TItem>
         where TItem : class
     {
+        private const int DegreeOfParallelism = 5;
+
         private readonly Item[] items;
         private readonly Func<TItem> factory;
         private readonly Action<TItem> resetter;
@@ -13,7 +15,7 @@
         }
 
         public ObjectPool(Func<TItem> factory, Action<TItem> resetter)
-            : this(factory, resetter, size: Environment.ProcessorCount * 5)
+            : this(factory, resetter, size: 1)
         {
         }
 
@@ -29,12 +31,12 @@
                 throw new ArgumentNullException(nameof(resetter));
             }
 
-            if (size <= 0)
+            if (size < 1)
             {
                 throw new ArgumentOutOfRangeException(nameof(size));
             }
 
-            this.items = new Item[size];
+            this.items = new Item[Environment.ProcessorCount * DegreeOfParallelism * size];
             this.factory = factory;
             this.resetter = resetter;
         }

@@ -62,7 +62,7 @@ namespace Clara.Storage
                 }
                 else
                 {
-                    using var tempSet = HashSetSlim<int>.ObjectPool.Lease();
+                    using var tempSet = SharedObjectPools.DocumentSets.Lease();
 
                     foreach (var token in anyValuesExpression.Values)
                     {

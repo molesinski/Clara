@@ -5,16 +5,11 @@ namespace Clara.Analysis
 {
     public sealed class ArabicStemTokenFilter : ITokenFilter
     {
-        private readonly ObjectPool<ArabicStemmer> pool;
-
-        public ArabicStemTokenFilter()
-        {
-            this.pool = new(() => new());
-        }
+        private static readonly ObjectPool<ArabicStemmer> Pool = new(() => new());
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
-            using var stemmer = this.pool.Lease();
+            using var stemmer = Pool.Lease();
 
             var stem = stemmer.Instance.Stem(token.ToString());
 

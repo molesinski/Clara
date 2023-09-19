@@ -6,11 +6,13 @@ namespace Clara.Storage
 {
     internal sealed class DocumentSet : IDocumentSet
     {
-        private readonly Dictionary<Field, BranchResult> branches = new();
-        private readonly IReadOnlyCollection<int> allDocuments;
+        private static readonly HashSetSlim<int> Empty = new();
+
+        private readonly HashSetSlim<int> allDocuments;
+        private ObjectPoolLease<ListSlim<DocumentFacetSet>>? facets;
         private ObjectPoolLease<HashSetSlim<int>>? documents;
 
-        public DocumentSet(IReadOnlyCollection<int> allDocuments)
+        public DocumentSet(HashSetSlim<int> allDocuments)
         {
             if (allDocuments is null)
             {
@@ -23,7 +25,7 @@ namespace Clara.Storage
 
         public DocumentSet(ObjectPoolLease<HashSetSlim<int>> documents)
         {
-            this.allDocuments = Array.Empty<int>();
+            this.allDocuments = Empty;
             this.documents = documents;
         }
 
@@ -35,25 +37,37 @@ namespace Clara.Storage
             }
         }
 
-        public IReadOnlyCollection<int> GetFacetDocuments(Field field)
+        public HashSetSlim<int> GetFacetDocuments(Field field)
         {
-            if (this.branches.TryGetValue(field, out var facetDocuments))
+            if (this.facets is not null)
             {
-                return facetDocuments.Documents;
+                foreach (var item in this.facets.Value.Instance)
+                {
+                    if (item.Field == field)
+                    {
+                        return item.FacetDocuments;
+                    }
+                }
             }
 
             return this.documents?.Instance ?? this.allDocuments;
         }
 
-        public void BranchForFaceting(Field field)
+        public void Facet(Field field)
         {
+            this.facets ??= SharedObjectPools.DocumentFacetSets.Lease();
+
             if (this.documents is null)
             {
-                this.branches.Add(field, new BranchResult(this.allDocuments));
+                this.facets.Value.Instance.Add(new DocumentFacetSet(field, this.allDocuments));
             }
             else
             {
-                this.branches.Add(field, new BranchResult(this.documents.Value.Instance));
+                var facetDocuments = SharedObjectPools.DocumentSets.Lease();
+
+                facetDocuments.Instance.UnionWith(this.documents.Value.Instance);
+
+                this.facets.Value.Instance.Add(new DocumentFacetSet(field, facetDocuments));
             }
         }
 
@@ -61,37 +75,47 @@ namespace Clara.Storage
         {
             if (this.documents is null)
             {
-                this.documents = HashSetSlim<int>.ObjectPool.Lease();
+                this.documents = SharedObjectPools.DocumentSets.Lease();
             }
             else
             {
                 this.documents.Value.Instance.Clear();
             }
 
-            foreach (var pair in this.branches)
+            if (this.facets is not null)
             {
-                pair.Value.Dispose();
-            }
+                foreach (var item in this.facets.Value.Instance)
+                {
+                    item.Dispose();
+                }
 
-            this.branches.Clear();
+                this.facets.Value.Instance.Clear();
+            }
         }
 
         public void IntersectWith(Field field, IEnumerable<int> documents)
         {
             if (this.documents is null)
             {
-                this.documents = HashSetSlim<int>.ObjectPool.Lease();
+                this.documents = SharedObjectPools.DocumentSets.Lease();
                 this.documents.Value.Instance.UnionWith(documents);
             }
             else
             {
                 this.documents.Value.Instance.IntersectWith(documents);
 
-                foreach (var pair in this.branches)
+                if (this.facets is not null)
                 {
-                    if (pair.Key != field)
+                    var count = this.facets.Value.Instance.Count;
+
+                    for (var i = 0; i < count; i++)
                     {
-                        pair.Value.IntersectWith(documents);
+                        var item = this.facets.Value.Instance[i];
+
+                        if (item.Field != field)
+                        {
+                            this.facets.Value.Instance[i] = item.IntersectWith(documents);
+                        }
                     }
                 }
             }
@@ -101,15 +125,22 @@ namespace Clara.Storage
         {
             if (this.documents is null)
             {
-                this.documents = HashSetSlim<int>.ObjectPool.Lease();
+                this.documents = SharedObjectPools.DocumentSets.Lease();
                 this.documents.Value.Instance.UnionWith(this.allDocuments);
             }
 
             this.documents.Value.Instance.ExceptWith(documents);
 
-            foreach (var pair in this.branches)
+            if (this.facets is not null)
             {
-                pair.Value.ExceptWith(documents);
+                var count = this.facets.Value.Instance.Count;
+
+                for (var i = 0; i < count; i++)
+                {
+                    var item = this.facets.Value.Instance[i];
+
+                    this.facets.Value.Instance[i] = item.ExceptWith(documents);
+                }
             }
         }
 
@@ -125,76 +156,16 @@ namespace Clara.Storage
 
         public void Dispose()
         {
+            if (this.facets is not null)
+            {
+                foreach (var item in this.facets.Value.Instance)
+                {
+                    item.Dispose();
+                }
+            }
+
+            this.facets?.Dispose();
             this.documents?.Dispose();
-
-            foreach (var pair in this.branches)
-            {
-                pair.Value.Dispose();
-            }
-
-            this.branches.Clear();
-        }
-
-        private sealed class BranchResult : IDisposable
-        {
-            private readonly IReadOnlyCollection<int> allDocuments;
-            private ObjectPoolLease<HashSetSlim<int>>? branchDocuments;
-
-            public BranchResult(IReadOnlyCollection<int> allDocuments)
-            {
-                if (allDocuments is null)
-                {
-                    throw new ArgumentNullException(nameof(allDocuments));
-                }
-
-                this.allDocuments = allDocuments;
-                this.branchDocuments = null;
-            }
-
-            public BranchResult(HashSetSlim<int> branchDocuments)
-            {
-                this.allDocuments = Array.Empty<int>();
-
-                this.branchDocuments = HashSetSlim<int>.ObjectPool.Lease();
-                this.branchDocuments.Value.Instance.UnionWith(branchDocuments);
-            }
-
-            public IReadOnlyCollection<int> Documents
-            {
-                get
-                {
-                    return this.branchDocuments?.Instance ?? this.allDocuments;
-                }
-            }
-
-            public void IntersectWith(IEnumerable<int> documents)
-            {
-                if (this.branchDocuments is null)
-                {
-                    this.branchDocuments = HashSetSlim<int>.ObjectPool.Lease();
-                    this.branchDocuments.Value.Instance.UnionWith(documents);
-                }
-                else
-                {
-                    this.branchDocuments.Value.Instance.IntersectWith(documents);
-                }
-            }
-
-            public void ExceptWith(IEnumerable<int> documents)
-            {
-                if (this.branchDocuments is null)
-                {
-                    this.branchDocuments = HashSetSlim<int>.ObjectPool.Lease();
-                    this.branchDocuments.Value.Instance.UnionWith(this.allDocuments);
-                }
-
-                this.branchDocuments.Value.Instance.ExceptWith(documents);
-            }
-
-            public void Dispose()
-            {
-                this.branchDocuments?.Dispose();
-            }
         }
     }
 }

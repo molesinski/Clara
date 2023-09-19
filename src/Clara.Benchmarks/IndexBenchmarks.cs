@@ -1,13 +1,15 @@
-﻿using System.Diagnostics;
+﻿using BenchmarkDotNet.Attributes;
 using Clara.Querying;
-using Xunit;
 
-namespace Clara.Tests
+namespace Clara.Benchmarks
 {
-    public class IndexTests
+    [MemoryDiagnoser]
+    public class IndexBenchmarks
     {
-        [Fact]
-        public void IndexAndQuery()
+        private readonly Index<SampleProduct> index;
+        private readonly Query query;
+
+        public IndexBenchmarks()
         {
             var builder =
                 new IndexBuilder<SampleProduct, SampleProduct>(
@@ -18,7 +20,7 @@ namespace Clara.Tests
                 builder.Index(item);
             }
 
-            var index = builder.Build();
+            this.index = builder.Build();
 
             var brand = SampleProduct.Items
                 .Select(x => x.Brand)
@@ -27,7 +29,7 @@ namespace Clara.Tests
                 .Select(x => x.Key)
                 .First();
 
-            var query = index.QueryBuilder()
+            this.query = this.index.QueryBuilder()
                 .Search(SampleProductMapper.Text, SampleProductMapper.AllText)
                 .Filter(SampleProductMapper.Brand, Values.Any(brand))
                 .Facet(SampleProductMapper.Brand)
@@ -35,19 +37,17 @@ namespace Clara.Tests
                 .Facet(SampleProductMapper.Price)
                 .Sort(SampleProductMapper.Price, SortDirection.Descending)
                 .Query;
+        }
 
-            using var result = index.Query(query);
+        [Benchmark]
+        public void Query()
+        {
+            using var result = this.index.Query(this.query);
 
-            var input = new HashSet<int>(
-                SampleProduct.Items
-                    .Where(x => x.Brand == brand)
-                    .Select(x => x.Id));
-
-            var output = new HashSet<int>(
-                result.Documents
-                    .Select(x => x.Document.Id));
-
-            Debug.Assert(input.SetEquals(output), "Resulting product sets must be equal");
+            foreach (var document in result.Documents)
+            {
+                _ = document;
+            }
         }
     }
 }

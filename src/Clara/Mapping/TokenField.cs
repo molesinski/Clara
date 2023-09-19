@@ -2,9 +2,13 @@
 {
     public abstract class TokenField : Field
     {
-        protected internal TokenField(bool isFilterable, bool isFacetable, bool isSortable)
-            : base(isFilterable, isFacetable, isSortable)
+        protected internal TokenField(bool isFilterable, bool isFacetable)
+            : base(isFilterable, isFacetable, isSortable: false)
         {
+            if (!isFilterable && !isFacetable)
+            {
+                throw new InvalidOperationException("Either filtering or faceting must be enabled for given field.");
+            }
         }
     }
 }

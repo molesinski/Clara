@@ -7,18 +7,17 @@ namespace Clara.Analysis
 {
     public class PolishStemTokenFilter : ITokenFilter
     {
-        private readonly ObjectPool<StemmerContext> pool;
+        private static readonly ObjectPool<StemmerContext> Pool = new(() => new());
         private readonly bool tokenOnEmptyStem;
 
         public PolishStemTokenFilter(bool tokenOnEmptyStem = true)
         {
-            this.pool = new(() => new());
             this.tokenOnEmptyStem = tokenOnEmptyStem;
         }
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
-            using var stemmerContext = this.pool.Lease();
+            using var stemmerContext = Pool.Lease();
 
             var stemmer = stemmerContext.Instance.Stemmer;
             var input = stemmerContext.Instance.Input;

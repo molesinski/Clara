@@ -10,14 +10,8 @@ namespace Clara.Mapping
         protected internal HierarchyField(bool isFilterable, bool isFacetable, char separator, string root)
             : base(
                 isFilterable: isFilterable,
-                isFacetable: isFacetable,
-                isSortable: false)
+                isFacetable: isFacetable)
         {
-            if (!isFilterable && !isFacetable)
-            {
-                throw new InvalidOperationException("Either filtering or faceting must be enabled for given field.");
-            }
-
             if (root is null)
             {
                 throw new ArgumentNullException(nameof(root));

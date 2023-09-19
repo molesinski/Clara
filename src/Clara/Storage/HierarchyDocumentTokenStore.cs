@@ -53,7 +53,7 @@ namespace Clara.Storage
 
         public FacetResult Facet(FilterExpression? filterExpression, IEnumerable<int> documents)
         {
-            using var selectedValues = HashSetSlim<string>.ObjectPool.Lease();
+            using var selectedValues = SharedObjectPools.SelectedValues.Lease();
 
             selectedValues.Instance.Add(this.root);
 
@@ -66,7 +66,7 @@ namespace Clara.Storage
                 }
             }
 
-            using var filteredTokens = HashSetSlim<int>.ObjectPool.Lease();
+            using var filteredTokens = SharedObjectPools.FilteredTokens.Lease();
 
             foreach (var selectedToken in selectedValues.Instance)
             {
@@ -81,7 +81,7 @@ namespace Clara.Storage
                 }
             }
 
-            using var tokenCounts = DictionarySlim<int, int>.ObjectPool.Lease();
+            using var tokenCounts = SharedObjectPools.TokenCounts.Lease();
 
             foreach (var documentId in documents)
             {
@@ -99,7 +99,7 @@ namespace Clara.Storage
                 }
             }
 
-            var values = ListSlim<HierarchyFacetValue>.ObjectPool.Lease();
+            var values = SharedObjectPools.HierarchyFacetValues.Lease();
             var selectedCount = 0;
 
             for (var i = 0; i < selectedValues.Instance.Count; i++)

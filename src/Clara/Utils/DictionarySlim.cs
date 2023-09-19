@@ -109,10 +109,6 @@ namespace Clara.Utils
             }
         }
 
-#pragma warning disable CA1000 // Do not declare static members on generic types
-        public static ObjectPool<DictionarySlim<TKey, TValue>> ObjectPool { get; } = new(() => new(), value => value.Clear());
-#pragma warning restore CA1000 // Do not declare static members on generic types
-
         public int Count
         {
             get

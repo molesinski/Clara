@@ -3,7 +3,7 @@ using System.Text;
 using Clara.Analysis;
 using Clara.Mapping;
 
-namespace Clara.Tests
+namespace Clara.Benchmarks
 {
     public class SampleProductMapper : IIndexMapper<SampleProduct, SampleProduct>
     {

@@ -6,12 +6,7 @@ namespace Clara.Analysis
 {
     public sealed class LucenePolishAnalyzer : IAnalyzer
     {
-        private readonly ObjectPool<AnalyzerContext> pool;
-
-        public LucenePolishAnalyzer()
-        {
-            this.pool = new(() => new());
-        }
+        private static readonly ObjectPool<AnalyzerContext> Pool = new(() => new());
 
         public IEnumerable<string> GetTokens(string text)
         {
@@ -25,7 +20,7 @@ namespace Clara.Analysis
                 yield break;
             }
 
-            using var context = this.pool.Lease();
+            using var context = Pool.Lease();
 
             context.Instance.Reader.Reset(text);
 

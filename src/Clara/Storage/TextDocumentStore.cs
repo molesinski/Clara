@@ -60,7 +60,7 @@ namespace Clara.Storage
                 }
                 else
                 {
-                    var documentScores = DictionarySlim<int, float>.ObjectPool.Lease();
+                    var documentScores = SharedObjectPools.DocumentScores.Lease();
 
                     foreach (var token in anyValuesMatchExpression.Values)
                     {
@@ -80,7 +80,7 @@ namespace Clara.Storage
             }
             else if (matchExpression is AllMatchExpression allValuesMatchExpression)
             {
-                var documentScores = DictionarySlim<int, float>.ObjectPool.Lease();
+                var documentScores = SharedObjectPools.DocumentScores.Lease();
                 var isFirst = true;
 
                 foreach (var token in allValuesMatchExpression.Values)
@@ -114,9 +114,9 @@ namespace Clara.Storage
             }
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
-                var documentScores = DictionarySlim<int, float>.ObjectPool.Lease();
+                var documentScores = SharedObjectPools.DocumentScores.Lease();
 
-                using (var tempScores = DictionarySlim<int, float>.ObjectPool.Lease())
+                using (var tempScores = SharedObjectPools.DocumentScores.Lease())
                 {
                     foreach (var expression in orMatchExpression.Expressions)
                     {
@@ -134,10 +134,10 @@ namespace Clara.Storage
             }
             else if (matchExpression is AndMatchExpression andMatchExpression)
             {
-                var documentScores = DictionarySlim<int, float>.ObjectPool.Lease();
+                var documentScores = SharedObjectPools.DocumentScores.Lease();
                 var isFirst = true;
 
-                using (var tempScores = DictionarySlim<int, float>.ObjectPool.Lease())
+                using (var tempScores = SharedObjectPools.DocumentScores.Lease())
                 {
                     foreach (var expression in andMatchExpression.Expressions)
                     {
@@ -219,7 +219,7 @@ namespace Clara.Storage
             }
             else if (matchExpression is OrMatchExpression orMatchExpression)
             {
-                using var tempScores = DictionarySlim<int, float>.ObjectPool.Lease();
+                using var tempScores = SharedObjectPools.DocumentScores.Lease();
 
                 foreach (var expression in orMatchExpression.Expressions)
                 {
@@ -234,7 +234,7 @@ namespace Clara.Storage
             {
                 var isFirst = true;
 
-                using var tempScores = DictionarySlim<int, float>.ObjectPool.Lease();
+                using var tempScores = SharedObjectPools.DocumentScores.Lease();
 
                 foreach (var expression in andMatchExpression.Expressions)
                 {

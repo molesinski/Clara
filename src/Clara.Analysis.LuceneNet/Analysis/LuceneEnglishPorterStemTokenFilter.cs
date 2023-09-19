@@ -6,16 +6,11 @@ namespace Clara.Analysis
 {
     public class LuceneEnglishPorterStemTokenFilter : ITokenFilter
     {
-        private readonly ObjectPool<Stemmer> pool;
-
-        public LuceneEnglishPorterStemTokenFilter()
-        {
-            this.pool = new(() => new());
-        }
+        private static readonly ObjectPool<Stemmer> Pool = new(() => new());
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
-            using var stemmer = this.pool.Lease();
+            using var stemmer = Pool.Lease();
 
             stemmer.Instance.SetToken(token);
 

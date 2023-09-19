@@ -5,16 +5,11 @@ namespace Clara.Analysis
 {
     public sealed class SerbianStemTokenFilter : ITokenFilter
     {
-        private readonly ObjectPool<SerbianStemmer> pool;
-
-        public SerbianStemTokenFilter()
-        {
-            this.pool = new(() => new());
-        }
+        private static readonly ObjectPool<SerbianStemmer> Pool = new(() => new());
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
-            using var stemmer = this.pool.Lease();
+            using var stemmer = Pool.Lease();
 
             var stem = stemmer.Instance.Stem(token.ToString());
 

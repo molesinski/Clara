@@ -7,20 +7,20 @@ namespace Clara.Analysis
 {
     public sealed class LucenePolishStempelStemTokenFilter : ITokenFilter
     {
-        private readonly ObjectPool<StringBuilder> pool;
+        private static readonly ObjectPool<StringBuilder> Pool = new(() => new(capacity: Token.MaximumLength), builder => builder.Clear());
+
         private readonly Trie stemmer;
         private readonly bool tokenOnEmptyStem;
 
         public LucenePolishStempelStemTokenFilter(bool tokenOnEmptyStem = true)
         {
-            this.pool = new(() => new(capacity: Token.MaximumLength), builder => builder.Clear());
             this.stemmer = PolishAnalyzer.DefaultTable;
             this.tokenOnEmptyStem = tokenOnEmptyStem;
         }
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
-            using var builder = this.pool.Lease();
+            using var builder = Pool.Lease();
 
             var tokenString = token.ToString();
             var result = this.stemmer.GetLastOnPath(tokenString);

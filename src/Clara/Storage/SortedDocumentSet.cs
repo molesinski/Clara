@@ -24,6 +24,8 @@ namespace Clara.Storage
     internal sealed class SortedDocumentSet<TValue> : SortedDocumentSet
         where TValue : struct, IComparable<TValue>
     {
+        private static readonly ObjectPool<ListSlim<DocumentValue<TValue>>> Pool = new(() => new(), x => x.Clear());
+
         private readonly ObjectPoolLease<ListSlim<DocumentValue<TValue>>> sortedDocuments;
 
         public SortedDocumentSet(
@@ -46,7 +48,7 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(comparer));
             }
 
-            this.sortedDocuments = ListSlim<DocumentValue<TValue>>.ObjectPool.Lease();
+            this.sortedDocuments = Pool.Lease();
 
             foreach (var documentId in documentSet)
             {
