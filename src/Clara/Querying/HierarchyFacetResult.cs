@@ -1,23 +1,24 @@
 ﻿using Clara.Mapping;
+using Clara.Utils;
 
 namespace Clara.Querying
 {
     public sealed class HierarchyFacetResult : TokenFacetResult<HierarchyFacetValue>, IDisposable
     {
-        private readonly IDisposable? disposable;
+        private readonly ObjectPoolLease<ListSlim<HierarchyFacetValue>> lease;
 
         internal HierarchyFacetResult(
             HierarchyField field,
             IEnumerable<HierarchyFacetValue> values,
-            IDisposable? disposable)
+            ObjectPoolLease<ListSlim<HierarchyFacetValue>> lease)
                 : base(field, values)
         {
-            this.disposable = disposable;
+            this.lease = lease;
         }
 
         public void Dispose()
         {
-            this.disposable?.Dispose();
+            this.lease.Dispose();
         }
     }
 }

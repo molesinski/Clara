@@ -259,7 +259,7 @@ namespace Clara
             return this.fieldStores.ContainsKey(field);
         }
 
-        private readonly struct FilterExpressionComparer : IComparer<FilterExpression>
+        private sealed class FilterExpressionComparer : IComparer<FilterExpression>
         {
             private readonly HashSetSlim<Field> facetFields;
             private readonly Dictionary<Field, FieldStore> fieldStores;

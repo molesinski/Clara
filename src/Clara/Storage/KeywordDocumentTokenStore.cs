@@ -35,7 +35,7 @@ namespace Clara.Storage
             this.documentTokens = documentTokens;
         }
 
-        public FacetResult? Facet(FilterExpression? filterExpression, IEnumerable<int> documents)
+        public FacetResult? Facet(FilterExpression? filterExpression, HashSetSlim<int> documents)
         {
             using var selectedValues = SharedObjectPools.SelectedValues.Lease();
 
@@ -85,13 +85,13 @@ namespace Clara.Storage
             return new KeywordFacetResult(this.field, values.Instance, values);
         }
 
-        public sealed class KeywordFacetValueComparer : IComparer<KeywordFacetValue>
+        private sealed class KeywordFacetValueComparer : IComparer<KeywordFacetValue>
         {
             private KeywordFacetValueComparer()
             {
             }
 
-            public static IComparer<KeywordFacetValue> Instance { get; } = new KeywordFacetValueComparer();
+            public static KeywordFacetValueComparer Instance { get; } = new KeywordFacetValueComparer();
 
             public int Compare(KeywordFacetValue x, KeywordFacetValue y)
             {

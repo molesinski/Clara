@@ -1,23 +1,24 @@
 ﻿using Clara.Mapping;
+using Clara.Utils;
 
 namespace Clara.Querying
 {
     public sealed class KeywordFacetResult : TokenFacetResult<KeywordFacetValue>, IDisposable
     {
-        private readonly IDisposable? disposable;
+        private readonly ObjectPoolLease<ListSlim<KeywordFacetValue>> lease;
 
         internal KeywordFacetResult(
             KeywordField field,
             IEnumerable<KeywordFacetValue> values,
-            IDisposable? disposable)
+            ObjectPoolLease<ListSlim<KeywordFacetValue>> lease)
             : base(field, values)
         {
-            this.disposable = disposable;
+            this.lease = lease;
         }
 
         public void Dispose()
         {
-            this.disposable?.Dispose();
+            this.lease.Dispose();
         }
     }
 }

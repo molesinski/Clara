@@ -12,9 +12,9 @@ namespace Clara.Storage
             this.direction = direction == SortDirection.Descending ? -1 : 1;
         }
 
-        public static IComparer<DocumentValue<TValue>> Ascending { get; } = new DocumentValueComparer<TValue>(SortDirection.Ascending);
+        public static DocumentValueComparer<TValue> Ascending { get; } = new DocumentValueComparer<TValue>(SortDirection.Ascending);
 
-        public static IComparer<DocumentValue<TValue>> Descending { get; } = new DocumentValueComparer<TValue>(SortDirection.Descending);
+        public static DocumentValueComparer<TValue> Descending { get; } = new DocumentValueComparer<TValue>(SortDirection.Descending);
 
         public int Compare(DocumentValue<TValue> x, DocumentValue<TValue> y)
         {

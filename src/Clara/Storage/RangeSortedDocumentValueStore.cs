@@ -16,7 +16,7 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(documentValues));
             }
 
-            documentValues.Sort(default(DocumentValueComparer));
+            documentValues.Sort(DocumentValueComparer.Instance);
 
             this.sortedDocumentValues = documentValues;
         }
@@ -36,8 +36,14 @@ namespace Clara.Storage
             documentSet.IntersectWith(field, rangeMatches);
         }
 
-        private readonly struct DocumentValueComparer : IComparer<DocumentValue<TValue>>
+        private sealed class DocumentValueComparer : IComparer<DocumentValue<TValue>>
         {
+            private DocumentValueComparer()
+            {
+            }
+
+            public static DocumentValueComparer Instance { get; } = new DocumentValueComparer();
+
             public int Compare(DocumentValue<TValue> x, DocumentValue<TValue> y)
             {
                 return x.Value.CompareTo(y.Value);

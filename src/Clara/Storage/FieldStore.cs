@@ -1,4 +1,5 @@
 ﻿using Clara.Querying;
+using Clara.Utils;
 
 namespace Clara.Storage
 {
@@ -26,7 +27,7 @@ namespace Clara.Storage
             throw new InvalidOperationException("Field does not support filtering.");
         }
 
-        public virtual FacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
+        public virtual FacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, HashSetSlim<int> documents)
         {
             throw new InvalidOperationException("Field does not support faceting.");
         }

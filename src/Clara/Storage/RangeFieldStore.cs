@@ -1,4 +1,5 @@
 ﻿using Clara.Querying;
+using Clara.Utils;
 
 namespace Clara.Storage
 {
@@ -43,7 +44,7 @@ namespace Clara.Storage
             base.Filter(filterExpression, documentSet);
         }
 
-        public override FacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, IEnumerable<int> documents)
+        public override FacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, HashSetSlim<int> documents)
         {
             if (facetExpression is RangeFacetExpression<TValue>)
             {

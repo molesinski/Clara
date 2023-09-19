@@ -51,7 +51,7 @@ namespace Clara.Storage
             this.parentChildren = parentChildren;
         }
 
-        public FacetResult Facet(FilterExpression? filterExpression, IEnumerable<int> documents)
+        public FacetResult Facet(FilterExpression? filterExpression, HashSetSlim<int> documents)
         {
             using var selectedValues = SharedObjectPools.SelectedValues.Lease();
 
@@ -112,7 +112,7 @@ namespace Clara.Storage
                 if (this.tokenEncoder.TryEncode(selectedToken, out var parentId))
                 {
                     var parent = this.tokenEncoder.Decode(parentId);
-                    var parentCount = tokenCounts.Instance[parentId];
+                    tokenCounts.Instance.TryGetValue(parentId, out var parentCount);
 
                     if (this.parentChildren.TryGetValue(parentId, out var children))
                     {
@@ -152,7 +152,7 @@ namespace Clara.Storage
             {
             }
 
-            public static IComparer<HierarchyFacetValue> Instance { get; } = new HierarchyFacetValueComparer();
+            public static HierarchyFacetValueComparer Instance { get; } = new HierarchyFacetValueComparer();
 
             public int Compare(HierarchyFacetValue x, HierarchyFacetValue y)
             {

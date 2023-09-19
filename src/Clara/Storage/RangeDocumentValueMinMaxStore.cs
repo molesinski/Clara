@@ -34,7 +34,7 @@ namespace Clara.Storage
             this.documentValueMinMax = documentValueMinMax;
         }
 
-        public FacetResult? Facet(IEnumerable<int> documents)
+        public FacetResult? Facet(HashSetSlim<int> documents)
         {
             var hasMinMax = false;
             var min = this.maxValue;
