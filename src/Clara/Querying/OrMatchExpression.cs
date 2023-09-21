@@ -1,25 +1,12 @@
-﻿namespace Clara.Querying
+﻿using Clara.Utils;
+
+namespace Clara.Querying
 {
-    public sealed class OrMatchExpression : MatchExpression
+    public sealed class OrMatchExpression : CompoundMatchExpression
     {
-        private readonly List<MatchExpression> expressions;
-
-        internal OrMatchExpression(List<MatchExpression> expressions)
+        internal OrMatchExpression(ListSlim<MatchExpression> expressions)
+            : base(expressions)
         {
-            if (expressions is null)
-            {
-                throw new ArgumentNullException(nameof(expressions));
-            }
-
-            this.expressions = expressions;
-        }
-
-        public IEnumerable<MatchExpression> Expressions
-        {
-            get
-            {
-                return this.expressions;
-            }
         }
     }
 }

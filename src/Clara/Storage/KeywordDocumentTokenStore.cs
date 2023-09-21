@@ -35,7 +35,7 @@ namespace Clara.Storage
             this.documentTokens = documentTokens;
         }
 
-        public FacetResult? Facet(FilterExpression? filterExpression, HashSetSlim<int> documents)
+        public FacetResult? Facet(FilterExpression? filterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             using var selectedValues = SharedObjectPools.SelectedValues.Lease();
 
@@ -49,7 +49,7 @@ namespace Clara.Storage
 
             using var tokenCounts = SharedObjectPools.TokenCounts.Lease();
 
-            foreach (var documentId in documents)
+            foreach (var documentId in documentResultBuilder.GetFacetDocuments(this.field))
             {
                 if (this.documentTokens.TryGetValue(documentId, out var tokenIds))
                 {

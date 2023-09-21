@@ -7,7 +7,7 @@ namespace Clara
 {
     public abstract class IndexBuilder
     {
-        protected internal IndexBuilder()
+        internal IndexBuilder()
         {
         }
 
@@ -69,7 +69,7 @@ namespace Clara
     public sealed class IndexBuilder<TSource, TDocument> : IndexBuilder
     {
         private readonly IIndexMapper<TSource, TDocument> indexMapper;
-        private readonly DictionarySlim<int, TDocument> documents;
+        private readonly DictionarySlim<int, TDocument> documentMap;
         private readonly ITokenEncoderBuilder tokenEncoderBuilder;
         private readonly Dictionary<Field, FieldStoreBuilder<TSource>> fieldBuilders;
         private bool isBuilt;
@@ -108,7 +108,7 @@ namespace Clara
             }
 
             this.indexMapper = indexMapper;
-            this.documents = new DictionarySlim<int, TDocument>();
+            this.documentMap = new DictionarySlim<int, TDocument>();
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder();
             this.fieldBuilders = new Dictionary<Field, FieldStoreBuilder<TSource>>();
 
@@ -168,7 +168,7 @@ namespace Clara
             var documentKey = this.indexMapper.GetDocumentKey(item);
             var documentId = this.tokenEncoderBuilder.Encode(documentKey);
 
-            ref var document = ref this.documents.GetValueRefOrAddDefault(documentId, out var exists);
+            ref var document = ref this.documentMap.GetValueRefOrAddDefault(documentId, out var exists);
 
             if (exists)
             {
@@ -203,7 +203,7 @@ namespace Clara
                 fieldStores.Add(field, builder.Build());
             }
 
-            var index = new Index<TDocument>(tokenEncoder, this.documents, fieldStores);
+            var index = new Index<TDocument>(tokenEncoder, this.documentMap, fieldStores);
 
             this.isBuilt = true;
 

@@ -2,7 +2,7 @@
 {
     public abstract class MatchExpression
     {
-        protected internal MatchExpression()
+        internal MatchExpression()
         {
         }
     }

@@ -2,114 +2,67 @@
 
 namespace Clara.Storage
 {
-    internal abstract class DocumentScoring : IDocumentScoring
+    internal readonly struct DocumentScoring : IDisposable
     {
-        public static DocumentScoring Empty { get; } = new EmptySearchResult();
+        private static readonly ObjectPool<ListSlim<DocumentValue<float>>> ScoredDocumentListsPool = new(() => new());
+        private static readonly DictionarySlim<int, float> Empty = new();
 
-        public abstract bool IsEmpty { get; }
+        private readonly ObjectPoolLease<DictionarySlim<int, float>>? lease;
+        private readonly DictionarySlim<int, float>? instance;
 
-        public static DocumentScoring From(ObjectPoolLease<DictionarySlim<int, float>> documentScores)
+        public DocumentScoring(ObjectPoolLease<DictionarySlim<int, float>> lease)
         {
-            return new PooledDictionaryDocumentScoring(documentScores);
+            this.lease = lease;
+            this.instance = null;
         }
 
-        public static DocumentScoring From(DictionarySlim<int, float> documentScores)
+        public DocumentScoring(DictionarySlim<int, float> instance)
         {
-            return new DictionarySlimDocumentScoring(documentScores);
+            if (instance is null)
+            {
+                throw new ArgumentNullException(nameof(instance));
+            }
+
+            this.lease = null;
+            this.instance = instance;
         }
 
-        public abstract float GetScore(int documentId);
-
-        public abstract void Dispose();
-
-        private sealed class EmptySearchResult : DocumentScoring
+        public DictionarySlim<int, float> Scoring
         {
-            public override bool IsEmpty
+            get
             {
-                get
-                {
-                    return true;
-                }
-            }
-
-            public override float GetScore(int documentId)
-            {
-                return 0;
-            }
-
-            public override void Dispose()
-            {
+                return this.lease?.Instance ?? this.instance ?? Empty;
             }
         }
 
-        private sealed class PooledDictionaryDocumentScoring : DocumentScoring
+        public DocumentList Sort(HashSetSlim<int> documentSet)
         {
-            private readonly ObjectPoolLease<DictionarySlim<int, float>> documentScores;
+            using var sortedDocuments = ScoredDocumentListsPool.Lease();
 
-            public PooledDictionaryDocumentScoring(ObjectPoolLease<DictionarySlim<int, float>> documentScores)
+            var scoring = this.Scoring;
+
+            foreach (var documentId in documentSet)
             {
-                this.documentScores = documentScores;
+                scoring.TryGetValue(documentId, out var value);
+
+                sortedDocuments.Instance.Add(new DocumentValue<float>(documentId, value));
             }
 
-            public override bool IsEmpty
+            sortedDocuments.Instance.Sort(DocumentValueComparer<float>.Descending);
+
+            var documents = SharedObjectPools.DocumentLists.Lease();
+
+            foreach (var documentValue in sortedDocuments.Instance)
             {
-                get
-                {
-                    return false;
-                }
+                documents.Instance.Add(documentValue.DocumentId);
             }
 
-            public override float GetScore(int documentId)
-            {
-                if (this.documentScores.Instance.TryGetValue(documentId, out var score))
-                {
-                    return score;
-                }
-
-                return 0;
-            }
-
-            public override void Dispose()
-            {
-                this.documentScores.Dispose();
-            }
+            return new DocumentList(documents);
         }
 
-        private sealed class DictionarySlimDocumentScoring : DocumentScoring
+        public void Dispose()
         {
-            private readonly DictionarySlim<int, float> documentScores;
-
-            public DictionarySlimDocumentScoring(DictionarySlim<int, float> documentScores)
-            {
-                if (documentScores is null)
-                {
-                    throw new ArgumentNullException(nameof(documentScores));
-                }
-
-                this.documentScores = documentScores;
-            }
-
-            public override bool IsEmpty
-            {
-                get
-                {
-                    return false;
-                }
-            }
-
-            public override float GetScore(int documentId)
-            {
-                if (this.documentScores.TryGetValue(documentId, out var score))
-                {
-                    return score;
-                }
-
-                return 0;
-            }
-
-            public override void Dispose()
-            {
-            }
+            this.lease?.Dispose();
         }
     }
 }

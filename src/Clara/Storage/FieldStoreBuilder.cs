@@ -2,7 +2,7 @@
 {
     internal abstract class FieldStoreBuilder
     {
-        protected internal FieldStoreBuilder()
+        internal FieldStoreBuilder()
         {
         }
 
@@ -11,7 +11,7 @@
 
     internal abstract class FieldStoreBuilder<TSource> : FieldStoreBuilder
     {
-        protected internal FieldStoreBuilder()
+        internal FieldStoreBuilder()
         {
         }
 

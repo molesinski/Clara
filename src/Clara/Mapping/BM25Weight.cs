@@ -24,7 +24,7 @@ namespace Clara.Mapping
 
         public double B { get; }
 
-        public override void Process(
+        internal override void Process(
             DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
             DictionarySlim<int, int> documentLengths)
         {

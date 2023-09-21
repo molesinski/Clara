@@ -4,7 +4,7 @@ namespace Clara.Querying
 {
     public abstract class FacetResult
     {
-        protected internal FacetResult(Field field)
+        internal FacetResult(Field field)
         {
             if (field is null)
             {

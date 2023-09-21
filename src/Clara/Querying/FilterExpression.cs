@@ -4,7 +4,7 @@ namespace Clara.Querying
 {
     public abstract class FilterExpression
     {
-        protected internal FilterExpression(Field field)
+        internal FilterExpression(Field field)
         {
             if (field is null)
             {

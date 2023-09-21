@@ -4,8 +4,6 @@ namespace Clara.Analysis
 {
     public sealed class BasicTokenizer : ITokenizer
     {
-        private static readonly ArrayPool<char> CharPool = ArrayPool<char>.Shared;
-
         private readonly int maximumTokenLength;
         private readonly char[] additionalWordConnectingCharacters;
         private readonly char numberDecimalSeparator;
@@ -40,81 +38,76 @@ namespace Clara.Analysis
             var textLength = text.Length;
             var previous = ' ';
             var current = text[0];
-            var start = -1;
+            var index = -1;
 
-            var chars = CharPool.Rent(Token.MaximumLength);
+            var chars = ArrayPool<char>.Shared.Rent(Token.MaximumLength);
 
-            try
+            for (var i = 0; i < textLength; i++)
             {
-                for (var i = 0; i < textLength; i++)
+                var next = ' ';
+
+                if (i + 1 < textLength)
                 {
-                    var next = ' ';
+                    next = text[i + 1];
+                }
 
-                    if (i + 1 < textLength)
+                if (index == -1)
+                {
+                    if (IsWordOrNumber(current))
                     {
-                        next = text[i + 1];
+                        index = i;
                     }
-
-                    if (start == -1)
+                }
+                else
+                {
+                    if (IsWordOrNumber(current))
                     {
-                        if (IsWordOrNumber(current))
-                        {
-                            start = i;
-                        }
+                    }
+                    else if (this.IsWordConnectingCharacter(current) && IsWord(previous) && IsWord(next))
+                    {
+                    }
+                    else if (this.IsNumberDecimalSeparator(current) && IsNumber(previous) && IsNumber(next))
+                    {
                     }
                     else
                     {
-                        if (IsWordOrNumber(current))
+                        var length = i - index;
+
+                        if (length <= this.maximumTokenLength)
                         {
+                            var token = ToToken(text, index, length, chars);
+
+                            yield return token;
                         }
-                        else if (this.IsWordConnectingCharacter(current) && IsWord(previous) && IsWord(next))
-                        {
-                        }
-                        else if (this.IsNumberDecimalSeparator(current) && IsNumber(previous) && IsNumber(next))
-                        {
-                        }
-                        else
-                        {
-                            var length = i - start;
 
-                            if (length <= this.maximumTokenLength)
-                            {
-                                var token = ToToken(text, start, length, chars);
-
-                                yield return token;
-                            }
-
-                            start = -1;
-                        }
-                    }
-
-                    previous = current;
-                    current = next;
-                }
-
-                if (start != -1)
-                {
-                    var length = textLength - start;
-
-                    if (length <= this.maximumTokenLength)
-                    {
-                        var token = ToToken(text, start, length, chars);
-
-                        yield return token;
+                        index = -1;
                     }
                 }
+
+                previous = current;
+                current = next;
             }
-            finally
+
+            if (index != -1)
             {
-                CharPool.Return(chars);
+                var length = textLength - index;
+
+                if (length <= this.maximumTokenLength)
+                {
+                    var token = ToToken(text, index, length, chars);
+
+                    yield return token;
+                }
             }
+
+            ArrayPool<char>.Shared.Return(chars);
         }
 
-        private static Token ToToken(string text, int start, int length, char[] chars)
+        private static Token ToToken(string text, int index, int length, char[] chars)
         {
             for (var i = 0; i < length; i++)
             {
-                chars[i] = text[start + i];
+                chars[i] = text[index + i];
             }
 
             return new Token(chars, length);

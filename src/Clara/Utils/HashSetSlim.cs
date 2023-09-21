@@ -7,9 +7,7 @@ namespace Clara.Utils
 {
     [DebuggerTypeProxy(typeof(HashSetSlimDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
-#pragma warning disable CA1710 // Identifiers should have correct suffix
-    public sealed class HashSetSlim<TItem> : IReadOnlyCollection<TItem>, IReadOnlyHashCollection<TItem>
-#pragma warning restore CA1710 // Identifiers should have correct suffix
+    internal sealed class HashSetSlim<TItem> : IReadOnlyCollection<TItem>, IReadOnlyHashCollection<TItem>, IResettable
         where TItem : notnull, IEquatable<TItem>
     {
         private const int MinimumSize = 4;
@@ -446,6 +444,11 @@ namespace Clara.Utils
         IEnumerator IEnumerable.GetEnumerator()
         {
             return new Enumerator(this);
+        }
+
+        void IResettable.Reset()
+        {
+            this.Clear();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

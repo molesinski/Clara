@@ -1,25 +1,12 @@
-﻿namespace Clara.Querying
+﻿using Clara.Utils;
+
+namespace Clara.Querying
 {
-    public sealed class AndMatchExpression : MatchExpression
+    public sealed class AndMatchExpression : CompoundMatchExpression
     {
-        private readonly List<MatchExpression> expressions;
-
-        internal AndMatchExpression(List<MatchExpression> expressions)
+        internal AndMatchExpression(ListSlim<MatchExpression> expressions)
+            : base(expressions)
         {
-            if (expressions is null)
-            {
-                throw new ArgumentNullException(nameof(expressions));
-            }
-
-            this.expressions = expressions;
-        }
-
-        public IEnumerable<MatchExpression> Expressions
-        {
-            get
-            {
-                return this.expressions;
-            }
         }
     }
 }

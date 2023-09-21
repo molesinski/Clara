@@ -4,7 +4,7 @@
     {
         private readonly List<string> phrases = new();
 
-        protected internal Synonym(IEnumerable<string> phrases)
+        internal Synonym(IEnumerable<string> phrases)
         {
             if (phrases is null)
             {

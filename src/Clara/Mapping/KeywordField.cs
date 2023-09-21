@@ -5,7 +5,7 @@ namespace Clara.Mapping
 {
     public abstract class KeywordField : TokenField
     {
-        protected internal KeywordField(bool isFilterable, bool isFacetable)
+        internal KeywordField(bool isFilterable, bool isFacetable)
             : base(
                 isFilterable: isFilterable,
                 isFacetable: isFacetable)

@@ -7,6 +7,8 @@ namespace Clara.Storage
     internal sealed class RangeDocumentValueMinMaxStore<TValue>
         where TValue : struct, IComparable<TValue>
     {
+        private static readonly ObjectPool<ListSlim<DocumentValue<TValue>>> SortedDocumentListsPool = new(() => new());
+
         private readonly RangeField<TValue> field;
         private readonly TValue minValue;
         private readonly TValue maxValue;
@@ -34,13 +36,13 @@ namespace Clara.Storage
             this.documentValueMinMax = documentValueMinMax;
         }
 
-        public FacetResult? Facet(HashSetSlim<int> documents)
+        public FacetResult? Facet(ref DocumentResultBuilder documentResultBuilder)
         {
             var hasMinMax = false;
             var min = this.maxValue;
             var max = this.minValue;
 
-            foreach (var documentId in documents)
+            foreach (var documentId in documentResultBuilder.GetFacetDocuments(this.field))
             {
                 if (this.documentValueMinMax.TryGetValue(documentId, out var minMax))
                 {
@@ -66,46 +68,70 @@ namespace Clara.Storage
             return null;
         }
 
-        public SortedDocumentSet Sort(SortDirection direction, DocumentSet documentSet)
+        public DocumentList Sort(SortDirection direction, ref DocumentResultBuilder documentResultBuilder)
         {
             if (direction == SortDirection.Descending)
             {
-                var documentValueMinMax = this.documentValueMinMax;
-                var minValue = this.minValue;
-
                 return
-                    new SortedDocumentSet<TValue>(
-                        documentSet,
-                        o =>
-                        {
-                            if (documentValueMinMax.TryGetValue(o, out var maxMax))
-                            {
-                                return maxMax.Max;
-                            }
-
-                            return minValue;
-                        },
+                    Sort(
+                        documentResultBuilder.Documents,
+                        this.GetDescendingValue,
                         DocumentValueComparer<TValue>.Descending);
             }
             else
             {
-                var documentValueMinMax = this.documentValueMinMax;
-                var maxValue = this.maxValue;
-
                 return
-                    new SortedDocumentSet<TValue>(
-                        documentSet,
-                        o =>
-                        {
-                            if (documentValueMinMax.TryGetValue(o, out var maxMax))
-                            {
-                                return maxMax.Min;
-                            }
-
-                            return maxValue;
-                        },
+                    Sort(
+                        documentResultBuilder.Documents,
+                        this.GetAscendingValue,
                         DocumentValueComparer<TValue>.Ascending);
             }
+        }
+
+        private static DocumentList Sort(
+            HashSetSlim<int> documentSet,
+            Func<int, TValue> valueSelector,
+            IComparer<DocumentValue<TValue>> comparer)
+        {
+            using var sortedDocuments = SortedDocumentListsPool.Lease();
+
+            foreach (var documentId in documentSet)
+            {
+                var value = valueSelector(documentId);
+
+                sortedDocuments.Instance.Add(new DocumentValue<TValue>(documentId, value));
+            }
+
+            sortedDocuments.Instance.Sort(comparer);
+
+            var documents = SharedObjectPools.DocumentLists.Lease();
+
+            foreach (var documentValue in sortedDocuments.Instance)
+            {
+                documents.Instance.Add(documentValue.DocumentId);
+            }
+
+            return new DocumentList(documents);
+        }
+
+        private TValue GetDescendingValue(int documentId)
+        {
+            if (this.documentValueMinMax.TryGetValue(documentId, out var minMax))
+            {
+                return minMax.Max;
+            }
+
+            return this.minValue;
+        }
+
+        private TValue GetAscendingValue(int documentId)
+        {
+            if (this.documentValueMinMax.TryGetValue(documentId, out var minMax))
+            {
+                return minMax.Min;
+            }
+
+            return this.maxValue;
         }
     }
 }

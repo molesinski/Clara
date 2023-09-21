@@ -1,4 +1,6 @@
-﻿namespace Clara.Querying
+﻿using Clara.Utils;
+
+namespace Clara.Querying
 {
     public static class Values
     {
@@ -8,7 +10,7 @@
             {
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    return new AllValuesExpression(new[] { value });
+                    return new AllValuesExpression(new HashSetSlim<string> { value });
                 }
             }
 
@@ -24,7 +26,7 @@
         {
             if (values is not null)
             {
-                var result = new HashSet<string>();
+                var result = new HashSetSlim<string>();
 
                 foreach (var value in values)
                 {
@@ -52,7 +54,7 @@
             {
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    return new AnyValuesExpression(new[] { value });
+                    return new AnyValuesExpression(new HashSetSlim<string> { value });
                 }
             }
 
@@ -68,7 +70,7 @@
         {
             if (values is not null)
             {
-                var result = new HashSet<string>();
+                var result = new HashSetSlim<string>();
 
                 foreach (var value in values)
                 {

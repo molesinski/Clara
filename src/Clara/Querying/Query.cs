@@ -1,14 +1,16 @@
-﻿namespace Clara.Querying
+﻿using Clara.Utils;
+
+namespace Clara.Querying
 {
     public sealed class Query
     {
-        private static readonly List<FilterExpression> EmptyFilters = new();
-        private static readonly List<FacetExpression> EmptyFacets = new();
+        private static readonly ListSlim<FilterExpression> EmptyFilters = new();
+        private static readonly ListSlim<FacetExpression> EmptyFacets = new();
 
         private readonly Index index;
         private SearchExpression? search;
-        private List<FilterExpression> filters = EmptyFilters;
-        private List<FacetExpression> facets = EmptyFacets;
+        private ListSlim<FilterExpression> filters = EmptyFilters;
+        private ListSlim<FacetExpression> facets = EmptyFacets;
         private SortExpression? sort;
 
         public Query(Index index)

@@ -1,9 +1,11 @@
-﻿namespace Clara.Querying
+﻿using Clara.Utils;
+
+namespace Clara.Querying
 {
     public sealed class EmptyValuesExpression : ValuesExpression
     {
         private EmptyValuesExpression()
-            : base(Array.Empty<string>())
+            : base(new HashSetSlim<string>())
         {
         }
 

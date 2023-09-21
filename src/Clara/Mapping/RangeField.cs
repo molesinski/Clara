@@ -6,7 +6,7 @@ namespace Clara.Mapping
     public abstract class RangeField<TValue> : Field
         where TValue : struct, IComparable<TValue>
     {
-        protected internal RangeField(TValue minValue, TValue maxValue, bool isFilterable, bool isFacetable, bool isSortable)
+        internal RangeField(TValue minValue, TValue maxValue, bool isFilterable, bool isFacetable, bool isSortable)
             : base(
                 isFilterable: isFilterable,
                 isFacetable: isFacetable,

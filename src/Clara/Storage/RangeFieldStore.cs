@@ -1,5 +1,4 @@
 ﻿using Clara.Querying;
-using Clara.Utils;
 
 namespace Clara.Storage
 {
@@ -30,44 +29,44 @@ namespace Clara.Storage
             }
         }
 
-        public override void Filter(FilterExpression filterExpression, DocumentSet documentSet)
+        public override void Filter(FilterExpression filterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             if (filterExpression is RangeFilterExpression<TValue> rangeFilterExpression)
             {
                 if (this.sortedDocumentValueStore is not null)
                 {
-                    this.sortedDocumentValueStore.Filter(rangeFilterExpression.Field, rangeFilterExpression.From, rangeFilterExpression.To, documentSet);
+                    this.sortedDocumentValueStore.Filter(rangeFilterExpression.Field, rangeFilterExpression.From, rangeFilterExpression.To, ref documentResultBuilder);
                     return;
                 }
             }
 
-            base.Filter(filterExpression, documentSet);
+            base.Filter(filterExpression, ref documentResultBuilder);
         }
 
-        public override FacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, HashSetSlim<int> documents)
+        public override FacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             if (facetExpression is RangeFacetExpression<TValue>)
             {
                 if (this.documentValueMinMaxStore is not null)
                 {
-                    return this.documentValueMinMaxStore.Facet(documents);
+                    return this.documentValueMinMaxStore.Facet(ref documentResultBuilder);
                 }
             }
 
-            return base.Facet(facetExpression, filterExpression, documents);
+            return base.Facet(facetExpression, filterExpression, ref documentResultBuilder);
         }
 
-        public override SortedDocumentSet Sort(SortExpression sortExpression, DocumentSet documentSet)
+        public override DocumentList Sort(SortExpression sortExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             if (sortExpression is RangeSortExpression<TValue> rangeSortExpression)
             {
                 if (this.documentValueMinMaxStore is not null)
                 {
-                    return this.documentValueMinMaxStore.Sort(rangeSortExpression.Direction, documentSet);
+                    return this.documentValueMinMaxStore.Sort(rangeSortExpression.Direction, ref documentResultBuilder);
                 }
             }
 
-            return base.Sort(sortExpression, documentSet);
+            return base.Sort(sortExpression, ref documentResultBuilder);
         }
     }
 }

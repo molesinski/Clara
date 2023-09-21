@@ -2,7 +2,7 @@
 {
     public abstract class TokenField : Field
     {
-        protected internal TokenField(bool isFilterable, bool isFacetable)
+        internal TokenField(bool isFilterable, bool isFacetable)
             : base(isFilterable, isFacetable, isSortable: false)
         {
             if (!isFilterable && !isFacetable)

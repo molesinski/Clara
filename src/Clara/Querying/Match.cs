@@ -1,4 +1,6 @@
-﻿namespace Clara.Querying
+﻿using Clara.Utils;
+
+namespace Clara.Querying
 {
     public static class Match
     {
@@ -8,11 +10,11 @@
             {
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    return new AllMatchExpression(new[] { value });
+                    return new AllValuesMatchExpression(new HashSetSlim<string> { value });
                 }
             }
 
-            return EmptyMatchExpression.Instance;
+            return EmptyValuesMatchExpression.Instance;
         }
 
         public static MatchExpression All(params string?[] values)
@@ -24,7 +26,7 @@
         {
             if (values is not null)
             {
-                var result = new HashSet<string>();
+                var result = new HashSetSlim<string>();
 
                 foreach (var value in values)
                 {
@@ -39,11 +41,11 @@
 
                 if (result.Count > 0)
                 {
-                    return new AllMatchExpression(result);
+                    return new AllValuesMatchExpression(result);
                 }
             }
 
-            return EmptyMatchExpression.Instance;
+            return EmptyValuesMatchExpression.Instance;
         }
 
         public static MatchExpression Any(string? value)
@@ -52,11 +54,11 @@
             {
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    return new AnyMatchExpression(new[] { value });
+                    return new AnyValuesMatchExpression(new HashSetSlim<string> { value });
                 }
             }
 
-            return EmptyMatchExpression.Instance;
+            return EmptyValuesMatchExpression.Instance;
         }
 
         public static MatchExpression Any(params string?[] values)
@@ -68,7 +70,7 @@
         {
             if (values is not null)
             {
-                var result = new HashSet<string>();
+                var result = new HashSetSlim<string>();
 
                 foreach (var value in values)
                 {
@@ -83,11 +85,11 @@
 
                 if (result.Count > 0)
                 {
-                    return new AnyMatchExpression(result);
+                    return new AnyValuesMatchExpression(result);
                 }
             }
 
-            return EmptyMatchExpression.Instance;
+            return EmptyValuesMatchExpression.Instance;
         }
 
         public static MatchExpression And(params MatchExpression?[] expressions)
@@ -99,7 +101,7 @@
         {
             if (expressions is not null)
             {
-                var result = new List<MatchExpression>();
+                var result = new ListSlim<MatchExpression>();
                 var queue = new Queue<MatchExpression>();
 
                 foreach (var expression in expressions)
@@ -114,14 +116,14 @@
                 {
                     var expression = queue.Dequeue();
 
-                    if (expression is EmptyMatchExpression)
+                    if (expression is EmptyValuesMatchExpression)
                     {
                         continue;
                     }
 
                     if (expression is AndMatchExpression andMatchExpression)
                     {
-                        foreach (var expression2 in andMatchExpression.Expressions)
+                        foreach (var expression2 in (ListSlim<MatchExpression>)andMatchExpression.Expressions)
                         {
                             queue.Enqueue(expression2);
                         }
@@ -143,7 +145,7 @@
                 }
             }
 
-            return EmptyMatchExpression.Instance;
+            return EmptyValuesMatchExpression.Instance;
         }
 
         public static MatchExpression Or(params MatchExpression?[] expressions)
@@ -155,7 +157,7 @@
         {
             if (expressions is not null)
             {
-                var result = new List<MatchExpression>();
+                var result = new ListSlim<MatchExpression>();
                 var queue = new Queue<MatchExpression>();
 
                 foreach (var expression in expressions)
@@ -170,14 +172,14 @@
                 {
                     var expression = queue.Dequeue();
 
-                    if (expression is EmptyMatchExpression)
+                    if (expression is EmptyValuesMatchExpression)
                     {
                         continue;
                     }
 
                     if (expression is OrMatchExpression orMatchExpression)
                     {
-                        foreach (var expression2 in orMatchExpression.Expressions)
+                        foreach (var expression2 in (ListSlim<MatchExpression>)orMatchExpression.Expressions)
                         {
                             queue.Enqueue(expression2);
                         }
@@ -199,7 +201,7 @@
                 }
             }
 
-            return EmptyMatchExpression.Instance;
+            return EmptyValuesMatchExpression.Instance;
         }
     }
 }

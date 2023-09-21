@@ -1,5 +1,4 @@
 ﻿using Clara.Querying;
-using Clara.Utils;
 
 namespace Clara.Storage
 {
@@ -29,31 +28,31 @@ namespace Clara.Storage
             }
         }
 
-        public override void Filter(FilterExpression filterExpression, DocumentSet documentSet)
+        public override void Filter(FilterExpression filterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             if (filterExpression is HierarchyFilterExpression hierarchyFilterExpression)
             {
                 if (this.tokenDocumentStore is not null)
                 {
-                    this.tokenDocumentStore.Filter(hierarchyFilterExpression.Field, hierarchyFilterExpression.ValuesExpression, documentSet);
+                    this.tokenDocumentStore.Filter(hierarchyFilterExpression.Field, hierarchyFilterExpression.ValuesExpression, ref documentResultBuilder);
                     return;
                 }
             }
 
-            base.Filter(filterExpression, documentSet);
+            base.Filter(filterExpression, ref documentResultBuilder);
         }
 
-        public override FacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, HashSetSlim<int> documents)
+        public override FacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             if (facetExpression is HierarchyFacetExpression)
             {
                 if (this.documentTokenStore is not null)
                 {
-                    return this.documentTokenStore.Facet(filterExpression, documents);
+                    return this.documentTokenStore.Facet(filterExpression, ref documentResultBuilder);
                 }
             }
 
-            return base.Facet(facetExpression, filterExpression, documents);
+            return base.Facet(facetExpression, filterExpression, ref documentResultBuilder);
         }
     }
 }

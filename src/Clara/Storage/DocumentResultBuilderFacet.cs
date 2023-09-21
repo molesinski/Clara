@@ -3,7 +3,7 @@ using Clara.Utils;
 
 namespace Clara.Storage
 {
-    internal readonly struct DocumentFacetSet : IDisposable
+    internal readonly struct DocumentResultBuilderFacet : IDisposable
     {
         private static readonly HashSetSlim<int> Empty = new();
 
@@ -11,7 +11,7 @@ namespace Clara.Storage
         private readonly HashSetSlim<int> allDocuments;
         private readonly ObjectPoolLease<HashSetSlim<int>>? facetDocuments;
 
-        public DocumentFacetSet(Field field, HashSetSlim<int> allDocuments)
+        public DocumentResultBuilderFacet(Field field, HashSetSlim<int> allDocuments)
         {
             if (field is null)
             {
@@ -28,7 +28,7 @@ namespace Clara.Storage
             this.facetDocuments = null;
         }
 
-        public DocumentFacetSet(Field field, ObjectPoolLease<HashSetSlim<int>> facetDocuments)
+        public DocumentResultBuilderFacet(Field field, ObjectPoolLease<HashSetSlim<int>> facetDocuments)
         {
             if (field is null)
             {
@@ -56,7 +56,7 @@ namespace Clara.Storage
             }
         }
 
-        public DocumentFacetSet IntersectWith(IEnumerable<int> documents)
+        public DocumentResultBuilderFacet IntersectWith(IEnumerable<int> documents)
         {
             if (this.facetDocuments is null)
             {
@@ -64,7 +64,7 @@ namespace Clara.Storage
 
                 facetDocuments.Instance.UnionWith(documents);
 
-                return new DocumentFacetSet(this.field, facetDocuments);
+                return new DocumentResultBuilderFacet(this.field, facetDocuments);
             }
             else
             {
@@ -74,7 +74,7 @@ namespace Clara.Storage
             }
         }
 
-        public DocumentFacetSet ExceptWith(IEnumerable<int> documents)
+        public DocumentResultBuilderFacet ExceptWith(IEnumerable<int> documents)
         {
             if (this.facetDocuments is null)
             {
@@ -83,7 +83,7 @@ namespace Clara.Storage
                 facetDocuments.Instance.UnionWith(this.allDocuments);
                 facetDocuments.Instance.ExceptWith(documents);
 
-                return new DocumentFacetSet(this.field, facetDocuments);
+                return new DocumentResultBuilderFacet(this.field, facetDocuments);
             }
             else
             {

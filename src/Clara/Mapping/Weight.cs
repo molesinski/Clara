@@ -4,7 +4,7 @@ namespace Clara.Mapping
 {
     public abstract class Weight
     {
-        protected Weight()
+        internal Weight()
         {
         }
 
@@ -15,7 +15,7 @@ namespace Clara.Mapping
             return new BM25Weight(k1, b);
         }
 
-        public abstract void Process(
+        internal abstract void Process(
             DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
             DictionarySlim<int, int> documentLengths);
     }

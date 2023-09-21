@@ -4,7 +4,7 @@ namespace Clara.Querying
 {
     public abstract class TokenFilterExpression : FilterExpression
     {
-        protected internal TokenFilterExpression(TokenField field, ValuesExpression valuesExpression)
+        internal TokenFilterExpression(TokenField field, ValuesExpression valuesExpression)
             : base(field)
         {
             if (valuesExpression is null)

@@ -7,7 +7,7 @@ namespace Clara
 {
     public abstract class Index
     {
-        protected internal Index()
+        internal Index()
         {
         }
 
@@ -17,13 +17,13 @@ namespace Clara
     public sealed class Index<TDocument> : Index
     {
         private readonly ITokenEncoder tokenEncoder;
-        private readonly DictionarySlim<int, TDocument> documents;
+        private readonly DictionarySlim<int, TDocument> documentMap;
         private readonly Dictionary<Field, FieldStore> fieldStores;
         private readonly HashSetSlim<int> allDocuments;
 
         internal Index(
             ITokenEncoder tokenEncoder,
-            DictionarySlim<int, TDocument> documents,
+            DictionarySlim<int, TDocument> documentMap,
             Dictionary<Field, FieldStore> fieldStores)
         {
             if (tokenEncoder is null)
@@ -31,9 +31,9 @@ namespace Clara
                 throw new ArgumentNullException(nameof(tokenEncoder));
             }
 
-            if (documents is null)
+            if (documentMap is null)
             {
-                throw new ArgumentNullException(nameof(documents));
+                throw new ArgumentNullException(nameof(documentMap));
             }
 
             if (fieldStores is null)
@@ -42,11 +42,11 @@ namespace Clara
             }
 
             this.tokenEncoder = tokenEncoder;
-            this.documents = documents;
+            this.documentMap = documentMap;
             this.fieldStores = fieldStores;
-            this.allDocuments = new HashSetSlim<int>(capacity: documents.Count);
+            this.allDocuments = new HashSetSlim<int>(capacity: documentMap.Count);
 
-            foreach (var pair in documents)
+            foreach (var pair in documentMap)
             {
                 this.allDocuments.Add(pair.Key);
             }
@@ -64,34 +64,30 @@ namespace Clara
                 throw new ArgumentNullException(nameof(query));
             }
 
-            var documentSet = default(DocumentSet);
+            var documentResultBuilder = new DocumentResultBuilder(this.allDocuments);
 
             if (query.IncludeDocuments is not null)
             {
-                var includedDocuments = default(ObjectPoolLease<HashSetSlim<int>>?);
+                using var includedDocuments = SharedObjectPools.DocumentSets.Lease();
 
                 foreach (var includedDocument in query.IncludeDocuments)
                 {
                     if (includedDocument is not null)
                     {
-                        includedDocuments ??= SharedObjectPools.DocumentSets.Lease();
-
                         if (this.tokenEncoder.TryEncode(includedDocument, out var documentId))
                         {
-                            includedDocuments.Value.Instance.Add(documentId);
+                            includedDocuments.Instance.Add(documentId);
                         }
                     }
                 }
 
-                if (includedDocuments is not null)
+                if (includedDocuments.Instance.Count > 0)
                 {
-                    documentSet = new DocumentSet(includedDocuments.Value);
+                    documentResultBuilder.IntersectWith(field: null, includedDocuments.Instance);
                 }
             }
 
-            documentSet ??= new DocumentSet(this.allDocuments);
-
-            var documentScoring = DocumentScoring.Empty;
+            var documentScoring = default(DocumentScoring);
 
             if (query.Search is SearchExpression searchExpression)
             {
@@ -102,7 +98,7 @@ namespace Clara
                     throw new InvalidOperationException("Search expression references field not belonging to current index.");
                 }
 
-                documentScoring = store.Search(searchExpression, documentSet);
+                documentScoring = store.Search(searchExpression, ref documentResultBuilder);
             }
 
             if (query.Filters.Count > 0)
@@ -111,7 +107,7 @@ namespace Clara
 
                 if (query.Facets.Count > 0)
                 {
-                    foreach (var facet in query.Facets)
+                    foreach (var facet in (ListSlim<FacetExpression>)query.Facets)
                     {
                         facetFields.Instance.Add(facet.Field);
                     }
@@ -119,7 +115,7 @@ namespace Clara
 
                 using var filterExpressions = SharedObjectPools.FilterExpressions.Lease();
 
-                foreach (var filterExpression in query.Filters)
+                foreach (var filterExpression in (ListSlim<FilterExpression>)query.Filters)
                 {
                     filterExpressions.Instance.Add(filterExpression);
                 }
@@ -128,11 +124,6 @@ namespace Clara
 
                 foreach (var filterExpression in filterExpressions.Instance)
                 {
-                    if (documentSet.Count == 0)
-                    {
-                        break;
-                    }
-
                     var field = filterExpression.Field;
 
                     if (!this.fieldStores.TryGetValue(field, out var store))
@@ -144,41 +135,32 @@ namespace Clara
                     {
                         if (facetFields.Instance.Contains(field))
                         {
-                            documentSet.Facet(field);
+                            documentResultBuilder.Facet(field);
                         }
                     }
 
-                    store.Filter(filterExpression, documentSet);
+                    store.Filter(filterExpression, ref documentResultBuilder);
                 }
             }
 
             if (query.ExcludeDocuments is not null)
             {
-                var excludeDocuments = default(ObjectPoolLease<HashSetSlim<int>>?);
+                using var excludeDocuments = SharedObjectPools.DocumentSets.Lease();
 
-                try
+                foreach (var excludeDocument in query.ExcludeDocuments)
                 {
-                    foreach (var excludeDocument in query.ExcludeDocuments)
+                    if (excludeDocument is not null)
                     {
-                        if (excludeDocument is not null)
+                        if (this.tokenEncoder.TryEncode(excludeDocument, out var documentId))
                         {
-                            excludeDocuments ??= SharedObjectPools.DocumentSets.Lease();
-
-                            if (this.tokenEncoder.TryEncode(excludeDocument, out var documentId))
-                            {
-                                excludeDocuments.Value.Instance.Add(documentId);
-                            }
+                            excludeDocuments.Instance.Add(documentId);
                         }
                     }
-
-                    if (excludeDocuments is not null)
-                    {
-                        documentSet.ExceptWith(excludeDocuments.Value.Instance);
-                    }
                 }
-                finally
+
+                if (excludeDocuments.Instance.Count > 0)
                 {
-                    excludeDocuments?.Dispose();
+                    documentResultBuilder.ExceptWith(excludeDocuments.Instance);
                 }
             }
 
@@ -186,40 +168,36 @@ namespace Clara
 
             if (query.Facets.Count > 0)
             {
-                foreach (var facetExpression in query.Facets)
+                foreach (var facetExpression in (ListSlim<FacetExpression>)query.Facets)
                 {
                     var field = facetExpression.Field;
-                    var facetDocuments = documentSet.GetFacetDocuments(field);
 
-                    if (facetDocuments.Count > 0)
+                    if (!this.fieldStores.TryGetValue(field, out var store))
                     {
-                        if (!this.fieldStores.TryGetValue(field, out var store))
+                        throw new InvalidOperationException("Facet expression references field not belonging to current index.");
+                    }
+
+                    var filterExpression = default(FilterExpression);
+
+                    foreach (var item in (ListSlim<FilterExpression>)query.Filters)
+                    {
+                        if (item.Field == field)
                         {
-                            throw new InvalidOperationException("Facet expression references field not belonging to current index.");
+                            filterExpression = item;
+                            break;
                         }
+                    }
 
-                        var filterExpression = default(FilterExpression);
+                    var facetResult = store.Facet(facetExpression, filterExpression, ref documentResultBuilder);
 
-                        foreach (var item in query.Filters)
-                        {
-                            if (item.Field == field)
-                            {
-                                filterExpression = item;
-                                break;
-                            }
-                        }
-
-                        var facetResult = store.Facet(facetExpression, filterExpression, facetDocuments);
-
-                        if (facetResult is not null)
-                        {
-                            facetResults.Instance.Add(facetResult);
-                        }
+                    if (facetResult is not null)
+                    {
+                        facetResults.Instance.Add(facetResult);
                     }
                 }
             }
 
-            var sortedDocumentSet = (IDocumentSet)documentSet;
+            DocumentList documentList;
 
             if (query.Sort is SortExpression sortExpression)
             {
@@ -230,22 +208,29 @@ namespace Clara
                     throw new InvalidOperationException("Sort expression references field not belonging to current index.");
                 }
 
-                sortedDocumentSet = store.Sort(sortExpression, documentSet);
+                documentList = store.Sort(sortExpression, ref documentResultBuilder);
             }
-            else if (!documentScoring.IsEmpty)
+            else if (documentScoring.Scoring.Count > 0)
             {
-                sortedDocumentSet = new SortedDocumentSet<float>(
-                    documentSet,
-                    documentScoring.GetScore,
-                    DocumentValueComparer<float>.Descending);
+                documentList = documentScoring.Sort(documentResultBuilder.Documents);
             }
+            else
+            {
+                var documents = SharedObjectPools.DocumentLists.Lease();
+
+                foreach (var documentId in documentResultBuilder.Documents)
+                {
+                    documents.Instance.Add(documentId);
+                }
+
+                documentList = new DocumentList(documents);
+            }
+
+            documentResultBuilder.Dispose();
 
             return
                 new QueryResult<TDocument>(
-                    this.tokenEncoder,
-                    this.documents,
-                    sortedDocumentSet,
-                    documentScoring,
+                    new DocumentResultCollection<TDocument>(this.tokenEncoder, this.documentMap, documentScoring, documentList),
                     facetResults);
         }
 

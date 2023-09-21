@@ -1,10 +1,12 @@
-﻿namespace Clara.Querying
-{
-    public sealed class AllMatchExpression : MatchExpression
-    {
-        private readonly IReadOnlyCollection<string> values;
+﻿using Clara.Utils;
 
-        internal AllMatchExpression(IReadOnlyCollection<string> values)
+namespace Clara.Querying
+{
+    public abstract class ValuesMatchExpression : MatchExpression
+    {
+        private readonly HashSetSlim<string> values;
+
+        internal ValuesMatchExpression(HashSetSlim<string> values)
         {
             if (values is null)
             {

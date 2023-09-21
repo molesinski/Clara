@@ -4,7 +4,7 @@ namespace Clara.Storage
 {
     public abstract class TokenEncoderStore
     {
-        protected internal TokenEncoderStore()
+        internal TokenEncoderStore()
         {
         }
 

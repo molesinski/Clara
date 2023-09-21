@@ -42,29 +42,32 @@ namespace Clara.Storage
 
         public double FilterOrder { get; }
 
-        public void Filter(Field field, ValuesExpression valuesExpression, DocumentSet documentSet)
+        public void Filter(Field field, ValuesExpression valuesExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             if (valuesExpression is AnyValuesExpression anyValuesExpression)
             {
                 if (anyValuesExpression.Values.Count == 1)
                 {
-                    var token = anyValuesExpression.Values.First();
-
-                    if (this.tokenEncoder.TryEncode(token, out var tokenId))
+                    foreach (var token in (HashSetSlim<string>)anyValuesExpression.Values)
                     {
-                        if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
+                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
-                            documentSet.IntersectWith(field, documents);
+                            if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
+                            {
+                                documentResultBuilder.IntersectWith(field, documents);
 
-                            return;
+                                return;
+                            }
                         }
                     }
+
+                    documentResultBuilder.Clear();
                 }
                 else
                 {
                     using var tempSet = SharedObjectPools.DocumentSets.Lease();
 
-                    foreach (var token in anyValuesExpression.Values)
+                    foreach (var token in (HashSetSlim<string>)anyValuesExpression.Values)
                     {
                         if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
@@ -75,31 +78,31 @@ namespace Clara.Storage
                         }
                     }
 
-                    documentSet.IntersectWith(field, tempSet.Instance);
+                    documentResultBuilder.IntersectWith(field, tempSet.Instance);
                 }
             }
             else if (valuesExpression is AllValuesExpression allValuesExpression)
             {
-                foreach (var token in allValuesExpression.Values)
+                foreach (var token in (HashSetSlim<string>)allValuesExpression.Values)
                 {
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
                         if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
                         {
-                            documentSet.IntersectWith(field, documents);
+                            documentResultBuilder.IntersectWith(field, documents);
 
                             continue;
                         }
                     }
 
-                    documentSet.Clear();
+                    documentResultBuilder.Clear();
 
                     break;
                 }
             }
             else if (valuesExpression is EmptyValuesExpression)
             {
-                documentSet.Clear();
+                documentResultBuilder.Clear();
             }
             else
             {

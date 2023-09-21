@@ -7,9 +7,7 @@ namespace Clara.Utils
 {
     [DebuggerTypeProxy(typeof(DictionarySlimDebugView<,>))]
     [DebuggerDisplay("Count = {Count}")]
-#pragma warning disable CA1710 // Identifiers should have correct suffix
-    public sealed class DictionarySlim<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TValue>>
-#pragma warning restore CA1710 // Identifiers should have correct suffix
+    internal sealed class DictionarySlim<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TValue>>, IResettable
         where TKey : notnull, IEquatable<TKey>
     {
         private const int MinimumSize = 4;
@@ -189,6 +187,7 @@ namespace Clara.Utils
             }
 
             value = default!;
+
             return false;
         }
 
@@ -539,6 +538,11 @@ namespace Clara.Utils
             return new Enumerator(this);
         }
 
+        void IResettable.Reset()
+        {
+            this.Clear();
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private ref TValue AddKey(TKey key, int bucketIndex)
         {
@@ -721,9 +725,7 @@ namespace Clara.Utils
             public int Next;
         }
 
-#pragma warning disable CA1034 // Nested types should not be visible
-        public class KeysCollection : IReadOnlyCollection<TKey>, IReadOnlyHashCollection<TKey>
-#pragma warning restore CA1034 // Nested types should not be visible
+        public sealed class KeysCollection : IReadOnlyCollection<TKey>, IReadOnlyHashCollection<TKey>
         {
             private readonly DictionarySlim<TKey, TValue> source;
 

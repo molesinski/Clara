@@ -6,7 +6,7 @@ namespace Clara.Analysis
 {
     public abstract partial class SnowballResourceStopTokenFilter : StopTokenFilter
     {
-        protected internal SnowballResourceStopTokenFilter(Assembly assembly, string name, Encoding encoding)
+        internal SnowballResourceStopTokenFilter(Assembly assembly, string name, Encoding encoding)
             : base(LoadStopwords(assembly, name, encoding))
         {
         }

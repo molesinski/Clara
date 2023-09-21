@@ -27,9 +27,13 @@ namespace Clara.Tests
                 .Select(x => x.Key)
                 .First();
 
+            var maxPrice = SampleProduct.Items
+                .Max(x => x.Price);
+
             var query = index.QueryBuilder()
                 .Search(SampleProductMapper.Text, SampleProductMapper.AllText)
                 .Filter(SampleProductMapper.Brand, Values.Any(brand))
+                .Filter(SampleProductMapper.Price, from: 0, to: maxPrice - 1)
                 .Facet(SampleProductMapper.Brand)
                 .Facet(SampleProductMapper.Category)
                 .Facet(SampleProductMapper.Price)
@@ -41,6 +45,7 @@ namespace Clara.Tests
             var input = new HashSet<int>(
                 SampleProduct.Items
                     .Where(x => x.Brand == brand)
+                    .Where(x => x.Price >= 0 && x.Price <= maxPrice - 1)
                     .Select(x => x.Id));
 
             var output = new HashSet<int>(

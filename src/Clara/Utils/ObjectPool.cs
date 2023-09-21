@@ -4,22 +4,28 @@
         where TItem : class
     {
         private const int DegreeOfParallelism = 5;
+        private const int DefaultSizeFactor = 1;
 
         private readonly Item[] items;
         private readonly Func<TItem> factory;
         private readonly Action<TItem> resetter;
 
         public ObjectPool(Func<TItem> factory)
-            : this(factory, _ => { })
+            : this(factory, DefaultResetter, DefaultSizeFactor)
+        {
+        }
+
+        public ObjectPool(Func<TItem> factory, int sizeFactor)
+            : this(factory, DefaultResetter, sizeFactor)
         {
         }
 
         public ObjectPool(Func<TItem> factory, Action<TItem> resetter)
-            : this(factory, resetter, size: 1)
+            : this(factory, resetter, DefaultSizeFactor)
         {
         }
 
-        public ObjectPool(Func<TItem> factory, Action<TItem> resetter, int size)
+        public ObjectPool(Func<TItem> factory, Action<TItem> resetter, int sizeFactor)
         {
             if (factory is null)
             {
@@ -31,12 +37,12 @@
                 throw new ArgumentNullException(nameof(resetter));
             }
 
-            if (size < 1)
+            if (sizeFactor < 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(size));
+                throw new ArgumentOutOfRangeException(nameof(sizeFactor));
             }
 
-            this.items = new Item[Environment.ProcessorCount * DegreeOfParallelism * size];
+            this.items = new Item[Environment.ProcessorCount * DegreeOfParallelism * sizeFactor];
             this.factory = factory;
             this.resetter = resetter;
         }
@@ -73,6 +79,11 @@
                     break;
                 }
             }
+        }
+
+        private static void DefaultResetter(TItem instance)
+        {
+            (instance as IResettable)?.Reset();
         }
 
         private struct Item

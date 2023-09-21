@@ -5,7 +5,7 @@ namespace Clara.Querying
     public abstract class TokenFacetExpression<TValue> : FacetExpression
         where TValue : notnull
     {
-        protected internal TokenFacetExpression(TokenField field)
+        internal TokenFacetExpression(TokenField field)
             : base(field)
         {
         }

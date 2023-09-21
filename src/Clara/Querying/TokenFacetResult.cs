@@ -5,7 +5,7 @@ namespace Clara.Querying
     public abstract class TokenFacetResult<TValue> : FacetResult
         where TValue : notnull
     {
-        protected internal TokenFacetResult(TokenField field, IEnumerable<TValue> values)
+        internal TokenFacetResult(TokenField field, IEnumerable<TValue> values)
             : base(field)
         {
             if (values is null)

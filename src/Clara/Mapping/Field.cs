@@ -5,7 +5,7 @@ namespace Clara.Mapping
 {
     public abstract class Field : IEquatable<Field>
     {
-        protected internal Field(bool isFilterable, bool isFacetable, bool isSortable)
+        internal Field(bool isFilterable, bool isFacetable, bool isSortable)
         {
             this.IsFilterable = isFilterable;
             this.IsFacetable = isFacetable;

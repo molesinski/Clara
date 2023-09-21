@@ -1,18 +1,15 @@
-﻿using System.Collections;
-using Clara.Mapping;
+﻿using Clara.Mapping;
 using Clara.Utils;
 
 namespace Clara.Storage
 {
-    internal sealed class DocumentSet : IDocumentSet
+    internal struct DocumentResultBuilder : IDisposable
     {
-        private static readonly HashSetSlim<int> Empty = new();
-
         private readonly HashSetSlim<int> allDocuments;
-        private ObjectPoolLease<ListSlim<DocumentFacetSet>>? facets;
+        private ObjectPoolLease<ListSlim<DocumentResultBuilderFacet>>? facets;
         private ObjectPoolLease<HashSetSlim<int>>? documents;
 
-        public DocumentSet(HashSetSlim<int> allDocuments)
+        public DocumentResultBuilder(HashSetSlim<int> allDocuments)
         {
             if (allDocuments is null)
             {
@@ -23,17 +20,11 @@ namespace Clara.Storage
             this.documents = null;
         }
 
-        public DocumentSet(ObjectPoolLease<HashSetSlim<int>> documents)
-        {
-            this.allDocuments = Empty;
-            this.documents = documents;
-        }
-
-        public int Count
+        public HashSetSlim<int> Documents
         {
             get
             {
-                return (this.documents?.Instance ?? this.allDocuments).Count;
+                return this.documents?.Instance ?? this.allDocuments;
             }
         }
 
@@ -55,11 +46,11 @@ namespace Clara.Storage
 
         public void Facet(Field field)
         {
-            this.facets ??= SharedObjectPools.DocumentFacetSets.Lease();
+            this.facets ??= SharedObjectPools.QueryResultBuilderFacets.Lease();
 
             if (this.documents is null)
             {
-                this.facets.Value.Instance.Add(new DocumentFacetSet(field, this.allDocuments));
+                this.facets.Value.Instance.Add(new DocumentResultBuilderFacet(field, this.allDocuments));
             }
             else
             {
@@ -67,7 +58,7 @@ namespace Clara.Storage
 
                 facetDocuments.Instance.UnionWith(this.documents.Value.Instance);
 
-                this.facets.Value.Instance.Add(new DocumentFacetSet(field, facetDocuments));
+                this.facets.Value.Instance.Add(new DocumentResultBuilderFacet(field, facetDocuments));
             }
         }
 
@@ -93,7 +84,7 @@ namespace Clara.Storage
             }
         }
 
-        public void IntersectWith(Field field, IEnumerable<int> documents)
+        public void IntersectWith(Field? field, IEnumerable<int> documents)
         {
             if (this.documents is null)
             {
@@ -142,16 +133,6 @@ namespace Clara.Storage
                     this.facets.Value.Instance[i] = item.ExceptWith(documents);
                 }
             }
-        }
-
-        public IEnumerator<int> GetEnumerator()
-        {
-            return (this.documents?.Instance ?? this.allDocuments).GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
         }
 
         public void Dispose()

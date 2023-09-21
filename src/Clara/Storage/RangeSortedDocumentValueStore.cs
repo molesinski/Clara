@@ -29,11 +29,11 @@ namespace Clara.Storage
             }
         }
 
-        public void Filter(Field field, TValue? from, TValue? to, DocumentSet documentSet)
+        public void Filter(Field field, TValue? from, TValue? to, ref DocumentResultBuilder documentResultBuilder)
         {
             var rangeMatches = new DocumentValueRange<TValue>(this.sortedDocumentValues, from, to);
 
-            documentSet.IntersectWith(field, rangeMatches);
+            documentResultBuilder.IntersectWith(field, rangeMatches);
         }
 
         private sealed class DocumentValueComparer : IComparer<DocumentValue<TValue>>

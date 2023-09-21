@@ -43,7 +43,7 @@ namespace Clara.Storage
             }
         }
 
-        public override DocumentScoring Search(SearchExpression searchExpression, DocumentSet documentSet)
+        public override DocumentScoring Search(SearchExpression searchExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             var tokens = this.analyzer.GetTokens(searchExpression.Text);
 
@@ -54,7 +54,7 @@ namespace Clara.Storage
 
             matchExpression = this.synonymMap.Process(matchExpression);
 
-            return this.textDocumentStore.Search(searchExpression.Field, matchExpression, documentSet);
+            return this.textDocumentStore.Search(searchExpression.Field, matchExpression, ref documentResultBuilder);
         }
     }
 }

@@ -1,10 +1,12 @@
-﻿namespace Clara.Querying
+﻿using Clara.Utils;
+
+namespace Clara.Querying
 {
     public abstract class ValuesExpression
     {
-        private readonly IReadOnlyCollection<string> values;
+        private readonly HashSetSlim<string> values;
 
-        protected internal ValuesExpression(IReadOnlyCollection<string> values)
+        internal ValuesExpression(HashSetSlim<string> values)
         {
             if (values is null)
             {

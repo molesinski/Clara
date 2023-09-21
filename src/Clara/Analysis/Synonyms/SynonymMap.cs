@@ -93,7 +93,7 @@ namespace Clara.Analysis.Synonyms
                 return matchExpression;
             }
 
-            if (matchExpression is AllMatchExpression allValuesMatchExpression)
+            if (matchExpression is AllValuesMatchExpression allValuesMatchExpression)
             {
                 var expressions = new List<MatchExpression>();
                 var tokens = new List<string>();
@@ -117,7 +117,7 @@ namespace Clara.Analysis.Synonyms
 
                 return Match.And(expressions);
             }
-            else if (matchExpression is AnyMatchExpression anyValuesMatchExpression)
+            else if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
             {
                 var expressions = new List<MatchExpression>();
                 var tokens = new List<string>();

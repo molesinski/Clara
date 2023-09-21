@@ -29,9 +29,13 @@ namespace Clara.Benchmarks
                 .Select(x => x.Key)
                 .First();
 
+            var maxPrice = SampleProduct.Items
+                .Max(x => x.Price);
+
             this.query = this.index.QueryBuilder()
                 .Search(SampleProductMapper.Text, SampleProductMapper.AllText)
                 .Filter(SampleProductMapper.Brand, Values.Any(brand))
+                .Filter(SampleProductMapper.Price, from: 0, to: maxPrice - 1)
                 .Facet(SampleProductMapper.Brand)
                 .Facet(SampleProductMapper.Category)
                 .Facet(SampleProductMapper.Price)

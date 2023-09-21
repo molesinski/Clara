@@ -7,7 +7,7 @@ namespace Clara.Utils
 {
     [DebuggerTypeProxy(typeof(ListSlimDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
-    public sealed class ListSlim<TItem> : IReadOnlyList<TItem>
+    internal sealed class ListSlim<TItem> : IReadOnlyList<TItem>, IResettable
         where TItem : notnull
     {
         private const int MinimumSize = 4;
@@ -185,6 +185,11 @@ namespace Clara.Utils
         IEnumerator IEnumerable.GetEnumerator()
         {
             return new Enumerator(this);
+        }
+
+        void IResettable.Reset()
+        {
+            this.Clear();
         }
 
         private void EnsureCapacity(int capacity)

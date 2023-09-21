@@ -7,7 +7,7 @@ namespace Clara.Mapping
     {
         public const string DefaultRoot = "0";
 
-        protected internal HierarchyField(bool isFilterable, bool isFacetable, char separator, string root)
+        internal HierarchyField(bool isFilterable, bool isFacetable, char separator, string root)
             : base(
                 isFilterable: isFilterable,
                 isFacetable: isFacetable)

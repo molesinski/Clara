@@ -6,7 +6,7 @@ namespace Clara.Mapping
 {
     public abstract class TextField : Field
     {
-        protected internal TextField(IAnalyzer analyzer, Weight? weight = null)
+        internal TextField(IAnalyzer analyzer, Weight? weight = null)
             : base(
                 isFilterable: false,
                 isFacetable: false,

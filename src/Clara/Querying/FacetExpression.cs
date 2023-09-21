@@ -4,7 +4,7 @@ namespace Clara.Querying
 {
     public abstract class FacetExpression
     {
-        protected internal FacetExpression(Field field)
+        internal FacetExpression(Field field)
         {
             if (field is null)
             {

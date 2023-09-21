@@ -51,19 +51,21 @@ namespace Clara.Storage
             this.parentChildren = parentChildren;
         }
 
-        public FacetResult Facet(FilterExpression? filterExpression, HashSetSlim<int> documents)
+        public FacetResult Facet(FilterExpression? filterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             using var selectedValues = SharedObjectPools.SelectedValues.Lease();
-
-            selectedValues.Instance.Add(this.root);
 
             if (filterExpression is TokenFilterExpression tokenFilterExpression)
             {
                 if (tokenFilterExpression.ValuesExpression.Values.Count > 0)
                 {
-                    selectedValues.Instance.Clear();
                     selectedValues.Instance.UnionWith(tokenFilterExpression.ValuesExpression.Values);
                 }
+            }
+
+            if (selectedValues.Instance.Count == 0)
+            {
+                selectedValues.Instance.Add(this.root);
             }
 
             using var filteredTokens = SharedObjectPools.FilteredTokens.Lease();
@@ -83,7 +85,7 @@ namespace Clara.Storage
 
             using var tokenCounts = SharedObjectPools.TokenCounts.Lease();
 
-            foreach (var documentId in documents)
+            foreach (var documentId in documentResultBuilder.GetFacetDocuments(this.field))
             {
                 if (this.documentTokens.TryGetValue(documentId, out var tokenIds))
                 {

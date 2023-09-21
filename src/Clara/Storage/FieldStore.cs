@@ -1,5 +1,4 @@
 ﻿using Clara.Querying;
-using Clara.Utils;
 
 namespace Clara.Storage
 {
@@ -17,22 +16,22 @@ namespace Clara.Storage
             }
         }
 
-        public virtual DocumentScoring Search(SearchExpression searchExpression, DocumentSet documentSet)
+        public virtual DocumentScoring Search(SearchExpression searchExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             throw new InvalidOperationException("Field does not support searching.");
         }
 
-        public virtual void Filter(FilterExpression filterExpression, DocumentSet documentSet)
+        public virtual void Filter(FilterExpression filterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             throw new InvalidOperationException("Field does not support filtering.");
         }
 
-        public virtual FacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, HashSetSlim<int> documents)
+        public virtual FacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             throw new InvalidOperationException("Field does not support faceting.");
         }
 
-        public virtual SortedDocumentSet Sort(SortExpression sortExpression, DocumentSet documentSet)
+        public virtual DocumentList Sort(SortExpression sortExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             throw new InvalidOperationException("Field does not support sorting.");
         }
