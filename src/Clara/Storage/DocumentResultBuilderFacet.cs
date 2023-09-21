@@ -56,7 +56,7 @@ namespace Clara.Storage
             }
         }
 
-        public DocumentResultBuilderFacet IntersectWith(IEnumerable<int> documents)
+        public readonly DocumentResultBuilderFacet IntersectWith(IEnumerable<int> documents)
         {
             if (this.facetDocuments is null)
             {
@@ -74,7 +74,7 @@ namespace Clara.Storage
             }
         }
 
-        public DocumentResultBuilderFacet ExceptWith(IEnumerable<int> documents)
+        public readonly DocumentResultBuilderFacet ExceptWith(IEnumerable<int> documents)
         {
             if (this.facetDocuments is null)
             {

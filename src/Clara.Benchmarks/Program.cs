@@ -13,7 +13,7 @@ namespace Clara.Benchmarks
                 .AddColumnProvider(DefaultColumnProviders.Instance)
                 .AddLogger(ConsoleLogger.Default);
 
-            BenchmarkRunner.Run<IndexBenchmarks>(config);
+            BenchmarkRunner.Run<QueryBenchmarks>(config);
         }
     }
 }

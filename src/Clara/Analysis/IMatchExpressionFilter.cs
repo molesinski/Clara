@@ -1,4 +1,6 @@
-﻿namespace Clara.Querying
+﻿using Clara.Querying;
+
+namespace Clara.Analysis
 {
     public interface IMatchExpressionFilter
     {

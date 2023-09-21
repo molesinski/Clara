@@ -9,11 +9,11 @@
             this.Value = value;
         }
 
-        public int DocumentId { get; }
+        public readonly int DocumentId { get; }
 
-        public TValue Value { get; }
+        public readonly TValue Value { get; }
 
-        public int CompareTo(DocumentValue<TValue> other)
+        public readonly int CompareTo(DocumentValue<TValue> other)
         {
             return this.Value.CompareTo(other.Value);
         }

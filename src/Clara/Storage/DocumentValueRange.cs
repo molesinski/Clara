@@ -26,7 +26,7 @@ namespace Clara.Storage
             }
         }
 
-        public int Count
+        public readonly int Count
         {
             get
             {
@@ -34,17 +34,17 @@ namespace Clara.Storage
             }
         }
 
-        public Enumerator GetEnumerator()
+        public readonly Enumerator GetEnumerator()
         {
             return new Enumerator(this);
         }
 
-        IEnumerator<int> IEnumerable<int>.GetEnumerator()
+        readonly IEnumerator<int> IEnumerable<int>.GetEnumerator()
         {
             return new Enumerator(this);
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             return new Enumerator(this);
         }
@@ -122,7 +122,7 @@ namespace Clara.Storage
             {
                 get
                 {
-                    return this.Current;
+                    return this.current;
                 }
             }
 

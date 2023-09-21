@@ -20,17 +20,17 @@ namespace Clara.Analysis
             this.tokenStream = tokenStream;
         }
 
-        public Enumerator GetEnumerator()
+        public readonly Enumerator GetEnumerator()
         {
             return new Enumerator(this);
         }
 
-        IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
+        readonly IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
         {
             return new Enumerator(this);
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             return new Enumerator(this);
         }
@@ -62,7 +62,7 @@ namespace Clara.Analysis
             {
                 get
                 {
-                    return this.Current;
+                    return this.current;
                 }
             }
 

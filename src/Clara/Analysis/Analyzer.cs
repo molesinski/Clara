@@ -31,8 +31,6 @@
             this.pipeline = CreatePipeline(filters);
         }
 
-        public static Analyzer Empty { get; } = new Analyzer(new EmptyTokenizer());
-
         public IEnumerable<string> GetTokens(string text)
         {
             foreach (var token in this.tokenizer.GetTokens(text))
@@ -66,14 +64,6 @@
             }
 
             return pipeline;
-        }
-
-        private sealed class EmptyTokenizer : ITokenizer
-        {
-            public IEnumerable<Token> GetTokens(string text)
-            {
-                return Array.Empty<Token>();
-            }
         }
     }
 }

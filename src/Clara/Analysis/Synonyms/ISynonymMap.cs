@@ -1,5 +1,4 @@
 ﻿using Clara.Mapping;
-using Clara.Querying;
 
 namespace Clara.Analysis.Synonyms
 {

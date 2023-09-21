@@ -132,6 +132,27 @@ namespace Clara.Utils
             this.count++;
         }
 
+        public void Insert(int index, TItem item)
+        {
+            if ((uint)index > (uint)this.count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+
+            if (this.count == this.entries.Length || this.entries.Length == 1)
+            {
+                this.EnsureCapacity(this.count + 1);
+            }
+
+            if (index < this.count)
+            {
+                Array.Copy(this.entries, index, this.entries, index + 1, this.count - index);
+            }
+
+            this.entries[index] = item;
+            this.count++;
+        }
+
         public void Sort(IComparer<TItem> comparer)
         {
             this.Sort(0, this.count, comparer);

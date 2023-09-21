@@ -20,17 +20,17 @@ namespace Clara.Mapping
             this.values = values;
         }
 
-        public Enumerator GetEnumerator()
+        public readonly Enumerator GetEnumerator()
         {
             return new Enumerator(this);
         }
 
-        IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
+        readonly IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
         {
             return new Enumerator(this);
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             return new Enumerator(this);
         }

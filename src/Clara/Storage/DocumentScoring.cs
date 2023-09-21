@@ -27,7 +27,7 @@ namespace Clara.Storage
             this.instance = instance;
         }
 
-        public DictionarySlim<int, float> Scoring
+        public readonly DictionarySlim<int, float> Scoring
         {
             get
             {
@@ -35,7 +35,7 @@ namespace Clara.Storage
             }
         }
 
-        public DocumentList Sort(HashSetSlim<int> documentSet)
+        public readonly DocumentList Sort(HashSetSlim<int> documentSet)
         {
             using var sortedDocuments = ScoredDocumentListsPool.Lease();
 

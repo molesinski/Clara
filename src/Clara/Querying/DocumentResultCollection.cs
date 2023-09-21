@@ -83,7 +83,7 @@ namespace Clara.Querying
                 this.current = default;
             }
 
-            public DocumentResult<TDocument> Current
+            public readonly DocumentResult<TDocument> Current
             {
                 get
                 {
@@ -91,7 +91,7 @@ namespace Clara.Querying
                 }
             }
 
-            object IEnumerator.Current
+            readonly object IEnumerator.Current
             {
                 get
                 {
@@ -126,7 +126,7 @@ namespace Clara.Querying
                 this.current = default;
             }
 
-            public void Dispose()
+            public readonly void Dispose()
             {
             }
         }

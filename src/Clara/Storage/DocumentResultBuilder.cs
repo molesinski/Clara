@@ -20,7 +20,7 @@ namespace Clara.Storage
             this.documents = null;
         }
 
-        public HashSetSlim<int> Documents
+        public readonly HashSetSlim<int> Documents
         {
             get
             {
@@ -28,7 +28,7 @@ namespace Clara.Storage
             }
         }
 
-        public HashSetSlim<int> GetFacetDocuments(Field field)
+        public readonly HashSetSlim<int> GetFacetDocuments(Field field)
         {
             if (this.facets is not null)
             {

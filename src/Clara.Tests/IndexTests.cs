@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Clara.Analysis.Synonyms;
 using Clara.Querying;
 using Xunit;
 
@@ -9,9 +10,20 @@ namespace Clara.Tests
         [Fact]
         public void IndexAndQuery()
         {
+            var allTextSynonym = Guid.NewGuid().ToString("N");
+
+            var synonymMap =
+                new SynonymMap(
+                    SampleProductMapper.Text,
+                    new Synonym[]
+                    {
+                        new EquivalencySynonym(new[] { SampleProductMapper.AllText, allTextSynonym }),
+                    });
+
             var builder =
                 new IndexBuilder<SampleProduct, SampleProduct>(
-                    new SampleProductMapper());
+                    new SampleProductMapper(),
+                    new[] { synonymMap });
 
             foreach (var item in SampleProduct.Items)
             {
@@ -31,7 +43,7 @@ namespace Clara.Tests
                 .Max(x => x.Price);
 
             var query = index.QueryBuilder()
-                .Search(SampleProductMapper.Text, SampleProductMapper.AllText)
+                .Search(SampleProductMapper.Text, allTextSynonym)
                 .Filter(SampleProductMapper.Brand, Values.Any(brand))
                 .Filter(SampleProductMapper.Price, from: 0, to: maxPrice - 1)
                 .Facet(SampleProductMapper.Brand)

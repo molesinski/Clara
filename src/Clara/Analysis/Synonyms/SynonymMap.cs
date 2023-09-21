@@ -1,13 +1,13 @@
 ﻿using System.Collections;
 using Clara.Mapping;
 using Clara.Querying;
+using Clara.Utils;
 
 namespace Clara.Analysis.Synonyms
 {
     public class SynonymMap : ISynonymMap, IAnalyzer, IMatchExpressionFilter
     {
         private readonly TextField field;
-        private readonly IAnalyzer analyzer;
         private readonly SynonymNode root;
 
         public SynonymMap(TextField field, IEnumerable<Synonym> synonyms, int maximumPermutatedPhraseTokenCount = 1)
@@ -28,8 +28,7 @@ namespace Clara.Analysis.Synonyms
             }
 
             this.field = field;
-            this.analyzer = field.Analyzer;
-            this.root = SynonymNode.BuildTree(this.analyzer, synonyms, maximumPermutatedPhraseTokenCount);
+            this.root = SynonymNode.BuildTree(this.field.Analyzer, synonyms, maximumPermutatedPhraseTokenCount);
         }
 
         public TextField Field
@@ -57,14 +56,14 @@ namespace Clara.Analysis.Synonyms
 
             if (this.IsEmpty)
             {
-                return this.analyzer.GetTokens(text);
+                return this.field.Analyzer.GetTokens(text);
             }
 
             return GetTokensEnumerable(text);
 
             IEnumerable<string> GetTokensEnumerable(string text)
             {
-                foreach (var item in new SynonymResultEnumerable(this.root, this.analyzer.GetTokens(text)))
+                foreach (var item in new SynonymResultEnumerable(this.root, this.field.Analyzer.GetTokens(text)))
                 {
                     if (item.Node is SynonymNode node)
                     {
@@ -95,51 +94,79 @@ namespace Clara.Analysis.Synonyms
 
             if (matchExpression is AllValuesMatchExpression allValuesMatchExpression)
             {
-                var expressions = new List<MatchExpression>();
-                var tokens = new List<string>();
+                var expressions = default(ListSlim<MatchExpression>?);
+                var tokens = default(HashSetSlim<string>?);
 
                 foreach (var item in new SynonymResultEnumerable(this.root, allValuesMatchExpression.Values))
                 {
                     if (item.Node is SynonymNode node)
                     {
+                        expressions ??= new();
                         expressions.Add(node.MatchExpression);
                     }
                     else if (item.Token is string token)
                     {
+                        tokens ??= new();
                         tokens.Add(token);
                     }
                 }
 
-                if (tokens.Count > 0)
+                if (expressions is null)
                 {
-                    expressions.Insert(0, Match.All(tokens));
+                    return matchExpression;
                 }
 
-                return Match.And(expressions);
+                if (tokens is not null)
+                {
+                    expressions.Insert(0, new AllValuesMatchExpression(tokens));
+                }
+
+                if (expressions.Count == 1)
+                {
+                    return expressions[0];
+                }
+                else
+                {
+                    return new AndMatchExpression(expressions);
+                }
             }
             else if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
             {
-                var expressions = new List<MatchExpression>();
-                var tokens = new List<string>();
+                var expressions = default(ListSlim<MatchExpression>?);
+                var tokens = default(HashSetSlim<string>?);
 
                 foreach (var item in new SynonymResultEnumerable(this.root, anyValuesMatchExpression.Values))
                 {
                     if (item.Node is SynonymNode node)
                     {
+                        expressions ??= new();
                         expressions.Add(node.MatchExpression);
                     }
                     else if (item.Token is string token)
                     {
+                        tokens ??= new();
                         tokens.Add(token);
                     }
                 }
 
-                if (tokens.Count > 0)
+                if (expressions is null)
                 {
-                    expressions.Insert(0, Match.Any(tokens));
+                    return matchExpression;
                 }
 
-                return Match.Or(expressions);
+                if (tokens is not null)
+                {
+                    expressions.Insert(0, new AnyValuesMatchExpression(tokens));
+                }
+
+                if (expressions.Count == 1)
+                {
+                    return expressions[0];
+                }
+                else
+                {
+                    return new OrMatchExpression(expressions);
+                }
             }
             else
             {
@@ -168,17 +195,17 @@ namespace Clara.Analysis.Synonyms
                 this.tokens = tokens;
             }
 
-            public Enumerator GetEnumerator()
+            public readonly Enumerator GetEnumerator()
             {
                 return new Enumerator(this);
             }
 
-            IEnumerator<SynonymResult> IEnumerable<SynonymResult>.GetEnumerator()
+            readonly IEnumerator<SynonymResult> IEnumerable<SynonymResult>.GetEnumerator()
             {
                 return new Enumerator(this);
             }
 
-            IEnumerator IEnumerable.GetEnumerator()
+            readonly IEnumerator IEnumerable.GetEnumerator()
             {
                 return new Enumerator(this);
             }
@@ -206,7 +233,7 @@ namespace Clara.Analysis.Synonyms
                     this.current = default;
                 }
 
-                public SynonymResult Current
+                public readonly SynonymResult Current
                 {
                     get
                     {
@@ -214,7 +241,7 @@ namespace Clara.Analysis.Synonyms
                     }
                 }
 
-                object IEnumerator.Current
+                readonly object IEnumerator.Current
                 {
                     get
                     {
