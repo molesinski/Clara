@@ -147,7 +147,7 @@ namespace Clara.Storage
 
                         this.SearchPartial(expression, tempScores.Instance);
 
-                        documentScores.Instance.UnionWith(tempScores.Instance, ValueCombiner.Max);
+                        documentScores.Instance.UnionWith(tempScores.Instance, ValueCombiner.Sum);
                     }
                 }
 
@@ -170,12 +170,12 @@ namespace Clara.Storage
 
                         if (isFirst)
                         {
-                            documentScores.Instance.UnionWith(tempScores.Instance, ValueCombiner.Max);
+                            documentScores.Instance.UnionWith(tempScores.Instance, ValueCombiner.Sum);
                             isFirst = false;
                         }
                         else
                         {
-                            documentScores.Instance.IntersectWith(tempScores.Instance, ValueCombiner.Max);
+                            documentScores.Instance.IntersectWith(tempScores.Instance, ValueCombiner.Sum);
                         }
                     }
                 }
