@@ -9,6 +9,10 @@ Simple, yet feature complete, in memory search engine.
 
 ## Highlights
 
+This library is meant for relatively small document sets (up to tenths of thousands) while maintaining
+fast query times (around 1 milisecond). Updating index requires reindexing, which means building new index,
+replacing in memory reference and discarding old one.
+
 * Inspired by commonly known Lucene design
 * Fast in memory searching
 * Low memory allocation for search execution
@@ -92,15 +96,15 @@ Built indexes have no persistence and reside only in memory. If index needs upda
 and old one should be discarded. This is why fields have no names and can be referenced only by their
 usually static definition.
 
-`IndexMapper<>` interface is straightforward. It provides all fields collection, method to access document
+`IndexMapper<TSource>` interface is straightforward. It provides all fields collection, method to access document
 key and method to access indexed document value. Indexed document value, which is provided in query results
-can be different than index source document. To indicate such distinction use `IndexMapper<,>` type instead
-and return proper document type in `GetDocument` method implementation.
+can be different than index source document. To indicate such distinction use `IndexMapper<TSouce, TDocument>`
+type instead and return proper document type in `GetDocument` method implementation.
 
 ```csharp
 public class ProductMapper : IIndexMapper<Product>
 {
-    public static TextField<Product> Text = new(ToIndexedText, new PorterAnalyzer());
+    public static TextField<Product> Text = new(x => GetText(x), new PorterAnalyzer());
     public static DecimalField<Product> Price = new(x => x.Price, isFilterable: true, isFacetable: true, isSortable: true);
     public static DoubleField<Product> DiscountPercentage = new(x => x.DiscountPercentage, isFilterable: true, isFacetable: true, isSortable: true);
     public static DoubleField<Product> Rating = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);
@@ -123,7 +127,7 @@ public class ProductMapper : IIndexMapper<Product>
 
     public Product GetDocument(Product item) => item;
 
-    private static string ToIndexedText(Product product)
+    private static string GetText(Product product)
     {
         var builder = new StringBuilder();
 
@@ -173,10 +177,10 @@ using var result = index.Query(
 
 foreach (var document in result.Documents)
 {
-    Console.WriteLine(document.Document.Title);
+    Console.WriteLine($"{document.Key} => {document.Score} [{document.Document.Title}]");
 }
 
-// Do something with result.Facets
+// Access facets with result.Facets
 ```
 
 ## Advanced scenarios
@@ -184,20 +188,63 @@ foreach (var document in result.Documents)
 ### Custom analyzers
 
 Above code uses `PorterAnalyzer` which provides basic English language stemming. For other languages
-`Clara.Analysis.Snowball` or `Clara.Analysis.Morfologik` packages can be used.
+`Clara.Analysis.Snowball` or `Clara.Analysis.Morfologik` packages can be used. Those packages provide
+stem and stop token filters for all supported languages.
 
 For example you could define `PolishAnalyzer` like this.
 
 ```csharp
 public static readonly IAnalyzer PolishAnalyzer =
     new Analyzer(
-        new BasicTokenizer(numberDecimalSeparator: ','),
-        new LowerInvariantTokenFilter(),
-        new CachingTokenFilter(),
-        new PolishStopTokenFilter(),
-        new KeywordLengthTokenFilter(),
-        new KeywordDigitsTokenFilter(),
-        new PolishStemTokenFilter());
+        new BasicTokenizer(numberDecimalSeparator: ','), // Splits text into tokens
+        new LowerInvariantTokenFilter(),                 // Transforms into lower case
+        new CachingTokenFilter(),                        // Prevents new string instance creation
+        new PolishStopTokenFilter(),                     // Language specific stop words default exclusion set
+        new KeywordLengthTokenFilter(),                  // Exclude from stemming tokens with length 2 or less
+        new KeywordDigitsTokenFilter(),                  // Exclude from stemming tokens containing digits
+        new PolishStemTokenFilter());                    // Language specific token stemming
+```
+
+And then use it for index mapper field definition.
+
+```csharp
+public static TextField<Product> TextPolish = new(x => GetTextPolish(x), PolishAnalyzer);
+```
+
+### Custom range fields
+
+Range fields represent index fields for `struct` values with `IComparable<T>` interface implementation.
+By default `DateTime`, `Decimal`, `Double` and `Int32` types are supported. Implementors can support any
+type that fullfills requirements by directly using `RangeField<T>` and providing `min` and `max` values
+for a given type or by providing their own concrete implementation.
+
+Below is example implementation for `DateOnly` structure type.
+
+```csharp
+public sealed class DateOnlyField<TSource> : RangeField<TSource, int>
+{
+    public DateOnlyField(Func<TSource, DateOnly?> valueMapper, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
+        : base(
+            valueMapper: valueMapper,
+            minValue: DateOnly.MinValue,
+            maxValue: DateOnly.MaxValue,
+            isFilterable: isFilterable,
+            isFacetable: isFacetable,
+            isSortable: isSortable)
+    {
+    }
+
+    public DateOnlyField(Func<TSource, IEnumerable<DateOnly>?> valueMapper, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
+        : base(
+            valueMapper: valueMapper,
+            minValue: DateOnly.MinValue,
+            maxValue: DateOnly.MaxValue,
+            isFilterable: isFilterable,
+            isFacetable: isFacetable,
+            isSortable: isSortable)
+    {
+    }
+}
 ```
 
 ### Synonym maps
@@ -207,10 +254,6 @@ TODO
 ## Benchmarks
 
 Query benchmarks and tests are performed using sample 100 product data set.
-
-> Benchmark variants with suffix "X100" use instead 100 times more product data. As observed due
-> to internal structure pooling memory allocation per search execution is constant and independent
-> from amount of indexed documents after initial allocation of pooled buffers.
 
 ```
 BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
@@ -229,6 +272,10 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 | FacetQuery                     |   9.634 μs | 0.1914 μs | 0.1880 μs | 0.0305 |     536 B |
 | SortQuery                      |   3.453 μs | 0.0391 μs | 0.0347 μs | 0.0229 |     408 B |
 | Query                          |   1.503 μs | 0.0300 μs | 0.0492 μs | 0.0191 |     312 B |
+
+> Benchmark variants with suffix "X100" use instead 100 times more product data. As observed due
+> to internal structure pooling memory allocation per search execution is constant and independent
+> from amount of indexed documents after initial allocation of pooled buffers.
 
 ## License
 
