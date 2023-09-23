@@ -40,12 +40,9 @@ Simple, yet feature complete, in memory search engine.
 
 ## Getting started
 
-> For more advanced usage check sample test or benchmark project contents.
-
-Given sample product data set:
+Given sample product data set from https://dummyjson.com/products.
 
 ```json
-// From https://dummyjson.com/products
 [
   {
     "id": 1,
@@ -57,13 +54,12 @@ Given sample product data set:
     "stock": 94,
     "brand": "Apple",
     "category": "smartphones"
-  },
-  ...
+  }
 ]
 
 ```
 
-We define data model:
+We define data model.
 
 ```csharp
 public class Product
@@ -80,7 +76,26 @@ public class Product
 }
 ```
 
-Then we define model to index mapper:
+Then we define model to index mapper. Mapper is a definition of how our index will be built from source
+documents and what capabilities will it provide afterwards.
+
+We only support single field searching, all text that is to be indexed has to be combined into
+single field. We can provide more text fields, for example when we want to provide multiple language
+support from single index. In such case we would combine text for each language and use adequate
+analyzer.
+
+For simple fields we define delegates that provide raw values for indexing. Each field can provide none,
+one or more values, null values are automatically skipped during indexing. All simple fields can be marked
+as filterable or facetable, while only range fields can be made sortable.
+
+Built indexes have no persistence and reside only in memory. If index needs updating, it should be rebuild
+and old one should be discarded. This is why fields have no names and can be referenced only by their
+usually static definition.
+
+`IndexMapper<>` interface is straightforward. It provides all fields collection, method to access document
+key and method to access indexed document value. Indexed document value, which is provided in query results
+can be different than index source document. To indicate such distinction use `IndexMapper<,>` type instead
+and return proper document type in `GetDocument` method implementation.
 
 ```csharp
 public class ProductMapper : IIndexMapper<Product>
@@ -122,18 +137,14 @@ public class ProductMapper : IIndexMapper<Product>
 }
 ```
 
-Now we can build index:
+Then we build our index.
 
 ```csharp
 public Index<Product> BuildIndex(IEnumerable<Product> items)
 {
     var builder =
         new IndexBuilder<Product, Product>(
-            new ProductMapper(),
-            new[]
-            {
-                synonymMap,
-            });
+            new ProductMapper());
 
     foreach (var item in Product.Items)
     {
@@ -144,14 +155,17 @@ public Index<Product> BuildIndex(IEnumerable<Product> items)
 }
 ```
 
-Now we can run queries on built index:
+With index built, can run queries on it. Result documents can be accessed with `Documents` property and
+facet results via `Facets`. Documents are not paged, since engine has to build whole result set each time
+for facet values computation. If paging is needed, it can be added by simple `Skip`/`Take` logic on top
+`Documents` collection.
 
 ```csharp
 using var result = index.Query(
     index.QueryBuilder()
-        .Search(ProductMapper.Text, allTextSynonym)
-        .Filter(ProductMapper.Brand, Values.Any(topBrand))
-        .Filter(ProductMapper.Price, from: 1, to: maxPrice - 1)
+        .Search(ProductMapper.Text, "smartphone")
+        .Filter(ProductMapper.Brand, Values.Any("Apple", "Samsung"))
+        .Filter(ProductMapper.Price, from: 1, to: 1000)
         .Facet(ProductMapper.Brand)
         .Facet(ProductMapper.Category)
         .Facet(ProductMapper.Price)
@@ -161,13 +175,40 @@ foreach (var document in result.Documents)
 {
     Console.WriteLine(document.Document.Title);
 }
+
+// Do something with result.Facets
 ```
+
+## Advanced scenarios
+
+### Custom analyzers
+
+Above code uses `PorterAnalyzer` which provides basic English language stemming. For other languages
+`Clara.Analysis.Snowball` or `Clara.Analysis.Morfologik` packages can be used.
+
+For example you could define `PolishAnalyzer` like this.
+
+```csharp
+public static readonly IAnalyzer PolishAnalyzer =
+    new Analyzer(
+        new BasicTokenizer(numberDecimalSeparator: ','),
+        new LowerInvariantTokenFilter(),
+        new CachingTokenFilter(),
+        new PolishStopTokenFilter(),
+        new KeywordLengthTokenFilter(),
+        new KeywordDigitsTokenFilter(),
+        new PolishStemTokenFilter());
+```
+
+### Synonym maps
+
+TODO
 
 ## Benchmarks
 
 Query benchmarks and tests are performed using sample 100 product data set.
 
-> Benchmark variants with suffix "100" use instead 100 times more product data. As observed due
+> Benchmark variants with suffix "X100" use instead 100 times more product data. As observed due
 > to internal structure pooling memory allocation per search execution is constant and independent
 > from amount of indexed documents after initial allocation of pooled buffers.
 
@@ -179,15 +220,15 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
   DefaultJob : .NET 7.0.11 (7.0.1123.42427), X64 RyuJIT AVX2
 ```
 
-| Method                        | Mean       | Error     | StdDev    | Gen0   | Allocated |
-|------------------------------ |-----------:|----------:|----------:|-------:|----------:|
-| SearchFilterFacetSortQuery100 | 579.123 μs | 6.9726 μs | 6.1810 μs |      - |    1473 B |
-| SearchFilterFacetSortQuery    |  12.778 μs | 0.2520 μs | 0.4347 μs | 0.0916 |    1472 B |
-| SearchQuery                   |   7.449 μs | 0.1412 μs | 0.1681 μs | 0.0305 |     704 B |
-| FilterQuery                   |   1.462 μs | 0.0244 μs | 0.0228 μs | 0.0458 |     720 B |
-| FacetQuery                    |   9.634 μs | 0.1914 μs | 0.1880 μs | 0.0305 |     536 B |
-| SortQuery                     |   3.453 μs | 0.0391 μs | 0.0347 μs | 0.0229 |     408 B |
-| Query                         |   1.503 μs | 0.0300 μs | 0.0492 μs | 0.0191 |     312 B |
+| Method                         | Mean       | Error     | StdDev    | Gen0   | Allocated |
+|------------------------------- |-----------:|----------:|----------:|-------:|----------:|
+| SearchFilterFacetSortQueryX100 | 579.123 μs | 6.9726 μs | 6.1810 μs |      - |    1473 B |
+| SearchFilterFacetSortQuery     |  12.778 μs | 0.2520 μs | 0.4347 μs | 0.0916 |    1472 B |
+| SearchQuery                    |   7.449 μs | 0.1412 μs | 0.1681 μs | 0.0305 |     704 B |
+| FilterQuery                    |   1.462 μs | 0.0244 μs | 0.0228 μs | 0.0458 |     720 B |
+| FacetQuery                     |   9.634 μs | 0.1914 μs | 0.1880 μs | 0.0305 |     536 B |
+| SortQuery                      |   3.453 μs | 0.0391 μs | 0.0347 μs | 0.0229 |     408 B |
+| Query                          |   1.503 μs | 0.0300 μs | 0.0492 μs | 0.0191 |     312 B |
 
 ## License
 

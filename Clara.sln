@@ -14,8 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".Solution", ".Solution", "{
 		Directory.Build.targets = Directory.Build.targets
 		global.json = global.json
 		LICENSE = LICENSE
-		README.md = README.md
 		Package.props = Package.props
+		README.md = README.md
 		spelling.dic = spelling.dic
 	EndProjectSection
 EndProject

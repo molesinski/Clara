@@ -65,7 +65,7 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void SearchFilterFacetSortQuery100()
+        public void SearchFilterFacetSortQueryX100()
         {
             using var result = this.index100.Query(
                 this.index.QueryBuilder()
