@@ -12,6 +12,17 @@ namespace Clara.Tests
         {
             var allTextSynonym = Guid.NewGuid().ToString("N");
 
+            var topBrand = SampleProduct.Items
+                .Select(x => x.Brand)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .GroupBy(x => x)
+                .OrderByDescending(x => x.Count())
+                .Select(x => x.Key)
+                .First();
+
+            var maxPrice = SampleProduct.Items
+                .Max(x => x.Price);
+
             var synonymMap =
                 new SynonymMap(
                     SampleProductMapper.Text,
@@ -32,32 +43,20 @@ namespace Clara.Tests
 
             var index = builder.Build();
 
-            var brand = SampleProduct.Items
-                .Select(x => x.Brand)
-                .GroupBy(x => x)
-                .OrderByDescending(x => x.Count())
-                .Select(x => x.Key)
-                .First();
-
-            var maxPrice = SampleProduct.Items
-                .Max(x => x.Price);
-
-            var query = index.QueryBuilder()
-                .Search(SampleProductMapper.Text, allTextSynonym)
-                .Filter(SampleProductMapper.Brand, Values.Any(brand))
-                .Filter(SampleProductMapper.Price, from: 0, to: maxPrice - 1)
-                .Facet(SampleProductMapper.Brand)
-                .Facet(SampleProductMapper.Category)
-                .Facet(SampleProductMapper.Price)
-                .Sort(SampleProductMapper.Price, SortDirection.Descending)
-                .Query;
-
-            using var result = index.Query(query);
+            using var result = index.Query(
+                index.QueryBuilder()
+                    .Search(SampleProductMapper.Text, allTextSynonym)
+                    .Filter(SampleProductMapper.Brand, Values.Any(topBrand))
+                    .Filter(SampleProductMapper.Price, from: 1, to: maxPrice - 1)
+                    .Facet(SampleProductMapper.Brand)
+                    .Facet(SampleProductMapper.Category)
+                    .Facet(SampleProductMapper.Price)
+                    .Sort(SampleProductMapper.Price, SortDirection.Descending));
 
             var input = new HashSet<int>(
                 SampleProduct.Items
-                    .Where(x => x.Brand == brand)
-                    .Where(x => x.Price >= 0 && x.Price <= maxPrice - 1)
+                    .Where(x => x.Brand == topBrand)
+                    .Where(x => x.Price >= 1 && x.Price <= maxPrice - 1)
                     .Select(x => x.Id));
 
             var output = new HashSet<int>(

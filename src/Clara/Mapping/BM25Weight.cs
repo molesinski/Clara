@@ -28,11 +28,23 @@ namespace Clara.Mapping
             DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
             DictionarySlim<int, int> documentLengths)
         {
+            var documentCount = documentLengths.Count;
+
+            if (documentCount == 0)
+            {
+                return;
+            }
+
             var k1 = this.K1;
             var b = this.B;
+            var averageLength = 0.0;
 
-            var documentCount = documentLengths.Count;
-            var averageLength = documentLengths.Average(x => x.Value);
+            foreach (var pair in documentLengths)
+            {
+                averageLength += pair.Value;
+            }
+
+            averageLength /= documentCount;
 
             foreach (var tokenDocumentScoresItem in tokenDocumentScores)
             {

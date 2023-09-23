@@ -438,12 +438,12 @@ namespace Clara.Utils
 
         IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator()
         {
-            return new Enumerator(this);
+            return this.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return new Enumerator(this);
+            return this.GetEnumerator();
         }
 
         void IResettable.Reset()

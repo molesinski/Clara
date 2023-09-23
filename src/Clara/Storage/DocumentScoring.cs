@@ -4,7 +4,6 @@ namespace Clara.Storage
 {
     internal readonly struct DocumentScoring : IDisposable
     {
-        private static readonly ObjectPool<ListSlim<DocumentValue<float>>> ScoredDocumentListsPool = new(() => new());
         private static readonly DictionarySlim<int, float> Empty = new();
 
         private readonly ObjectPoolLease<DictionarySlim<int, float>>? lease;
@@ -27,37 +26,12 @@ namespace Clara.Storage
             this.instance = instance;
         }
 
-        public readonly DictionarySlim<int, float> Scoring
+        public readonly DictionarySlim<int, float> Value
         {
             get
             {
                 return this.lease?.Instance ?? this.instance ?? Empty;
             }
-        }
-
-        public readonly DocumentList Sort(HashSetSlim<int> documentSet)
-        {
-            using var sortedDocuments = ScoredDocumentListsPool.Lease();
-
-            var scoring = this.Scoring;
-
-            foreach (var documentId in documentSet)
-            {
-                scoring.TryGetValue(documentId, out var value);
-
-                sortedDocuments.Instance.Add(new DocumentValue<float>(documentId, value));
-            }
-
-            sortedDocuments.Instance.Sort(DocumentValueComparer<float>.Descending);
-
-            var documents = SharedObjectPools.DocumentLists.Lease();
-
-            foreach (var documentValue in sortedDocuments.Instance)
-            {
-                documents.Instance.Add(documentValue.DocumentId);
-            }
-
-            return new DocumentList(documents);
         }
 
         public void Dispose()

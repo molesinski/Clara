@@ -26,7 +26,7 @@ namespace Clara.Storage
             this.instance = instance;
         }
 
-        public readonly ListSlim<int> List
+        public readonly ListSlim<int> Value
         {
             get
             {

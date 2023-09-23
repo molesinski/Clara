@@ -53,7 +53,7 @@ namespace Clara.Storage
 
         public FacetResult Facet(FilterExpression? filterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
-            using var selectedValues = SharedObjectPools.SelectedValues.Lease();
+            using var selectedValues = SharedObjectPools.ValueSets.Lease();
 
             if (filterExpression is TokenFilterExpression tokenFilterExpression)
             {
@@ -145,7 +145,7 @@ namespace Clara.Storage
 
             values.Instance.Sort(0, selectedCount, HierarchyFacetValueComparer.Instance);
 
-            return new HierarchyFacetResult(this.field, values.Instance.Range(0, selectedCount), values);
+            return new HierarchyFacetResult(this.field, values, values.Instance.Range(0, selectedCount));
         }
 
         private sealed class HierarchyFacetValueComparer : IComparer<HierarchyFacetValue>

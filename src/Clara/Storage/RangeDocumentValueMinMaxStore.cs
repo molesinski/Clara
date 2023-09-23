@@ -104,7 +104,7 @@ namespace Clara.Storage
 
             sortedDocuments.Instance.Sort(comparer);
 
-            var documents = SharedObjectPools.DocumentLists.Lease();
+            var documents = SharedObjectPools.Documents.Lease();
 
             foreach (var documentValue in sortedDocuments.Instance)
             {

@@ -14,15 +14,17 @@ namespace Clara.Storage
 
         public static ObjectPool<HashSetSlim<Field>> FieldSets { get; } = new(() => new());
 
-        public static ObjectPool<HashSetSlim<string>> SelectedValues { get; } = new(() => new());
-
-        public static ObjectPool<HashSetSlim<string>> TokenSets { get; } = new(() => new());
-
         public static ObjectPool<HashSetSlim<int>> FilteredTokens { get; } = new(() => new());
 
-        public static ObjectPool<ListSlim<int>> DocumentLists { get; } = new(() => new());
+        public static ObjectPool<HashSetSlim<string>> ValueSets { get; } = new(() => new(), sizeFactor: 2);
 
-        public static ObjectPool<ListSlim<FilterExpression>> FilterExpressions { get; } = new(() => new());
+        public static ObjectPool<ListSlim<int>> Documents { get; } = new(() => new());
+
+        public static ObjectPool<ListSlim<DocumentValue<float>>> ScoredDocuments { get; } = new(() => new());
+
+        public static ObjectPool<ListSlim<FacetExpression>> FacetExpressions { get; } = new(() => new());
+
+        public static ObjectPool<ListSlim<FilterExpression>> FilterExpressions { get; } = new(() => new(), sizeFactor: 2);
 
         public static ObjectPool<ListSlim<FacetResult>> FacetResults { get; } = new(() => new());
 

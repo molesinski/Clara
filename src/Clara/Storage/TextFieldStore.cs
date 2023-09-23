@@ -45,7 +45,7 @@ namespace Clara.Storage
 
         public override DocumentScoring Search(SearchExpression searchExpression, ref DocumentResultBuilder documentResultBuilder)
         {
-            using var tokens = SharedObjectPools.TokenSets.Lease();
+            using var tokens = SharedObjectPools.ValueSets.Lease();
 
             foreach (var token in this.analyzer.GetTokens(searchExpression.Text))
             {

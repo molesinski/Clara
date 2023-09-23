@@ -34,12 +34,12 @@ namespace Clara.Analysis
 
         readonly IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
         {
-            return new Enumerator(this);
+            return this.GetEnumerator();
         }
 
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
-            return new Enumerator(this);
+            return this.GetEnumerator();
         }
 
         public struct Enumerator : IEnumerator<Token>

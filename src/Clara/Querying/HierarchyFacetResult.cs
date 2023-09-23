@@ -3,22 +3,45 @@ using Clara.Utils;
 
 namespace Clara.Querying
 {
-    public sealed class HierarchyFacetResult : TokenFacetResult<HierarchyFacetValue>, IDisposable
+    public sealed class HierarchyFacetResult : TokenFacetResult<HierarchyFacetValue>
     {
         private readonly ObjectPoolLease<ListSlim<HierarchyFacetValue>> lease;
+        private readonly IEnumerable<HierarchyFacetValue> selectedValues;
+        private bool isDisposed;
 
         internal HierarchyFacetResult(
             HierarchyField field,
-            IEnumerable<HierarchyFacetValue> values,
-            ObjectPoolLease<ListSlim<HierarchyFacetValue>> lease)
-                : base(field, values)
+            ObjectPoolLease<ListSlim<HierarchyFacetValue>> lease,
+            IEnumerable<HierarchyFacetValue> selectedValues)
+                : base(field)
         {
             this.lease = lease;
+            this.selectedValues = selectedValues;
         }
 
-        public void Dispose()
+        public override IEnumerable<HierarchyFacetValue> Values
         {
-            this.lease.Dispose();
+            get
+            {
+                if (this.isDisposed)
+                {
+                    throw new ObjectDisposedException(this.GetType().FullName);
+                }
+
+                return this.selectedValues;
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!this.isDisposed)
+            {
+                this.lease.Dispose();
+
+                this.isDisposed = true;
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

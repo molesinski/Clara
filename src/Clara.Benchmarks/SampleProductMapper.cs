@@ -12,9 +12,9 @@ namespace Clara.Benchmarks
                 new BasicTokenizer(),
                 new LowerInvariantTokenFilter(),
                 new CachingTokenFilter(),
+                new PorterPossessiveTokenFilter(),
                 new KeywordLengthTokenFilter(),
                 new KeywordDigitsTokenFilter(),
-                new PorterPossessiveTokenFilter(),
                 new PorterStopTokenFilter(),
                 new PorterStemTokenFilter());
 

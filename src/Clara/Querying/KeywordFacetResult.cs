@@ -3,22 +3,42 @@ using Clara.Utils;
 
 namespace Clara.Querying
 {
-    public sealed class KeywordFacetResult : TokenFacetResult<KeywordFacetValue>, IDisposable
+    public sealed class KeywordFacetResult : TokenFacetResult<KeywordFacetValue>
     {
         private readonly ObjectPoolLease<ListSlim<KeywordFacetValue>> lease;
+        private bool isDisposed;
 
         internal KeywordFacetResult(
             KeywordField field,
-            IEnumerable<KeywordFacetValue> values,
             ObjectPoolLease<ListSlim<KeywordFacetValue>> lease)
-            : base(field, values)
+            : base(field)
         {
             this.lease = lease;
         }
 
-        public void Dispose()
+        public override IEnumerable<KeywordFacetValue> Values
         {
-            this.lease.Dispose();
+            get
+            {
+                if (this.isDisposed)
+                {
+                    throw new ObjectDisposedException(this.GetType().FullName);
+                }
+
+                return this.lease.Instance;
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!this.isDisposed)
+            {
+                this.lease.Dispose();
+
+                this.isDisposed = true;
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

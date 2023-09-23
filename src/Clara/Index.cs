@@ -11,7 +11,7 @@ namespace Clara
         {
         }
 
-        internal abstract bool HasField(Field field);
+        internal abstract bool ContainsField(Field field);
     }
 
     public sealed class Index<TDocument> : Index
@@ -57,6 +57,18 @@ namespace Clara
             return new QueryBuilder(this);
         }
 
+        public QueryResult<TDocument> Query(QueryBuilder queryBuilder)
+        {
+            if (queryBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(queryBuilder));
+            }
+
+            using var query = queryBuilder.ToQuery();
+
+            return this.Query(query);
+        }
+
         public QueryResult<TDocument> Query(Query query)
         {
             if (query is null)
@@ -65,6 +77,8 @@ namespace Clara
             }
 
             var documentResultBuilder = new DocumentResultBuilder(this.allDocuments);
+            var documentScoring = default(DocumentScoring);
+            var documentList = default(DocumentList);
 
             if (query.IncludeDocuments is not null)
             {
@@ -86,8 +100,6 @@ namespace Clara
                     documentResultBuilder.IntersectWith(field: null, includedDocuments.Instance);
                 }
             }
-
-            var documentScoring = default(DocumentScoring);
 
             if (query.Search is SearchExpression searchExpression)
             {
@@ -197,44 +209,62 @@ namespace Clara
                 }
             }
 
-            DocumentList documentList;
-
-            if (query.Sort is SortExpression sortExpression)
+            if (documentResultBuilder.Documents.Count > 0)
             {
-                var field = sortExpression.Field;
-
-                if (!this.fieldStores.TryGetValue(field, out var store))
+                if (query.Sort is SortExpression sortExpression)
                 {
-                    throw new InvalidOperationException("Sort expression references field not belonging to current index.");
+                    var field = sortExpression.Field;
+
+                    if (!this.fieldStores.TryGetValue(field, out var store))
+                    {
+                        throw new InvalidOperationException("Sort expression references field not belonging to current index.");
+                    }
+
+                    documentList = store.Sort(sortExpression, ref documentResultBuilder);
                 }
-
-                documentList = store.Sort(sortExpression, ref documentResultBuilder);
-            }
-            else if (documentScoring.Scoring.Count > 0)
-            {
-                documentList = documentScoring.Sort(documentResultBuilder.Documents);
-            }
-            else
-            {
-                var documents = SharedObjectPools.DocumentLists.Lease();
-
-                foreach (var documentId in documentResultBuilder.Documents)
+                else if (documentScoring.Value.Count > 0)
                 {
-                    documents.Instance.Add(documentId);
-                }
+                    using var sortedDocuments = SharedObjectPools.ScoredDocuments.Lease();
 
-                documentList = new DocumentList(documents);
+                    var scores = documentScoring.Value;
+
+                    foreach (var documentId in documentResultBuilder.Documents)
+                    {
+                        scores.TryGetValue(documentId, out var score);
+
+                        sortedDocuments.Instance.Add(new DocumentValue<float>(documentId, score));
+                    }
+
+                    sortedDocuments.Instance.Sort(DocumentValueComparer<float>.Descending);
+
+                    var documents = SharedObjectPools.Documents.Lease();
+
+                    foreach (var documentValue in sortedDocuments.Instance)
+                    {
+                        documents.Instance.Add(documentValue.DocumentId);
+                    }
+
+                    documentList = new DocumentList(documents);
+                }
+                else
+                {
+                    var documents = SharedObjectPools.Documents.Lease();
+
+                    foreach (var documentId in documentResultBuilder.Documents)
+                    {
+                        documents.Instance.Add(documentId);
+                    }
+
+                    documentList = new DocumentList(documents);
+                }
             }
 
             documentResultBuilder.Dispose();
 
-            return
-                new QueryResult<TDocument>(
-                    new DocumentResultCollection<TDocument>(this.tokenEncoder, this.documentMap, documentScoring, documentList),
-                    facetResults);
+            return new QueryResult<TDocument>(this.tokenEncoder, this.documentMap, documentScoring, documentList, facetResults);
         }
 
-        internal override bool HasField(Field field)
+        internal override bool ContainsField(Field field)
         {
             if (field is null)
             {

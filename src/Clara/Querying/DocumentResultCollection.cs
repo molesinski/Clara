@@ -4,14 +4,15 @@ using Clara.Utils;
 
 namespace Clara.Querying
 {
-    internal sealed class DocumentResultCollection<TDocument> : IReadOnlyCollection<DocumentResult<TDocument>>, IDisposable
+    public sealed class DocumentResultCollection<TDocument> : IReadOnlyCollection<DocumentResult<TDocument>>, IDisposable
     {
         private readonly ITokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, TDocument> documentMap;
         private readonly DocumentScoring documentScoring;
         private readonly DocumentList documentList;
+        private bool isDisposed;
 
-        public DocumentResultCollection(
+        internal DocumentResultCollection(
             ITokenEncoder tokenEncoder,
             DictionarySlim<int, TDocument> documentMap,
             DocumentScoring documentScoring,
@@ -37,29 +38,44 @@ namespace Clara.Querying
         {
             get
             {
-                return this.documentList.List.Count;
+                if (this.isDisposed)
+                {
+                    throw new ObjectDisposedException(this.GetType().FullName);
+                }
+
+                return this.documentList.Value.Count;
             }
         }
 
         public Enumerator GetEnumerator()
         {
+            if (this.isDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().FullName);
+            }
+
             return new Enumerator(this);
         }
 
         IEnumerator<DocumentResult<TDocument>> IEnumerable<DocumentResult<TDocument>>.GetEnumerator()
         {
-            return new Enumerator(this);
+            return this.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return new Enumerator(this);
+            return this.GetEnumerator();
         }
 
         public void Dispose()
         {
-            this.documentScoring.Dispose();
-            this.documentList.Dispose();
+            if (!this.isDisposed)
+            {
+                this.documentScoring.Dispose();
+                this.documentList.Dispose();
+
+                this.isDisposed = true;
+            }
         }
 
         public struct Enumerator : IEnumerator<DocumentResult<TDocument>>
@@ -76,9 +92,9 @@ namespace Clara.Querying
             {
                 this.tokenEncoder = documentResultCollection.tokenEncoder;
                 this.documentMap = documentResultCollection.documentMap;
-                this.documentScoring = documentResultCollection.documentScoring.Scoring;
-                this.documentList = documentResultCollection.documentList.List;
-                this.count = documentResultCollection.documentList.List.Count;
+                this.documentScoring = documentResultCollection.documentScoring.Value;
+                this.documentList = documentResultCollection.documentList.Value;
+                this.count = documentResultCollection.documentList.Value.Count;
                 this.index = 0;
                 this.current = default;
             }

@@ -2,7 +2,7 @@
 
 namespace Clara.Querying
 {
-    public abstract class FacetResult
+    public abstract class FacetResult : IDisposable
     {
         internal FacetResult(Field field)
         {
@@ -15,5 +15,15 @@ namespace Clara.Querying
         }
 
         public Field Field { get; }
+
+        public void Dispose()
+        {
+            this.Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+        }
     }
 }

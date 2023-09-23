@@ -11,7 +11,7 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(field));
             }
 
-            if (!Enum.IsDefined(typeof(SearchMode), mode))
+            if (mode != SearchMode.All && mode != SearchMode.Any)
             {
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }

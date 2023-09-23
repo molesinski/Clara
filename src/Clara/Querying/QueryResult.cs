@@ -1,45 +1,70 @@
-﻿using Clara.Utils;
+﻿using Clara.Storage;
+using Clara.Utils;
 
 namespace Clara.Querying
 {
     public sealed class QueryResult<TDocument> : IDisposable
     {
-        private readonly DocumentResultCollection<TDocument> documentResults;
-        private readonly ObjectPoolLease<ListSlim<FacetResult>> facetResults;
+        private readonly DocumentResultCollection<TDocument> documents;
+        private readonly FacetResultCollection facets;
+        private bool isDisposed;
 
         internal QueryResult(
-            DocumentResultCollection<TDocument> documentResults,
+            ITokenEncoder tokenEncoder,
+            DictionarySlim<int, TDocument> documentMap,
+            DocumentScoring documentScoring,
+            DocumentList documentList,
             ObjectPoolLease<ListSlim<FacetResult>> facetResults)
         {
-            this.documentResults = documentResults;
-            this.facetResults = facetResults;
+            if (tokenEncoder is null)
+            {
+                throw new ArgumentNullException(nameof(tokenEncoder));
+            }
+
+            if (documentMap is null)
+            {
+                throw new ArgumentNullException(nameof(documentMap));
+            }
+
+            this.documents = new DocumentResultCollection<TDocument>(tokenEncoder, documentMap, documentScoring, documentList);
+            this.facets = new FacetResultCollection(facetResults);
         }
 
-        public IReadOnlyCollection<DocumentResult<TDocument>> Documents
+        public DocumentResultCollection<TDocument> Documents
         {
             get
             {
-                return this.documentResults;
+                if (this.isDisposed)
+                {
+                    throw new ObjectDisposedException(this.GetType().FullName);
+                }
+
+                return this.documents;
             }
         }
 
-        public IReadOnlyCollection<FacetResult> Facets
+        public FacetResultCollection Facets
         {
             get
             {
-                return this.facetResults.Instance;
+                if (this.isDisposed)
+                {
+                    throw new ObjectDisposedException(this.GetType().FullName);
+                }
+
+                return this.facets;
             }
         }
 
         public void Dispose()
         {
-            foreach (var facetResult in this.facetResults.Instance)
+            if (!this.isDisposed)
             {
-                (facetResult as IDisposable)?.Dispose();
-            }
+                this.documents.Dispose();
+                this.facets.Dispose();
 
-            this.documentResults.Dispose();
-            this.facetResults.Dispose();
+                this.isDisposed = true;
+            }
         }
     }
 }

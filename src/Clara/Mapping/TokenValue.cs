@@ -26,12 +26,12 @@ namespace Clara.Mapping
 
         readonly IEnumerator<string> IEnumerable<string>.GetEnumerator()
         {
-            return new Enumerator(this);
+            return this.GetEnumerator();
         }
 
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
-            return new Enumerator(this);
+            return this.GetEnumerator();
         }
 
         public struct Enumerator : IEnumerator<string>

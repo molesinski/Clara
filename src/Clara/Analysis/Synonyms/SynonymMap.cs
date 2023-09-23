@@ -202,12 +202,12 @@ namespace Clara.Analysis.Synonyms
 
             readonly IEnumerator<SynonymResult> IEnumerable<SynonymResult>.GetEnumerator()
             {
-                return new Enumerator(this);
+                return this.GetEnumerator();
             }
 
             readonly IEnumerator IEnumerable.GetEnumerator()
             {
-                return new Enumerator(this);
+                return this.GetEnumerator();
             }
 
             public struct Enumerator : IEnumerator<SynonymResult>
@@ -647,12 +647,19 @@ namespace Clara.Analysis.Synonyms
 
                 return root;
 
-                IEnumerable<IEnumerable<string>> GetPhraseTokensPermutations(List<string> phraseTokens)
+                IEnumerable<IEnumerable<string>> GetPhraseTokensPermutations(List<string> tokens)
                 {
-                    return
-                        maximumPermutatedPhraseTokenCount > 1 && phraseTokens.Count <= maximumPermutatedPhraseTokenCount
-                            ? phraseTokens.Permutate()
-                                : new[] { phraseTokens };
+                    if (maximumPermutatedPhraseTokenCount > 1 && tokens.Count <= maximumPermutatedPhraseTokenCount)
+                    {
+                        foreach (var tokenPermutation in tokens.Permutate())
+                        {
+                            yield return tokenPermutation;
+                        }
+                    }
+                    else
+                    {
+                        yield return tokens;
+                    }
                 }
             }
         }

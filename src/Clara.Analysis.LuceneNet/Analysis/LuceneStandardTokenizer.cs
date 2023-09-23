@@ -10,6 +10,16 @@ namespace Clara.Analysis
 
         public IEnumerable<Token> GetTokens(string text)
         {
+            if (text is null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                yield break;
+            }
+
             using var context = Pool.Lease();
 
             context.Instance.Reader.Reset(text);

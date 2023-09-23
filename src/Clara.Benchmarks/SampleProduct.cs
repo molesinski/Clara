@@ -1,66 +1,35 @@
-﻿using System.Text;
+﻿#pragma warning disable SA1516 // Elements should be separated by blank line
+
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Clara.Benchmarks
 {
     public sealed class SampleProduct
     {
-        public static IReadOnlyCollection<SampleProduct> Items { get; } = LoadEmbeddedResource();
+        public static IReadOnlyCollection<SampleProduct> Items { get; } = LoadResource();
 
-        [JsonPropertyName("id")]
         public int Id { get; set; }
-
-        [JsonPropertyName("title")]
         public string? Title { get; set; }
-
-        [JsonPropertyName("description")]
         public string? Description { get; set; }
-
-        [JsonPropertyName("price")]
         public double? Price { get; set; }
-
-        [JsonPropertyName("discountPercentage")]
         public double? DiscountPercentage { get; set; }
-
-        [JsonPropertyName("rating")]
         public double? Rating { get; set; }
-
-        [JsonPropertyName("stock")]
         public int? Stock { get; set; }
-
-        [JsonPropertyName("brand")]
         public string? Brand { get; set; }
-
-        [JsonPropertyName("category")]
         public string? Category { get; set; }
 
-        //// [JsonPropertyName("thumbnail")]
-        //// public string? Thumbnail { get; set; }
-
-        //// [JsonPropertyName("images")]
-        //// public IReadOnlyCollection<string>? Images { get; set; }
-
-        private static SampleProduct[] LoadEmbeddedResource()
+        private static SampleProduct[] LoadResource()
         {
-            //// Data from https://dummyjson.com/products
+            using var stream = typeof(SampleProduct).Assembly.GetManifestResourceStream($"{typeof(SampleProduct).FullName}.json")!;
 
-            using var stream = typeof(SampleProduct).Assembly.GetManifestResourceStream($"{typeof(SampleProduct).FullName}.json");
-
-            if (stream is not null)
-            {
-                using var reader = new StreamReader(stream, Encoding.UTF8);
-
-                var data = reader.ReadToEnd();
-                var result = JsonSerializer.Deserialize<SampleProduct[]>(data);
-
-                if (result is not null)
+            var options =
+                new JsonSerializerOptions
                 {
-                    return result;
-                }
-            }
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    ReadCommentHandling = JsonCommentHandling.Skip,
+                };
 
-            return Array.Empty<SampleProduct>();
+            return JsonSerializer.Deserialize<SampleProduct[]>(stream, options)!;
         }
     }
 }

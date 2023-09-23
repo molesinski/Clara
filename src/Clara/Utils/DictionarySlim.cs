@@ -530,12 +530,12 @@ namespace Clara.Utils
 
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
-            return new Enumerator(this);
+            return this.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return new Enumerator(this);
+            return this.GetEnumerator();
         }
 
         void IResettable.Reset()
@@ -754,12 +754,12 @@ namespace Clara.Utils
 
             IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
             {
-                return new Enumerator(this.source);
+                return this.GetEnumerator();
             }
 
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return new Enumerator(this.source);
+                return this.GetEnumerator();
             }
 
             public struct Enumerator : IEnumerator<TKey>

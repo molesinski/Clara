@@ -7,22 +7,32 @@ namespace Clara.Benchmarks
     [MemoryDiagnoser]
     public class QueryBenchmarks
     {
+        private readonly string allTextSynonym;
+        private readonly string? topBrand;
+        private readonly double? maxPrice;
         private readonly Index<SampleProduct> index;
-        private readonly Query searchFilterFacetSortQuery;
-        private readonly Query searchFilterFacetQuery;
-        private readonly Query filterFacetSortQuery;
-        private readonly Query filterFacetQuery;
 
         public QueryBenchmarks()
         {
-            var allTextSynonym = Guid.NewGuid().ToString("N");
+            this.allTextSynonym = Guid.NewGuid().ToString("N");
+
+            this.topBrand = SampleProduct.Items
+                .Select(x => x.Brand)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .GroupBy(x => x)
+                .OrderByDescending(x => x.Count())
+                .Select(x => x.Key)
+                .First();
+
+            this.maxPrice = SampleProduct.Items
+                .Max(x => x.Price);
 
             var synonymMap =
                 new SynonymMap(
                     SampleProductMapper.Text,
                     new Synonym[]
                     {
-                        new EquivalencySynonym(new[] { SampleProductMapper.AllText, allTextSynonym }),
+                        new EquivalencySynonym(new[] { SampleProductMapper.AllText, this.allTextSynonym }),
                     });
 
             var builder =
@@ -36,58 +46,20 @@ namespace Clara.Benchmarks
             }
 
             this.index = builder.Build();
-
-            var brand = SampleProduct.Items
-                .Select(x => x.Brand)
-                .GroupBy(x => x)
-                .OrderByDescending(x => x.Count())
-                .Select(x => x.Key)
-                .First();
-
-            var maxPrice = SampleProduct.Items
-                .Max(x => x.Price);
-
-            this.searchFilterFacetSortQuery = this.index.QueryBuilder()
-                .Search(SampleProductMapper.Text, allTextSynonym)
-                .Filter(SampleProductMapper.Brand, Values.Any(brand))
-                .Filter(SampleProductMapper.Price, from: 0, to: maxPrice - 1)
-                .Facet(SampleProductMapper.Brand)
-                .Facet(SampleProductMapper.Category)
-                .Facet(SampleProductMapper.Price)
-                .Sort(SampleProductMapper.Price, SortDirection.Descending)
-                .Query;
-
-            this.searchFilterFacetQuery = this.index.QueryBuilder()
-                .Search(SampleProductMapper.Text, allTextSynonym)
-                .Filter(SampleProductMapper.Brand, Values.Any(brand))
-                .Filter(SampleProductMapper.Price, from: 0, to: maxPrice - 1)
-                .Facet(SampleProductMapper.Brand)
-                .Facet(SampleProductMapper.Category)
-                .Facet(SampleProductMapper.Price)
-                .Query;
-
-            this.filterFacetSortQuery = this.index.QueryBuilder()
-                .Filter(SampleProductMapper.Brand, Values.Any(brand))
-                .Filter(SampleProductMapper.Price, from: 0, to: maxPrice - 1)
-                .Facet(SampleProductMapper.Brand)
-                .Facet(SampleProductMapper.Category)
-                .Facet(SampleProductMapper.Price)
-                .Sort(SampleProductMapper.Price, SortDirection.Descending)
-                .Query;
-
-            this.filterFacetQuery = this.index.QueryBuilder()
-                .Filter(SampleProductMapper.Brand, Values.Any(brand))
-                .Filter(SampleProductMapper.Price, from: 0, to: maxPrice - 1)
-                .Facet(SampleProductMapper.Brand)
-                .Facet(SampleProductMapper.Category)
-                .Facet(SampleProductMapper.Price)
-                .Query;
         }
 
         [Benchmark]
-        public void SearchFilterFacetSort()
+        public void SearchFilterFacetSortQuery()
         {
-            using var result = this.index.Query(this.searchFilterFacetSortQuery);
+            using var result = this.index.Query(
+                this.index.QueryBuilder()
+                    .Search(SampleProductMapper.Text, this.allTextSynonym)
+                    .Filter(SampleProductMapper.Brand, Values.Any(this.topBrand))
+                    .Filter(SampleProductMapper.Price, from: 1, to: this.maxPrice - 1)
+                    .Facet(SampleProductMapper.Brand)
+                    .Facet(SampleProductMapper.Category)
+                    .Facet(SampleProductMapper.Price)
+                    .Sort(SampleProductMapper.Price, SortDirection.Descending));
 
             foreach (var document in result.Documents)
             {
@@ -96,9 +68,16 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void SearchFilterFacet()
+        public void SearchFilterFacetQuery()
         {
-            using var result = this.index.Query(this.searchFilterFacetQuery);
+            using var result = this.index.Query(
+                this.index.QueryBuilder()
+                    .Search(SampleProductMapper.Text, this.allTextSynonym)
+                    .Filter(SampleProductMapper.Brand, Values.Any(this.topBrand))
+                    .Filter(SampleProductMapper.Price, from: 1, to: this.maxPrice - 1)
+                    .Facet(SampleProductMapper.Brand)
+                    .Facet(SampleProductMapper.Category)
+                    .Facet(SampleProductMapper.Price));
 
             foreach (var document in result.Documents)
             {
@@ -107,9 +86,16 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void FilterFacetSort()
+        public void FilterFacetSortQuery()
         {
-            using var result = this.index.Query(this.filterFacetSortQuery);
+            using var result = this.index.Query(
+                this.index.QueryBuilder()
+                    .Filter(SampleProductMapper.Brand, Values.Any(this.topBrand))
+                    .Filter(SampleProductMapper.Price, from: 1, to: this.maxPrice - 1)
+                    .Facet(SampleProductMapper.Brand)
+                    .Facet(SampleProductMapper.Category)
+                    .Facet(SampleProductMapper.Price)
+                    .Sort(SampleProductMapper.Price, SortDirection.Descending));
 
             foreach (var document in result.Documents)
             {
@@ -118,9 +104,15 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void FilterFacet()
+        public void FilterFacetQuery()
         {
-            using var result = this.index.Query(this.filterFacetQuery);
+            using var result = this.index.Query(
+                this.index.QueryBuilder()
+                    .Filter(SampleProductMapper.Brand, Values.Any(this.topBrand))
+                    .Filter(SampleProductMapper.Price, from: 1, to: this.maxPrice - 1)
+                    .Facet(SampleProductMapper.Brand)
+                    .Facet(SampleProductMapper.Category)
+                    .Facet(SampleProductMapper.Price));
 
             foreach (var document in result.Documents)
             {

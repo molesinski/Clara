@@ -11,7 +11,7 @@
 
             if (source is not IReadOnlyList<TItem> list)
             {
-                list = source.ToList();
+                list = source.ToArray();
             }
 
             var length = list.Count;

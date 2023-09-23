@@ -175,10 +175,10 @@ namespace Clara.Utils
                 throw new ArgumentNullException(nameof(comparer));
             }
 
-            Array.Sort(this.entries, offset, count, comparer);
+            ArraySortHelper<TItem>.Sort(this.entries, offset, count, comparer);
         }
 
-        public IEnumerable<TItem> Range(int offset, int count)
+        public ListSlim<TItem>.RangeEnumerable Range(int offset, int count)
         {
             if (offset < 0)
             {
@@ -200,12 +200,12 @@ namespace Clara.Utils
 
         IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator()
         {
-            return new Enumerator(this);
+            return this.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return new Enumerator(this);
+            return this.GetEnumerator();
         }
 
         void IResettable.Reset()
@@ -310,13 +310,13 @@ namespace Clara.Utils
             }
         }
 
-        private sealed class RangeEnumerable : IEnumerable<TItem>
+        public readonly struct RangeEnumerable : IEnumerable<TItem>
         {
             private readonly ListSlim<TItem> source;
             private readonly int offset;
             private readonly int count;
 
-            public RangeEnumerable(ListSlim<TItem> source, int offset, int count)
+            internal RangeEnumerable(ListSlim<TItem> source, int offset, int count)
             {
                 this.source = source;
                 this.offset = offset;
@@ -330,12 +330,12 @@ namespace Clara.Utils
 
             IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator()
             {
-                return new Enumerator(this.source, this.offset, this.count);
+                return this.GetEnumerator();
             }
 
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return new Enumerator(this.source, this.offset, this.count);
+                return this.GetEnumerator();
             }
         }
     }

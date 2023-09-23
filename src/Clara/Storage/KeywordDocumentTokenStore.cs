@@ -37,7 +37,7 @@ namespace Clara.Storage
 
         public FacetResult? Facet(FilterExpression? filterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
-            using var selectedValues = SharedObjectPools.SelectedValues.Lease();
+            using var selectedValues = SharedObjectPools.ValueSets.Lease();
 
             if (filterExpression is TokenFilterExpression tokenFilterExpression)
             {
@@ -82,7 +82,7 @@ namespace Clara.Storage
 
             values.Instance.Sort(KeywordFacetValueComparer.Instance);
 
-            return new KeywordFacetResult(this.field, values.Instance, values);
+            return new KeywordFacetResult(this.field, values);
         }
 
         private sealed class KeywordFacetValueComparer : IComparer<KeywordFacetValue>
