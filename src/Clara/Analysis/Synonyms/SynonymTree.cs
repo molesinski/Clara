@@ -5,12 +5,12 @@ using Clara.Utils;
 
 namespace Clara.Analysis.Synonyms
 {
-    public class SynonymMap : ISynonymMap, IAnalyzer, IMatchExpressionFilter
+    public class SynonymTree : ISynonymMap, IAnalyzer, IMatchExpressionFilter
     {
         private readonly TextField field;
         private readonly SynonymNode root;
 
-        public SynonymMap(TextField field, IEnumerable<Synonym> synonyms, int maximumPermutatedPhraseTokenCount = 1)
+        public SynonymTree(TextField field, IEnumerable<Synonym> synonyms, int maximumPermutatedPhraseTokenCount = 1)
         {
             if (field is null)
             {
@@ -651,7 +651,7 @@ namespace Clara.Analysis.Synonyms
                 {
                     if (maximumPermutatedPhraseTokenCount > 1 && tokens.Count <= maximumPermutatedPhraseTokenCount)
                     {
-                        foreach (var tokenPermutation in tokens.Permutate())
+                        foreach (var tokenPermutation in PermutationHelper.Permutate(tokens))
                         {
                             yield return tokenPermutation;
                         }

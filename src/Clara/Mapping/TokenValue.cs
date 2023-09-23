@@ -2,7 +2,7 @@
 
 namespace Clara.Mapping
 {
-    public readonly record struct TokenValue : IEnumerable<string>
+    internal readonly record struct TokenValue : IEnumerable<string>
     {
         private readonly string? value;
         private readonly IEnumerable<string>? values;
@@ -44,7 +44,7 @@ namespace Clara.Mapping
             private IEnumerator<string>? enumerator;
             private string? current;
 
-            public Enumerator(TokenValue source)
+            internal Enumerator(TokenValue source)
             {
                 this.value = default;
                 this.listValues = default;

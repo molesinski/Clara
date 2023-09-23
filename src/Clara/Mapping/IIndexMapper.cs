@@ -8,4 +8,8 @@
 
         TDocument GetDocument(TSource item);
     }
+
+    public interface IIndexMapper<TSource> : IIndexMapper<TSource, TSource>
+    {
+    }
 }

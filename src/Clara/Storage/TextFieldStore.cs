@@ -7,22 +7,17 @@ namespace Clara.Storage
     internal sealed class TextFieldStore : FieldStore
     {
         private readonly IAnalyzer analyzer;
-        private readonly ISynonymMap synonymMap;
+        private readonly ISynonymMap? synonymMap;
         private readonly TextDocumentStore textDocumentStore;
 
         public TextFieldStore(
             IAnalyzer analyzer,
-            ISynonymMap synonymMap,
+            ISynonymMap? synonymMap,
             TextDocumentStore textDocumentStore)
         {
             if (analyzer is null)
             {
                 throw new ArgumentNullException(nameof(analyzer));
-            }
-
-            if (synonymMap is null)
-            {
-                throw new ArgumentNullException(nameof(synonymMap));
             }
 
             if (textDocumentStore is null)
@@ -59,7 +54,10 @@ namespace Clara.Storage
                         ? new AllValuesMatchExpression(tokens.Instance)
                         : new AnyValuesMatchExpression(tokens.Instance);
 
-            matchExpression = this.synonymMap.Process(matchExpression);
+            if (this.synonymMap is not null)
+            {
+                matchExpression = this.synonymMap.Process(matchExpression);
+            }
 
             return this.textDocumentStore.Search(searchExpression.Field, matchExpression, ref documentResultBuilder);
         }

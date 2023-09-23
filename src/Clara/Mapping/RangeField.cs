@@ -29,7 +29,7 @@ namespace Clara.Mapping
     public class RangeField<TSource, TValue> : RangeField<TValue>
         where TValue : struct, IComparable<TValue>
     {
-        public RangeField(Func<TSource, RangeValue<TValue>> valueMapper, TValue minValue, TValue maxValue, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
+        public RangeField(Func<TSource, TValue?> valueMapper, TValue minValue, TValue maxValue, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
             : base(
                 minValue: minValue,
                 maxValue: maxValue,
@@ -42,10 +42,26 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = valueMapper;
+            this.ValueMapper = source => new RangeValue<TValue>(valueMapper(source));
         }
 
-        public Func<TSource, RangeValue<TValue>> ValueMapper { get; }
+        public RangeField(Func<TSource, IEnumerable<TValue>?> valueMapper, TValue minValue, TValue maxValue, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
+            : base(
+                minValue: minValue,
+                maxValue: maxValue,
+                isFilterable: isFilterable,
+                isFacetable: isFacetable,
+                isSortable: isSortable)
+        {
+            if (valueMapper is null)
+            {
+                throw new ArgumentNullException(nameof(valueMapper));
+            }
+
+            this.ValueMapper = source => new RangeValue<TValue>(valueMapper(source));
+        }
+
+        internal Func<TSource, RangeValue<TValue>> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderStore tokenEncoderStore,

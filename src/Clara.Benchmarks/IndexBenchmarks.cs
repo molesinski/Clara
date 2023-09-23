@@ -12,10 +12,10 @@ namespace Clara.Benchmarks
         public void Index()
         {
             var builder =
-                new IndexBuilder<SampleProduct, SampleProduct>(
-                    new SampleProductMapper());
+                new IndexBuilder<Product, Product>(
+                    new ProductMapper());
 
-            foreach (var item in SampleProduct.Items)
+            foreach (var item in Product.Items)
             {
                 builder.Index(item);
             }
@@ -29,19 +29,22 @@ namespace Clara.Benchmarks
             var allTextSynonym = Guid.NewGuid().ToString("N");
 
             var synonymMap =
-                new SynonymMap(
-                    SampleProductMapper.Text,
+                new SynonymTree(
+                    ProductMapper.Text,
                     new Synonym[]
                     {
-                        new EquivalencySynonym(new[] { SampleProductMapper.AllText, allTextSynonym }),
+                        new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, allTextSynonym }),
                     });
 
             var builder =
-                new IndexBuilder<SampleProduct, SampleProduct>(
-                    new SampleProductMapper(),
-                    new[] { synonymMap });
+                new IndexBuilder<Product, Product>(
+                    new ProductMapper(),
+                    new[]
+                    {
+                        synonymMap,
+                    });
 
-            foreach (var item in SampleProduct.Items)
+            foreach (var item in Product.Items)
             {
                 builder.Index(item);
             }

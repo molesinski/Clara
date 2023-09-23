@@ -2,7 +2,7 @@
 
 namespace Clara.Mapping
 {
-    public readonly record struct RangeValue<TValue> : IEnumerable<TValue>
+    internal readonly record struct RangeValue<TValue> : IEnumerable<TValue>
         where TValue : struct, IComparable<TValue>
     {
         private readonly TValue? value;
@@ -45,7 +45,7 @@ namespace Clara.Mapping
             private IEnumerator<TValue>? enumerator;
             private TValue current;
 
-            public Enumerator(RangeValue<TValue> source)
+            internal Enumerator(RangeValue<TValue> source)
             {
                 this.value = default;
                 this.listValues = default;

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Clara.Analysis.Synonyms;
+﻿using Clara.Analysis.Synonyms;
 using Clara.Querying;
 using Xunit;
 
@@ -12,7 +11,7 @@ namespace Clara.Tests
         {
             var allTextSynonym = Guid.NewGuid().ToString("N");
 
-            var topBrand = SampleProduct.Items
+            var topBrand = Product.Items
                 .Select(x => x.Brand)
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .GroupBy(x => x)
@@ -20,23 +19,26 @@ namespace Clara.Tests
                 .Select(x => x.Key)
                 .First();
 
-            var maxPrice = SampleProduct.Items
+            var maxPrice = Product.Items
                 .Max(x => x.Price);
 
             var synonymMap =
-                new SynonymMap(
-                    SampleProductMapper.Text,
+                new SynonymTree(
+                    ProductMapper.Text,
                     new Synonym[]
                     {
-                        new EquivalencySynonym(new[] { SampleProductMapper.AllText, allTextSynonym }),
+                        new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, allTextSynonym }),
                     });
 
             var builder =
-                new IndexBuilder<SampleProduct, SampleProduct>(
-                    new SampleProductMapper(),
-                    new[] { synonymMap });
+                new IndexBuilder<Product, Product>(
+                    new ProductMapper(),
+                    new[]
+                    {
+                        synonymMap,
+                    });
 
-            foreach (var item in SampleProduct.Items)
+            foreach (var item in Product.Items)
             {
                 builder.Index(item);
             }
@@ -45,25 +47,53 @@ namespace Clara.Tests
 
             using var result = index.Query(
                 index.QueryBuilder()
-                    .Search(SampleProductMapper.Text, allTextSynonym)
-                    .Filter(SampleProductMapper.Brand, Values.Any(topBrand))
-                    .Filter(SampleProductMapper.Price, from: 1, to: maxPrice - 1)
-                    .Facet(SampleProductMapper.Brand)
-                    .Facet(SampleProductMapper.Category)
-                    .Facet(SampleProductMapper.Price)
-                    .Sort(SampleProductMapper.Price, SortDirection.Descending));
+                    .Search(ProductMapper.Text, allTextSynonym)
+                    .Filter(ProductMapper.Brand, Values.Any(topBrand))
+                    .Filter(ProductMapper.Price, from: 1, to: maxPrice - 1)
+                    .Facet(ProductMapper.Brand)
+                    .Facet(ProductMapper.Category)
+                    .Facet(ProductMapper.Price)
+                    .Sort(ProductMapper.Price, SortDirection.Descending));
 
-            var input = new HashSet<int>(
-                SampleProduct.Items
-                    .Where(x => x.Brand == topBrand)
-                    .Where(x => x.Price >= 1 && x.Price <= maxPrice - 1)
-                    .Select(x => x.Id));
+            var input = Product.Items
+                .Where(x => x.Brand == topBrand)
+                .Where(x => x.Price >= 1 && x.Price <= maxPrice - 1)
+                .ToList();
 
-            var output = new HashSet<int>(
-                result.Documents
-                    .Select(x => x.Document.Id));
+            var inputSet = new HashSet<int>(input.Select(x => x.Id));
+            var outputSet = new HashSet<int>(result.Documents.Select(x => x.Document.Id));
 
-            Debug.Assert(input.SetEquals(output), "Resulting product sets must be equal");
+            Assert.True(inputSet.SetEquals(outputSet));
+
+            var inputSorted = input.OrderByDescending(x => x.Price).Select(x => x.Price);
+            var outputSorted = result.Documents.Select(x => x.Document.Price);
+
+            Assert.True(inputSorted.SequenceEqual(outputSorted));
+
+            var brandFacet = result.Facets
+                .OfType<KeywordFacetResult>()
+                .Where(x => x.Field == ProductMapper.Brand)
+                .Single();
+
+            Assert.True(brandFacet.Values.Count() > 1);
+            Assert.True(brandFacet.Values.Count(x => x.IsSelected) == 1);
+            Assert.True(brandFacet.Values.Single(x => x.IsSelected).Value == topBrand);
+
+            var priceFacet = result.Facets
+                .OfType<RangeFacetResult<decimal>>()
+                .Where(x => x.Field == ProductMapper.Price)
+                .Single();
+
+            var minBrandPrice = input
+                .Where(x => x.Brand == topBrand)
+                .Min(x => x.Price);
+
+            var maxBrandPrice = input
+                .Where(x => x.Brand == topBrand)
+                .Max(x => x.Price);
+
+            Assert.Equal(priceFacet.Min, minBrandPrice);
+            Assert.Equal(priceFacet.Max, maxBrandPrice);
         }
     }
 }

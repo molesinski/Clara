@@ -6,11 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="SampleProduct.json" />
+    <None Remove="Product.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="SampleProduct.json" />
+    <EmbeddedResource Include="Product.json" />
   </ItemGroup>
 
   <ItemGroup>

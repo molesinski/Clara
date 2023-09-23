@@ -5,14 +5,14 @@
         private readonly int minimumLength;
         private readonly int maximumLength;
 
-        public KeywordLengthTokenFilter(int minimumLength = 1, int maximumLength = Token.MaximumLength)
+        public KeywordLengthTokenFilter(int minimumLength = 2, int maximumLength = Token.MaximumLength)
         {
-            if (minimumLength < 0 || minimumLength > Token.MaximumLength)
+            if (minimumLength < 2 || minimumLength > Token.MaximumLength)
             {
                 throw new ArgumentOutOfRangeException(nameof(minimumLength));
             }
 
-            if (maximumLength < 0 || maximumLength > Token.MaximumLength)
+            if (maximumLength < 2 || maximumLength > Token.MaximumLength)
             {
                 throw new ArgumentOutOfRangeException(nameof(minimumLength));
             }

@@ -28,7 +28,7 @@ namespace Clara.Mapping
 
     public sealed class HierarchyField<TSource> : HierarchyField
     {
-        public HierarchyField(Func<TSource, TokenValue> valueMapper, bool isFilterable = false, bool isFacetable = false, char separator = ',', string root = DefaultRoot)
+        public HierarchyField(Func<TSource, string?> valueMapper, bool isFilterable = false, bool isFacetable = false, char separator = ',', string root = DefaultRoot)
             : base(
                 isFilterable: isFilterable,
                 isFacetable: isFacetable,
@@ -40,10 +40,25 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = valueMapper;
+            this.ValueMapper = source => new TokenValue(valueMapper(source));
         }
 
-        public Func<TSource, TokenValue> ValueMapper { get; }
+        public HierarchyField(Func<TSource, IEnumerable<string>?> valueMapper, bool isFilterable = false, bool isFacetable = false, char separator = ',', string root = DefaultRoot)
+            : base(
+                isFilterable: isFilterable,
+                isFacetable: isFacetable,
+                separator: separator,
+                root: root)
+        {
+            if (valueMapper is null)
+            {
+                throw new ArgumentNullException(nameof(valueMapper));
+            }
+
+            this.ValueMapper = source => new TokenValue(valueMapper(source));
+        }
+
+        internal Func<TSource, TokenValue> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderStore tokenEncoderStore,

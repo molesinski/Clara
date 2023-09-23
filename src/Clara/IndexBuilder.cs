@@ -15,7 +15,7 @@ namespace Clara
             IEnumerable<TSource> source,
             IIndexMapper<TSource, TDocument> indexMapper)
         {
-            return Build(source, indexMapper, Array.Empty<SynonymMap>());
+            return Build(source, indexMapper, Array.Empty<ISynonymMap>());
         }
 
         public static Index<TDocument> Build<TSource, TDocument>(
