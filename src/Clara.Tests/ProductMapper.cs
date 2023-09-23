@@ -1,4 +1,6 @@
-﻿using System.Globalization;
+﻿#pragma warning disable SA1516 // Elements should be separated by blank line
+
+using System.Globalization;
 using System.Text;
 using Clara.Analysis;
 using Clara.Mapping;
@@ -7,13 +9,15 @@ namespace Clara.Tests
 {
     public class ProductMapper : IIndexMapper<Product>
     {
-        public static readonly TextField<Product> Text = new(ToText, new PorterAnalyzer());
-        public static readonly DecimalField<Product> Price = new(x => x.Price, isFilterable: true, isFacetable: true, isSortable: true);
-        public static readonly DoubleField<Product> DiscountPercentage = new(x => x.DiscountPercentage, isFilterable: true, isFacetable: true, isSortable: true);
-        public static readonly DoubleField<Product> Rating = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);
-        public static readonly DoubleField<Product> Stock = new(x => x.Stock, isFilterable: true, isFacetable: true, isSortable: true);
-        public static readonly KeywordField<Product> Brand = new(x => x.Brand, isFilterable: true, isFacetable: true);
-        public static readonly KeywordField<Product> Category = new(x => x.Category, isFilterable: true, isFacetable: true);
+        private static readonly StringBuilder Builder = new();
+
+        public static TextField<Product> Text { get; } = new(x => GetText(x), new PorterAnalyzer());
+        public static DecimalField<Product> Price { get; } = new(x => x.Price, isFilterable: true, isFacetable: true, isSortable: true);
+        public static DoubleField<Product> DiscountPercentage { get; } = new(x => x.DiscountPercentage, isFilterable: true, isFacetable: true, isSortable: true);
+        public static DoubleField<Product> Rating { get; } = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);
+        public static DoubleField<Product> Stock { get; } = new(x => x.Stock, isFilterable: true, isFacetable: true, isSortable: true);
+        public static KeywordField<Product> Brand { get; } = new(x => x.Brand, isFilterable: true, isFacetable: true);
+        public static KeywordField<Product> Category { get; } = new(x => x.Category, isFilterable: true, isFacetable: true);
 
         public static string CommonTextPhrase { get; } = Guid.NewGuid().ToString("N");
 
@@ -43,18 +47,17 @@ namespace Clara.Tests
             return item;
         }
 
-        private static string ToText(Product product)
+        private static string GetText(Product product)
         {
-            var builder = new StringBuilder();
+            Builder.Clear();
+            Builder.AppendLine(product.Id.ToString(CultureInfo.InvariantCulture));
+            Builder.AppendLine(product.Title);
+            Builder.AppendLine(product.Description);
+            Builder.AppendLine(product.Brand);
+            Builder.AppendLine(product.Category);
+            Builder.AppendLine(CommonTextPhrase);
 
-            builder.AppendLine(product.Id.ToString(CultureInfo.InvariantCulture));
-            builder.AppendLine(product.Title);
-            builder.AppendLine(product.Description);
-            builder.AppendLine(product.Brand);
-            builder.AppendLine(product.Category);
-            builder.AppendLine(CommonTextPhrase);
-
-            return builder.ToString();
+            return Builder.ToString();
         }
     }
 }

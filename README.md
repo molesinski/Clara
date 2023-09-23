@@ -96,21 +96,23 @@ Built indexes have no persistence and reside only in memory. If index needs upda
 and old one should be discarded. This is why fields have no names and can be referenced only by their
 usually static definition.
 
-`IndexMapper<TSource>` interface is straightforward. It provides all fields collection, method to access document
+`IIndexMapper<TSource>` interface is straightforward. It provides all fields collection, method to access document
 key and method to access indexed document value. Indexed document value, which is provided in query results
-can be different than index source document. To indicate such distinction use `IndexMapper<TSouce, TDocument>`
+can be different than index source document. To indicate such distinction use `IIndexMapper<TSouce, TDocument>`
 type instead and return proper document type in `GetDocument` method implementation.
 
 ```csharp
 public class ProductMapper : IIndexMapper<Product>
 {
-    public static TextField<Product> Text = new(x => GetText(x), new PorterAnalyzer());
-    public static DecimalField<Product> Price = new(x => x.Price, isFilterable: true, isFacetable: true, isSortable: true);
-    public static DoubleField<Product> DiscountPercentage = new(x => x.DiscountPercentage, isFilterable: true, isFacetable: true, isSortable: true);
-    public static DoubleField<Product> Rating = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);
-    public static DoubleField<Product> Stock = new(x => x.Stock, isFilterable: true, isFacetable: true, isSortable: true);
-    public static KeywordField<Product> Brand = new(x => x.Brand, isFilterable: true, isFacetable: true);
-    public static KeywordField<Product> Category = new(x => x.Category, isFilterable: true, isFacetable: true);
+    private static readonly StringBuilder builder = new();
+
+    public static TextField<Product> Text { get; } = new(x => GetText(x), new PorterAnalyzer());
+    public static DecimalField<Product> Price { get; } = new(x => x.Price, isFilterable: true, isFacetable: true, isSortable: true);
+    public static DoubleField<Product> DiscountPercentage { get; } = new(x => x.DiscountPercentage, isFilterable: true, isFacetable: true, isSortable: true);
+    public static DoubleField<Product> Rating { get; } = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);
+    public static DoubleField<Product> Stock { get; } = new(x => x.Stock, isFilterable: true, isFacetable: true, isSortable: true);
+    public static KeywordField<Product> Brand { get; } = new(x => x.Brand, isFilterable: true, isFacetable: true);
+    public static KeywordField<Product> Category { get; } = new(x => x.Category, isFilterable: true, isFacetable: true);
 
     public IEnumerable<Field> GetFields()
     {
@@ -129,8 +131,7 @@ public class ProductMapper : IIndexMapper<Product>
 
     private static string GetText(Product product)
     {
-        var builder = new StringBuilder();
-
+        builder.Clear();
         builder.AppendLine(product.Title);
         builder.AppendLine(product.Description);
         builder.AppendLine(product.Brand);
@@ -161,10 +162,11 @@ public Index<Product> BuildIndex(IEnumerable<Product> items)
 
 With index built, can run queries on it. Result documents can be accessed with `Documents` property and
 facet results via `Facets`. Documents are not paged, since engine has to build whole result set each time
-for facet values computation. If paging is needed, it can be added by simple `Skip`/`Take` logic on top
-`Documents` collection.
+for facet values computation, while using pooled buffers for result construction. If paging is needed,
+it can be added by simple `Skip`/`Take` logic on top `Documents` collection.
 
 ```csharp
+// Query result must always be disposed in order to return pooled buffers for reuse
 using var result = index.Query(
     index.QueryBuilder()
         .Search(ProductMapper.Text, "smartphone")
