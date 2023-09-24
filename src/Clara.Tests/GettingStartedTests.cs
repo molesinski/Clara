@@ -41,16 +41,21 @@ namespace Clara.Tests
 
             foreach (var document in result.Documents.Take(10))
             {
-                this.output.WriteLine($"  [{document.Key}] => {document.Score} ({document.Document.Title})");
+                this.output.WriteLine($"  [{document.Document.Title}] => {document.Score}");
             }
-
-            var brandFacet = result.Facets.Field(ProductMapper.Brand);
 
             this.output.WriteLine("Brands:");
 
-            foreach (var value in brandFacet.Values.Take(5))
+            foreach (var value in result.Facets.Field(ProductMapper.Brand).Values.Take(5))
             {
-                this.output.WriteLine($"  [{value.Value}] => {value.Count} {(value.IsSelected ? "(x)" : "( )")}");
+                this.output.WriteLine($"  {(value.IsSelected ? "(x)" : "( )")} [{value.Value}] => {value.Count}");
+            }
+
+            this.output.WriteLine("Categories:");
+
+            foreach (var value in result.Facets.Field(ProductMapper.Category).Values.Take(5))
+            {
+                this.output.WriteLine($"  {(value.IsSelected ? "(x)" : "( )")} [{value.Value}] => {value.Count}");
             }
 
             var priceFacet = result.Facets.Field(ProductMapper.Price);

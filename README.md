@@ -32,19 +32,19 @@ replacing in memory reference and discarding old one.
 
   Porter (English)
 
-* via Snowball
+* Using [Clara.Analysis.Snowball](https://www.nuget.org/packages/Clara.Analysis.Snowball) package
 
   English, Arabic, Armenian, Basque, Catalan, Danish, Dutch, Finnish, French, German, Greek, Hindi,
   Hungarian, Indonesian, Irish, Italian, Lithuanian, Nepali, Norwegian, Portuguese, Romanian, Russian,
   Serbian, Spanish, Swedish, Tamil, Turkish, Yiddish
 
-* via Morfologik
+* Using [Clara.Analysis.Morfologik](https://www.nuget.org/packages/Clara.Analysis.Morfologik) package
 
   Polish
 
 ## Getting started
 
-Given sample product data set from https://dummyjson.com/products.
+Given sample product data set from [dummyjson.com](https://dummyjson.com/products).
 
 ```json
 [
@@ -179,16 +179,21 @@ Console.WriteLine("Documents:");
 
 foreach (var document in result.Documents.Take(10))
 {
-    Console.WriteLine($"  [{document.Key}] => {document.Score} ({document.Document.Title})");
+    Console.WriteLine($"  [{document.Document.Title}] => {document.Score}");
 }
-
-var brandFacet = result.Facets.Field(ProductMapper.Brand);
 
 Console.WriteLine("Brands:");
 
-foreach (var value in brandFacet.Values.Take(5))
+foreach (var value in result.Facets.Field(ProductMapper.Brand).Values.Take(5))
 {
-    Console.WriteLine($"  [{value.Value}] => {value.Count} {(value.IsSelected ? "(x)" : "( )")}");
+    Console.WriteLine($"  {(value.IsSelected ? "(x)" : "( )")} [{value.Value}] => {value.Count}");
+}
+
+Console.WriteLine("Categories:");
+
+foreach (var value in result.Facets.Field(ProductMapper.Category).Values.Take(5))
+{
+    Console.WriteLine($"  {(value.IsSelected ? "(x)" : "( )")} [{value.Value}] => {value.Count}");
 }
 
 var priceFacet = result.Facets.Field(ProductMapper.Price);
@@ -202,13 +207,15 @@ Running this query against sample data results in following output.
 
 ```
 Documents:
-  [3] => 3,3160777 (Samsung Universe 9)
-  [2] => 2,9904046 (iPhone X)
-  [1] => 3,5479112 (iPhone 9)
+  [Samsung Universe 9] => 3,3160777
+  [iPhone X] => 2,9904046
+  [iPhone 9] => 3,5479112
 Brands:
-  [Apple] => 2 (x)
-  [Samsung] => 1 (x)
-  [Huawei] => 1 ( )
+  (x) [Apple] => 2
+  (x) [Samsung] => 1
+  ( ) [Huawei] => 1
+Categries:
+  ( ) [smartphones] => 3
 Price:
   [Min] => 549
   [Max] => 1249
@@ -219,10 +226,11 @@ Price:
 ### Custom analyzers
 
 Above code uses `PorterAnalyzer` which provides basic English language stemming. For other languages
-`Clara.Analysis.Snowball` or `Clara.Analysis.Morfologik` packages can be used. Those packages provide
-stem and stop token filters for all supported languages.
+[Clara.Analysis.Snowball](https://www.nuget.org/packages/Clara.Analysis.Snowball) or
+[Clara.Analysis.Morfologik](https://www.nuget.org/packages/Clara.Analysis.Morfologik) packages can
+be used. Those packages provide stem and stop token filters for all supported languages.
 
-For example you could define `PolishAnalyzer` like this.
+Below is shown example analyzer definition `PolishAnalyzer` using Morfologik.
 
 ```csharp
 public static IAnalyzer PolishAnalyzer { get; } =
@@ -236,7 +244,7 @@ public static IAnalyzer PolishAnalyzer { get; } =
         new PolishStemTokenFilter());                    // Language specific token stemming
 ```
 
-And then use it for index mapper field definition.
+It can be used for index mapper field definition as follows.
 
 ```csharp
 public static TextField<Product> TextPolish = new(x => GetTextPolish(x), PolishAnalyzer);
@@ -279,6 +287,10 @@ public sealed class DateOnlyField<TSource> : RangeField<TSource, int>
 ```
 
 ### Synonym maps
+
+TODO
+
+### Custom analysis pipeline components
 
 TODO
 

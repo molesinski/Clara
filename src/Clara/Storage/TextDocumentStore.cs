@@ -184,6 +184,12 @@ namespace Clara.Storage
 
                 return new DocumentScoring(documentScores);
             }
+            else if (matchExpression is EmptyValuesMatchExpression)
+            {
+                documentResultBuilder.Clear();
+
+                return default;
+            }
             else
             {
                 throw new InvalidOperationException("Unsupported match expression type encountered.");
