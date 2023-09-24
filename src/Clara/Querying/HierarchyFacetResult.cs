@@ -3,7 +3,7 @@ using Clara.Utils;
 
 namespace Clara.Querying
 {
-    public sealed class HierarchyFacetResult : TokenFacetResult<HierarchyFacetValue>
+    public sealed class HierarchyFacetResult : FacetResult
     {
         private readonly ObjectPoolLease<ListSlim<HierarchyFacetValue>> lease;
         private readonly IEnumerable<HierarchyFacetValue> selectedValues;
@@ -19,7 +19,7 @@ namespace Clara.Querying
             this.selectedValues = selectedValues;
         }
 
-        public override IEnumerable<HierarchyFacetValue> Values
+        public IEnumerable<HierarchyFacetValue> Values
         {
             get
             {

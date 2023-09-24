@@ -1,4 +1,5 @@
-﻿using Clara.Analysis.Synonyms;
+﻿using System.Text;
+using Clara.Analysis.Synonyms;
 using Clara.Mapping;
 using Clara.Utils;
 
@@ -11,6 +12,7 @@ namespace Clara.Storage
         private readonly ITokenEncoderBuilder tokenEncoderBuilder;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
         private readonly DictionarySlim<int, int> documentLengths;
+        private readonly StringBuilder builder;
         private bool isBuilt;
 
         public TextFieldStoreBuilder(TextField<TSource> field, TokenEncoderStore tokenEncoderStore, ISynonymMap? synonymMap)
@@ -30,6 +32,7 @@ namespace Clara.Storage
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
             this.tokenDocumentScores = new();
             this.documentLengths = new();
+            this.builder = new();
         }
 
         public override void Index(int documentId, TSource item)
@@ -39,14 +42,29 @@ namespace Clara.Storage
                 throw new InvalidOperationException("Current instance is already built.");
             }
 
-            var text = this.field.ValueMapper(item);
+            var builder = this.builder;
+            var lastValue = default(string?);
+            var valueCount = 0;
 
-            if (text is null)
+            builder.Clear();
+
+            foreach (var value in this.field.ValueMapper(item))
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    builder.AppendLine(value);
+                    lastValue = value;
+                    valueCount++;
+                }
+            }
+
+            if (valueCount == 0)
             {
                 return;
             }
 
             var analyzer = this.synonymMap ?? this.field.Analyzer;
+            var text = valueCount == 1 ? lastValue! : builder.ToString();
 
             foreach (var token in analyzer.GetTokens(text))
             {

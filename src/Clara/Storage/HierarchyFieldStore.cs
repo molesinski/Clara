@@ -48,7 +48,7 @@ namespace Clara.Storage
             {
                 if (this.documentTokenStore is not null)
                 {
-                    return this.documentTokenStore.Facet(filterExpression, ref documentResultBuilder);
+                    return this.documentTokenStore.Facet(filterExpression as HierarchyFilterExpression, ref documentResultBuilder);
                 }
             }
 

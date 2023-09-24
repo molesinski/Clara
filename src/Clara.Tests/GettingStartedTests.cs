@@ -1,4 +1,5 @@
 ﻿using Clara.Querying;
+using Clara.Storage;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,16 +17,9 @@ namespace Clara.Tests
         [Fact]
         public void GettingStarted()
         {
-            var builder =
-                new IndexBuilder<Product, Product>(
-                    new ProductMapper());
+            var tokenEncoderStore = new SharedTokenEncoderStore();
 
-            foreach (var item in Product.Items)
-            {
-                builder.Index(item);
-            }
-
-            var index = builder.Build();
+            var index = IndexBuilder.Build(Product.Items, new ProductMapper(), tokenEncoderStore);
 
             using var result = index.Query(
                 index.QueryBuilder()

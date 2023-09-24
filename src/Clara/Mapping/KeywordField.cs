@@ -3,13 +3,18 @@ using Clara.Storage;
 
 namespace Clara.Mapping
 {
-    public abstract class KeywordField : TokenField
+    public abstract class KeywordField : Field
     {
         internal KeywordField(bool isFilterable, bool isFacetable)
             : base(
                 isFilterable: isFilterable,
-                isFacetable: isFacetable)
+                isFacetable: isFacetable,
+                isSortable: false)
         {
+            if (!isFilterable && !isFacetable)
+            {
+                throw new InvalidOperationException("Either filtering or faceting must be enabled for given field.");
+            }
         }
     }
 
@@ -25,10 +30,10 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new TokenValue(valueMapper(source));
+            this.ValueMapper = source => new StringEnumerable(valueMapper(source));
         }
 
-        public KeywordField(Func<TSource, IEnumerable<string>?> valueMapper, bool isFilterable = false, bool isFacetable = false)
+        public KeywordField(Func<TSource, IEnumerable<string?>?> valueMapper, bool isFilterable = false, bool isFacetable = false)
             : base(
                 isFilterable: isFilterable,
                 isFacetable: isFacetable)
@@ -38,10 +43,10 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new TokenValue(valueMapper(source));
+            this.ValueMapper = source => new StringEnumerable(valueMapper(source));
         }
 
-        internal Func<TSource, TokenValue> ValueMapper { get; }
+        internal Func<TSource, StringEnumerable> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderStore tokenEncoderStore,

@@ -1,7 +1,6 @@
 ﻿#pragma warning disable SA1516 // Elements should be separated by blank line
 
 using System.Globalization;
-using System.Text;
 using Clara.Analysis;
 using Clara.Mapping;
 
@@ -45,18 +44,14 @@ namespace Clara.Tests
             return item;
         }
 
-        private static string GetText(Product product)
+        private static IEnumerable<string?> GetText(Product product)
         {
-            var builder = new StringBuilder();
-
-            builder.AppendLine(product.Id.ToString(CultureInfo.InvariantCulture));
-            builder.AppendLine(product.Title);
-            builder.AppendLine(product.Description);
-            builder.AppendLine(product.Brand);
-            builder.AppendLine(product.Category);
-            builder.AppendLine(CommonTextPhrase);
-
-            return builder.ToString();
+            yield return product.Id.ToString(CultureInfo.InvariantCulture);
+            yield return product.Title;
+            yield return product.Description;
+            yield return product.Brand;
+            yield return product.Category;
+            yield return CommonTextPhrase;
         }
     }
 }

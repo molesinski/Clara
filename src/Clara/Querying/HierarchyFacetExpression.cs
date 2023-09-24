@@ -2,7 +2,7 @@
 
 namespace Clara.Querying
 {
-    public sealed class HierarchyFacetExpression : TokenFacetExpression<HierarchyFacetValue>
+    public sealed class HierarchyFacetExpression : FacetExpression
     {
         public HierarchyFacetExpression(HierarchyField field)
             : base(field)

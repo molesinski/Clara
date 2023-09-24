@@ -36,10 +36,21 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = valueMapper;
+            this.ValueMapper = source => new StringEnumerable(valueMapper(source));
         }
 
-        public Func<TSource, string?> ValueMapper { get; }
+        public TextField(Func<TSource, IEnumerable<string?>?> valueMapper, IAnalyzer analyzer)
+            : base(analyzer)
+        {
+            if (valueMapper is null)
+            {
+                throw new ArgumentNullException(nameof(valueMapper));
+            }
+
+            this.ValueMapper = source => new StringEnumerable(valueMapper(source));
+        }
+
+        internal Func<TSource, StringEnumerable> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderStore tokenEncoderStore,

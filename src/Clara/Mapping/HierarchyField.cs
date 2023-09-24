@@ -3,15 +3,21 @@ using Clara.Storage;
 
 namespace Clara.Mapping
 {
-    public abstract class HierarchyField : TokenField
+    public abstract class HierarchyField : Field
     {
         public const string DefaultRoot = "0";
 
         internal HierarchyField(bool isFilterable, bool isFacetable, char separator, string root)
             : base(
                 isFilterable: isFilterable,
-                isFacetable: isFacetable)
+                isFacetable: isFacetable,
+                isSortable: false)
         {
+            if (!isFilterable && !isFacetable)
+            {
+                throw new InvalidOperationException("Either filtering or faceting must be enabled for given field.");
+            }
+
             if (root is null)
             {
                 throw new ArgumentNullException(nameof(root));
@@ -40,10 +46,10 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new TokenValue(valueMapper(source));
+            this.ValueMapper = source => new StringEnumerable(valueMapper(source));
         }
 
-        public HierarchyField(Func<TSource, IEnumerable<string>?> valueMapper, bool isFilterable = false, bool isFacetable = false, char separator = ',', string root = DefaultRoot)
+        public HierarchyField(Func<TSource, IEnumerable<string?>?> valueMapper, bool isFilterable = false, bool isFacetable = false, char separator = ',', string root = DefaultRoot)
             : base(
                 isFilterable: isFilterable,
                 isFacetable: isFacetable,
@@ -55,10 +61,10 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new TokenValue(valueMapper(source));
+            this.ValueMapper = source => new StringEnumerable(valueMapper(source));
         }
 
-        internal Func<TSource, TokenValue> ValueMapper { get; }
+        internal Func<TSource, StringEnumerable> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderStore tokenEncoderStore,

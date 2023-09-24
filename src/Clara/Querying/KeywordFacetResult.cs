@@ -3,7 +3,7 @@ using Clara.Utils;
 
 namespace Clara.Querying
 {
-    public sealed class KeywordFacetResult : TokenFacetResult<KeywordFacetValue>
+    public sealed class KeywordFacetResult : FacetResult
     {
         private readonly ObjectPoolLease<ListSlim<KeywordFacetValue>> lease;
         private bool isDisposed;
@@ -16,7 +16,7 @@ namespace Clara.Querying
             this.lease = lease;
         }
 
-        public override IEnumerable<KeywordFacetValue> Values
+        public IEnumerable<KeywordFacetValue> Values
         {
             get
             {

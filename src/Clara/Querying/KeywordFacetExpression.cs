@@ -2,7 +2,7 @@
 
 namespace Clara.Querying
 {
-    public sealed class KeywordFacetExpression : TokenFacetExpression<KeywordFacetValue>
+    public sealed class KeywordFacetExpression : FacetExpression
     {
         public KeywordFacetExpression(KeywordField field)
             : base(field)

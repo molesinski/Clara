@@ -51,15 +51,15 @@ namespace Clara.Storage
             this.parentChildren = parentChildren;
         }
 
-        public FacetResult Facet(FilterExpression? filterExpression, ref DocumentResultBuilder documentResultBuilder)
+        public FacetResult Facet(HierarchyFilterExpression? hierarchyFilterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             using var selectedValues = SharedObjectPools.ValueSets.Lease();
 
-            if (filterExpression is TokenFilterExpression tokenFilterExpression)
+            if (hierarchyFilterExpression is not null)
             {
-                if (tokenFilterExpression.ValuesExpression.Values.Count > 0)
+                if (hierarchyFilterExpression.ValuesExpression.Values.Count > 0)
                 {
-                    selectedValues.Instance.UnionWith(tokenFilterExpression.ValuesExpression.Values);
+                    selectedValues.Instance.UnionWith(hierarchyFilterExpression.ValuesExpression.Values);
                 }
             }
 

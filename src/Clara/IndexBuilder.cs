@@ -21,16 +21,16 @@ namespace Clara
         public static Index<TDocument> Build<TSource, TDocument>(
             IEnumerable<TSource> source,
             IIndexMapper<TSource, TDocument> indexMapper,
-            IEnumerable<ISynonymMap> synonymMaps)
+            params ISynonymMap[] synonymMaps)
         {
-            return Build(source, indexMapper, synonymMaps, new InstanceTokenEncoderStore());
+            return Build(source, indexMapper, new InstanceTokenEncoderStore(), synonymMaps);
         }
 
         public static Index<TDocument> Build<TSource, TDocument>(
             IEnumerable<TSource> source,
             IIndexMapper<TSource, TDocument> indexMapper,
-            IEnumerable<ISynonymMap> synonymMaps,
-            TokenEncoderStore tokenEncoderStore)
+            TokenEncoderStore tokenEncoderStore,
+            params ISynonymMap[] synonymMaps)
         {
             if (source is null)
             {
@@ -42,19 +42,19 @@ namespace Clara
                 throw new ArgumentNullException(nameof(indexMapper));
             }
 
-            if (synonymMaps is null)
-            {
-                throw new ArgumentNullException(nameof(synonymMaps));
-            }
-
             if (tokenEncoderStore is null)
             {
                 throw new ArgumentNullException(nameof(tokenEncoderStore));
             }
 
+            if (synonymMaps is null)
+            {
+                throw new ArgumentNullException(nameof(synonymMaps));
+            }
+
             lock (tokenEncoderStore.SyncRoot)
             {
-                var builder = new IndexBuilder<TSource, TDocument>(indexMapper, synonymMaps, tokenEncoderStore);
+                var builder = new IndexBuilder<TSource, TDocument>(indexMapper, tokenEncoderStore, synonymMaps);
 
                 foreach (var item in source)
                 {
@@ -75,36 +75,23 @@ namespace Clara
         private bool isBuilt;
 
         public IndexBuilder(
-            IIndexMapper<TSource, TDocument> indexMapper)
-            : this(indexMapper, Array.Empty<ISynonymMap>())
-        {
-        }
-
-        public IndexBuilder(
             IIndexMapper<TSource, TDocument> indexMapper,
+            TokenEncoderStore tokenEncoderStore,
             IEnumerable<ISynonymMap> synonymMaps)
-            : this(indexMapper, synonymMaps, new InstanceTokenEncoderStore())
-        {
-        }
-
-        public IndexBuilder(
-            IIndexMapper<TSource, TDocument> indexMapper,
-            IEnumerable<ISynonymMap> synonymMaps,
-            TokenEncoderStore tokenEncoderStore)
         {
             if (indexMapper is null)
             {
                 throw new ArgumentNullException(nameof(indexMapper));
             }
 
-            if (synonymMaps is null)
-            {
-                throw new ArgumentNullException(nameof(synonymMaps));
-            }
-
             if (tokenEncoderStore is null)
             {
                 throw new ArgumentNullException(nameof(tokenEncoderStore));
+            }
+
+            if (synonymMaps is null)
+            {
+                throw new ArgumentNullException(nameof(synonymMaps));
             }
 
             this.indexMapper = indexMapper;

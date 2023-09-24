@@ -7,10 +7,8 @@
   * [ ] Write `SynonymGraph` tests
   * [ ] Document synonym maps in `README.md`
 * [ ] Analysis
-  * [ ] Implement `Token`.`Replace` method
-  * [ ] Implement `Token`.`Delete` method
-  * [ ] Implement `GermanNormalizationTokenFilter`
-  * [ ] Look for other potential language specific filters to port from Lucene
+  * [ ] Implement `Token`.`Delete`/`Insert`/`Replace` methods
+  * [ ] Implement `GermanNormalizationTokenFilter` and other potential language preprocessing filters
   * [ ] Write `Token` tests
   * [ ] Document `ITokenizer`, `IFilterToken` and `IAnalyzer` in `README.md`
 * [ ] Memory allocation reduction

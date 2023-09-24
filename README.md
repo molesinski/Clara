@@ -129,16 +129,11 @@ public sealed class ProductMapper : IIndexMapper<Product>
 
     private static string GetText(Product product)
     {
-        var builder = new StringBuilder();
-
-        builder.AppendLine(product.Id.ToString(CultureInfo.InvariantCulture));
-        builder.AppendLine(product.Title);
-        builder.AppendLine(product.Description);
-        builder.AppendLine(product.Brand);
-        builder.AppendLine(product.Category);
-        builder.AppendLine(CommonTextPhrase);
-
-        return builder.ToString();
+        yield return product.Id.ToString(CultureInfo.InvariantCulture);
+        yield return product.Title;
+        yield return product.Description;
+        yield return product.Brand;
+        yield return product.Category;
     }
 }
 ```
@@ -146,16 +141,10 @@ public sealed class ProductMapper : IIndexMapper<Product>
 Then we build our index.
 
 ```csharp
-var builder =
-    new IndexBuilder<Product, Product>(
-        new ProductMapper());
+// To reduce allocations, same shared token encoder should be passed to rebuilt indices
+var tokenEncoderStore = new SharedTokenEncoderStore();
 
-foreach (var item in Product.Items)
-{
-    builder.Index(item);
-}
-
-var index = builder.Build();
+var index = IndexBuilder.Build(Product.Items, new ProductMapper(), tokenEncoderStore);
 ```
 
 With index built, can run queries on it. Result documents can be accessed with `Documents` property and
@@ -223,6 +212,10 @@ Price:
 
 ## Advanced scenarios
 
+### Synonym maps
+
+TODO
+
 ### Custom analyzers
 
 Above code uses `PorterAnalyzer` which provides basic English language stemming. For other languages
@@ -286,11 +279,7 @@ public sealed class DateOnlyField<TSource> : RangeField<TSource, int>
 }
 ```
 
-### Synonym maps
-
-TODO
-
-### Custom analysis pipeline components
+### Custom `IAnalyzer`, `ITokenizer` and `IFilterToken`
 
 TODO
 
@@ -309,23 +298,26 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 ### Index benchmarks
 
-| Method          | Mean        | Error       | StdDev      | Gen0      | Gen1      | Gen2      | Allocated   |
-|---------------- |------------:|------------:|------------:|----------:|----------:|----------:|------------:|
-| IndexX100       | 67,040.2 μs | 1,302.74 μs | 1,739.12 μs | 2500.0000 | 2375.0000 | 1125.0000 | 30734.56 KB |
-| Index           |    468.7 μs |     7.40 μs |     6.56 μs |   34.1797 |   12.2070 |         - |   528.38 KB |
-| SynonymMapIndex |    534.2 μs |     4.97 μs |     4.40 μs |   35.1563 |   11.7188 |         - |   552.81 KB |
+| Method                      | Mean        | Error       | StdDev      | Gen0      | Gen1      | Gen2      | Allocated   |
+|---------------------------- |------------:|------------:|------------:|----------:|----------:|----------:|------------:|
+| IndexX100                   | 67,430.6 μs | 1,263.43 μs | 1,120.00 μs | 2500.0000 | 2375.0000 | 1125.0000 | 31207.90 KB |
+| IndexWithSynonymMap         |    528.0 μs |     3.32 μs |     3.11 μs |   36.1328 |   12.6953 |         - |   559.76 KB |
+| Index                       |    464.8 μs |     5.57 μs |     5.21 μs |   34.6680 |   13.1836 |         - |   538.11 KB |
+| SharedIndexX100             | 63,359.2 μs | 1,254.67 μs | 1,631.42 μs | 2333.3333 | 2111.1111 | 1000.0000 | 29920.02 KB |
+| SharedIndexWithSynonymMap   |    509.3 μs |     4.67 μs |     4.37 μs |   32.2266 |   12.6953 |         - |   507.06 KB |
+| SharedIndex                 |    441.2 μs |     2.11 μs |     1.87 μs |   31.2500 |   10.7422 |         - |   485.41 KB |
 
 ### Query benchmarks
 
-| Method                         | Mean       | Error     | StdDev    | Gen0   | Allocated |
-|------------------------------- |-----------:|----------:|----------:|-------:|----------:|
-| SearchFilterFacetSortQueryX100 | 570.530 μs | 4.3694 μs | 4.0871 μs |      - |    1585 B |
-| SearchFilterFacetSortQuery     |  12.417 μs | 0.0557 μs | 0.0521 μs | 0.0916 |    1584 B |
-| SearchQuery                    |   7.295 μs | 0.0281 μs | 0.0263 μs | 0.0381 |     704 B |
-| FilterQuery                    |   1.410 μs | 0.0075 μs | 0.0066 μs | 0.0458 |     720 B |
-| FacetQuery                     |   9.898 μs | 0.0679 μs | 0.0635 μs | 0.0305 |     648 B |
-| SortQuery                      |   3.584 μs | 0.0164 μs | 0.0154 μs | 0.0229 |     408 B |
-| Query                          |   1.439 μs | 0.0049 μs | 0.0046 μs | 0.0191 |     312 B |
+| Method           | Mean       | Error     | StdDev    | Gen0   | Allocated |
+|----------------- |-----------:|----------:|----------:|-------:|----------:|
+| ComplexQueryX100 | 562.859 μs | 5.0751 μs | 4.7473 μs |      - |    1585 B |
+| ComplexQuery     |  12.496 μs | 0.0361 μs | 0.0338 μs | 0.0916 |    1584 B |
+| SearchQuery      |   7.279 μs | 0.0434 μs | 0.0406 μs | 0.0381 |     704 B |
+| FilterQuery      |   1.395 μs | 0.0070 μs | 0.0058 μs | 0.0458 |     720 B |
+| FacetQuery       |   9.482 μs | 0.0193 μs | 0.0161 μs | 0.0305 |     648 B |
+| SortQuery        |   3.495 μs | 0.0104 μs | 0.0097 μs | 0.0229 |     408 B |
+| BasicQuery       |   1.398 μs | 0.0064 μs | 0.0060 μs | 0.0191 |     312 B |
 
 > Due to internal buffer structures pooling, memory allocation per search execution is constant
 > after initial allocation of pooled buffers.

@@ -35,15 +35,15 @@ namespace Clara.Storage
             this.documentTokens = documentTokens;
         }
 
-        public FacetResult? Facet(FilterExpression? filterExpression, ref DocumentResultBuilder documentResultBuilder)
+        public FacetResult? Facet(KeywordFilterExpression? keywordFilterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             using var selectedValues = SharedObjectPools.ValueSets.Lease();
 
-            if (filterExpression is TokenFilterExpression tokenFilterExpression)
+            if (keywordFilterExpression is not null)
             {
-                if (tokenFilterExpression.ValuesExpression.Values.Count > 0)
+                if (keywordFilterExpression.ValuesExpression.Values.Count > 0)
                 {
-                    selectedValues.Instance.UnionWith(tokenFilterExpression.ValuesExpression.Values);
+                    selectedValues.Instance.UnionWith(keywordFilterExpression.ValuesExpression.Values);
                 }
             }
 

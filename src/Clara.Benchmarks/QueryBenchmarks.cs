@@ -36,36 +36,13 @@ namespace Clara.Benchmarks
                         new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, this.allTextSynonym }),
                     });
 
-            var builder =
-                new IndexBuilder<Product, Product>(
-                    new ProductMapper(),
-                    new[]
-                    {
-                        synonymMap,
-                    });
+            this.index = IndexBuilder.Build(Product.Items, new ProductMapper(), synonymMap);
 
-            foreach (var item in Product.Items)
-            {
-                builder.Index(item);
-            }
-
-            this.index = builder.Build();
-
-            var builder100 =
-                new IndexBuilder<Product, Product>(
-                    new ProductMapper(),
-                    new[] { synonymMap });
-
-            foreach (var item in Product.ItemsX100)
-            {
-                builder100.Index(item);
-            }
-
-            this.index100 = builder100.Build();
+            this.index100 = IndexBuilder.Build(Product.ItemsX100, new ProductMapper(), synonymMap);
         }
 
         [Benchmark]
-        public void SearchFilterFacetSortQueryX100()
+        public void ComplexQueryX100()
         {
             using var result = this.index100.Query(
                 this.index.QueryBuilder()
@@ -81,7 +58,7 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void SearchFilterFacetSortQuery()
+        public void ComplexQuery()
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
@@ -140,7 +117,7 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void Query()
+        public void BasicQuery()
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder());

@@ -35,20 +35,7 @@ namespace Clara.Tests
                         new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, AllTextPhrase }),
                     });
 
-            var builder =
-                new IndexBuilder<Product, Product>(
-                    new ProductMapper(),
-                    new[]
-                    {
-                        synonymMap,
-                    });
-
-            foreach (var item in Product.Items)
-            {
-                builder.Index(item);
-            }
-
-            this.index = builder.Build();
+            this.index = IndexBuilder.Build(Product.Items, new ProductMapper(), synonymMap);
         }
 
         public enum FilterMode
@@ -58,7 +45,7 @@ namespace Clara.Tests
         }
 
         [Fact]
-        public void SearchFilterFacetSortQuery()
+        public void ComplexQuery()
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
