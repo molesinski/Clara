@@ -17,13 +17,13 @@ replacing in memory reference and discarding old one.
 * Fast in memory searching
 * Low memory allocation for search execution
 * Stemmers and stopwords handling for 30 languages
-* Text, keyword, hierarchy and range (any comparable structure values) fields
-* Synonym graph with multi word synonym support
+* Text, keyword, hierarchy and range fields
+* Synonym tree with multi word synonym support
 * Fully configurable and extendable text analysis pipeline
-* Searching with BM25 weighted document scoring
+* Document scring with BM25 weight
 * Filtering on any field type by values or range
 * Faceting without restricting facet value list by filtered values
-* Result sorting by document score or range field values
+* Result sorting by document score or range field
 * Fluent query builder
 
 ## Supported languages
@@ -141,16 +141,16 @@ public sealed class ProductMapper : IIndexMapper<Product>
 Then we build our index.
 
 ```csharp
-// To reduce allocations, same shared token encoder should be passed to rebuilt indices
+// When rebuilding index, this reference should be reused
 var tokenEncoderStore = new SharedTokenEncoderStore();
 
 var index = IndexBuilder.Build(Product.Items, new ProductMapper(), tokenEncoderStore);
 ```
 
-With index built, can run queries on it. Result documents can be accessed with `Documents` property and
-facet results via `Facets`. Documents are not paged, since engine has to build whole result set each time
-for facet values computation, while using pooled buffers for result construction. If paging is needed,
-it can be added by simple `Skip`/`Take` logic on top `Documents` collection.
+With index built, can run queries against it. Result documents can be accessed with `Documents` property and
+facet results via `Facets`. Documents are not paged, since search engine builds whole result set each time,
+in order to perform facet values computation, while using pooled buffers for result construction. If paging
+is needed, it can be added by simple `Skip`/`Take` logic on top `Documents` collection.
 
 ```csharp
 // Query result must always be disposed in order to return pooled buffers for reuse
@@ -246,7 +246,7 @@ public static TextField<Product> TextPolish = new(x => GetTextPolish(x), PolishA
 ### Custom range fields
 
 Range fields represent index fields for `struct` values with `IComparable<T>` interface implementation.
-By default `DateTime`, `Decimal`, `Double` and `Int32` types are supported. Implementors can support any
+Internally `DateTime`, `Decimal`, `Double` and `Int32` types are supported. Implementors can support any
 type that fullfills requirements by directly using `RangeField<T>` and providing `minValue` and `maxValue`
 for a given type or by providing their own concrete implementation.
 

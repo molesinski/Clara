@@ -2,13 +2,13 @@
 
 * [ ] Synonym maps
   * [ ] Extend `ExplicitMappingSynonym` to allow multiple mapped phrases
-  * [ ] Evaluate `SynonymGraph` multi token phrase handling with sythetic tokens
-  * [ ] Evaluate `SynonymGraph` implementation against document scoring
-  * [ ] Write `SynonymGraph` tests
+  * [ ] Evaluate `SynonymTree` multi token phrase handling with sythetic tokens
+  * [ ] Evaluate `SynonymTree` implementation against document scoring
+  * [ ] Write `SynonymTree` tests
   * [ ] Document synonym maps in `README.md`
 * [ ] Analysis
   * [ ] Implement `Token`.`Delete`/`Insert`/`Replace` methods
-  * [ ] Implement `GermanNormalizationTokenFilter` and other potential language preprocessing filters
+  * [ ] Implement `GermanNormalizationTokenFilter` and other potential language specific filters
   * [ ] Write `Token` tests
   * [ ] Document `ITokenizer`, `IFilterToken` and `IAnalyzer` in `README.md`
 * [ ] Memory allocation reduction
