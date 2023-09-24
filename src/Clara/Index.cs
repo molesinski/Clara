@@ -103,14 +103,17 @@ namespace Clara
 
             if (query.Search is SearchExpression searchExpression)
             {
-                var field = searchExpression.Field;
-
-                if (!this.fieldStores.TryGetValue(field, out var store))
+                if (!searchExpression.IsEmpty)
                 {
-                    throw new InvalidOperationException("Search expression references field not belonging to current index.");
-                }
+                    var field = searchExpression.Field;
 
-                documentScoring = store.Search(searchExpression, ref documentResultBuilder);
+                    if (!this.fieldStores.TryGetValue(field, out var store))
+                    {
+                        throw new InvalidOperationException("Search expression references field not belonging to current index.");
+                    }
+
+                    documentScoring = store.Search(searchExpression, ref documentResultBuilder);
+                }
             }
 
             if (query.Filters.Count > 0)
@@ -129,29 +132,38 @@ namespace Clara
 
                 foreach (var filterExpression in (ListSlim<FilterExpression>)query.Filters)
                 {
-                    filterExpressions.Instance.Add(filterExpression);
+                    if (!filterExpression.IsEmpty)
+                    {
+                        filterExpressions.Instance.Add(filterExpression);
+                    }
                 }
 
-                filterExpressions.Instance.Sort(new FilterExpressionComparer(facetFields.Instance, this.fieldStores));
-
-                foreach (var filterExpression in filterExpressions.Instance)
+                if (filterExpressions.Instance.Count > 0)
                 {
-                    var field = filterExpression.Field;
-
-                    if (!this.fieldStores.TryGetValue(field, out var store))
+                    if (filterExpressions.Instance.Count > 1)
                     {
-                        throw new InvalidOperationException("Filter expression references field not belonging to current index.");
+                        filterExpressions.Instance.Sort(new FilterExpressionComparer(facetFields.Instance, this.fieldStores));
                     }
 
-                    if (filterExpression.IsBranchingRequiredForFaceting)
+                    foreach (var filterExpression in filterExpressions.Instance)
                     {
-                        if (facetFields.Instance.Contains(field))
+                        var field = filterExpression.Field;
+
+                        if (!this.fieldStores.TryGetValue(field, out var store))
                         {
-                            documentResultBuilder.Facet(field);
+                            throw new InvalidOperationException("Filter expression references field not belonging to current index.");
                         }
-                    }
 
-                    store.Filter(filterExpression, ref documentResultBuilder);
+                        if (filterExpression.IsBranchingRequiredForFaceting)
+                        {
+                            if (facetFields.Instance.Contains(field))
+                            {
+                                documentResultBuilder.Facet(field);
+                            }
+                        }
+
+                        store.Filter(filterExpression, ref documentResultBuilder);
+                    }
                 }
             }
 
@@ -189,18 +201,21 @@ namespace Clara
                         throw new InvalidOperationException("Facet expression references field not belonging to current index.");
                     }
 
-                    var filterExpression = default(FilterExpression);
+                    var fieldFilterExpression = default(FilterExpression);
 
-                    foreach (var item in (ListSlim<FilterExpression>)query.Filters)
+                    foreach (var filterExpression in (ListSlim<FilterExpression>)query.Filters)
                     {
-                        if (item.Field == field)
+                        if (!filterExpression.IsEmpty)
                         {
-                            filterExpression = item;
-                            break;
+                            if (filterExpression.Field == field)
+                            {
+                                fieldFilterExpression = filterExpression;
+                                break;
+                            }
                         }
                     }
 
-                    var facetResult = store.Facet(facetExpression, filterExpression, ref documentResultBuilder);
+                    var facetResult = store.Facet(facetExpression, fieldFilterExpression, ref documentResultBuilder);
 
                     if (facetResult is not null)
                     {

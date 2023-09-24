@@ -1,4 +1,5 @@
-﻿using Clara.Storage;
+﻿using Clara.Mapping;
+using Clara.Storage;
 using Clara.Utils;
 
 namespace Clara.Querying
@@ -46,13 +47,6 @@ namespace Clara.Querying
                 }
 
                 if (value is null)
-                {
-                    this.search = null;
-
-                    return;
-                }
-
-                if (value.IsEmpty)
                 {
                     this.search = null;
 
@@ -192,15 +186,19 @@ namespace Clara.Querying
                 throw new InvalidOperationException("Filter expression references field not belonging to current index.");
             }
 
-            foreach (var item in this.filters.Instance)
+            var filters = this.filters.Instance;
+
+            for (var i = 0; i < filters.Count; i++)
             {
-                if (item.Field == filterExpression.Field)
+                if (filters[i].Field == filterExpression.Field)
                 {
-                    throw new InvalidOperationException("Filter for given field has already been added.");
+                    filters[i] = filterExpression;
+
+                    return;
                 }
             }
 
-            this.filters.Instance.Add(filterExpression);
+            filters.Add(filterExpression);
         }
 
         public void AddFacet(FacetExpression facetExpression)
@@ -220,15 +218,19 @@ namespace Clara.Querying
                 throw new InvalidOperationException("Facet expression references field not belonging to current index.");
             }
 
-            foreach (var item in this.facets.Instance)
+            var facets = this.facets.Instance;
+
+            for (var i = 0; i < facets.Count; i++)
             {
-                if (item.Field == facetExpression.Field)
+                if (facets[i].Field == facetExpression.Field)
                 {
-                    throw new InvalidOperationException("Facet for given field has already been added.");
+                    facets[i] = facetExpression;
+
+                    return;
                 }
             }
 
-            this.facets.Instance.Add(facetExpression);
+            facets.Add(facetExpression);
         }
 
         public void Dispose()
@@ -240,6 +242,42 @@ namespace Clara.Querying
 
                 this.isDisposed = true;
             }
+        }
+
+        internal bool IsFilterAdded(Field field)
+        {
+            if (this.isDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().FullName);
+            }
+
+            foreach (var filterExpression in this.filters.Instance)
+            {
+                if (filterExpression.Field == field)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        internal bool IsFacetAdded(Field field)
+        {
+            if (this.isDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().FullName);
+            }
+
+            foreach (var facetExpression in this.facets.Instance)
+            {
+                if (facetExpression.Field == field)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

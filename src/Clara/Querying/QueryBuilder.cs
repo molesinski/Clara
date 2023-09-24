@@ -29,19 +29,24 @@ namespace Clara.Querying
             return this.query;
         }
 
-        public QueryBuilder Search(TextField field, string text, SearchMode mode = SearchMode.All)
+        public QueryBuilder Search(TextField field, string? text, SearchMode mode = SearchMode.All)
         {
             if (this.isDisposed)
             {
                 throw new ObjectDisposedException(this.GetType().FullName);
             }
 
-            if (this.query.Search is not null)
+            if (field is null)
             {
-                throw new InvalidOperationException("Search expression already has been set.");
+                throw new ArgumentNullException(nameof(field));
             }
 
-            this.query.Search = new SearchExpression(field, text, mode);
+            if (this.query.Search is not null)
+            {
+                throw new InvalidOperationException("Search already has been set.");
+            }
+
+            this.query.Search = new SearchExpression(field, text ?? string.Empty, mode);
 
             return this;
         }
@@ -51,6 +56,21 @@ namespace Clara.Querying
             if (this.isDisposed)
             {
                 throw new ObjectDisposedException(this.GetType().FullName);
+            }
+
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            if (valuesExpression is null)
+            {
+                throw new ArgumentNullException(nameof(valuesExpression));
+            }
+
+            if (this.query.IsFacetAdded(field))
+            {
+                throw new InvalidOperationException("Filter for field already has been added.");
             }
 
             this.query.AddFilter(new KeywordFilterExpression(field, valuesExpression));
@@ -63,6 +83,21 @@ namespace Clara.Querying
             if (this.isDisposed)
             {
                 throw new ObjectDisposedException(this.GetType().FullName);
+            }
+
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            if (valuesExpression is null)
+            {
+                throw new ArgumentNullException(nameof(valuesExpression));
+            }
+
+            if (this.query.IsFacetAdded(field))
+            {
+                throw new InvalidOperationException("Filter for field already has been added.");
             }
 
             this.query.AddFilter(new HierarchyFilterExpression(field, valuesExpression));
@@ -78,6 +113,16 @@ namespace Clara.Querying
                 throw new ObjectDisposedException(this.GetType().FullName);
             }
 
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            if (this.query.IsFacetAdded(field))
+            {
+                throw new InvalidOperationException("Filter for field already has been added.");
+            }
+
             this.query.AddFilter(new RangeFilterExpression<TValue>(field, from, to));
 
             return this;
@@ -90,6 +135,16 @@ namespace Clara.Querying
                 throw new ObjectDisposedException(this.GetType().FullName);
             }
 
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            if (this.query.IsFacetAdded(field))
+            {
+                throw new InvalidOperationException("Facet for field already has been added.");
+            }
+
             this.query.AddFacet(new KeywordFacetExpression(field));
 
             return this;
@@ -100,6 +155,16 @@ namespace Clara.Querying
             if (this.isDisposed)
             {
                 throw new ObjectDisposedException(this.GetType().FullName);
+            }
+
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            if (this.query.IsFacetAdded(field))
+            {
+                throw new InvalidOperationException("Facet for field already has been added.");
             }
 
             this.query.AddFacet(new HierarchyFacetExpression(field));
@@ -115,6 +180,16 @@ namespace Clara.Querying
                 throw new ObjectDisposedException(this.GetType().FullName);
             }
 
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            if (this.query.IsFacetAdded(field))
+            {
+                throw new InvalidOperationException("Facet for field already has been added.");
+            }
+
             this.query.AddFacet(new RangeFacetExpression<TValue>(field));
 
             return this;
@@ -128,9 +203,14 @@ namespace Clara.Querying
                 throw new ObjectDisposedException(this.GetType().FullName);
             }
 
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
             if (this.query.Sort is not null)
             {
-                throw new InvalidOperationException("Sort expression already has been set.");
+                throw new InvalidOperationException("Sort already has been set.");
             }
 
             this.query.Sort = new RangeSortExpression<TValue>(field, direction);

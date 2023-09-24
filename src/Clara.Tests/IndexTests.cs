@@ -70,19 +70,13 @@ namespace Clara.Tests
 
             Assert.True(inputSorted.SequenceEqual(outputSorted));
 
-            var brandFacet = result.Facets
-                .OfType<KeywordFacetResult>()
-                .Where(x => x.Field == ProductMapper.Brand)
-                .Single();
+            var brandFacet = result.Facets.Field(ProductMapper.Brand);
 
             Assert.True(brandFacet.Values.Count() > 1);
             Assert.True(brandFacet.Values.Count(x => x.IsSelected) == 1);
             Assert.True(brandFacet.Values.Single(x => x.IsSelected).Value == topBrand);
 
-            var priceFacet = result.Facets
-                .OfType<RangeFacetResult<decimal>>()
-                .Where(x => x.Field == ProductMapper.Price)
-                .Single();
+            var priceFacet = result.Facets.Field(ProductMapper.Price);
 
             var minBrandPrice = input
                 .Where(x => x.Brand == topBrand)
@@ -92,8 +86,8 @@ namespace Clara.Tests
                 .Where(x => x.Brand == topBrand)
                 .Max(x => x.Price);
 
-            Assert.Equal(priceFacet.Min, minBrandPrice);
-            Assert.Equal(priceFacet.Max, maxBrandPrice);
+            Assert.True(priceFacet.Min == minBrandPrice);
+            Assert.True(priceFacet.Max == maxBrandPrice);
         }
     }
 }

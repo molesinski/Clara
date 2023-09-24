@@ -8,21 +8,21 @@ namespace Clara.Benchmarks
 {
     public class Program
     {
-        private static void Main()
+        private static void Main(string[] args)
         {
-            var benchmarks =
-                new[]
-                {
-                    //// typeof(IndexBenchmarks),
-                    typeof(QueryBenchmarks),
-                };
-
             var config = ManualConfig.CreateEmpty()
                 .AddColumnProvider(DefaultColumnProviders.Instance)
                 .AddLogger(ConsoleLogger.Default)
                 .AddExporter(MarkdownExporter.GitHub);
 
-            BenchmarkRunner.Run(benchmarks, config);
+            var switcher = new BenchmarkSwitcher(
+                new[]
+                {
+                    typeof(IndexBenchmarks),
+                    typeof(QueryBenchmarks),
+                });
+
+            switcher.Run(args, config);
         }
     }
 }

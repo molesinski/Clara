@@ -100,10 +100,6 @@ namespace Clara.Storage
                     break;
                 }
             }
-            else if (valuesExpression is EmptyValuesExpression)
-            {
-                documentResultBuilder.Clear();
-            }
             else
             {
                 throw new InvalidOperationException("Unsupported values expression encountered.");

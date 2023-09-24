@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Clara.Mapping;
 using Clara.Utils;
 
 namespace Clara.Querying
@@ -25,6 +26,46 @@ namespace Clara.Querying
 
                 return this.facetResults.Instance.Count;
             }
+        }
+
+        public KeywordFacetResult Field(KeywordField field)
+        {
+            foreach (var facetResult in this.facetResults.Instance)
+            {
+                if (facetResult.Field == field)
+                {
+                    return (KeywordFacetResult)facetResult;
+                }
+            }
+
+            throw new InvalidOperationException("Field facet result not found.");
+        }
+
+        public HierarchyFacetResult Field(HierarchyField field)
+        {
+            foreach (var facetResult in this.facetResults.Instance)
+            {
+                if (facetResult.Field == field)
+                {
+                    return (HierarchyFacetResult)facetResult;
+                }
+            }
+
+            throw new InvalidOperationException("Field facet result not found.");
+        }
+
+        public RangeFacetResult<TValue> Field<TValue>(RangeField<TValue> field)
+            where TValue : struct, IComparable<TValue>
+        {
+            foreach (var facetResult in this.facetResults.Instance)
+            {
+                if (facetResult.Field == field)
+                {
+                    return (RangeFacetResult<TValue>)facetResult;
+                }
+            }
+
+            throw new InvalidOperationException("Field facet result not found.");
         }
 
         public Enumerator GetEnumerator()

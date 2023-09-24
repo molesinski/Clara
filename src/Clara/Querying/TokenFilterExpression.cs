@@ -17,7 +17,7 @@ namespace Clara.Querying
 
         public ValuesExpression ValuesExpression { get; }
 
-        public override bool IsEmpty
+        internal override bool IsEmpty
         {
             get
             {

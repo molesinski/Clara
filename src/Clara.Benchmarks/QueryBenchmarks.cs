@@ -56,7 +56,7 @@ namespace Clara.Benchmarks
                     new ProductMapper(),
                     new[] { synonymMap });
 
-            foreach (var item in Product.Items100)
+            foreach (var item in Product.ItemsX100)
             {
                 builder100.Index(item);
             }
@@ -77,10 +77,7 @@ namespace Clara.Benchmarks
                     .Facet(ProductMapper.Price)
                     .Sort(ProductMapper.Rating, SortDirection.Descending));
 
-            foreach (var document in result.Documents)
-            {
-                _ = document;
-            }
+            ConsumeResult(result);
         }
 
         [Benchmark]
@@ -96,10 +93,7 @@ namespace Clara.Benchmarks
                     .Facet(ProductMapper.Price)
                     .Sort(ProductMapper.Rating, SortDirection.Descending));
 
-            foreach (var document in result.Documents)
-            {
-                _ = document;
-            }
+            ConsumeResult(result);
         }
 
         [Benchmark]
@@ -109,10 +103,7 @@ namespace Clara.Benchmarks
                 this.index.QueryBuilder()
                     .Search(ProductMapper.Text, this.allTextSynonym));
 
-            foreach (var document in result.Documents)
-            {
-                _ = document;
-            }
+            ConsumeResult(result);
         }
 
         [Benchmark]
@@ -123,10 +114,7 @@ namespace Clara.Benchmarks
                     .Filter(ProductMapper.Brand, Values.Any(this.topBrand))
                     .Filter(ProductMapper.Price, from: 1, to: this.maxPrice - 1));
 
-            foreach (var document in result.Documents)
-            {
-                _ = document;
-            }
+            ConsumeResult(result);
         }
 
         [Benchmark]
@@ -138,10 +126,7 @@ namespace Clara.Benchmarks
                     .Facet(ProductMapper.Category)
                     .Facet(ProductMapper.Price));
 
-            foreach (var document in result.Documents)
-            {
-                _ = document;
-            }
+            ConsumeResult(result);
         }
 
         [Benchmark]
@@ -151,10 +136,7 @@ namespace Clara.Benchmarks
                 this.index.QueryBuilder()
                     .Sort(ProductMapper.Rating, SortDirection.Descending));
 
-            foreach (var document in result.Documents)
-            {
-                _ = document;
-            }
+            ConsumeResult(result);
         }
 
         [Benchmark]
@@ -163,9 +145,38 @@ namespace Clara.Benchmarks
             using var result = this.index.Query(
                 this.index.QueryBuilder());
 
+            ConsumeResult(result);
+        }
+
+        private static void ConsumeResult(QueryResult<Product> result)
+        {
             foreach (var document in result.Documents)
             {
                 _ = document;
+            }
+
+            foreach (var facet in result.Facets)
+            {
+                if (facet is KeywordFacetResult keywordFacetResult)
+                {
+                    foreach (var value in keywordFacetResult.Values)
+                    {
+                        _ = value;
+                    }
+                }
+                else if (facet is HierarchyFacetResult hierarchyFacetResult)
+                {
+                    foreach (var value in hierarchyFacetResult.Values)
+                    {
+                        foreach (var child in value.Children)
+                        {
+                            _ = child;
+                        }
+                    }
+                }
+                else if (facet is RangeFacetResult<decimal>)
+                {
+                }
             }
         }
     }

@@ -21,7 +21,7 @@ namespace Clara.Querying
 
         public Field Field { get; }
 
-        public abstract bool IsEmpty { get; }
+        internal abstract bool IsEmpty { get; }
 
         internal abstract bool IsBranchingRequiredForFaceting { get; }
     }

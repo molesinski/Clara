@@ -8,7 +8,7 @@ namespace Clara.Benchmarks
     {
         public static IReadOnlyCollection<Product> Items { get; } = LoadResource(times: 1);
 
-        public static IReadOnlyCollection<Product> Items100 { get; } = LoadResource(times: 100);
+        public static IReadOnlyCollection<Product> ItemsX100 { get; } = LoadResource(times: 100);
 
         public int Id { get; set; }
         public string? Title { get; set; }

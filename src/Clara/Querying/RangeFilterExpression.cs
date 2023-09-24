@@ -16,7 +16,7 @@ namespace Clara.Querying
 
         public TValue? To { get; }
 
-        public override bool IsEmpty
+        internal override bool IsEmpty
         {
             get
             {

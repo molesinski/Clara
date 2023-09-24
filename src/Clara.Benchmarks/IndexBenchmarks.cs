@@ -9,6 +9,21 @@ namespace Clara.Benchmarks
     public class IndexBenchmarks
     {
         [Benchmark]
+        public void IndexX100()
+        {
+            var builder =
+                new IndexBuilder<Product, Product>(
+                    new ProductMapper());
+
+            foreach (var item in Product.ItemsX100)
+            {
+                builder.Index(item);
+            }
+
+            _ = builder.Build();
+        }
+
+        [Benchmark]
         public void Index()
         {
             var builder =

@@ -11,6 +11,11 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(field));
             }
 
+            if (text is null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
             if (mode != SearchMode.All && mode != SearchMode.Any)
             {
                 throw new ArgumentOutOfRangeException(nameof(mode));
@@ -27,7 +32,7 @@ namespace Clara.Querying
 
         public SearchMode Mode { get; }
 
-        public bool IsEmpty
+        internal bool IsEmpty
         {
             get
             {
