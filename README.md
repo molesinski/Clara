@@ -298,26 +298,26 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 ### Index benchmarks
 
-| Method                      | Mean        | Error       | StdDev      | Gen0      | Gen1      | Gen2      | Allocated   |
-|---------------------------- |------------:|------------:|------------:|----------:|----------:|----------:|------------:|
-| IndexX100                   | 67,430.6 μs | 1,263.43 μs | 1,120.00 μs | 2500.0000 | 2375.0000 | 1125.0000 | 31207.90 KB |
-| IndexWithSynonymMap         |    528.0 μs |     3.32 μs |     3.11 μs |   36.1328 |   12.6953 |         - |   559.76 KB |
-| Index                       |    464.8 μs |     5.57 μs |     5.21 μs |   34.6680 |   13.1836 |         - |   538.11 KB |
-| SharedIndexX100             | 63,359.2 μs | 1,254.67 μs | 1,631.42 μs | 2333.3333 | 2111.1111 | 1000.0000 | 29920.02 KB |
-| SharedIndexWithSynonymMap   |    509.3 μs |     4.67 μs |     4.37 μs |   32.2266 |   12.6953 |         - |   507.06 KB |
-| SharedIndex                 |    441.2 μs |     2.11 μs |     1.87 μs |   31.2500 |   10.7422 |         - |   485.41 KB |
+| Method             | Mean        | Error       | StdDev      | Median      | Gen0      | Gen1      | Gen2      | Allocated   |
+|------------------- |------------:|------------:|------------:|------------:|----------:|----------:|----------:|------------:|
+| IndexX100          | 68,546.8 μs | 1,531.45 μs | 4,515.52 μs | 66,796.3 μs | 2428.5714 | 2285.7143 | 1000.0000 | 31207.57 KB |
+| IndexSynonym       |    532.1 μs |     5.49 μs |     4.29 μs |    532.2 μs |   36.1328 |   12.6953 |         - |   559.79 KB |
+| Index              |    468.1 μs |     6.06 μs |     5.67 μs |    467.6 μs |   34.6680 |   13.1836 |         - |   538.11 KB |
+| SharedIndexX100    | 64,371.0 μs | 1,283.19 μs | 3,242.78 μs | 63,775.1 μs | 2250.0000 | 2000.0000 |  875.0000 | 29917.87 KB |
+| SharedIndexSynonym |    500.6 μs |     7.09 μs |     6.63 μs |    502.4 μs |   32.2266 |   12.6953 |         - |   507.09 KB |
+| SharedIndex        |    439.1 μs |     3.54 μs |     3.14 μs |    439.0 μs |   31.2500 |   10.7422 |         - |   485.41 KB |
 
 ### Query benchmarks
 
 | Method           | Mean       | Error     | StdDev    | Gen0   | Allocated |
 |----------------- |-----------:|----------:|----------:|-------:|----------:|
-| ComplexQueryX100 | 562.859 μs | 5.0751 μs | 4.7473 μs |      - |    1585 B |
-| ComplexQuery     |  12.496 μs | 0.0361 μs | 0.0338 μs | 0.0916 |    1584 B |
-| SearchQuery      |   7.279 μs | 0.0434 μs | 0.0406 μs | 0.0381 |     704 B |
-| FilterQuery      |   1.395 μs | 0.0070 μs | 0.0058 μs | 0.0458 |     720 B |
-| FacetQuery       |   9.482 μs | 0.0193 μs | 0.0161 μs | 0.0305 |     648 B |
-| SortQuery        |   3.495 μs | 0.0104 μs | 0.0097 μs | 0.0229 |     408 B |
-| BasicQuery       |   1.398 μs | 0.0064 μs | 0.0060 μs | 0.0191 |     312 B |
+| ComplexQueryX100 | 564.755 μs | 5.8980 μs | 4.6048 μs |      - |    1585 B |
+| ComplexQuery     |  11.711 μs | 0.0948 μs | 0.0887 μs | 0.0916 |    1584 B |
+| SearchQuery      |   7.280 μs | 0.0446 μs | 0.0417 μs | 0.0381 |     704 B |
+| FilterQuery      |   1.286 μs | 0.0115 μs | 0.0108 μs | 0.0458 |     744 B |
+| FacetQuery       |   8.683 μs | 0.0451 μs | 0.0422 μs | 0.0305 |     600 B |
+| SortQuery        |   3.530 μs | 0.0237 μs | 0.0210 μs | 0.0229 |     408 B |
+| BasicQuery       |   1.402 μs | 0.0064 μs | 0.0060 μs | 0.0191 |     312 B |
 
 > Due to internal buffer structures pooling, memory allocation per search execution is constant
 > after initial allocation of pooled buffers.

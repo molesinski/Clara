@@ -145,7 +145,7 @@ namespace Clara.Storage
 
             values.Instance.Sort(0, selectedCount, HierarchyFacetValueComparer.Instance);
 
-            return new HierarchyFacetResult(this.field, values, values.Instance.Range(0, selectedCount));
+            return new HierarchyFacetResult(this.field, values, 0, selectedCount);
         }
 
         private sealed class HierarchyFacetValueComparer : IComparer<HierarchyFacetValue>

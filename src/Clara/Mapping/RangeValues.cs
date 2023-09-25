@@ -2,18 +2,19 @@
 
 namespace Clara.Mapping
 {
-    internal readonly record struct StringEnumerable : IEnumerable<string>
+    internal readonly struct RangeValues<TValue> : IEnumerable<TValue>
+        where TValue : struct, IComparable<TValue>
     {
-        private readonly string? value;
-        private readonly IEnumerable<string?>? values;
+        private readonly TValue? value;
+        private readonly IEnumerable<TValue>? values;
 
-        public StringEnumerable(string? value)
+        public RangeValues(TValue? value)
         {
             this.value = value;
             this.values = default;
         }
 
-        public StringEnumerable(IEnumerable<string?>? values)
+        public RangeValues(IEnumerable<TValue>? values)
         {
             this.value = default;
             this.values = values;
@@ -24,7 +25,7 @@ namespace Clara.Mapping
             return new Enumerator(this);
         }
 
-        readonly IEnumerator<string> IEnumerable<string>.GetEnumerator()
+        readonly IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
         {
             return this.GetEnumerator();
         }
@@ -34,17 +35,17 @@ namespace Clara.Mapping
             return this.GetEnumerator();
         }
 
-        public struct Enumerator : IEnumerator<string>
+        public struct Enumerator : IEnumerator<TValue>
         {
-            private readonly string? value;
-            private readonly IReadOnlyList<string>? listValues;
-            private readonly IEnumerable<string?>? enumerableValues;
+            private readonly TValue? value;
+            private readonly IReadOnlyList<TValue>? listValues;
+            private readonly IEnumerable<TValue>? enumerableValues;
             private bool isEnumerated;
             private int index;
-            private IEnumerator<string?>? enumerator;
-            private string? current;
+            private IEnumerator<TValue>? enumerator;
+            private TValue current;
 
-            internal Enumerator(StringEnumerable source)
+            internal Enumerator(RangeValues<TValue> source)
             {
                 this.value = default;
                 this.listValues = default;
@@ -54,7 +55,7 @@ namespace Clara.Mapping
                 {
                     this.value = source.value;
                 }
-                else if (source.values is IReadOnlyList<string> listValues)
+                else if (source.values is IReadOnlyList<TValue> listValues)
                 {
                     this.listValues = listValues;
                 }
@@ -69,11 +70,11 @@ namespace Clara.Mapping
                 this.current = default;
             }
 
-            public readonly string Current
+            public readonly TValue Current
             {
                 get
                 {
-                    return this.current!;
+                    return this.current;
                 }
             }
 
@@ -81,7 +82,7 @@ namespace Clara.Mapping
             {
                 get
                 {
-                    return this.current!;
+                    return this.current;
                 }
             }
 
@@ -92,7 +93,7 @@ namespace Clara.Mapping
                     if (this.value is not null)
                     {
                         this.isEnumerated = true;
-                        this.current = this.value;
+                        this.current = this.value.Value;
 
                         return true;
                     }
@@ -103,10 +104,7 @@ namespace Clara.Mapping
                             this.current = this.listValues[this.index];
                             this.index++;
 
-                            if (this.current is not null)
-                            {
-                                return true;
-                            }
+                            return true;
                         }
                     }
                     else if (this.enumerableValues is not null)
@@ -117,10 +115,7 @@ namespace Clara.Mapping
                         {
                             this.current = this.enumerator.Current;
 
-                            if (this.current is not null)
-                            {
-                                return true;
-                            }
+                            return true;
                         }
                     }
                 }

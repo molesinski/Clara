@@ -46,7 +46,7 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new StringEnumerable(valueMapper(source));
+            this.ValueMapper = source => new StringValues(valueMapper(source));
         }
 
         public HierarchyField(Func<TSource, IEnumerable<string?>?> valueMapper, bool isFilterable = false, bool isFacetable = false, char separator = ',', string root = DefaultRoot)
@@ -61,10 +61,10 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new StringEnumerable(valueMapper(source));
+            this.ValueMapper = source => new StringValues(valueMapper(source));
         }
 
-        internal Func<TSource, StringEnumerable> ValueMapper { get; }
+        internal Func<TSource, StringValues> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderStore tokenEncoderStore,

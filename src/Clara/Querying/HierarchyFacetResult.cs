@@ -5,21 +5,20 @@ namespace Clara.Querying
 {
     public sealed class HierarchyFacetResult : FacetResult
     {
-        private readonly ObjectPoolLease<ListSlim<HierarchyFacetValue>> lease;
-        private readonly IEnumerable<HierarchyFacetValue> selectedValues;
+        private readonly HierarchyFacetValueCollection items;
         private bool isDisposed;
 
         internal HierarchyFacetResult(
             HierarchyField field,
-            ObjectPoolLease<ListSlim<HierarchyFacetValue>> lease,
-            IEnumerable<HierarchyFacetValue> selectedValues)
+            ObjectPoolLease<ListSlim<HierarchyFacetValue>> items,
+            int offset,
+            int count)
                 : base(field)
         {
-            this.lease = lease;
-            this.selectedValues = selectedValues;
+            this.items = new HierarchyFacetValueCollection(items, offset, count);
         }
 
-        public IEnumerable<HierarchyFacetValue> Values
+        public HierarchyFacetValueCollection Values
         {
             get
             {
@@ -28,7 +27,7 @@ namespace Clara.Querying
                     throw new ObjectDisposedException(this.GetType().FullName);
                 }
 
-                return this.selectedValues;
+                return this.items;
             }
         }
 
@@ -36,7 +35,7 @@ namespace Clara.Querying
         {
             if (!this.isDisposed)
             {
-                this.lease.Dispose();
+                this.items.Dispose();
 
                 this.isDisposed = true;
             }

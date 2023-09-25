@@ -42,7 +42,7 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new RangeValue<TValue>(valueMapper(source));
+            this.ValueMapper = source => new RangeValues<TValue>(valueMapper(source));
         }
 
         public RangeField(Func<TSource, IEnumerable<TValue>?> valueMapper, TValue minValue, TValue maxValue, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
@@ -58,10 +58,10 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new RangeValue<TValue>(valueMapper(source));
+            this.ValueMapper = source => new RangeValues<TValue>(valueMapper(source));
         }
 
-        internal Func<TSource, RangeValue<TValue>> ValueMapper { get; }
+        internal Func<TSource, RangeValues<TValue>> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderStore tokenEncoderStore,

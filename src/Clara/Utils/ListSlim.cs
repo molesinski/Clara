@@ -178,7 +178,7 @@ namespace Clara.Utils
             ArraySortHelper<TItem>.Sort(this.entries, offset, count, comparer);
         }
 
-        public ListSlim<TItem>.RangeEnumerable Range(int offset, int count)
+        public ListSlim<TItem>.RangeCollection Range(int offset, int count)
         {
             if (offset < 0)
             {
@@ -190,7 +190,7 @@ namespace Clara.Utils
                 throw new ArgumentOutOfRangeException(nameof(count));
             }
 
-            return new RangeEnumerable(this, offset, count);
+            return new RangeCollection(this, offset, count);
         }
 
         public Enumerator GetEnumerator()
@@ -239,6 +239,43 @@ namespace Clara.Utils
             }
 
             this.entries = newEntries;
+        }
+
+        public readonly struct RangeCollection : IReadOnlyCollection<TItem>
+        {
+            private readonly ListSlim<TItem> source;
+            private readonly int offset;
+            private readonly int count;
+
+            internal RangeCollection(ListSlim<TItem> source, int offset, int count)
+            {
+                this.source = source;
+                this.offset = offset;
+                this.count = count;
+            }
+
+            public int Count
+            {
+                get
+                {
+                    return this.count;
+                }
+            }
+
+            public Enumerator GetEnumerator()
+            {
+                return new Enumerator(this.source, this.offset, this.count);
+            }
+
+            IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
         }
 
         public struct Enumerator : IEnumerator<TItem>
@@ -307,35 +344,6 @@ namespace Clara.Utils
 
             public readonly void Dispose()
             {
-            }
-        }
-
-        public readonly struct RangeEnumerable : IEnumerable<TItem>
-        {
-            private readonly ListSlim<TItem> source;
-            private readonly int offset;
-            private readonly int count;
-
-            internal RangeEnumerable(ListSlim<TItem> source, int offset, int count)
-            {
-                this.source = source;
-                this.offset = offset;
-                this.count = count;
-            }
-
-            public Enumerator GetEnumerator()
-            {
-                return new Enumerator(this.source, this.offset, this.count);
-            }
-
-            IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator()
-            {
-                return this.GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return this.GetEnumerator();
             }
         }
     }

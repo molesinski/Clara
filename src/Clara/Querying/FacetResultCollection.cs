@@ -6,13 +6,13 @@ namespace Clara.Querying
 {
     public sealed class FacetResultCollection : IReadOnlyCollection<FacetResult>, IDisposable
     {
-        private readonly ObjectPoolLease<ListSlim<FacetResult>> facetResults;
+        private readonly ObjectPoolLease<ListSlim<FacetResult>> items;
         private bool isDisposed;
 
         internal FacetResultCollection(
-            ObjectPoolLease<ListSlim<FacetResult>> facetResults)
+            ObjectPoolLease<ListSlim<FacetResult>> items)
         {
-            this.facetResults = facetResults;
+            this.items = items;
         }
 
         public int Count
@@ -24,13 +24,13 @@ namespace Clara.Querying
                     throw new ObjectDisposedException(this.GetType().FullName);
                 }
 
-                return this.facetResults.Instance.Count;
+                return this.items.Instance.Count;
             }
         }
 
         public KeywordFacetResult Field(KeywordField field)
         {
-            foreach (var facetResult in this.facetResults.Instance)
+            foreach (var facetResult in this.items.Instance)
             {
                 if (facetResult.Field == field)
                 {
@@ -43,7 +43,7 @@ namespace Clara.Querying
 
         public HierarchyFacetResult Field(HierarchyField field)
         {
-            foreach (var facetResult in this.facetResults.Instance)
+            foreach (var facetResult in this.items.Instance)
             {
                 if (facetResult.Field == field)
                 {
@@ -57,7 +57,7 @@ namespace Clara.Querying
         public RangeFacetResult<TValue> Field<TValue>(RangeField<TValue> field)
             where TValue : struct, IComparable<TValue>
         {
-            foreach (var facetResult in this.facetResults.Instance)
+            foreach (var facetResult in this.items.Instance)
             {
                 if (facetResult.Field == field)
                 {
@@ -75,7 +75,7 @@ namespace Clara.Querying
                 throw new ObjectDisposedException(this.GetType().FullName);
             }
 
-            return new Enumerator(this.facetResults.Instance);
+            return new Enumerator(this.items.Instance.GetEnumerator());
         }
 
         IEnumerator<FacetResult> IEnumerable<FacetResult>.GetEnumerator()
@@ -92,12 +92,12 @@ namespace Clara.Querying
         {
             if (!this.isDisposed)
             {
-                foreach (var facet in this.facetResults.Instance)
+                foreach (var facet in this.items.Instance)
                 {
                     facet.Dispose();
                 }
 
-                this.facetResults.Dispose();
+                this.items.Dispose();
 
                 this.isDisposed = true;
             }
@@ -105,24 +105,18 @@ namespace Clara.Querying
 
         public struct Enumerator : IEnumerator<FacetResult>
         {
-            private readonly ListSlim<FacetResult> facetResults;
-            private readonly int count;
-            private int index;
-            private FacetResult current;
+            private ListSlim<FacetResult>.Enumerator enumerator;
 
-            internal Enumerator(ListSlim<FacetResult> facetResults)
+            internal Enumerator(ListSlim<FacetResult>.Enumerator enumerator)
             {
-                this.facetResults = facetResults;
-                this.count = facetResults.Count;
-                this.index = 0;
-                this.current = default!;
+                this.enumerator = enumerator;
             }
 
             public readonly FacetResult Current
             {
                 get
                 {
-                    return this.current;
+                    return this.enumerator.Current;
                 }
             }
 
@@ -130,34 +124,23 @@ namespace Clara.Querying
             {
                 get
                 {
-                    return this.current;
+                    return this.enumerator.Current;
                 }
             }
 
             public bool MoveNext()
             {
-                if (this.index < this.count)
-                {
-                    this.current = this.facetResults[this.index];
-                    this.index++;
-
-                    return true;
-                }
-
-                this.index = this.count + 1;
-                this.current = default!;
-
-                return false;
+                return this.enumerator.MoveNext();
             }
 
             public void Reset()
             {
-                this.index = 0;
-                this.current = default!;
+                this.enumerator.Reset();
             }
 
-            public readonly void Dispose()
+            public void Dispose()
             {
+                this.enumerator.Dispose();
             }
         }
     }

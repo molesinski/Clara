@@ -35,7 +35,7 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void IndexWithSynonymMap()
+        public void IndexSynonym()
         {
             _ = IndexBuilder.Build(Product.Items, new ProductMapper(), this.synonymMap);
         }
@@ -53,7 +53,7 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void SharedIndexWithSynonymMap()
+        public void SharedIndexSynonym()
         {
             _ = IndexBuilder.Build(Product.Items, new ProductMapper(), this.sharedTokenEncoderStore, this.synonymMap);
         }

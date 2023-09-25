@@ -5,18 +5,18 @@ namespace Clara.Querying
 {
     public sealed class KeywordFacetResult : FacetResult
     {
-        private readonly ObjectPoolLease<ListSlim<KeywordFacetValue>> lease;
+        private readonly KeywordFacetValueCollection items;
         private bool isDisposed;
 
         internal KeywordFacetResult(
             KeywordField field,
-            ObjectPoolLease<ListSlim<KeywordFacetValue>> lease)
+            ObjectPoolLease<ListSlim<KeywordFacetValue>> items)
             : base(field)
         {
-            this.lease = lease;
+            this.items = new KeywordFacetValueCollection(items);
         }
 
-        public IEnumerable<KeywordFacetValue> Values
+        public KeywordFacetValueCollection Values
         {
             get
             {
@@ -25,7 +25,7 @@ namespace Clara.Querying
                     throw new ObjectDisposedException(this.GetType().FullName);
                 }
 
-                return this.lease.Instance;
+                return this.items;
             }
         }
 
@@ -33,7 +33,7 @@ namespace Clara.Querying
         {
             if (!this.isDisposed)
             {
-                this.lease.Dispose();
+                this.items.Dispose();
 
                 this.isDisposed = true;
             }

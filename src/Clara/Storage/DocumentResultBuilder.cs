@@ -3,7 +3,7 @@ using Clara.Utils;
 
 namespace Clara.Storage
 {
-    internal struct DocumentResultBuilder : IDisposable
+    internal ref struct DocumentResultBuilder
     {
         private readonly HashSetSlim<int> allDocuments;
         private ObjectPoolLease<ListSlim<DocumentResultBuilderFacet>>? facets;

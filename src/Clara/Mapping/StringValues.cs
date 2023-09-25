@@ -2,19 +2,18 @@
 
 namespace Clara.Mapping
 {
-    internal readonly record struct RangeValue<TValue> : IEnumerable<TValue>
-        where TValue : struct, IComparable<TValue>
+    internal readonly struct StringValues : IEnumerable<string>
     {
-        private readonly TValue? value;
-        private readonly IEnumerable<TValue>? values;
+        private readonly string? value;
+        private readonly IEnumerable<string?>? values;
 
-        public RangeValue(TValue? value)
+        public StringValues(string? value)
         {
             this.value = value;
             this.values = default;
         }
 
-        public RangeValue(IEnumerable<TValue>? values)
+        public StringValues(IEnumerable<string?>? values)
         {
             this.value = default;
             this.values = values;
@@ -25,7 +24,7 @@ namespace Clara.Mapping
             return new Enumerator(this);
         }
 
-        readonly IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
+        readonly IEnumerator<string> IEnumerable<string>.GetEnumerator()
         {
             return this.GetEnumerator();
         }
@@ -35,17 +34,17 @@ namespace Clara.Mapping
             return this.GetEnumerator();
         }
 
-        public struct Enumerator : IEnumerator<TValue>
+        public struct Enumerator : IEnumerator<string>
         {
-            private readonly TValue? value;
-            private readonly IReadOnlyList<TValue>? listValues;
-            private readonly IEnumerable<TValue>? enumerableValues;
+            private readonly string? value;
+            private readonly IReadOnlyList<string>? listValues;
+            private readonly IEnumerable<string?>? enumerableValues;
             private bool isEnumerated;
             private int index;
-            private IEnumerator<TValue>? enumerator;
-            private TValue current;
+            private IEnumerator<string?>? enumerator;
+            private string? current;
 
-            internal Enumerator(RangeValue<TValue> source)
+            internal Enumerator(StringValues source)
             {
                 this.value = default;
                 this.listValues = default;
@@ -55,7 +54,7 @@ namespace Clara.Mapping
                 {
                     this.value = source.value;
                 }
-                else if (source.values is IReadOnlyList<TValue> listValues)
+                else if (source.values is IReadOnlyList<string> listValues)
                 {
                     this.listValues = listValues;
                 }
@@ -70,11 +69,11 @@ namespace Clara.Mapping
                 this.current = default;
             }
 
-            public readonly TValue Current
+            public readonly string Current
             {
                 get
                 {
-                    return this.current;
+                    return this.current!;
                 }
             }
 
@@ -82,7 +81,7 @@ namespace Clara.Mapping
             {
                 get
                 {
-                    return this.current;
+                    return this.current!;
                 }
             }
 
@@ -93,7 +92,7 @@ namespace Clara.Mapping
                     if (this.value is not null)
                     {
                         this.isEnumerated = true;
-                        this.current = this.value.Value;
+                        this.current = this.value;
 
                         return true;
                     }
@@ -104,7 +103,10 @@ namespace Clara.Mapping
                             this.current = this.listValues[this.index];
                             this.index++;
 
-                            return true;
+                            if (this.current is not null)
+                            {
+                                return true;
+                            }
                         }
                     }
                     else if (this.enumerableValues is not null)
@@ -115,7 +117,10 @@ namespace Clara.Mapping
                         {
                             this.current = this.enumerator.Current;
 
-                            return true;
+                            if (this.current is not null)
+                            {
+                                return true;
+                            }
                         }
                     }
                 }

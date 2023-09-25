@@ -1,42 +1,42 @@
 ﻿using System.Collections;
+using Clara.Utils;
 
 namespace Clara.Storage
 {
     internal readonly struct DocumentValueRange<TValue> : IReadOnlyCollection<int>
         where TValue : struct, IComparable<TValue>
     {
-        private readonly IReadOnlyList<DocumentValue<TValue>> source;
-        private readonly int lo;
-        private readonly int hi;
+        private readonly ListSlim<DocumentValue<TValue>>.RangeCollection items;
 
-        public DocumentValueRange(IReadOnlyList<DocumentValue<TValue>> source, TValue? from, TValue? to)
+        public DocumentValueRange(ListSlim<DocumentValue<TValue>> source, TValue? from, TValue? to)
         {
-            this.source = source;
-            this.lo = 0;
-            this.hi = source.Count - 1;
+            var lo = 0;
+            var hi = source.Count - 1;
 
             if (from is not null)
             {
-                this.lo = BinarySearchLow(source, from.Value);
+                lo = BinarySearchLow(source, from.Value);
             }
 
             if (to is not null)
             {
-                this.hi = BinarySearchHigh(source, to.Value);
+                hi = BinarySearchHigh(source, to.Value);
             }
+
+            this.items = source.Range(lo, hi - lo + 1);
         }
 
         public readonly int Count
         {
             get
             {
-                return this.hi - this.lo + 1;
+                return this.items.Count;
             }
         }
 
         public readonly Enumerator GetEnumerator()
         {
-            return new Enumerator(this);
+            return new Enumerator(this.items.GetEnumerator());
         }
 
         readonly IEnumerator<int> IEnumerable<int>.GetEnumerator()
@@ -49,7 +49,7 @@ namespace Clara.Storage
             return this.GetEnumerator();
         }
 
-        private static int BinarySearchLow(IReadOnlyList<DocumentValue<TValue>> list, TValue value)
+        private static int BinarySearchLow(ListSlim<DocumentValue<TValue>> list, TValue value)
         {
             var left = 0;
             var right = list.Count - 1;
@@ -71,7 +71,7 @@ namespace Clara.Storage
             return left;
         }
 
-        private static int BinarySearchHigh(IReadOnlyList<DocumentValue<TValue>> list, TValue value)
+        private static int BinarySearchHigh(ListSlim<DocumentValue<TValue>> list, TValue value)
         {
             var left = 0;
             var right = list.Count - 1;
@@ -95,26 +95,18 @@ namespace Clara.Storage
 
         public struct Enumerator : IEnumerator<int>
         {
-            private readonly IReadOnlyList<DocumentValue<TValue>> source;
-            private readonly int offset;
-            private readonly int count;
-            private int index;
-            private int current;
+            private ListSlim<DocumentValue<TValue>>.Enumerator enumerator;
 
-            public Enumerator(DocumentValueRange<TValue> range)
+            public Enumerator(ListSlim<DocumentValue<TValue>>.Enumerator enumerator)
             {
-                this.source = range.source;
-                this.offset = range.lo;
-                this.count = range.hi - range.lo + 1;
-                this.index = 0;
-                this.current = default;
+                this.enumerator = enumerator;
             }
 
             public readonly int Current
             {
                 get
                 {
-                    return this.current;
+                    return this.enumerator.Current.DocumentId;
                 }
             }
 
@@ -122,34 +114,23 @@ namespace Clara.Storage
             {
                 get
                 {
-                    return this.current;
+                    return this.enumerator.Current.DocumentId;
                 }
             }
 
             public bool MoveNext()
             {
-                if (this.index < this.count)
-                {
-                    this.current = this.source[this.offset + this.index].DocumentId;
-                    this.index++;
-
-                    return true;
-                }
-
-                this.index = this.count + 1;
-                this.current = default;
-
-                return false;
+                return this.enumerator.MoveNext();
             }
 
             public void Reset()
             {
-                this.index = 0;
-                this.current = default;
+                this.enumerator.Reset();
             }
 
-            public readonly void Dispose()
+            public void Dispose()
             {
+                this.enumerator.Dispose();
             }
         }
     }

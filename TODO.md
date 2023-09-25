@@ -11,6 +11,6 @@
   * [ ] Implement `GermanNormalizationTokenFilter` and other potential language specific filters
   * [ ] Write `Token` tests
   * [ ] Document `ITokenizer`, `IFilterToken` and `IAnalyzer` in `README.md`
-* [ ] Memory allocation reduction
-  * [ ] When consuming `KeywordFacetResult`.`Values`
-  * [ ] When consuming `HierarchyFacetResult`.`Values`
+* [x] Memory allocation reduction
+  * [x] When consuming `KeywordFacetResult`.`Values`
+  * [x] When consuming `HierarchyFacetResult`.`Values`

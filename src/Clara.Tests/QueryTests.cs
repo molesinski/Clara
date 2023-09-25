@@ -75,7 +75,7 @@ namespace Clara.Tests
 
             var brandFacet = result.Facets.Field(ProductMapper.Brand);
 
-            Assert.True(brandFacet.Values.Count() > 1);
+            Assert.True(brandFacet.Values.Count > 1);
             Assert.True(brandFacet.Values.Count(x => x.IsSelected) == 1);
             Assert.True(brandFacet.Values.Single(x => x.IsSelected).Value == this.topBrands[0]);
 
