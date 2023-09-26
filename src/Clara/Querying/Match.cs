@@ -4,92 +4,92 @@ namespace Clara.Querying
 {
     public static class Match
     {
-        public static MatchExpression All(string? value)
+        public static MatchExpression All(string? token)
         {
-            if (value is not null)
+            if (token is not null)
             {
-                if (!string.IsNullOrWhiteSpace(value))
+                if (!string.IsNullOrWhiteSpace(token))
                 {
-                    return new AllValuesMatchExpression(new HashSetSlim<string> { value });
+                    return new AllTokensMatchExpression(new ListSlim<string> { token });
                 }
             }
 
-            return EmptyValuesMatchExpression.Instance;
+            return EmptyTokensMatchExpression.Instance;
         }
 
-        public static MatchExpression All(params string?[] values)
+        public static MatchExpression All(params string?[] tokens)
         {
-            return All((IEnumerable<string?>)values);
+            return All((IEnumerable<string?>)tokens);
         }
 
-        public static MatchExpression All(IEnumerable<string?>? values)
+        public static MatchExpression All(IEnumerable<string?>? tokens)
         {
-            if (values is not null)
+            if (tokens is not null)
             {
-                var result = new HashSetSlim<string>();
+                var result = new ListSlim<string>();
 
-                foreach (var value in values)
+                foreach (var token in tokens)
                 {
-                    if (value is not null)
+                    if (token is not null)
                     {
-                        if (!string.IsNullOrWhiteSpace(value))
+                        if (!string.IsNullOrWhiteSpace(token))
                         {
-                            result.Add(value);
+                            result.Add(token);
                         }
                     }
                 }
 
                 if (result.Count > 0)
                 {
-                    return new AllValuesMatchExpression(result);
+                    return new AllTokensMatchExpression(result);
                 }
             }
 
-            return EmptyValuesMatchExpression.Instance;
+            return EmptyTokensMatchExpression.Instance;
         }
 
-        public static MatchExpression Any(string? value)
+        public static MatchExpression Any(string? token)
         {
-            if (value is not null)
+            if (token is not null)
             {
-                if (!string.IsNullOrWhiteSpace(value))
+                if (!string.IsNullOrWhiteSpace(token))
                 {
-                    return new AnyValuesMatchExpression(new HashSetSlim<string> { value });
+                    return new AnyTokensMatchExpression(new ListSlim<string> { token });
                 }
             }
 
-            return EmptyValuesMatchExpression.Instance;
+            return EmptyTokensMatchExpression.Instance;
         }
 
-        public static MatchExpression Any(params string?[] values)
+        public static MatchExpression Any(params string?[] tokens)
         {
-            return Any((IEnumerable<string?>)values);
+            return Any((IEnumerable<string?>)tokens);
         }
 
-        public static MatchExpression Any(IEnumerable<string?>? values)
+        public static MatchExpression Any(IEnumerable<string?>? tokens)
         {
-            if (values is not null)
+            if (tokens is not null)
             {
-                var result = new HashSetSlim<string>();
+                var result = new ListSlim<string>();
 
-                foreach (var value in values)
+                foreach (var token in tokens)
                 {
-                    if (value is not null)
+                    if (token is not null)
                     {
-                        if (!string.IsNullOrWhiteSpace(value))
+                        if (!string.IsNullOrWhiteSpace(token))
                         {
-                            result.Add(value);
+                            result.Add(token);
                         }
                     }
                 }
 
                 if (result.Count > 0)
                 {
-                    return new AnyValuesMatchExpression(result);
+                    return new AnyTokensMatchExpression(result);
                 }
             }
 
-            return EmptyValuesMatchExpression.Instance;
+            return EmptyTokensMatchExpression.Instance;
         }
 
         public static MatchExpression And(params MatchExpression?[] expressions)
@@ -116,7 +116,7 @@ namespace Clara.Querying
                 {
                     var expression = queue.Dequeue();
 
-                    if (expression is EmptyValuesMatchExpression)
+                    if (expression is EmptyTokensMatchExpression)
                     {
                         continue;
                     }
@@ -145,7 +145,7 @@ namespace Clara.Querying
                 }
             }
 
-            return EmptyValuesMatchExpression.Instance;
+            return EmptyTokensMatchExpression.Instance;
         }
 
         public static MatchExpression Or(params MatchExpression?[] expressions)
@@ -172,7 +172,7 @@ namespace Clara.Querying
                 {
                     var expression = queue.Dequeue();
 
-                    if (expression is EmptyValuesMatchExpression)
+                    if (expression is EmptyTokensMatchExpression)
                     {
                         continue;
                     }
@@ -201,7 +201,7 @@ namespace Clara.Querying
                 }
             }
 
-            return EmptyValuesMatchExpression.Instance;
+            return EmptyTokensMatchExpression.Instance;
         }
     }
 }

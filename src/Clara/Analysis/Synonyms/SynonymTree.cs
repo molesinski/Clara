@@ -5,7 +5,7 @@ using Clara.Utils;
 
 namespace Clara.Analysis.Synonyms
 {
-    public class SynonymTree : ISynonymMap, IAnalyzer, IMatchExpressionFilter
+    public class SynonymTree : ISynonymMap
     {
         private readonly TextField field;
         private readonly SynonymNode root;
@@ -92,19 +92,19 @@ namespace Clara.Analysis.Synonyms
                 return matchExpression;
             }
 
-            if (matchExpression is AllValuesMatchExpression allValuesMatchExpression)
+            if (matchExpression is AllTokensMatchExpression allValuesMatchExpression)
             {
                 var expressions = default(ListSlim<MatchExpression>?);
-                var tokens = default(HashSetSlim<string>?);
+                var tokens = default(ListSlim<string>?);
 
-                foreach (var item in new SynonymResultEnumerable(this.root, allValuesMatchExpression.Values))
+                foreach (var synonymResult in new SynonymResultEnumerable(this.root, allValuesMatchExpression.Tokens))
                 {
-                    if (item.Node is SynonymNode node)
+                    if (synonymResult.Node is SynonymNode node)
                     {
                         expressions ??= new();
                         expressions.Add(node.MatchExpression);
                     }
-                    else if (item.Token is string token)
+                    else if (synonymResult.Token is string token)
                     {
                         tokens ??= new();
                         tokens.Add(token);
@@ -118,7 +118,7 @@ namespace Clara.Analysis.Synonyms
 
                 if (tokens is not null)
                 {
-                    expressions.Insert(0, new AllValuesMatchExpression(tokens));
+                    expressions.Insert(0, new AllTokensMatchExpression(tokens));
                 }
 
                 if (expressions.Count == 1)
@@ -130,19 +130,19 @@ namespace Clara.Analysis.Synonyms
                     return new AndMatchExpression(expressions);
                 }
             }
-            else if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
+            else if (matchExpression is AnyTokensMatchExpression anyValuesMatchExpression)
             {
                 var expressions = default(ListSlim<MatchExpression>?);
-                var tokens = default(HashSetSlim<string>?);
+                var tokens = default(ListSlim<string>?);
 
-                foreach (var item in new SynonymResultEnumerable(this.root, anyValuesMatchExpression.Values))
+                foreach (var synonymResult in new SynonymResultEnumerable(this.root, anyValuesMatchExpression.Tokens))
                 {
-                    if (item.Node is SynonymNode node)
+                    if (synonymResult.Node is SynonymNode node)
                     {
                         expressions ??= new();
                         expressions.Add(node.MatchExpression);
                     }
-                    else if (item.Token is string token)
+                    else if (synonymResult.Token is string token)
                     {
                         tokens ??= new();
                         tokens.Add(token);
@@ -156,7 +156,7 @@ namespace Clara.Analysis.Synonyms
 
                 if (tokens is not null)
                 {
-                    expressions.Insert(0, new AnyValuesMatchExpression(tokens));
+                    expressions.Insert(0, new AnyTokensMatchExpression(tokens));
                 }
 
                 if (expressions.Count == 1)

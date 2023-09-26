@@ -40,7 +40,7 @@ namespace Clara.Storage
 
         public override DocumentScoring Search(SearchExpression searchExpression, ref DocumentResultBuilder documentResultBuilder)
         {
-            using var tokens = SharedObjectPools.ValueSets.Lease();
+            using var tokens = SharedObjectPools.Tokens.Lease();
 
             foreach (var token in this.analyzer.GetTokens(searchExpression.Text))
             {
@@ -49,10 +49,10 @@ namespace Clara.Storage
 
             MatchExpression matchExpression =
                 tokens.Instance.Count == 0
-                    ? EmptyValuesMatchExpression.Instance
+                    ? EmptyTokensMatchExpression.Instance
                     : searchExpression.Mode == SearchMode.All
-                        ? new AllValuesMatchExpression(tokens.Instance)
-                        : new AnyValuesMatchExpression(tokens.Instance);
+                        ? new AllTokensMatchExpression(tokens.Instance)
+                        : new AnyTokensMatchExpression(tokens.Instance);
 
             if (this.synonymMap is not null)
             {

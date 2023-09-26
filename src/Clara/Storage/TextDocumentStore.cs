@@ -38,11 +38,11 @@ namespace Clara.Storage
 
         public DocumentScoring Search(Field field, MatchExpression matchExpression, ref DocumentResultBuilder documentResultBuilder)
         {
-            if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
+            if (matchExpression is AnyTokensMatchExpression anyValuesMatchExpression)
             {
-                if (anyValuesMatchExpression.Values.Count == 1)
+                if (anyValuesMatchExpression.Tokens.Count == 1)
                 {
-                    foreach (var token in (HashSetSlim<string>)anyValuesMatchExpression.Values)
+                    foreach (var token in (ListSlim<string>)anyValuesMatchExpression.Tokens)
                     {
                         if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
@@ -63,7 +63,7 @@ namespace Clara.Storage
                 {
                     var documentScores = SharedObjectPools.DocumentScores.Lease();
 
-                    foreach (var token in (HashSetSlim<string>)anyValuesMatchExpression.Values)
+                    foreach (var token in (ListSlim<string>)anyValuesMatchExpression.Tokens)
                     {
                         if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
@@ -79,11 +79,11 @@ namespace Clara.Storage
                     return new DocumentScoring(documentScores);
                 }
             }
-            else if (matchExpression is AllValuesMatchExpression allValuesMatchExpression)
+            else if (matchExpression is AllTokensMatchExpression allValuesMatchExpression)
             {
-                if (allValuesMatchExpression.Values.Count == 1)
+                if (allValuesMatchExpression.Tokens.Count == 1)
                 {
-                    foreach (var token in (HashSetSlim<string>)allValuesMatchExpression.Values)
+                    foreach (var token in (ListSlim<string>)allValuesMatchExpression.Tokens)
                     {
                         if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
@@ -105,7 +105,7 @@ namespace Clara.Storage
                     var documentScores = SharedObjectPools.DocumentScores.Lease();
                     var isFirst = true;
 
-                    foreach (var token in (HashSetSlim<string>)allValuesMatchExpression.Values)
+                    foreach (var token in (ListSlim<string>)allValuesMatchExpression.Tokens)
                     {
                         if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
@@ -184,7 +184,7 @@ namespace Clara.Storage
 
                 return new DocumentScoring(documentScores);
             }
-            else if (matchExpression is EmptyValuesMatchExpression)
+            else if (matchExpression is EmptyTokensMatchExpression)
             {
                 documentResultBuilder.Clear();
 
@@ -198,9 +198,9 @@ namespace Clara.Storage
 
         private void SearchPartial(MatchExpression matchExpression, DictionarySlim<int, float> partialScores)
         {
-            if (matchExpression is AnyValuesMatchExpression anyValuesMatchExpression)
+            if (matchExpression is AnyTokensMatchExpression anyValuesMatchExpression)
             {
-                foreach (var token in (HashSetSlim<string>)anyValuesMatchExpression.Values)
+                foreach (var token in (ListSlim<string>)anyValuesMatchExpression.Tokens)
                 {
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
@@ -211,11 +211,11 @@ namespace Clara.Storage
                     }
                 }
             }
-            else if (matchExpression is AllValuesMatchExpression allValuesMatchExpression)
+            else if (matchExpression is AllTokensMatchExpression allValuesMatchExpression)
             {
                 var isFirst = true;
 
-                foreach (var token in (HashSetSlim<string>)allValuesMatchExpression.Values)
+                foreach (var token in (ListSlim<string>)allValuesMatchExpression.Tokens)
                 {
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {

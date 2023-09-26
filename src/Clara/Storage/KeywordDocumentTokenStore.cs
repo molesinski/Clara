@@ -37,7 +37,7 @@ namespace Clara.Storage
 
         public FacetResult? Facet(KeywordFilterExpression? keywordFilterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
-            using var selectedValues = SharedObjectPools.ValueSets.Lease();
+            using var selectedValues = SharedObjectPools.SelectedValues.Lease();
 
             if (keywordFilterExpression is not null)
             {
