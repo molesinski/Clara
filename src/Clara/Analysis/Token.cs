@@ -225,12 +225,13 @@ namespace Clara.Analysis
                 throw new InvalidOperationException("Read only tokens cannot be modified.");
             }
 
-            if (!(this.length >= startIndex))
+            if (startIndex < 0 || startIndex > this.length)
             {
                 throw new ArgumentOutOfRangeException(nameof(startIndex));
             }
 
-            var writtenLength = startIndex + chars.Length;
+            var count = chars.Length;
+            var writtenLength = startIndex + count;
 
             if (writtenLength > MaximumLength)
             {
@@ -242,6 +243,66 @@ namespace Clara.Analysis
             this.length = writtenLength;
         }
 
+        public void Insert(int startIndex, string chars)
+        {
+            this.Insert(startIndex, chars.AsSpan());
+        }
+
+        public void Insert(int startIndex, ReadOnlySpan<char> chars)
+        {
+            if (this.chars is null)
+            {
+                throw new InvalidOperationException("Read only tokens cannot be modified.");
+            }
+
+            if (startIndex < 0 || startIndex > this.length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+            }
+
+            var count = chars.Length;
+            var insertedLength = this.length + count;
+
+            if (insertedLength > MaximumLength)
+            {
+                throw new ArgumentException("Inserted length would exceed token maximum length.", nameof(chars));
+            }
+
+            for (var i = this.length - 1; i >= startIndex; i--)
+            {
+                this.chars[i + count] = this.chars[i];
+            }
+
+            chars.CopyTo(this.chars.AsSpan(startIndex));
+
+            this.length = insertedLength;
+        }
+
+        public void Delete(int startIndex, int count)
+        {
+            if (this.chars is null)
+            {
+                throw new InvalidOperationException("Read only tokens cannot be modified.");
+            }
+
+            if (startIndex < 0 || startIndex > this.length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+            }
+
+            if (startIndex + count > this.length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+            }
+
+            for (var i = startIndex; i < this.length - count; i++)
+            {
+                this.chars[i] = this.chars[i + count];
+            }
+
+            this.length -= count;
+        }
+
         public void Remove(int startIndex)
         {
             if (this.chars is null)
@@ -249,7 +310,7 @@ namespace Clara.Analysis
                 throw new InvalidOperationException("Read only tokens cannot be modified.");
             }
 
-            if (!(this.length >= startIndex))
+            if (startIndex < 0 || startIndex > this.length)
             {
                 throw new ArgumentOutOfRangeException(nameof(startIndex));
             }
