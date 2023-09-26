@@ -134,7 +134,14 @@ namespace Clara.Storage
 
                         values.Instance.Sort(offset, count, HierarchyFacetValueComparer.Instance);
 
-                        values.Instance[selectedCount++] = new HierarchyFacetValue(parent, parentCount, values.Instance.Range(offset, count));
+                        if (count > 0)
+                        {
+                            values.Instance[selectedCount++] = new HierarchyFacetValue(parent, parentCount, new HierarchyFacetValueChildrenCollection(values.Instance, offset, count));
+                        }
+                        else
+                        {
+                            values.Instance[selectedCount++] = new HierarchyFacetValue(parent, parentCount);
+                        }
                     }
                     else
                     {

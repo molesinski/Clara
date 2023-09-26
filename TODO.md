@@ -5,8 +5,6 @@
   * [ ] Evaluate `SynonymTree` multi token phrase handling with sythetic tokens
   * [ ] Evaluate `SynonymTree` implementation against document scoring
   * [ ] Write `SynonymTree` tests
-  * [ ] Document synonym maps in `README.md`
-* [ ] Analysis
+* [ ] `README.md` documentation
+  * [ ] Document synonym maps
   * [ ] Document `ITokenizer`, `IFilterToken` and `IAnalyzer` in `README.md`
-* [x] Memory allocation reduction
-  * [ ] When consuming `HierarchyFacetValue`.`Children`

@@ -1,8 +1,24 @@
-﻿namespace Clara.Querying
+﻿using Clara.Utils;
+
+namespace Clara.Querying
 {
     public readonly record struct HierarchyFacetValue
     {
-        public HierarchyFacetValue(string value, int count, IEnumerable<HierarchyFacetValue> children)
+        private static readonly HierarchyFacetValueChildrenCollection EmptyChildren = new(new ListSlim<HierarchyFacetValue>(), 0, 0);
+
+        public HierarchyFacetValue(string value, int count)
+        {
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            this.Value = value;
+            this.Count = count;
+            this.Children = EmptyChildren;
+        }
+
+        internal HierarchyFacetValue(string value, int count, HierarchyFacetValueChildrenCollection children)
         {
             if (value is null)
             {
@@ -19,15 +35,10 @@
             this.Children = children;
         }
 
-        public HierarchyFacetValue(string keyword, int count)
-            : this(keyword, count, Array.Empty<HierarchyFacetValue>())
-        {
-        }
-
         public string Value { get; }
 
         public int Count { get; }
 
-        public IEnumerable<HierarchyFacetValue> Children { get; }
+        public HierarchyFacetValueChildrenCollection Children { get; }
     }
 }

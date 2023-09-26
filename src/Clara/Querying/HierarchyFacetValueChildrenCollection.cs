@@ -3,15 +3,14 @@ using Clara.Utils;
 
 namespace Clara.Querying
 {
-    public sealed class HierarchyFacetValueCollection : IReadOnlyCollection<HierarchyFacetValue>, IDisposable
+    public class HierarchyFacetValueChildrenCollection : IReadOnlyCollection<HierarchyFacetValue>
     {
-        private readonly ObjectPoolLease<ListSlim<HierarchyFacetValue>> items;
+        private readonly ListSlim<HierarchyFacetValue> items;
         private readonly int offset;
         private readonly int count;
-        private bool isDisposed;
 
-        internal HierarchyFacetValueCollection(
-            ObjectPoolLease<ListSlim<HierarchyFacetValue>> items,
+        internal HierarchyFacetValueChildrenCollection(
+            ListSlim<HierarchyFacetValue> items,
             int offset,
             int count)
         {
@@ -24,23 +23,13 @@ namespace Clara.Querying
         {
             get
             {
-                if (this.isDisposed)
-                {
-                    throw new ObjectDisposedException(this.GetType().FullName);
-                }
-
                 return this.count;
             }
         }
 
         public Enumerator GetEnumerator()
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
-
-            return new Enumerator(this.items.Instance.GetRangeEnumerator(this.offset, this.count));
+            return new Enumerator(this.items.GetRangeEnumerator(this.offset, this.count));
         }
 
         IEnumerator<HierarchyFacetValue> IEnumerable<HierarchyFacetValue>.GetEnumerator()
@@ -51,16 +40,6 @@ namespace Clara.Querying
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this.GetEnumerator();
-        }
-
-        public void Dispose()
-        {
-            if (!this.isDisposed)
-            {
-                this.items.Dispose();
-
-                this.isDisposed = true;
-            }
         }
 
         public struct Enumerator : IEnumerator<HierarchyFacetValue>

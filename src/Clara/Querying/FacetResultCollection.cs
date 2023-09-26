@@ -30,6 +30,11 @@ namespace Clara.Querying
 
         public KeywordFacetResult Field(KeywordField field)
         {
+            if (this.isDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().FullName);
+            }
+
             foreach (var facetResult in this.items.Instance)
             {
                 if (facetResult.Field == field)
@@ -43,6 +48,11 @@ namespace Clara.Querying
 
         public HierarchyFacetResult Field(HierarchyField field)
         {
+            if (this.isDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().FullName);
+            }
+
             foreach (var facetResult in this.items.Instance)
             {
                 if (facetResult.Field == field)
@@ -57,6 +67,11 @@ namespace Clara.Querying
         public RangeFacetResult<TValue> Field<TValue>(RangeField<TValue> field)
             where TValue : struct, IComparable<TValue>
         {
+            if (this.isDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().FullName);
+            }
+
             foreach (var facetResult in this.items.Instance)
             {
                 if (facetResult.Field == field)

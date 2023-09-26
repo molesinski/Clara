@@ -6,7 +6,9 @@ namespace Clara.Storage
     internal readonly struct DocumentValueRange<TValue> : IReadOnlyCollection<int>
         where TValue : struct, IComparable<TValue>
     {
-        private readonly ListSlim<DocumentValue<TValue>>.RangeCollection items;
+        private readonly ListSlim<DocumentValue<TValue>> items;
+        private readonly int offset;
+        private readonly int count;
 
         public DocumentValueRange(ListSlim<DocumentValue<TValue>> source, TValue? from, TValue? to)
         {
@@ -23,20 +25,22 @@ namespace Clara.Storage
                 hi = BinarySearchHigh(source, to.Value);
             }
 
-            this.items = source.Range(lo, hi - lo + 1);
+            this.items = source;
+            this.offset = lo;
+            this.count = hi - lo + 1;
         }
 
         public readonly int Count
         {
             get
             {
-                return this.items.Count;
+                return this.count;
             }
         }
 
         public readonly Enumerator GetEnumerator()
         {
-            return new Enumerator(this.items.GetEnumerator());
+            return new Enumerator(this.items.GetRangeEnumerator(this.offset, this.count));
         }
 
         readonly IEnumerator<int> IEnumerable<int>.GetEnumerator()
