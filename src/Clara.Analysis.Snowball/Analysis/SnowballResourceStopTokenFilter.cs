@@ -1,77 +1,26 @@
-﻿using System.Reflection;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Clara.Analysis
 {
-    public abstract partial class SnowballResourceStopTokenFilter : StopTokenFilter
+    public abstract partial class SnowballResourceStopTokenFilter<TFilter> : StopTokenFilter
+        where TFilter : SnowballResourceStopTokenFilter<TFilter>
     {
-        protected SnowballResourceStopTokenFilter(Type type)
-            : base(LoadResource(type))
+        protected SnowballResourceStopTokenFilter()
+            : base(Stopwords)
         {
         }
 
-        protected SnowballResourceStopTokenFilter(Type type, Encoding encoding)
-            : base(LoadResource(type, encoding))
+#pragma warning disable CA1000 // Do not declare static members on generic types
+        public static IReadOnlyCollection<string> Stopwords { get; } = LoadResource();
+#pragma warning restore CA1000 // Do not declare static members on generic types
+
+        protected static IReadOnlyCollection<string> LoadResource()
         {
-        }
-
-        protected SnowballResourceStopTokenFilter(Assembly assembly, string resourceName)
-            : base(LoadResource(assembly, resourceName))
-        {
-        }
-
-        protected SnowballResourceStopTokenFilter(Assembly assembly, string resourceName, Encoding encoding)
-            : base(LoadResource(assembly, resourceName, encoding))
-        {
-        }
-
-        protected static IEnumerable<string> LoadResource(Type type)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return LoadResource(type.Assembly, $"{type.FullName}.txt", Encoding.UTF8);
-        }
-
-        protected static IEnumerable<string> LoadResource(Type type, Encoding encoding)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (encoding is null)
-            {
-                throw new ArgumentNullException(nameof(encoding));
-            }
-
-            return LoadResource(type.Assembly, $"{type.FullName}.txt", encoding);
-        }
-
-        protected static IEnumerable<string> LoadResource(Assembly assembly, string resourceName)
-        {
-            return LoadResource(assembly, resourceName, Encoding.UTF8);
-        }
-
-        protected static IEnumerable<string> LoadResource(Assembly assembly, string resourceName, Encoding encoding)
-        {
-            if (assembly is null)
-            {
-                throw new ArgumentNullException(nameof(assembly));
-            }
-
-            if (resourceName is null)
-            {
-                throw new ArgumentNullException(nameof(resourceName));
-            }
-
-            if (encoding is null)
-            {
-                throw new ArgumentNullException(nameof(encoding));
-            }
+            var type = typeof(TFilter);
+            var assembly = type.Assembly;
+            var resourceName = $"{type.FullName}.txt";
+            var encoding = Encoding.UTF8;
 
             using var stream = assembly.GetManifestResourceStream(resourceName);
 

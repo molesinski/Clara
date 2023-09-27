@@ -1,15 +1,6 @@
-﻿using System.Text;
-
-namespace Clara.Analysis
+﻿namespace Clara.Analysis
 {
-    public sealed class IrishStopTokenFilter : ResourceStopTokenFilter
+    public sealed class IrishStopTokenFilter : ResourceStopTokenFilter<IrishStopTokenFilter>
     {
-        public IrishStopTokenFilter()
-            : base(
-                  typeof(IrishStopTokenFilter).Assembly,
-                  $"{typeof(IrishStopTokenFilter).FullName}.txt",
-                  Encoding.UTF8)
-        {
-        }
     }
 }

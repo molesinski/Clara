@@ -1,10 +1,6 @@
 ﻿namespace Clara.Analysis
 {
-    public sealed class PolishStopTokenFilter : ResourceStopTokenFilter
+    public sealed class PolishStopTokenFilter : ResourceStopTokenFilter<PolishStopTokenFilter>
     {
-        public PolishStopTokenFilter()
-            : base(typeof(PolishStopTokenFilter))
-        {
-        }
     }
 }

@@ -1,10 +1,6 @@
 ﻿namespace Clara.Analysis
 {
-    public sealed class PorterStopTokenFilter : ResourceStopTokenFilter
+    public sealed class PorterStopTokenFilter : ResourceStopTokenFilter<PorterStopTokenFilter>
     {
-        public PorterStopTokenFilter()
-            : base(typeof(PorterStopTokenFilter))
-        {
-        }
     }
 }

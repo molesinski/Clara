@@ -1,15 +1,6 @@
-﻿using System.Text;
-
-namespace Clara.Analysis
+﻿namespace Clara.Analysis
 {
-    public sealed class BasqueStopTokenFilter : ResourceStopTokenFilter
+    public sealed class BasqueStopTokenFilter : ResourceStopTokenFilter<BasqueStopTokenFilter>
     {
-        public BasqueStopTokenFilter()
-            : base(
-                  typeof(BasqueStopTokenFilter).Assembly,
-                  $"{typeof(BasqueStopTokenFilter).FullName}.txt",
-                  Encoding.UTF8)
-        {
-        }
     }
 }

@@ -1,15 +1,6 @@
-﻿using System.Text;
-
-namespace Clara.Analysis
+﻿namespace Clara.Analysis
 {
-    public sealed class CatalanStopTokenFilter : ResourceStopTokenFilter
+    public sealed class CatalanStopTokenFilter : ResourceStopTokenFilter<CatalanStopTokenFilter>
     {
-        public CatalanStopTokenFilter()
-            : base(
-                  typeof(CatalanStopTokenFilter).Assembly,
-                  $"{typeof(CatalanStopTokenFilter).FullName}.txt",
-                  Encoding.UTF8)
-        {
-        }
     }
 }

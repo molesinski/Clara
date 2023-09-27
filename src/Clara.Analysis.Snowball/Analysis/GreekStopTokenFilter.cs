@@ -1,15 +1,6 @@
-﻿using System.Text;
-
-namespace Clara.Analysis
+﻿namespace Clara.Analysis
 {
-    public sealed class GreekStopTokenFilter : ResourceStopTokenFilter
+    public sealed class GreekStopTokenFilter : ResourceStopTokenFilter<GreekStopTokenFilter>
     {
-        public GreekStopTokenFilter()
-            : base(
-                  typeof(GreekStopTokenFilter).Assembly,
-                  $"{typeof(GreekStopTokenFilter).FullName}.txt",
-                  Encoding.UTF8)
-        {
-        }
     }
 }

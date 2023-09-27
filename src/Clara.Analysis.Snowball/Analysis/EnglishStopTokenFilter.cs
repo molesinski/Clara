@@ -1,15 +1,6 @@
-﻿using System.Text;
-
-namespace Clara.Analysis
+﻿namespace Clara.Analysis
 {
-    public sealed class EnglishStopTokenFilter : SnowballResourceStopTokenFilter
+    public sealed class EnglishStopTokenFilter : SnowballResourceStopTokenFilter<EnglishStopTokenFilter>
     {
-        public EnglishStopTokenFilter()
-            : base(
-                  typeof(EnglishStopTokenFilter).Assembly,
-                  $"{typeof(EnglishStopTokenFilter).FullName}.txt",
-                  Encoding.UTF8)
-        {
-        }
     }
 }

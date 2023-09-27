@@ -1,15 +1,6 @@
-﻿using System.Text;
-
-namespace Clara.Analysis
+﻿namespace Clara.Analysis
 {
-    public sealed class TamilStopTokenFilter : ResourceStopTokenFilter
+    public sealed class TamilStopTokenFilter : ResourceStopTokenFilter<TamilStopTokenFilter>
     {
-        public TamilStopTokenFilter()
-            : base(
-                  typeof(TamilStopTokenFilter).Assembly,
-                  $"{typeof(TamilStopTokenFilter).FullName}.txt",
-                  Encoding.UTF8)
-        {
-        }
     }
 }
