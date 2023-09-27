@@ -1,4 +1,5 @@
 ﻿#pragma warning disable CA1822 // Mark members as static
+#pragma warning disable CA1707 // Identifiers should not contain underscores
 
 using BenchmarkDotNet.Attributes;
 using Clara.Analysis.Synonyms;
@@ -31,9 +32,9 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void IndexX100()
+        public void Index_x100()
         {
-            _ = IndexBuilder.Build(Product.ItemsX100, new ProductMapper());
+            _ = IndexBuilder.Build(Product.Items_x100, new ProductMapper());
         }
 
         [Benchmark]
@@ -49,9 +50,9 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void SharedIndexX100()
+        public void SharedIndex_x100()
         {
-            _ = IndexBuilder.Build(Product.ItemsX100, new ProductMapper(), this.sharedTokenEncoderStore);
+            _ = IndexBuilder.Build(Product.Items_x100, new ProductMapper(), this.sharedTokenEncoderStore);
         }
 
         [Benchmark]

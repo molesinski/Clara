@@ -1,4 +1,6 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+
+using BenchmarkDotNet.Attributes;
 using Clara.Analysis.Synonyms;
 using Clara.Querying;
 
@@ -40,11 +42,11 @@ namespace Clara.Benchmarks
 
             this.index = IndexBuilder.Build(Product.Items, new ProductMapper(), synonymMapBinding);
 
-            this.index100 = IndexBuilder.Build(Product.ItemsX100, new ProductMapper(), synonymMapBinding);
+            this.index100 = IndexBuilder.Build(Product.Items_x100, new ProductMapper(), synonymMapBinding);
         }
 
         [Benchmark]
-        public void ComplexQueryX100()
+        public void ComplexQuery_x100()
         {
             using var result = this.index100.Query(
                 this.index.QueryBuilder()

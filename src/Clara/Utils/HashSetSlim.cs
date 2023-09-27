@@ -7,7 +7,9 @@ namespace Clara.Utils
 {
     [DebuggerTypeProxy(typeof(HashSetSlimDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
-    internal sealed class HashSetSlim<TItem> : IReadOnlyCollection<TItem>, IReadOnlyHashCollection<TItem>, IResettable
+#pragma warning disable CA1710 // Identifiers should have correct suffix
+    public sealed class HashSetSlim<TItem> : IReadOnlyCollection<TItem>, IReadOnlyHashCollection<TItem>, IResettable
+#pragma warning restore CA1710 // Identifiers should have correct suffix
         where TItem : notnull, IEquatable<TItem>
     {
         private const int MinimumSize = 4;

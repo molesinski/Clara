@@ -214,15 +214,17 @@ Price:
 
 ## Advanced scenarios
 
-### Keyword fields
+### Index mapping
+
+#### Keyword fields
 
 TODO
 
-### Hierarchy fields
+#### Hierarchy fields
 
 TODO
 
-### Range fields
+#### Range fields
 
 Range fields represent index fields for `struct` values with `IComparable<T>` interface implementation.
 Internally `DateTime`, `Decimal`, `Double` and `Int32` types are supported. Implementors can support any
@@ -258,11 +260,13 @@ public sealed class DateOnlyField<TSource> : RangeField<TSource, int>
 }
 ```
 
-### Text fields
+#### Text fields
 
 TODO
 
-### Analyzers
+### Analysis
+
+#### Analyzers
 
 Above code uses `PorterAnalyzer` which provides basic English language stemming. For other languages
 [Clara.Analysis.Snowball](https://www.nuget.org/packages/Clara.Analysis.Snowball) or
@@ -290,14 +294,18 @@ It can be used for index mapper field definition as follows.
 public static TextField<Product> TextPolish = new(x => GetTextPolish(x), PolishAnalyzer);
 ```
 
-### Synonym maps
+#### Synonym maps
+
+TODO
+
+#### Extending analysis pipeline
 
 TODO
 
 ## Benchmarks
 
 Index and query benchmarks and tests are performed using sample 100 product data set. Benchmark
-variants with suffix "X100" use 100 times bigger index sizes.
+variants with `x100` suffix use data set combined 100 times.
 
 ```
 BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
@@ -309,26 +317,26 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 ### Index benchmarks
 
-| Method             | Mean        | Error       | StdDev      | Median      | Gen0      | Gen1      | Gen2      | Allocated   |
-|------------------- |------------:|------------:|------------:|------------:|----------:|----------:|----------:|------------:|
-| IndexX100          | 68,546.8 μs | 1,531.45 μs | 4,515.52 μs | 66,796.3 μs | 2428.5714 | 2285.7143 | 1000.0000 | 31207.57 KB |
-| IndexSynonym       |    532.1 μs |     5.49 μs |     4.29 μs |    532.2 μs |   36.1328 |   12.6953 |         - |   559.79 KB |
-| Index              |    468.1 μs |     6.06 μs |     5.67 μs |    467.6 μs |   34.6680 |   13.1836 |         - |   538.11 KB |
-| SharedIndexX100    | 64,371.0 μs | 1,283.19 μs | 3,242.78 μs | 63,775.1 μs | 2250.0000 | 2000.0000 |  875.0000 | 29917.87 KB |
-| SharedIndexSynonym |    500.6 μs |     7.09 μs |     6.63 μs |    502.4 μs |   32.2266 |   12.6953 |         - |   507.09 KB |
-| SharedIndex        |    439.1 μs |     3.54 μs |     3.14 μs |    439.0 μs |   31.2500 |   10.7422 |         - |   485.41 KB |
+| Method             | Mean        | Error       | StdDev      | Gen0      | Gen1      | Gen2      | Allocated   |
+|------------------- |------------:|------------:|------------:|----------:|----------:|----------:|------------:|
+| Index_x100         | 71,140.7 μs | 1,730.65 μs | 5,102.87 μs | 2428.5714 | 2285.7143 | 1000.0000 | 31207.54 KB |
+| IndexSynonym       |    530.7 μs |     7.55 μs |     7.06 μs |   36.1328 |   12.6953 |         - |   558.23 KB |
+| Index              |    466.4 μs |     4.78 μs |     4.47 μs |   34.6680 |   13.1836 |         - |   538.11 KB |
+| SharedIndex_x100   | 66,836.8 μs | 1,482.05 μs | 4,369.86 μs | 2250.0000 | 2000.0000 |  875.0000 | 29919.28 KB |
+| SharedIndexSynonym |    508.8 μs |     7.71 μs |     7.21 μs |   32.2266 |   10.7422 |         - |   505.52 KB |
+| SharedIndex        |    439.6 μs |     5.44 μs |     5.09 μs |   31.2500 |   10.7422 |         - |   485.41 KB |
 
 ### Query benchmarks
 
-| Method           | Mean       | Error      | StdDev     | Gen0   | Allocated |
-|----------------- |-----------:|-----------:|-----------:|-------:|----------:|
-| ComplexQueryX100 | 584.200 μs | 11.3469 μs | 16.6321 μs |      - |    1593 B |
-| ComplexQuery     |  12.117 μs |  0.0803 μs |  0.0751 μs | 0.0916 |    1592 B |
-| SearchQuery      |   7.371 μs |  0.0566 μs |  0.0502 μs | 0.0381 |     712 B |
-| FilterQuery      |   1.333 μs |  0.0139 μs |  0.0130 μs | 0.0458 |     744 B |
-| FacetQuery       |   8.804 μs |  0.0496 μs |  0.0464 μs | 0.0305 |     600 B |
-| SortQuery        |   3.396 μs |  0.0267 μs |  0.0250 μs | 0.0229 |     408 B |
-| BasicQuery       |   1.393 μs |  0.0189 μs |  0.0168 μs | 0.0191 |     312 B |
+| Method            | Mean       | Error      | StdDev     | Gen0   | Allocated |
+|------------------ |-----------:|-----------:|-----------:|-------:|----------:|
+| ComplexQuery_x100 | 553.587 μs | 10.2281 μs | 19.7061 μs |      - |    1593 B |
+| ComplexQuery      |  12.075 μs |  0.1089 μs |  0.1019 μs | 0.0916 |    1592 B |
+| SearchQuery       |   7.149 μs |  0.0724 μs |  0.0678 μs | 0.0381 |     712 B |
+| FilterQuery       |   1.334 μs |  0.0099 μs |  0.0093 μs | 0.0458 |     744 B |
+| FacetQuery        |   8.651 μs |  0.0483 μs |  0.0452 μs | 0.0305 |     600 B |
+| SortQuery         |   3.502 μs |  0.0203 μs |  0.0180 μs | 0.0229 |     408 B |
+| BasicQuery        |   1.484 μs |  0.0207 μs |  0.0193 μs | 0.0191 |     312 B |
 
 > Due to internal buffer structures pooling, memory allocation per search execution is constant
 > after initial allocation of pooled buffers.

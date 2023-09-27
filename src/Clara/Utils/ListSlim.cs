@@ -7,7 +7,7 @@ namespace Clara.Utils
 {
     [DebuggerTypeProxy(typeof(ListSlimDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
-    internal sealed class ListSlim<TItem> : IReadOnlyList<TItem>, IResettable
+    public sealed class ListSlim<TItem> : IReadOnlyList<TItem>, IResettable
         where TItem : notnull
     {
         private const int MinimumSize = 4;

@@ -6,15 +6,15 @@ namespace Clara.Analysis
 {
     public class LuceneEnglishPorterStemTokenFilter : ITokenFilter
     {
-        private static readonly ObjectPool<Stemmer> Pool = new(() => new());
+        private static readonly ObjectPool<OperationContext> Pool = new(() => new());
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
-            using var stemmer = Pool.Lease();
+            using var context = Pool.Lease();
 
-            stemmer.Instance.SetToken(token);
+            context.Instance.SetToken(token);
 
-            foreach (var stem in stemmer.Instance)
+            foreach (var stem in context.Instance)
             {
                 return stem;
             }
@@ -22,12 +22,12 @@ namespace Clara.Analysis
             return default;
         }
 
-        private sealed class Stemmer : IEnumerable<Token>, IDisposable
+        private sealed class OperationContext : IEnumerable<Token>, IDisposable
         {
             private readonly SingleTokenStream stringStream;
             private readonly PorterStemFilter stemmer;
 
-            public Stemmer()
+            public OperationContext()
             {
                 this.stringStream = new SingleTokenStream();
                 this.stemmer = new PorterStemFilter(this.stringStream);

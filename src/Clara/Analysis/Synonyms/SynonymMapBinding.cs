@@ -16,7 +16,7 @@ namespace Clara.Analysis.Synonyms
                 throw new ArgumentNullException(nameof(field));
             }
 
-            if (field.Analyzer != synonymMap.Analyzer)
+            if (!ReferenceEquals(field.Analyzer, synonymMap.Analyzer))
             {
                 throw new ArgumentException("Synonym map must use same analyzer instance as text field.", nameof(synonymMap));
             }

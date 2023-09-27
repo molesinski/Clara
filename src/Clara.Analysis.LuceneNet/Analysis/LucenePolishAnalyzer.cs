@@ -6,7 +6,7 @@ namespace Clara.Analysis
 {
     public sealed class LucenePolishAnalyzer : IAnalyzer
     {
-        private static readonly ObjectPool<AnalyzerContext> Pool = new(() => new());
+        private static readonly ObjectPool<OperationContext> Pool = new(() => new());
 
         public IEnumerable<string> GetTokens(string text)
         {
@@ -22,7 +22,7 @@ namespace Clara.Analysis
 
             using var context = Pool.Lease();
 
-            context.Instance.Reader.Reset(text);
+            context.Instance.Reader.Set(text);
 
             using var tokenStream = context.Instance.Analyzer.GetTokenStream(string.Empty, context.Instance.Reader);
 
@@ -32,15 +32,15 @@ namespace Clara.Analysis
             }
         }
 
-        private sealed class AnalyzerContext
+        private sealed class OperationContext
         {
-            public AnalyzerContext()
+            public OperationContext()
             {
-                this.Reader = new ResettableStringReader();
+                this.Reader = new SettableStringReader();
                 this.Analyzer = new PolishAnalyzer(LuceneVersion.LUCENE_48);
             }
 
-            public ResettableStringReader Reader { get; }
+            public SettableStringReader Reader { get; }
 
             public PolishAnalyzer Analyzer { get; }
         }

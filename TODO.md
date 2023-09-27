@@ -9,3 +9,4 @@
   * [ ] Document hierarchy fields
   * [ ] Document text fields
   * [ ] Document synonym maps
+  * [ ] Document analysis pipeline extension points

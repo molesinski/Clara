@@ -1,4 +1,5 @@
-﻿using Clara.Utils;
+﻿using System.Text;
+using Clara.Utils;
 
 namespace Clara.Querying
 {
@@ -23,5 +24,16 @@ namespace Clara.Querying
                 return this.values;
             }
         }
+
+        public override string ToString()
+        {
+            var builder = new StringBuilder();
+
+            this.ToString(builder);
+
+            return builder.ToString();
+        }
+
+        internal abstract void ToString(StringBuilder builder);
     }
 }

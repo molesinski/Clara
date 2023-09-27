@@ -1,4 +1,5 @@
 ﻿#pragma warning disable SA1516 // Elements should be separated by blank line
+#pragma warning disable CA1707 // Identifiers should not contain underscores
 
 using System.Text.Json;
 
@@ -8,7 +9,7 @@ namespace Clara.Tests
     {
         public static IReadOnlyCollection<Product> Items { get; } = LoadResource(times: 1);
 
-        public static IReadOnlyCollection<Product> ItemsX100 { get; } = LoadResource(times: 100);
+        public static IReadOnlyCollection<Product> Items_x100 { get; } = LoadResource(times: 100);
 
         public int Id { get; set; }
         public string? Title { get; set; }

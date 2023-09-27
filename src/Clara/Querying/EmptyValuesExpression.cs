@@ -1,4 +1,5 @@
-﻿using Clara.Utils;
+﻿using System.Text;
+using Clara.Utils;
 
 namespace Clara.Querying
 {
@@ -10,5 +11,10 @@ namespace Clara.Querying
         }
 
         internal static EmptyValuesExpression Instance { get; } = new EmptyValuesExpression();
+
+        internal override void ToString(StringBuilder builder)
+        {
+            builder.Append("EMPTY");
+        }
     }
 }

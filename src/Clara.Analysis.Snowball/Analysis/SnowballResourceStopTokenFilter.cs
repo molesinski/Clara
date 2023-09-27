@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
+using Clara.Utils;
 
 namespace Clara.Analysis
 {
@@ -31,7 +32,7 @@ namespace Clara.Analysis
 
             using var reader = new StreamReader(stream, encoding);
 
-            var stopwords = new HashSet<string>();
+            var stopwords = new HashSetSlim<string>();
 
             while (reader.ReadLine() is string line)
             {

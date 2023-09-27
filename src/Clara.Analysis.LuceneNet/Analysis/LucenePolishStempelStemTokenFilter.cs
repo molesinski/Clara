@@ -7,7 +7,7 @@ namespace Clara.Analysis
 {
     public sealed class LucenePolishStempelStemTokenFilter : ITokenFilter
     {
-        private static readonly ObjectPool<StringBuilder> Pool = new(() => new(capacity: Token.MaximumLength), builder => builder.Clear());
+        private static readonly ObjectPool<OperationContext> Pool = new(() => new());
 
         private readonly Trie stemmer;
         private readonly bool tokenOnEmptyStem;
@@ -20,20 +20,21 @@ namespace Clara.Analysis
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
-            using var builder = Pool.Lease();
+            using var context = Pool.Lease();
 
+            var builder = context.Instance.Builder;
             var tokenString = token.ToString();
             var result = this.stemmer.GetLastOnPath(tokenString);
 
             if (result is not null)
             {
-                builder.Instance.Append(tokenString);
+                builder.Append(tokenString);
 
-                Diff.Apply(builder.Instance, result);
+                Diff.Apply(builder, result);
 
-                if (builder.Instance.Length > 0)
+                if (builder.Length > 0)
                 {
-                    return new Token(builder.Instance.ToString());
+                    return new Token(builder.ToString());
                 }
             }
 
@@ -43,6 +44,21 @@ namespace Clara.Analysis
             }
 
             return default;
+        }
+
+        private sealed class OperationContext : IResettable
+        {
+            public OperationContext()
+            {
+                this.Builder = new(capacity: Token.MaximumLength);
+            }
+
+            public StringBuilder Builder { get; }
+
+            void IResettable.Reset()
+            {
+                this.Builder.Clear();
+            }
         }
     }
 }
