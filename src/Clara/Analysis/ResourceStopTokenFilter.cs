@@ -7,12 +7,12 @@ namespace Clara.Analysis
         where TFilter : ResourceStopTokenFilter<TFilter>
     {
         protected ResourceStopTokenFilter()
-            : base(Stopwords)
+            : base(DefaultStopwords)
         {
         }
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
-        public static IReadOnlyCollection<string> Stopwords { get; } = LoadResource();
+        public static IReadOnlyCollection<string> DefaultStopwords { get; } = LoadResource();
 #pragma warning restore CA1000 // Do not declare static members on generic types
 
         private static IReadOnlyCollection<string> LoadResource()

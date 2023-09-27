@@ -13,7 +13,6 @@ namespace Clara.Utils
         where TKey : notnull, IEquatable<TKey>
     {
         private const int MinimumSize = 4;
-        private const int StackAllocThreshold = 512;
         private static readonly Entry[] InitialEntries = new Entry[1];
 
         private readonly KeysCollection keys;
@@ -343,22 +342,10 @@ namespace Clara.Utils
                 var lastIndex = this.lastIndex;
                 var intArrayLength = BitHelper.ToIntArrayLength(lastIndex);
 
-                if (intArrayLength <= StackAllocThreshold)
-                {
-                    Span<int> span = stackalloc int[intArrayLength];
-                    var bitHelper = new BitHelper(span.Slice(0, intArrayLength), clear: true);
+                Span<int> span = stackalloc int[intArrayLength];
+                var bitHelper = new BitHelper(span.Slice(0, intArrayLength), clear: true);
 
-                    IntersectWith(enumerable, ref bitHelper, lastIndex);
-                }
-                else
-                {
-                    var array = ArrayPool<int>.Shared.Rent(intArrayLength);
-                    var bitHelper = new BitHelper(array.AsSpan(0, intArrayLength), clear: true);
-
-                    IntersectWith(enumerable, ref bitHelper, lastIndex);
-
-                    ArrayPool<int>.Shared.Return(array);
-                }
+                IntersectWith(enumerable, ref bitHelper, lastIndex);
             }
 
             void IntersectWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, ref BitHelper bitHelper, int lastIndex)

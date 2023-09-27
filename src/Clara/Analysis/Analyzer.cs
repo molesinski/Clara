@@ -54,13 +54,16 @@
 
             foreach (var filter in filters.Reverse())
             {
-                var next = pipeline;
+                if (filter is not null)
+                {
+                    var next = pipeline;
 
-                pipeline =
-                    token =>
-                    {
-                        return filter.Process(token, next);
-                    };
+                    pipeline =
+                        token =>
+                        {
+                            return filter.Process(token, next);
+                        };
+                }
             }
 
             return pipeline;

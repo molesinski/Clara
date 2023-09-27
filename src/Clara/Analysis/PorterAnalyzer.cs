@@ -5,17 +5,8 @@
         private readonly Analyzer analyzer;
 
         public PorterAnalyzer()
+            : this(keywords: Array.Empty<string>())
         {
-            this.analyzer =
-                new Analyzer(
-                    new BasicTokenizer(),
-                    new LowerInvariantTokenFilter(),
-                    new CachingTokenFilter(),
-                    new PorterPossessiveTokenFilter(),
-                    new PorterStopTokenFilter(),
-                    new KeywordLengthTokenFilter(),
-                    new KeywordDigitsTokenFilter(),
-                    new PorterStemTokenFilter());
         }
 
         public PorterAnalyzer(IEnumerable<string> keywords)
@@ -32,8 +23,8 @@
                     new CachingTokenFilter(),
                     new PorterPossessiveTokenFilter(),
                     new PorterStopTokenFilter(),
-                    new KeywordLengthTokenFilter(),
-                    new KeywordDigitsTokenFilter(),
+                    new LengthKeywordTokenFilter(),
+                    new DigitsKeywordTokenFilter(),
                     new KeywordTokenFilter(keywords),
                     new PorterStemTokenFilter());
         }

@@ -22,6 +22,14 @@ namespace Clara.Analysis
             }
         }
 
+        public IReadOnlyCollection<Token> Keywords
+        {
+            get
+            {
+                return this.keywords;
+            }
+        }
+
         public Token Process(Token token, TokenFilterDelegate next)
         {
             if (next is null)

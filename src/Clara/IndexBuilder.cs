@@ -21,7 +21,7 @@ namespace Clara
         public static Index<TDocument> Build<TSource, TDocument>(
             IEnumerable<TSource> source,
             IIndexMapper<TSource, TDocument> indexMapper,
-            params SynonymMapBinding[] synonymMapBindings)
+            IEnumerable<SynonymMapBinding> synonymMapBindings)
         {
             return Build(source, indexMapper, new InstanceTokenEncoderStore(), synonymMapBindings);
         }
@@ -29,8 +29,16 @@ namespace Clara
         public static Index<TDocument> Build<TSource, TDocument>(
             IEnumerable<TSource> source,
             IIndexMapper<TSource, TDocument> indexMapper,
+            TokenEncoderStore tokenEncoderStore)
+        {
+            return Build(source, indexMapper, tokenEncoderStore, Array.Empty<SynonymMapBinding>());
+        }
+
+        public static Index<TDocument> Build<TSource, TDocument>(
+            IEnumerable<TSource> source,
+            IIndexMapper<TSource, TDocument> indexMapper,
             TokenEncoderStore tokenEncoderStore,
-            params SynonymMapBinding[] synonymMapBindings)
+            IEnumerable<SynonymMapBinding> synonymMapBindings)
         {
             if (source is null)
             {

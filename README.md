@@ -144,9 +144,9 @@ Then we build our index.
 
 ```csharp
 // When rebuilding index, this reference should be reused
-var tokenEncoderStore = new SharedTokenEncoderStore();
+var sharedTokenEncoderStore = new SharedTokenEncoderStore();
 
-var index = IndexBuilder.Build(Product.Items, new ProductMapper(), tokenEncoderStore);
+var index = IndexBuilder.Build(Product.Items, new ProductMapper(), sharedTokenEncoderStore);
 ```
 
 With index built, can run queries against it. Result documents can be accessed with `Documents` property and
@@ -214,7 +214,7 @@ Price:
 
 ## Advanced scenarios
 
-### Index mapping
+### Field mapping
 
 #### Keyword fields
 
@@ -278,14 +278,14 @@ Below is shown example analyzer definition `PolishAnalyzer` using Morfologik.
 ```csharp
 var polishAnalyzer =
     new Analyzer(
-        new BasicTokenizer(numberDecimalSeparator: ','), // Splits text into tokens
-        new LowerInvariantTokenFilter(),                 // Transforms into lower case
-        new CachingTokenFilter(),                        // Prevents new string instance creation
-        new PolishStopTokenFilter(),                     // Language specific stop words default exclusion set
-        new KeywordLengthTokenFilter(),                  // Exclude from stemming tokens with length 2 or less
-        new KeywordDigitsTokenFilter(),                  // Exclude from stemming tokens containing digits
-        new KeywordTokenFilter(keywords),                // Exclude from stemming provided keyword tokens
-        new PolishStemTokenFilter());                    // Language specific token stemming
+        new BasicTokenizer(),             // Splits text into tokens
+        new LowerInvariantTokenFilter(),  // Transforms into lower case
+        new CachingTokenFilter(),         // Prevents new string instance creation
+        new PolishStopTokenFilter(),      // Language specific stop words default exclusion set
+        new LengthKeywordTokenFilter(),   // Exclude from stemming tokens with length 2 or less
+        new DigitsKeywordTokenFilter(),   // Exclude from stemming tokens containing digits
+        new KeywordTokenFilter(keywords), // Exclude from stemming provided keyword tokens
+        new PolishStemTokenFilter());     // Language specific token stemming
 ```
 
 It can be used for index mapper field definition as follows.
@@ -328,15 +328,15 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 ### Query benchmarks
 
-| Method            | Mean       | Error      | StdDev     | Gen0   | Allocated |
-|------------------ |-----------:|-----------:|-----------:|-------:|----------:|
-| ComplexQuery_x100 | 553.587 μs | 10.2281 μs | 19.7061 μs |      - |    1593 B |
-| ComplexQuery      |  12.075 μs |  0.1089 μs |  0.1019 μs | 0.0916 |    1592 B |
-| SearchQuery       |   7.149 μs |  0.0724 μs |  0.0678 μs | 0.0381 |     712 B |
-| FilterQuery       |   1.334 μs |  0.0099 μs |  0.0093 μs | 0.0458 |     744 B |
-| FacetQuery        |   8.651 μs |  0.0483 μs |  0.0452 μs | 0.0305 |     600 B |
-| SortQuery         |   3.502 μs |  0.0203 μs |  0.0180 μs | 0.0229 |     408 B |
-| BasicQuery        |   1.484 μs |  0.0207 μs |  0.0193 μs | 0.0191 |     312 B |
+| Method            | Mean       | Error     | StdDev    | Gen0   | Allocated |
+|------------------ |-----------:|----------:|----------:|-------:|----------:|
+| ComplexQuery_x100 | 562.813 μs | 7.9706 μs | 6.2229 μs |      - |    1601 B |
+| ComplexQuery      |  11.902 μs | 0.0440 μs | 0.0368 μs | 0.0916 |    1600 B |
+| SearchQuery       |   7.100 μs | 0.0211 μs | 0.0197 μs | 0.0458 |     720 B |
+| FilterQuery       |   1.326 μs | 0.0134 μs | 0.0125 μs | 0.0458 |     744 B |
+| FacetQuery        |   8.738 μs | 0.0782 μs | 0.0653 μs | 0.0305 |     600 B |
+| SortQuery         |   3.483 μs | 0.0105 μs | 0.0082 μs | 0.0229 |     408 B |
+| BasicQuery        |   1.437 μs | 0.0180 μs | 0.0168 μs | 0.0191 |     312 B |
 
 > Due to internal buffer structures pooling, memory allocation per search execution is constant
 > after initial allocation of pooled buffers.

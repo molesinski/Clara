@@ -17,9 +17,9 @@ namespace Clara.Tests
         [Fact]
         public void GettingStarted()
         {
-            var tokenEncoderStore = new SharedTokenEncoderStore();
+            var sharedTokenEncoderStore = new SharedTokenEncoderStore();
 
-            var index = IndexBuilder.Build(Product.Items, new ProductMapper(), tokenEncoderStore);
+            var index = IndexBuilder.Build(Product.Items, new ProductMapper(), sharedTokenEncoderStore);
 
             using var result = index.Query(
                 index.QueryBuilder()

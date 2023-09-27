@@ -1,6 +1,6 @@
 ﻿namespace Clara.Analysis
 {
-    public class KeywordDigitsTokenFilter : ITokenFilter
+    public class DigitsStopTokenFilter : ITokenFilter
     {
         public Token Process(Token token, TokenFilterDelegate next)
         {
@@ -15,7 +15,7 @@
             {
                 if (char.IsDigit(token[i]))
                 {
-                    return token;
+                    return default;
                 }
             }
 

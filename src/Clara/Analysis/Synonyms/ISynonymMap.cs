@@ -1,7 +1,11 @@
-﻿namespace Clara.Analysis.Synonyms
+﻿using Clara.Querying;
+
+namespace Clara.Analysis.Synonyms
 {
-    public interface ISynonymMap : IAnalyzer, IMatchExpressionFilter
+    public interface ISynonymMap : IAnalyzer
     {
         IAnalyzer Analyzer { get; }
+
+        MatchExpression Process(MatchExpression matchExpression);
     }
 }

@@ -12,7 +12,7 @@ namespace Clara.Benchmarks
     {
         private readonly SharedTokenEncoderStore sharedTokenEncoderStore;
         private readonly string allTextSynonym;
-        private readonly SynonymMapBinding synonymMapBinding;
+        private readonly SynonymMapBinding[] synonymMapBindings;
 
         public IndexBenchmarks()
         {
@@ -20,15 +20,18 @@ namespace Clara.Benchmarks
 
             this.allTextSynonym = Guid.NewGuid().ToString("N");
 
-            this.synonymMapBinding =
-                new SynonymMapBinding(
-                    new SynonymMap(
-                        ProductMapper.Analyzer,
-                        new Synonym[]
-                        {
-                            new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, this.allTextSynonym }),
-                        }),
-                    ProductMapper.Text);
+            this.synonymMapBindings =
+                new[]
+                {
+                    new SynonymMapBinding(
+                        new SynonymMap(
+                            ProductMapper.Analyzer,
+                            new Synonym[]
+                            {
+                                new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, this.allTextSynonym }),
+                            }),
+                        ProductMapper.Text),
+                };
         }
 
         [Benchmark]
@@ -40,7 +43,7 @@ namespace Clara.Benchmarks
         [Benchmark]
         public void IndexSynonym()
         {
-            _ = IndexBuilder.Build(Product.Items, new ProductMapper(), this.synonymMapBinding);
+            _ = IndexBuilder.Build(Product.Items, new ProductMapper(), this.synonymMapBindings);
         }
 
         [Benchmark]
@@ -58,7 +61,7 @@ namespace Clara.Benchmarks
         [Benchmark]
         public void SharedIndexSynonym()
         {
-            _ = IndexBuilder.Build(Product.Items, new ProductMapper(), this.sharedTokenEncoderStore, this.synonymMapBinding);
+            _ = IndexBuilder.Build(Product.Items, new ProductMapper(), this.sharedTokenEncoderStore, this.synonymMapBindings);
         }
 
         [Benchmark]

@@ -22,6 +22,14 @@ namespace Clara.Analysis
             }
         }
 
+        public IReadOnlyCollection<Token> Stopwords
+        {
+            get
+            {
+                return this.stopwords;
+            }
+        }
+
         public Token Process(Token token, TokenFilterDelegate next)
         {
             if (next is null)

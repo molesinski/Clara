@@ -5,10 +5,10 @@ namespace Clara.Analysis
     public sealed class LuceneEnglishStopTokenFilter : StopTokenFilter
     {
         public LuceneEnglishStopTokenFilter()
-            : base(Stopwords)
+            : base(DefaultStopwords)
         {
         }
 
-        public static IReadOnlyCollection<string> Stopwords { get; } = EnglishAnalyzer.DefaultStopSet.ToArray();
+        public static IReadOnlyCollection<string> DefaultStopwords { get; } = EnglishAnalyzer.DefaultStopSet.ToArray();
     }
 }

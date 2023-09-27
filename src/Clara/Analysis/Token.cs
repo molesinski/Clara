@@ -27,16 +27,16 @@ namespace Clara.Analysis
             this.length = 0;
         }
 
-        public Token(char[] chars, int length)
+        public Token(char[] chars, int count)
         {
             if (chars is null)
             {
                 throw new ArgumentNullException(nameof(chars));
             }
 
-            if (length < 0 || length > chars.Length)
+            if (count < 0 || count > chars.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(length));
+                throw new ArgumentOutOfRangeException(nameof(count));
             }
 
             if (!(chars.Length >= MaximumLength))
@@ -46,7 +46,7 @@ namespace Clara.Analysis
 
             this.value = null;
             this.chars = chars;
-            this.length = length;
+            this.length = count;
         }
 
         public readonly int Length
@@ -347,6 +347,9 @@ namespace Clara.Analysis
 
         public override readonly int GetHashCode()
         {
+#if NET6_0_OR_GREATER
+            return string.GetHashCode(this.Span, StringComparison.Ordinal);
+#else
             var span = this.Span;
 
             unchecked
@@ -368,6 +371,7 @@ namespace Clara.Analysis
 
                 return hash1 + (hash2 * 1566083941);
             }
+#endif
         }
 
         public override readonly string ToString()

@@ -1,4 +1,5 @@
 ﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+#pragma warning disable SA1310 // Field names should not contain underscore
 
 using BenchmarkDotNet.Attributes;
 using Clara.Analysis.Synonyms;
@@ -13,7 +14,7 @@ namespace Clara.Benchmarks
         private readonly string? topBrand;
         private readonly decimal? maxPrice;
         private readonly Index<Product> index;
-        private readonly Index<Product> index100;
+        private readonly Index<Product> index_x100;
 
         public QueryBenchmarks()
         {
@@ -30,25 +31,28 @@ namespace Clara.Benchmarks
             this.maxPrice = Product.Items
                 .Max(x => x.Price);
 
-            var synonymMapBinding =
-                new SynonymMapBinding(
-                    new SynonymMap(
-                        ProductMapper.Analyzer,
-                        new Synonym[]
-                        {
-                            new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, this.allTextSynonym }),
-                        }),
-                    ProductMapper.Text);
+            var synonymMapBindings =
+                new[]
+                {
+                    new SynonymMapBinding(
+                        new SynonymMap(
+                            ProductMapper.Analyzer,
+                            new Synonym[]
+                            {
+                                new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, this.allTextSynonym }),
+                            }),
+                        ProductMapper.Text),
+                };
 
-            this.index = IndexBuilder.Build(Product.Items, new ProductMapper(), synonymMapBinding);
+            this.index = IndexBuilder.Build(Product.Items, new ProductMapper(), synonymMapBindings);
 
-            this.index100 = IndexBuilder.Build(Product.Items_x100, new ProductMapper(), synonymMapBinding);
+            this.index_x100 = IndexBuilder.Build(Product.Items_x100, new ProductMapper(), synonymMapBindings);
         }
 
         [Benchmark]
         public void ComplexQuery_x100()
         {
-            using var result = this.index100.Query(
+            using var result = this.index_x100.Query(
                 this.index.QueryBuilder()
                     .Search(ProductMapper.Text, this.allTextSynonym)
                     .Filter(ProductMapper.Brand, Values.Any(this.topBrand))
