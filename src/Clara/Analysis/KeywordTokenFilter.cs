@@ -13,15 +13,10 @@
 
             foreach (var keyword in keywords)
             {
-                this.keywords.Add(new Token(keyword));
-            }
-        }
-
-        public IReadOnlyCollection<Token> Keywords
-        {
-            get
-            {
-                return this.keywords;
+                if (!string.IsNullOrWhiteSpace(keyword))
+                {
+                    this.keywords.Add(new Token(keyword));
+                }
             }
         }
 

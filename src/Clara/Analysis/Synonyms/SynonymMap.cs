@@ -1,20 +1,19 @@
 ﻿using System.Collections;
-using Clara.Mapping;
 using Clara.Querying;
 using Clara.Utils;
 
 namespace Clara.Analysis.Synonyms
 {
-    public class SynonymTree : ISynonymMap
+    public class SynonymMap : ISynonymMap
     {
-        private readonly TextField field;
-        private readonly SynonymNode root;
+        private readonly IAnalyzer analyzer;
+        private readonly TokenNode root;
 
-        public SynonymTree(TextField field, IEnumerable<Synonym> synonyms, int maximumPermutatedPhraseTokenCount = 1)
+        public SynonymMap(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, int maximumPermutatedPhraseTokenCount = 1)
         {
-            if (field is null)
+            if (analyzer is null)
             {
-                throw new ArgumentNullException(nameof(field));
+                throw new ArgumentNullException(nameof(analyzer));
             }
 
             if (synonyms is null)
@@ -27,15 +26,15 @@ namespace Clara.Analysis.Synonyms
                 throw new ArgumentOutOfRangeException(nameof(maximumPermutatedPhraseTokenCount));
             }
 
-            this.field = field;
-            this.root = SynonymNode.BuildTree(this.field.Analyzer, synonyms, maximumPermutatedPhraseTokenCount);
+            this.analyzer = analyzer;
+            this.root = TokenNode.BuildTree(analyzer, synonyms, maximumPermutatedPhraseTokenCount);
         }
 
-        public TextField Field
+        public IAnalyzer Analyzer
         {
             get
             {
-                return this.field;
+                return this.analyzer;
             }
         }
 
@@ -56,16 +55,16 @@ namespace Clara.Analysis.Synonyms
 
             if (this.IsEmpty)
             {
-                return this.field.Analyzer.GetTokens(text);
+                return this.analyzer.GetTokens(text);
             }
 
             return GetTokensEnumerable(text);
 
             IEnumerable<string> GetTokensEnumerable(string text)
             {
-                foreach (var item in new SynonymResultEnumerable(this.root, this.field.Analyzer.GetTokens(text)))
+                foreach (var item in new SynonymResultEnumerable(this.root, this.analyzer.GetTokens(text)))
                 {
-                    if (item.Node is SynonymNode node)
+                    if (item.Node is TokenNode node)
                     {
                         foreach (var token in node.ReplacementTokens)
                         {
@@ -99,7 +98,7 @@ namespace Clara.Analysis.Synonyms
 
                 foreach (var synonymResult in new SynonymResultEnumerable(this.root, allValuesMatchExpression.Tokens))
                 {
-                    if (synonymResult.Node is SynonymNode node)
+                    if (synonymResult.Node is TokenNode node)
                     {
                         expressions ??= new();
                         expressions.Add(node.MatchExpression);
@@ -137,7 +136,7 @@ namespace Clara.Analysis.Synonyms
 
                 foreach (var synonymResult in new SynonymResultEnumerable(this.root, anyValuesMatchExpression.Tokens))
                 {
-                    if (synonymResult.Node is SynonymNode node)
+                    if (synonymResult.Node is TokenNode node)
                     {
                         expressions ??= new();
                         expressions.Add(node.MatchExpression);
@@ -176,10 +175,10 @@ namespace Clara.Analysis.Synonyms
 
         private readonly struct SynonymResultEnumerable : IEnumerable<SynonymResult>
         {
-            private readonly SynonymNode root;
+            private readonly TokenNode root;
             private readonly IEnumerable<string> tokens;
 
-            public SynonymResultEnumerable(SynonymNode root, IEnumerable<string> tokens)
+            public SynonymResultEnumerable(TokenNode root, IEnumerable<string> tokens)
             {
                 if (root is null)
                 {
@@ -212,10 +211,10 @@ namespace Clara.Analysis.Synonyms
 
             public struct Enumerator : IEnumerator<SynonymResult>
             {
-                private readonly SynonymNode root;
+                private readonly TokenNode root;
                 private readonly IEnumerable<string> tokens;
-                private SynonymNode currentNode;
-                private SynonymNode? backtrackingNode;
+                private TokenNode currentNode;
+                private TokenNode? backtrackingNode;
                 private IEnumerator<string>? enumerator;
                 private string? previousToken;
                 private bool isEnumerated;
@@ -364,7 +363,7 @@ namespace Clara.Analysis.Synonyms
                 this.Node = null;
             }
 
-            public SynonymResult(SynonymNode node)
+            public SynonymResult(TokenNode node)
             {
                 if (node is null)
                 {
@@ -377,27 +376,27 @@ namespace Clara.Analysis.Synonyms
 
             public string? Token { get; }
 
-            public SynonymNode? Node { get; }
+            public TokenNode? Node { get; }
         }
 
-        private sealed class SynonymNode
+        private sealed class TokenNode
         {
-            private static readonly string SynonymTokenPrefix = string.Concat("__", Guid.NewGuid().ToString().Substring(0, 8), "__");
+            private const string SyntheticPrefix = "__SYNTHETIC__";
 
             private readonly string? token;
-            private readonly SynonymNode? parent;
+            private readonly TokenNode? parent;
             private readonly string[] pathTokens;
             private MatchExpression? matchExpression;
-            private IEnumerable<string>? replacementTokens;
+            private ListSlim<string>? replacementTokens;
 
-            private SynonymNode()
+            private TokenNode()
             {
                 this.token = null;
                 this.parent = null;
                 this.pathTokens = Array.Empty<string>();
             }
 
-            private SynonymNode(string token, SynonymNode parent)
+            private TokenNode(string token, TokenNode parent)
             {
                 if (parent is null)
                 {
@@ -429,27 +428,27 @@ namespace Clara.Analysis.Synonyms
                 {
                     if (this.token is null)
                     {
-                        throw new InvalidOperationException("Unable to retrieve token value for root synonym node.");
+                        throw new InvalidOperationException("Unable to retrieve token value for tree root node.");
                     }
 
                     return this.token;
                 }
             }
 
-            public SynonymNode Parent
+            public TokenNode Parent
             {
                 get
                 {
                     if (this.parent is null)
                     {
-                        throw new InvalidOperationException("Unable to retrieve parent node value for root synonym node.");
+                        throw new InvalidOperationException("Unable to retrieve parent node value for tree root node.");
                     }
 
                     return this.parent;
                 }
             }
 
-            public Dictionary<string, SynonymNode> Children { get; } = new();
+            public Dictionary<string, TokenNode> Children { get; } = new();
 
             public Dictionary<Synonym, SynonymTokens> SynonymTokens { get; } = new();
 
@@ -467,8 +466,8 @@ namespace Clara.Analysis.Synonyms
                 {
                     if (this.matchExpression is null)
                     {
-                        var expressions = new List<MatchExpression>();
-                        var addedSynonymTokens = new HashSet<string>();
+                        var expressions = new ListSlim<MatchExpression>();
+                        var addedSynonymTokens = new HashSetSlim<string>();
                         var isPathTokensAdded = false;
 
                         foreach (var pair in this.SynonymTokens)
@@ -507,13 +506,14 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public IEnumerable<string> ReplacementTokens
+            public ListSlim<string> ReplacementTokens
             {
                 get
                 {
                     if (this.replacementTokens is null)
                     {
-                        var replacementTokens = new HashSet<string>();
+                        var replacementTokens = new ListSlim<string>();
+                        var isPathTokensAdded = false;
 
                         foreach (var pair in this.SynonymTokens)
                         {
@@ -522,13 +522,19 @@ namespace Clara.Analysis.Synonyms
 
                             if (synonym is EquivalencySynonym)
                             {
-                                replacementTokens.UnionWith(this.pathTokens);
+                                if (!isPathTokensAdded)
+                                {
+                                    replacementTokens.AddRange(this.pathTokens);
+                                    isPathTokensAdded = true;
+                                }
+
                                 replacementTokens.Add(synonymTokens.SyntheticToken);
                             }
                             else if (synonym is ExplicitMappingSynonym)
                             {
                                 replacementTokens.Add(synonymTokens.SyntheticToken);
-                                replacementTokens.UnionWith(synonymTokens.ReplacementTokens);
+
+                                replacementTokens.AddRange(synonymTokens.ReplacementTokens);
                             }
                         }
 
@@ -539,10 +545,10 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public static SynonymNode BuildTree(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, int maximumPermutatedPhraseTokenCount)
+            public static TokenNode BuildTree(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, int maximumPermutatedPhraseTokenCount)
             {
                 var nextSynonymId = 1;
-                var root = new SynonymNode();
+                var root = new TokenNode();
 
                 foreach (var synonym in synonyms)
                 {
@@ -551,12 +557,12 @@ namespace Clara.Analysis.Synonyms
                         continue;
                     }
 
-                    var syntheticToken = string.Concat(SynonymTokenPrefix, nextSynonymId++);
-                    var tokenizedPhrases = new List<List<string>>();
+                    var syntheticToken = string.Concat(SyntheticPrefix, nextSynonymId++);
+                    var tokenizedPhrases = new ListSlim<ListSlim<string>>();
 
-                    foreach (var phrase in synonym.Phrases)
+                    foreach (var phrase in (ListSlim<string>)synonym.Phrases)
                     {
-                        var tokenizedPhrase = new List<string>();
+                        var tokenizedPhrase = new ListSlim<string>();
 
                         foreach (var token in analyzer.GetTokens(phrase))
                         {
@@ -583,7 +589,7 @@ namespace Clara.Analysis.Synonyms
                                     {
                                         if (!node.Children.TryGetValue(token, out var child))
                                         {
-                                            node.Children.Add(token, child = new SynonymNode(token, node));
+                                            node.Children.Add(token, child = new TokenNode(token, node));
                                         }
 
                                         node = child;
@@ -601,7 +607,7 @@ namespace Clara.Analysis.Synonyms
                     {
                         if (tokenizedPhrases.Count > 0)
                         {
-                            var replacementTokens = new List<string>();
+                            var replacementTokens = new ListSlim<string>();
 
                             foreach (var token in analyzer.GetTokens(explicitMappingSynonym.MappedPhrase))
                             {
@@ -625,7 +631,7 @@ namespace Clara.Analysis.Synonyms
                                     {
                                         if (!node.Children.TryGetValue(token, out var child))
                                         {
-                                            node.Children.Add(token, child = new SynonymNode(token, node));
+                                            node.Children.Add(token, child = new TokenNode(token, node));
                                         }
 
                                         node = child;
@@ -647,7 +653,7 @@ namespace Clara.Analysis.Synonyms
 
                 return root;
 
-                IEnumerable<IEnumerable<string>> GetPhraseTokensPermutations(List<string> tokens)
+                IEnumerable<string[]> GetPhraseTokensPermutations(ListSlim<string> tokens)
                 {
                     if (maximumPermutatedPhraseTokenCount > 1 && tokens.Count <= maximumPermutatedPhraseTokenCount)
                     {
@@ -658,7 +664,7 @@ namespace Clara.Analysis.Synonyms
                     }
                     else
                     {
-                        yield return tokens;
+                        yield return tokens.ToArray();
                     }
                 }
             }
@@ -666,13 +672,15 @@ namespace Clara.Analysis.Synonyms
 
         private sealed class SynonymTokens
         {
+            private static readonly ListSlim<string> EmptyReplacementTokens = new();
+
             public SynonymTokens(string syntheticToken)
             {
                 this.SyntheticToken = syntheticToken;
-                this.ReplacementTokens = Array.Empty<string>();
+                this.ReplacementTokens = EmptyReplacementTokens;
             }
 
-            public SynonymTokens(string syntheticToken, List<string> replacementTokens)
+            public SynonymTokens(string syntheticToken, ListSlim<string> replacementTokens)
             {
                 this.SyntheticToken = syntheticToken;
                 this.ReplacementTokens = replacementTokens;
@@ -680,7 +688,7 @@ namespace Clara.Analysis.Synonyms
 
             public string SyntheticToken { get; }
 
-            public IEnumerable<string> ReplacementTokens { get; }
+            public ListSlim<string> ReplacementTokens { get; }
         }
     }
 }

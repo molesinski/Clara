@@ -1,8 +1,10 @@
-﻿namespace Clara.Analysis.Synonyms
+﻿using Clara.Utils;
+
+namespace Clara.Analysis.Synonyms
 {
     public abstract class Synonym
     {
-        private readonly List<string> phrases = new();
+        private readonly ListSlim<string> phrases;
 
         internal Synonym(IEnumerable<string> phrases)
         {
@@ -11,12 +13,16 @@
                 throw new ArgumentNullException(nameof(phrases));
             }
 
+            this.phrases = new ListSlim<string>();
+
             foreach (var phrase in phrases)
             {
-                if (phrase is not null)
+                if (string.IsNullOrWhiteSpace(phrase))
                 {
-                    this.phrases.Add(phrase);
+                    throw new ArgumentException("Phrases cannot be empty or whitespace.", nameof(phrases));
                 }
+
+                this.phrases.Add(phrase);
             }
         }
 

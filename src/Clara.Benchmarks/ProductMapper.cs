@@ -8,7 +8,9 @@ namespace Clara.Benchmarks
 {
     public class ProductMapper : IIndexMapper<Product>
     {
-        public static TextField<Product> Text { get; } = new(x => GetText(x), new PorterAnalyzer());
+        public static IAnalyzer Analyzer { get; } = new PorterAnalyzer();
+
+        public static TextField<Product> Text { get; } = new(x => GetText(x), Analyzer);
         public static DecimalField<Product> Price { get; } = new(x => x.Price, isFilterable: true, isFacetable: true, isSortable: true);
         public static DoubleField<Product> DiscountPercentage { get; } = new(x => x.DiscountPercentage, isFilterable: true, isFacetable: true, isSortable: true);
         public static DoubleField<Product> Rating { get; } = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);

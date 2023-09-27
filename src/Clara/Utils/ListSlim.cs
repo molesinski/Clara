@@ -123,13 +123,59 @@ namespace Clara.Utils
 
         public void Add(TItem item)
         {
-            if (this.count == this.entries.Length || this.entries.Length == 1)
+            if (this.entries.Length == this.count || this.entries.Length == 1)
             {
                 this.EnsureCapacity(this.count + 1);
             }
 
             this.entries[this.count] = item;
             this.count++;
+        }
+
+        public void AddRange(IEnumerable<TItem> items)
+        {
+            if (items is null)
+            {
+                throw new ArgumentNullException(nameof(items));
+            }
+
+            if (items is ListSlim<TItem> other)
+            {
+                var count = other.count;
+
+                if (count > 0)
+                {
+                    if (this.entries.Length - this.count < count || this.entries.Length == 1)
+                    {
+                        this.EnsureCapacity(this.count + count);
+                    }
+
+                    Array.Copy(other.entries, 0, this.entries, this.count, count);
+                    this.count += count;
+                }
+            }
+            else if (items is ICollection<TItem> collection)
+            {
+                var count = collection.Count;
+
+                if (count > 0)
+                {
+                    if (this.entries.Length - this.count < count || this.entries.Length == 1)
+                    {
+                        this.EnsureCapacity(this.count + count);
+                    }
+
+                    collection.CopyTo(this.entries, this.count);
+                    this.count += count;
+                }
+            }
+            else
+            {
+                foreach (var item in items)
+                {
+                    this.Add(item);
+                }
+            }
         }
 
         public void Insert(int index, TItem item)
@@ -139,7 +185,7 @@ namespace Clara.Utils
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            if (this.count == this.entries.Length || this.entries.Length == 1)
+            if (this.entries.Length == this.count || this.entries.Length == 1)
             {
                 this.EnsureCapacity(this.count + 1);
             }

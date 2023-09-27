@@ -28,17 +28,19 @@ namespace Clara.Benchmarks
             this.maxPrice = Product.Items
                 .Max(x => x.Price);
 
-            var synonymMap =
-                new SynonymTree(
-                    ProductMapper.Text,
-                    new Synonym[]
-                    {
-                        new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, this.allTextSynonym }),
-                    });
+            var synonymMapBinding =
+                new SynonymMapBinding(
+                    new SynonymMap(
+                        ProductMapper.Analyzer,
+                        new Synonym[]
+                        {
+                            new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, this.allTextSynonym }),
+                        }),
+                    ProductMapper.Text);
 
-            this.index = IndexBuilder.Build(Product.Items, new ProductMapper(), synonymMap);
+            this.index = IndexBuilder.Build(Product.Items, new ProductMapper(), synonymMapBinding);
 
-            this.index100 = IndexBuilder.Build(Product.ItemsX100, new ProductMapper(), synonymMap);
+            this.index100 = IndexBuilder.Build(Product.ItemsX100, new ProductMapper(), synonymMapBinding);
         }
 
         [Benchmark]

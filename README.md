@@ -104,7 +104,9 @@ type instead and return proper document type in `GetDocument` method implementat
 ```csharp
 public sealed class ProductMapper : IIndexMapper<Product>
 {
-    public static TextField<Product> Text { get; } = new(x => GetText(x), new PorterAnalyzer());
+    public static IAnalyzer Analyzer { get; } = new PorterAnalyzer();
+
+    public static TextField<Product> Text { get; } = new(x => GetText(x), Analyzer);
     public static DecimalField<Product> Price { get; } = new(x => x.Price, isFilterable: true, isFacetable: true, isSortable: true);
     public static DoubleField<Product> DiscountPercentage { get; } = new(x => x.DiscountPercentage, isFilterable: true, isFacetable: true, isSortable: true);
     public static DoubleField<Product> Rating { get; } = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);
@@ -212,38 +214,15 @@ Price:
 
 ## Advanced scenarios
 
-### Synonym maps
+### Keyword fields
 
 TODO
 
-### Custom analyzers
+### Hierarchy fields
 
-Above code uses `PorterAnalyzer` which provides basic English language stemming. For other languages
-[Clara.Analysis.Snowball](https://www.nuget.org/packages/Clara.Analysis.Snowball) or
-[Clara.Analysis.Morfologik](https://www.nuget.org/packages/Clara.Analysis.Morfologik) packages can
-be used. Those packages provide stem and stop token filters for all supported languages.
+TODO
 
-Below is shown example analyzer definition `PolishAnalyzer` using Morfologik.
-
-```csharp
-public static IAnalyzer PolishAnalyzer { get; } =
-    new Analyzer(
-        new BasicTokenizer(numberDecimalSeparator: ','), // Splits text into tokens
-        new LowerInvariantTokenFilter(),                 // Transforms into lower case
-        new CachingTokenFilter(),                        // Prevents new string instance creation
-        new PolishStopTokenFilter(),                     // Language specific stop words default exclusion set
-        new KeywordLengthTokenFilter(),                  // Exclude from stemming tokens with length 2 or less
-        new KeywordDigitsTokenFilter(),                  // Exclude from stemming tokens containing digits
-        new PolishStemTokenFilter());                    // Language specific token stemming
-```
-
-It can be used for index mapper field definition as follows.
-
-```csharp
-public static TextField<Product> TextPolish = new(x => GetTextPolish(x), PolishAnalyzer);
-```
-
-### Custom range fields
+### Range fields
 
 Range fields represent index fields for `struct` values with `IComparable<T>` interface implementation.
 Internally `DateTime`, `Decimal`, `Double` and `Int32` types are supported. Implementors can support any
@@ -279,7 +258,39 @@ public sealed class DateOnlyField<TSource> : RangeField<TSource, int>
 }
 ```
 
-### Custom `IAnalyzer`, `ITokenizer` and `IFilterToken`
+### Text fields
+
+TODO
+
+### Analyzers
+
+Above code uses `PorterAnalyzer` which provides basic English language stemming. For other languages
+[Clara.Analysis.Snowball](https://www.nuget.org/packages/Clara.Analysis.Snowball) or
+[Clara.Analysis.Morfologik](https://www.nuget.org/packages/Clara.Analysis.Morfologik) packages can
+be used. Those packages provide stem and stop token filters for all supported languages.
+
+Below is shown example analyzer definition `PolishAnalyzer` using Morfologik.
+
+```csharp
+var polishAnalyzer =
+    new Analyzer(
+        new BasicTokenizer(numberDecimalSeparator: ','), // Splits text into tokens
+        new LowerInvariantTokenFilter(),                 // Transforms into lower case
+        new CachingTokenFilter(),                        // Prevents new string instance creation
+        new PolishStopTokenFilter(),                     // Language specific stop words default exclusion set
+        new KeywordLengthTokenFilter(),                  // Exclude from stemming tokens with length 2 or less
+        new KeywordDigitsTokenFilter(),                  // Exclude from stemming tokens containing digits
+        new KeywordTokenFilter(keywords),                // Exclude from stemming provided keyword tokens
+        new PolishStemTokenFilter());                    // Language specific token stemming
+```
+
+It can be used for index mapper field definition as follows.
+
+```csharp
+public static TextField<Product> TextPolish = new(x => GetTextPolish(x), PolishAnalyzer);
+```
+
+### Synonym maps
 
 TODO
 

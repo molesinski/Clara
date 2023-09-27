@@ -11,7 +11,7 @@ namespace Clara.Benchmarks
     {
         private readonly SharedTokenEncoderStore sharedTokenEncoderStore;
         private readonly string allTextSynonym;
-        private readonly ISynonymMap synonymMap;
+        private readonly SynonymMapBinding synonymMapBinding;
 
         public IndexBenchmarks()
         {
@@ -19,13 +19,15 @@ namespace Clara.Benchmarks
 
             this.allTextSynonym = Guid.NewGuid().ToString("N");
 
-            this.synonymMap =
-                new SynonymTree(
-                    ProductMapper.Text,
-                    new Synonym[]
-                    {
-                        new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, this.allTextSynonym }),
-                    });
+            this.synonymMapBinding =
+                new SynonymMapBinding(
+                    new SynonymMap(
+                        ProductMapper.Analyzer,
+                        new Synonym[]
+                        {
+                            new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, this.allTextSynonym }),
+                        }),
+                    ProductMapper.Text);
         }
 
         [Benchmark]
@@ -37,7 +39,7 @@ namespace Clara.Benchmarks
         [Benchmark]
         public void IndexSynonym()
         {
-            _ = IndexBuilder.Build(Product.Items, new ProductMapper(), this.synonymMap);
+            _ = IndexBuilder.Build(Product.Items, new ProductMapper(), this.synonymMapBinding);
         }
 
         [Benchmark]
@@ -55,7 +57,7 @@ namespace Clara.Benchmarks
         [Benchmark]
         public void SharedIndexSynonym()
         {
-            _ = IndexBuilder.Build(Product.Items, new ProductMapper(), this.sharedTokenEncoderStore, this.synonymMap);
+            _ = IndexBuilder.Build(Product.Items, new ProductMapper(), this.sharedTokenEncoderStore, this.synonymMapBinding);
         }
 
         [Benchmark]

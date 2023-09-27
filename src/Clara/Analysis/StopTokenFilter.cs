@@ -13,15 +13,10 @@
 
             foreach (var stopword in stopwords)
             {
-                this.stopwords.Add(new Token(stopword));
-            }
-        }
-
-        public IReadOnlyCollection<Token> Stopwords
-        {
-            get
-            {
-                return this.stopwords;
+                if (!string.IsNullOrWhiteSpace(stopword))
+                {
+                    this.stopwords.Add(new Token(stopword));
+                }
             }
         }
 

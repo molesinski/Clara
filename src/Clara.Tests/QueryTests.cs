@@ -27,15 +27,17 @@ namespace Clara.Tests
             this.maxPrice = Product.Items
                 .Max(x => x.Price);
 
-            var synonymMap =
-                new SynonymTree(
-                    ProductMapper.Text,
-                    new Synonym[]
-                    {
-                        new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, AllTextPhrase }),
-                    });
+            var synonymMapBinding =
+                new SynonymMapBinding(
+                    new SynonymMap(
+                        ProductMapper.Analyzer,
+                        new Synonym[]
+                        {
+                            new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, AllTextPhrase }),
+                        }),
+                    ProductMapper.Text);
 
-            this.index = IndexBuilder.Build(Product.Items, new ProductMapper(), synonymMap);
+            this.index = IndexBuilder.Build(Product.Items, new ProductMapper(), synonymMapBinding);
         }
 
         public enum FilterMode

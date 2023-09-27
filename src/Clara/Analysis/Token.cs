@@ -268,10 +268,7 @@ namespace Clara.Analysis
                 throw new ArgumentException("Inserted length would exceed token maximum length.", nameof(chars));
             }
 
-            for (var i = this.length - 1; i >= startIndex; i--)
-            {
-                this.chars[i + count] = this.chars[i];
-            }
+            Array.Copy(this.chars, startIndex, this.chars, startIndex + count, this.length - startIndex);
 
             chars.CopyTo(this.chars.AsSpan(startIndex));
 
@@ -295,10 +292,7 @@ namespace Clara.Analysis
                 throw new ArgumentOutOfRangeException(nameof(startIndex));
             }
 
-            for (var i = startIndex; i < this.length - count; i++)
-            {
-                this.chars[i] = this.chars[i + count];
-            }
+            Array.Copy(this.chars, startIndex + count, this.chars, startIndex, this.length - (startIndex + count));
 
             this.length -= count;
         }

@@ -2,7 +2,7 @@
 {
     internal static class PermutationHelper
     {
-        public static IEnumerable<IEnumerable<TItem>> Permutate<TItem>(IEnumerable<TItem> source)
+        public static IEnumerable<TItem[]> Permutate<TItem>(IEnumerable<TItem> source)
         {
             if (source is null)
             {
@@ -23,7 +23,7 @@
 
             if (length == 1)
             {
-                yield return list;
+                yield return list.ToArray();
                 yield break;
             }
 

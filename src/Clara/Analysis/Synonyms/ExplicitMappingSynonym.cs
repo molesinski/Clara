@@ -10,6 +10,11 @@
                 throw new ArgumentNullException(nameof(mappedPhrase));
             }
 
+            if (string.IsNullOrWhiteSpace(mappedPhrase))
+            {
+                throw new ArgumentException("Mapped phrase cannot be empty or whitespace.", nameof(mappedPhrase));
+            }
+
             this.MappedPhrase = mappedPhrase;
         }
 
