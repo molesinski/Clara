@@ -16,14 +16,14 @@ replacing in memory reference and discarding old one.
 * Inspired by commonly known Lucene design
 * Fast in memory searching
 * Low memory allocation for search execution
-* Stemmers and stopwords handling for 30 languages
+* Stemming and stop words handling for 30 languages
 * Text, keyword, hierarchy and range fields
-* Synonym tree with multi word synonym support
-* Fully configurable and extendable text analysis pipeline
-* Document scring with BM25 weight
-* Filtering on any field type by values or range
+* Synonym maps with multi token synonym support
+* Document scoring with BM25 weight
+* Filtering keyword and hierarchy fields by any/all values and range fields by subrange
 * Faceting without restricting facet value list by filtered values
 * Result sorting by document score or range field
+* Fully configurable and extendable text analysis pipeline
 * Fluent query builder
 
 ## Supported Languages
@@ -325,24 +325,24 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 | Method             | Mean        | Error       | StdDev      | Gen0      | Gen1      | Gen2      | Allocated   |
 |------------------- |------------:|------------:|------------:|----------:|----------:|----------:|------------:|
-| Index_x100         | 71,140.7 μs | 1,730.65 μs | 5,102.87 μs | 2428.5714 | 2285.7143 | 1000.0000 | 31207.54 KB |
-| IndexSynonym       |    530.7 μs |     7.55 μs |     7.06 μs |   36.1328 |   12.6953 |         - |   558.23 KB |
-| Index              |    466.4 μs |     4.78 μs |     4.47 μs |   34.6680 |   13.1836 |         - |   538.11 KB |
-| SharedIndex_x100   | 66,836.8 μs | 1,482.05 μs | 4,369.86 μs | 2250.0000 | 2000.0000 |  875.0000 | 29919.28 KB |
-| SharedIndexSynonym |    508.8 μs |     7.71 μs |     7.21 μs |   32.2266 |   10.7422 |         - |   505.52 KB |
-| SharedIndex        |    439.6 μs |     5.44 μs |     5.09 μs |   31.2500 |   10.7422 |         - |   485.41 KB |
+| Index_x100         | 67,078.6 μs | 1,297.01 μs | 2,057.19 μs | 2428.5714 | 2285.7143 | 1000.0000 | 31207.79 KB |
+| IndexSynonym       |    518.7 μs |     6.80 μs |     6.03 μs |   36.1328 |   12.6953 |         - |    558.2 KB |
+| Index              |    461.0 μs |     9.05 μs |     9.68 μs |   34.6680 |   13.1836 |         - |   538.11 KB |
+| SharedIndex_x100   | 63,849.0 μs | 1,119.16 μs |   992.11 μs | 2250.0000 | 2000.0000 |  875.0000 | 29918.68 KB |
+| SharedIndexSynonym |    494.7 μs |     2.49 μs |     2.33 μs |   32.2266 |   10.7422 |         - |   505.49 KB |
+| SharedIndex        |    444.4 μs |     8.71 μs |    10.37 μs |   31.2500 |   10.7422 |         - |   485.41 KB |
 
 ### Query Benchmarks
 
 | Method            | Mean       | Error     | StdDev    | Gen0   | Allocated |
 |------------------ |-----------:|----------:|----------:|-------:|----------:|
-| ComplexQuery_x100 | 546.309 μs | 1.8522 μs | 1.5467 μs |      - |    1593 B |
-| ComplexQuery      |  11.936 μs | 0.0877 μs | 0.0821 μs | 0.0916 |    1592 B |
-| SearchQuery       |   7.255 μs | 0.0486 μs | 0.0455 μs | 0.0381 |     712 B |
-| FilterQuery       |   1.327 μs | 0.0091 μs | 0.0081 μs | 0.0458 |     744 B |
-| FacetQuery        |   8.912 μs | 0.0453 μs | 0.0423 μs | 0.0305 |     600 B |
-| SortQuery         |   3.425 μs | 0.0073 μs | 0.0057 μs | 0.0229 |     408 B |
-| BasicQuery        |   1.452 μs | 0.0102 μs | 0.0091 μs | 0.0191 |     312 B |
+| ComplexQuery_x100 | 564.191 μs | 4.8654 μs | 4.0628 μs |      - |    1513 B |
+| ComplexQuery      |  11.662 μs | 0.1380 μs | 0.1291 μs | 0.0916 |    1512 B |
+| SearchQuery       |   7.029 μs | 0.0272 μs | 0.0227 μs | 0.0381 |     712 B |
+| FilterQuery       |   1.455 μs | 0.0145 μs | 0.0136 μs | 0.0439 |     688 B |
+| FacetQuery        |   8.679 μs | 0.0425 μs | 0.0398 μs | 0.0305 |     600 B |
+| SortQuery         |   3.458 μs | 0.0175 μs | 0.0155 μs | 0.0229 |     408 B |
+| BasicQuery        |   1.377 μs | 0.0090 μs | 0.0084 μs | 0.0191 |     312 B |
 
 > Due to internal buffer structures pooling, memory allocation per search execution is constant
 > after initial allocation of pooled buffers.

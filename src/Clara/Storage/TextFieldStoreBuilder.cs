@@ -50,7 +50,12 @@ namespace Clara.Storage
 
             foreach (var value in this.field.ValueMapper(item))
             {
-                builder.AppendLine(value);
+                if (builder.Length > 0)
+                {
+                    builder.Append(' ');
+                }
+
+                builder.Append(value);
                 lastValue = value;
                 valueCount++;
             }

@@ -16,7 +16,7 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(documentValues));
             }
 
-            documentValues.Sort(DocumentValueComparer.Instance);
+            documentValues.Sort(DocumentValueComparer<TValue>.Ascending);
 
             this.sortedDocumentValues = documentValues;
         }
@@ -31,23 +31,73 @@ namespace Clara.Storage
 
         public void Filter(Field field, TValue? from, TValue? to, ref DocumentResultBuilder documentResultBuilder)
         {
-            var rangeMatches = new DocumentValueRange<TValue>(this.sortedDocumentValues, from, to);
+            var list = this.sortedDocumentValues;
 
-            documentResultBuilder.IntersectWith(field, rangeMatches);
+            var lo = 0;
+            var hi = list.Count - 1;
+
+            if (from is not null)
+            {
+                lo = BinarySearchLow(list, from.Value);
+            }
+
+            if (to is not null)
+            {
+                hi = BinarySearchHigh(list, to.Value);
+            }
+
+            using var documents = SharedObjectPools.Documents.Lease();
+
+            for (var i = lo; i <= hi; i++)
+            {
+                documents.Instance.Add(list[i].DocumentId);
+            }
+
+            documentResultBuilder.IntersectWith(field, documents.Instance);
         }
 
-        private sealed class DocumentValueComparer : IComparer<DocumentValue<TValue>>
+        private static int BinarySearchLow(ListSlim<DocumentValue<TValue>> list, TValue value)
         {
-            private DocumentValueComparer()
+            var left = 0;
+            var right = list.Count - 1;
+
+            while (left <= right)
             {
+                var mid = (left + right) / 2;
+
+                if (list[mid].Value.CompareTo(value) < 0)
+                {
+                    left = mid + 1;
+                }
+                else
+                {
+                    right = mid - 1;
+                }
             }
 
-            public static DocumentValueComparer Instance { get; } = new DocumentValueComparer();
+            return left;
+        }
 
-            public int Compare(DocumentValue<TValue> x, DocumentValue<TValue> y)
+        private static int BinarySearchHigh(ListSlim<DocumentValue<TValue>> list, TValue value)
+        {
+            var left = 0;
+            var right = list.Count - 1;
+
+            while (left <= right)
             {
-                return x.Value.CompareTo(y.Value);
+                var mid = (left + right) / 2;
+
+                if (list[mid].Value.CompareTo(value) <= 0)
+                {
+                    left = mid + 1;
+                }
+                else
+                {
+                    right = mid - 1;
+                }
             }
+
+            return right;
         }
     }
 }
