@@ -10,17 +10,19 @@ Simple, yet feature complete, in memory search engine.
 ## Highlights
 
 This library is meant for relatively small document sets (up to tenths of thousands) while maintaining
-fast query times (around 1 milisecond). Updating index requires reindexing, which means building new index,
-replacing in memory reference and discarding old one.
+fast query times (measured in low milliseconds). Index updates are not supported by design and full index
+rebuild is required to reflect changes in source data.
 
-* Inspired by commonly known Lucene design
+Main features are:
+
+* Inspired by well known Lucene design
 * Fast in memory searching
 * Low memory allocation for search execution
 * Stemming and stop words handling for 30 languages
 * Text, keyword, hierarchy and range fields
 * Synonym maps with multi token synonym support
-* Document scoring with BM25 weight
-* Filtering keyword and hierarchy fields by any/all values and range fields by subrange
+* Document scoring using BM25
+* Filtering keyword and hierarchy fields by any or all values and range fields by value subrange
 * Faceting without restricting facet value list by filtered values
 * Result sorting by document score or range field
 * Fully configurable and extendable text analysis pipeline
@@ -30,11 +32,11 @@ replacing in memory reference and discarding old one.
 
 * Internally
 
-  Porter (English)
+  Porter (**English**)
 
 * Using [Clara.Analysis.Snowball](https://www.nuget.org/packages/Clara.Analysis.Snowball) package
 
-  English, Arabic, Armenian, Basque, Catalan, Danish, Dutch, Finnish, French, German, Greek, Hindi,
+  Arabic, Armenian, Basque, Catalan, Danish, Dutch, **English**, Finnish, French, German, Greek, Hindi,
   Hungarian, Indonesian, Irish, Italian, Lithuanian, Nepali, Norwegian, Portuguese, Romanian, Russian,
   Serbian, Spanish, Swedish, Tamil, Turkish, Yiddish
 
