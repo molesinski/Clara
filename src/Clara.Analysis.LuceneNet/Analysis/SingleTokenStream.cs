@@ -57,7 +57,7 @@ namespace Clara.Analysis
                 }
 
                 this.charTermAttribute.SetEmpty();
-                this.token.Span.CopyTo(this.charTermAttribute.Buffer.AsSpan());
+                this.token.AsReadOnlySpan().CopyTo(this.charTermAttribute.Buffer.AsSpan());
                 this.charTermAttribute.Length = length;
 
                 return true;

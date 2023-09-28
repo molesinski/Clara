@@ -9,11 +9,12 @@
                 throw new ArgumentNullException(nameof(next));
             }
 
-            var length = token.Length;
+            var span = token.AsReadOnlySpan();
+            var length = span.Length;
 
             for (var i = 0; i < length; i++)
             {
-                if (char.IsDigit(token[i]))
+                if (char.IsDigit(span[i]))
                 {
                     return default;
                 }

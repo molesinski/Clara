@@ -419,9 +419,8 @@
             return true;
         }
 
-        private static bool EndsWith(Token token, string suffix, out int j)
+        private static bool EndsWith(ReadOnlySpan<char> span, string suffix, out int j)
         {
-            var span = token.Span;
             var chars = suffix.AsSpan();
 
             if (span.EndsWith(chars))
@@ -434,11 +433,11 @@
             return false;
         }
 
-        private static bool ContainsVowel(Token token, int j)
+        private static bool ContainsVowel(ReadOnlySpan<char> span, int j)
         {
             for (var i = 0; i <= j; i++)
             {
-                if (!IsConsonant(token, i))
+                if (!IsConsonant(span, i))
                 {
                     return true;
                 }
@@ -447,7 +446,7 @@
             return false;
         }
 
-        private static int NumberOfConsonantSequences(Token token, int j)
+        private static int NumberOfConsonantSequences(ReadOnlySpan<char> span, int j)
         {
             var n = 0;
             var i = 0;
@@ -459,7 +458,7 @@
                     return n;
                 }
 
-                if (!IsConsonant(token, i))
+                if (!IsConsonant(span, i))
                 {
                     break;
                 }
@@ -478,7 +477,7 @@
                         return n;
                     }
 
-                    if (IsConsonant(token, i))
+                    if (IsConsonant(span, i))
                     {
                         break;
                     }
@@ -496,7 +495,7 @@
                         return n;
                     }
 
-                    if (!IsConsonant(token, i))
+                    if (!IsConsonant(span, i))
                     {
                         break;
                     }
@@ -508,15 +507,15 @@
             }
         }
 
-        private static bool HasCvcAt(Token token, int i)
+        private static bool HasCvcAt(ReadOnlySpan<char> span, int i)
         {
-            if (i < 2 || !IsConsonant(token, i) || IsConsonant(token, i - 1) || !IsConsonant(token, i - 2))
+            if (i < 2 || !IsConsonant(span, i) || IsConsonant(span, i - 1) || !IsConsonant(span, i - 2))
             {
                 return false;
             }
             else
             {
-                var c = token[i];
+                var c = span[i];
 
                 if (c == 'w' || c == 'x' || c == 'y')
                 {
@@ -527,28 +526,28 @@
             return true;
         }
 
-        private static bool ContainsDoubleConsonantAt(Token token, int i)
+        private static bool ContainsDoubleConsonantAt(ReadOnlySpan<char> span, int i)
         {
             if (i < 1)
             {
                 return false;
             }
 
-            if (token[i] != token[i - 1])
+            if (span[i] != span[i - 1])
             {
                 return false;
             }
 
-            return IsConsonant(token, i);
+            return IsConsonant(span, i);
         }
 
-        private static bool IsConsonant(Token token, int i)
+        private static bool IsConsonant(ReadOnlySpan<char> span, int i)
         {
             return
-                token[i] switch
+                span[i] switch
                 {
                     'a' or 'e' or 'i' or 'o' or 'u' => false,
-                    'y' => i == 0 || !IsConsonant(token, i - 1),
+                    'y' => i == 0 || !IsConsonant(span, i - 1),
                     _ => true,
                 };
         }

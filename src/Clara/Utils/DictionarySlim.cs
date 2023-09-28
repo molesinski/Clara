@@ -342,10 +342,22 @@ namespace Clara.Utils
                 var lastIndex = this.lastIndex;
                 var intArrayLength = BitHelper.ToIntArrayLength(lastIndex);
 
-                Span<int> span = stackalloc int[intArrayLength];
-                var bitHelper = new BitHelper(span.Slice(0, intArrayLength), clear: true);
+                if (intArrayLength <= BitHelper.StackAllocThreshold)
+                {
+                    Span<int> span = stackalloc int[intArrayLength];
+                    var bitHelper = new BitHelper(span.Slice(0, intArrayLength), clear: true);
 
-                IntersectWith(enumerable, ref bitHelper, lastIndex);
+                    IntersectWith(enumerable, ref bitHelper, lastIndex);
+                }
+                else
+                {
+                    var array = ArrayPool<int>.Shared.Rent(intArrayLength);
+                    var bitHelper = new BitHelper(array.AsSpan(0, intArrayLength), clear: true);
+
+                    IntersectWith(enumerable, ref bitHelper, lastIndex);
+
+                    ArrayPool<int>.Shared.Return(array);
+                }
             }
 
             void IntersectWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, ref BitHelper bitHelper, int lastIndex)

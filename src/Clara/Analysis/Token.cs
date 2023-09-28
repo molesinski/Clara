@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 namespace Clara.Analysis
 {
@@ -68,33 +69,6 @@ namespace Clara.Analysis
             }
         }
 
-        public readonly bool IsReadOnly
-        {
-            get
-            {
-                return this.chars is null;
-            }
-        }
-
-        public readonly ReadOnlySpan<char> Span
-        {
-            get
-            {
-                if (this.chars is not null)
-                {
-                    return this.chars.AsSpan(0, this.length);
-                }
-                else if (this.value is not null)
-                {
-                    return this.value.AsSpan();
-                }
-                else
-                {
-                    return ReadOnlySpan<char>.Empty;
-                }
-            }
-        }
-
         public readonly char this[int index]
         {
             get
@@ -139,6 +113,13 @@ namespace Clara.Analysis
             }
         }
 
+#pragma warning disable CA2225 // Operator overloads have named alternates
+        public static implicit operator ReadOnlySpan<char>(Token token)
+#pragma warning restore CA2225 // Operator overloads have named alternates
+        {
+            return token.AsReadOnlySpan();
+        }
+
         public static bool operator ==(Token left, Token right)
         {
             return left.Equals(right);
@@ -147,6 +128,42 @@ namespace Clara.Analysis
         public static bool operator !=(Token left, Token right)
         {
             return !left.Equals(right);
+        }
+
+        public readonly Span<char> AsSpan()
+        {
+            if (this.chars is null)
+            {
+                throw new InvalidOperationException("Read only tokens cannot be modified.");
+            }
+
+            return this.chars.AsSpan(0, this.length);
+        }
+
+        public readonly ReadOnlySpan<char> AsReadOnlySpan()
+        {
+            if (this.chars is not null)
+            {
+                return this.chars.AsSpan(0, this.length);
+            }
+            else if (this.value is not null)
+            {
+                return this.value.AsSpan();
+            }
+            else
+            {
+                return ReadOnlySpan<char>.Empty;
+            }
+        }
+
+        public readonly Token ToReadOnly()
+        {
+            if (this.chars is not null)
+            {
+                return new Token(this.ToString());
+            }
+
+            return this;
         }
 
         public readonly void CopyTo(StringBuilder builder)
@@ -312,29 +329,6 @@ namespace Clara.Analysis
             this.length = startIndex;
         }
 
-        public readonly Token AsReadOnly()
-        {
-            if (!this.IsReadOnly)
-            {
-                return new Token(this.ToString());
-            }
-
-            return this;
-        }
-
-        public readonly bool Equals(Token other)
-        {
-            var a = this.Span;
-            var b = other.Span;
-
-            if (a.Length != b.Length)
-            {
-                return false;
-            }
-
-            return a.SequenceEqual(b);
-        }
-
         public override readonly bool Equals(object? obj)
         {
             if (obj is not Token other)
@@ -345,12 +339,25 @@ namespace Clara.Analysis
             return this.Equals(other);
         }
 
+        public readonly bool Equals(Token other)
+        {
+            var a = this.AsReadOnlySpan();
+            var b = other.AsReadOnlySpan();
+
+            if (a.Length != b.Length)
+            {
+                return false;
+            }
+
+            return a.SequenceEqual(b);
+        }
+
         public override readonly int GetHashCode()
         {
 #if NET6_0_OR_GREATER
-            return string.GetHashCode(this.Span, StringComparison.Ordinal);
+            return string.GetHashCode(this.AsReadOnlySpan(), StringComparison.Ordinal);
 #else
-            var span = this.Span;
+            var span = this.AsReadOnlySpan();
 
             unchecked
             {

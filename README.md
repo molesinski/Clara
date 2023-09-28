@@ -26,7 +26,7 @@ replacing in memory reference and discarding old one.
 * Result sorting by document score or range field
 * Fluent query builder
 
-## Supported languages
+## Supported Languages
 
 * Internally
 
@@ -42,7 +42,7 @@ replacing in memory reference and discarding old one.
 
   Polish
 
-## Getting started
+## A Quick Example
 
 Given sample product data set from [dummyjson.com](https://dummyjson.com/products).
 
@@ -89,7 +89,7 @@ support from single index. In such case we would combine text for each language 
 analyzer.
 
 For simple fields we define delegates that provide raw values for indexing. Each field can provide none,
-one or more values, null values are automatically skipped during indexing. All simple fields can be marked
+one or more values, null values are automatically skipped during indexing. All non-text fields can be marked
 as filterable or facetable, while only range fields can be made sortable.
 
 Built indexes have no persistence and reside only in memory. If index needs updating, it should be rebuild
@@ -212,19 +212,17 @@ Price:
   [Max] => 1249
 ```
 
-## Advanced scenarios
+## More Information
 
-### Field mapping
-
-#### Keyword fields
+### Keyword Fields
 
 TODO
 
-#### Hierarchy fields
+### Hierarchy Fields
 
 TODO
 
-#### Range fields
+### Range Fields
 
 Range fields represent index fields for `struct` values with `IComparable<T>` interface implementation.
 Internally `DateTime`, `Decimal`, `Double` and `Int32` types are supported. Implementors can support any
@@ -260,13 +258,11 @@ public sealed class DateOnlyField<TSource> : RangeField<TSource, int>
 }
 ```
 
-#### Text fields
+### Text Fields
 
 TODO
 
-### Analysis
-
-#### Analyzers
+### Analyzers
 
 Above code uses `PorterAnalyzer` which provides basic English language stemming. For other languages
 [Clara.Analysis.Snowball](https://www.nuget.org/packages/Clara.Analysis.Snowball) or
@@ -294,11 +290,7 @@ It can be used for index mapper field definition as follows.
 public static TextField<Product> TextPolish = new(x => GetTextPolish(x), PolishAnalyzer);
 ```
 
-#### Synonym maps
-
-TODO
-
-#### Extending analysis pipeline
+### Synonym Maps
 
 TODO
 
@@ -315,7 +307,7 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
   DefaultJob : .NET 7.0.11 (7.0.1123.42427), X64 RyuJIT AVX2
 ```
 
-### Index benchmarks
+### Index Benchmarks
 
 | Method             | Mean        | Error       | StdDev      | Gen0      | Gen1      | Gen2      | Allocated   |
 |------------------- |------------:|------------:|------------:|----------:|----------:|----------:|------------:|
@@ -326,17 +318,17 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 | SharedIndexSynonym |    508.8 μs |     7.71 μs |     7.21 μs |   32.2266 |   10.7422 |         - |   505.52 KB |
 | SharedIndex        |    439.6 μs |     5.44 μs |     5.09 μs |   31.2500 |   10.7422 |         - |   485.41 KB |
 
-### Query benchmarks
+### Query Benchmarks
 
 | Method            | Mean       | Error     | StdDev    | Gen0   | Allocated |
 |------------------ |-----------:|----------:|----------:|-------:|----------:|
-| ComplexQuery_x100 | 562.813 μs | 7.9706 μs | 6.2229 μs |      - |    1601 B |
-| ComplexQuery      |  11.902 μs | 0.0440 μs | 0.0368 μs | 0.0916 |    1600 B |
-| SearchQuery       |   7.100 μs | 0.0211 μs | 0.0197 μs | 0.0458 |     720 B |
-| FilterQuery       |   1.326 μs | 0.0134 μs | 0.0125 μs | 0.0458 |     744 B |
-| FacetQuery        |   8.738 μs | 0.0782 μs | 0.0653 μs | 0.0305 |     600 B |
-| SortQuery         |   3.483 μs | 0.0105 μs | 0.0082 μs | 0.0229 |     408 B |
-| BasicQuery        |   1.437 μs | 0.0180 μs | 0.0168 μs | 0.0191 |     312 B |
+| ComplexQuery_x100 | 546.309 μs | 1.8522 μs | 1.5467 μs |      - |    1593 B |
+| ComplexQuery      |  11.936 μs | 0.0877 μs | 0.0821 μs | 0.0916 |    1592 B |
+| SearchQuery       |   7.255 μs | 0.0486 μs | 0.0455 μs | 0.0381 |     712 B |
+| FilterQuery       |   1.327 μs | 0.0091 μs | 0.0081 μs | 0.0458 |     744 B |
+| FacetQuery        |   8.912 μs | 0.0453 μs | 0.0423 μs | 0.0305 |     600 B |
+| SortQuery         |   3.425 μs | 0.0073 μs | 0.0057 μs | 0.0229 |     408 B |
+| BasicQuery        |   1.452 μs | 0.0102 μs | 0.0091 μs | 0.0191 |     312 B |
 
 > Due to internal buffer structures pooling, memory allocation per search execution is constant
 > after initial allocation of pooled buffers.

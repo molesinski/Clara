@@ -2,6 +2,8 @@
 {
     internal ref struct BitHelper
     {
+        public const int StackAllocThreshold = 2048;
+
         private const int IntSize = sizeof(int) * 8;
 
         private readonly Span<int> span;

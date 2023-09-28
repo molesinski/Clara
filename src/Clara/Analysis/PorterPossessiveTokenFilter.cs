@@ -9,13 +9,14 @@
                 throw new ArgumentNullException(nameof(next));
             }
 
-            var length = token.Length;
+            var span = token.AsReadOnlySpan();
+            var length = span.Length;
 
             if (length >= 2)
             {
-                if (token[length - 1] == 's' || token[length - 1] == 'S')
+                if (span[length - 1] == 's' || span[length - 1] == 'S')
                 {
-                    if (token[length - 2] == '\'' || token[length - 2] == '\u2019' || token[length - 2] == '\uFF07')
+                    if (span[length - 2] == '\'' || span[length - 2] == '\u2019' || span[length - 2] == '\uFF07')
                     {
                         token.Remove(length - 2);
                     }

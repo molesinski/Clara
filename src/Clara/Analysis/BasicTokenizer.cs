@@ -1,23 +1,25 @@
-﻿using Clara.Utils;
+﻿using Clara.Storage;
 
 namespace Clara.Analysis
 {
     public sealed class BasicTokenizer : ITokenizer
     {
+        public static readonly IEnumerable<char> DefaultAdditionalWordCharacters = new[] { '_' };
         public static readonly IEnumerable<char> DefaultWordConnectingCharacters = new[] { '-', '\'', '\u2019', '\uFF07' };
-        public static readonly IEnumerable<char> DefaultNumberDecimalSeparators = new[] { '.', ',' };
+        public static readonly IEnumerable<char> DefaultNumberConnectingCharacters = new[] { '.', ',' };
 
-        private static readonly ObjectPool<char[]> CharsPool = new(() => new char[Token.MaximumLength]);
-
+        private readonly char[]? additionalWordCharacters;
         private readonly char[]? wordConnectingCharacters;
-        private readonly char[]? numberDecimalSeparators;
+        private readonly char[]? numberConnectingCharacters;
 
         public BasicTokenizer(
+            IEnumerable<char>? additionalWordCharacters = null,
             IEnumerable<char>? wordConnectingCharacters = null,
-            IEnumerable<char>? numberDecimalSeparators = null)
+            IEnumerable<char>? numberConnectingCharacters = null)
         {
+            this.additionalWordCharacters = additionalWordCharacters?.ToArray();
             this.wordConnectingCharacters = wordConnectingCharacters?.ToArray();
-            this.numberDecimalSeparators = numberDecimalSeparators?.ToArray();
+            this.numberConnectingCharacters = numberConnectingCharacters?.ToArray();
         }
 
         public IEnumerable<Token> GetTokens(string text)
@@ -32,38 +34,37 @@ namespace Clara.Analysis
                 yield break;
             }
 
-            var length = text.Length;
             var previous = ' ';
             var current = text[0];
             var index = -1;
 
-            using var chars = CharsPool.Lease();
+            using var buffer = SharedObjectPools.TokenBuffers.Lease();
 
-            for (var i = 0; i < length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 var next = ' ';
 
-                if (i + 1 < length)
+                if (i + 1 < text.Length)
                 {
                     next = text[i + 1];
                 }
 
                 if (index == -1)
                 {
-                    if (IsWordOrNumber(current))
+                    if (this.IsWordOrNumber(current))
                     {
                         index = i;
                     }
                 }
                 else
                 {
-                    if (IsWordOrNumber(current))
+                    if (this.IsWordOrNumber(current))
                     {
                     }
-                    else if (this.IsWordConnectingCharacter(current) && IsWord(previous) && IsWord(next))
+                    else if (this.IsWordConnectingCharacter(current) && this.IsWord(previous) && this.IsWord(next))
                     {
                     }
-                    else if (this.IsNumberDecimalSeparator(current) && IsNumber(previous) && IsNumber(next))
+                    else if (this.IsNumberDecimalSeparator(current) && this.IsNumber(previous) && this.IsNumber(next))
                     {
                     }
                     else
@@ -72,7 +73,7 @@ namespace Clara.Analysis
 
                         if (count <= Token.MaximumLength)
                         {
-                            yield return ToToken(text, index, count, chars.Instance);
+                            yield return ToToken(text, index, count, buffer.Instance);
                         }
 
                         index = -1;
@@ -85,11 +86,11 @@ namespace Clara.Analysis
 
             if (index != -1)
             {
-                var count = length - index;
+                var count = text.Length - index;
 
                 if (count <= Token.MaximumLength)
                 {
-                    yield return ToToken(text, index, count, chars.Instance);
+                    yield return ToToken(text, index, count, buffer.Instance);
                 }
             }
         }
@@ -101,17 +102,47 @@ namespace Clara.Analysis
             return new Token(chars, count);
         }
 
-        private static bool IsWordOrNumber(char c)
+        private bool IsWordOrNumber(char c)
         {
-            return char.IsLetterOrDigit(c) || c == '_';
+            return this.IsWord(c) || this.IsNumber(c);
         }
 
-        private static bool IsWord(char c)
+        private bool IsWord(char c)
         {
-            return char.IsLetter(c) || c == '_';
+            if (char.IsLetter(c))
+            {
+                return true;
+            }
+
+            if (this.additionalWordCharacters is null)
+            {
+                return
+                    c switch
+                    {
+                        '_' => true,
+                        _ => false,
+                    };
+            }
+            else
+            {
+                var chars = this.additionalWordCharacters;
+                var length = chars.Length;
+
+                for (var i = 0; i < length; i++)
+                {
+                    if (c == chars[i])
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
-        private static bool IsNumber(char c)
+#pragma warning disable CA1822 // Mark members as static
+        private bool IsNumber(char c)
+#pragma warning restore CA1822 // Mark members as static
         {
             return char.IsDigit(c);
         }
@@ -132,9 +163,12 @@ namespace Clara.Analysis
             }
             else
             {
-                for (var i = 0; i < this.wordConnectingCharacters.Length; i++)
+                var chars = this.wordConnectingCharacters;
+                var length = chars.Length;
+
+                for (var i = 0; i < length; i++)
                 {
-                    if (c == this.wordConnectingCharacters[i])
+                    if (c == chars[i])
                     {
                         return true;
                     }
@@ -146,7 +180,7 @@ namespace Clara.Analysis
 
         private bool IsNumberDecimalSeparator(char c)
         {
-            if (this.numberDecimalSeparators is null)
+            if (this.numberConnectingCharacters is null)
             {
                 return
                     c switch
@@ -158,9 +192,12 @@ namespace Clara.Analysis
             }
             else
             {
-                for (var i = 0; i < this.numberDecimalSeparators.Length; i++)
+                var chars = this.numberConnectingCharacters;
+                var length = chars.Length;
+
+                for (var i = 0; i < length; i++)
                 {
-                    if (c == this.numberDecimalSeparators[i])
+                    if (c == chars[i])
                     {
                         return true;
                     }

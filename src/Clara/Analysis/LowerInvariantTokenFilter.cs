@@ -9,11 +9,12 @@
                 throw new ArgumentNullException(nameof(next));
             }
 
-            var length = token.Length;
+            var span = token.AsSpan();
+            var length = span.Length;
 
             for (var i = 0; i < length; i++)
             {
-                token[i] = char.ToLowerInvariant(token[i]);
+                span[i] = char.ToLowerInvariant(span[i]);
             }
 
             return next(token);

@@ -1,4 +1,5 @@
-﻿using Clara.Mapping;
+﻿using Clara.Analysis;
+using Clara.Mapping;
 using Clara.Querying;
 using Clara.Utils;
 
@@ -6,6 +7,8 @@ namespace Clara.Storage
 {
     internal static class SharedObjectPools
     {
+        public static readonly ObjectPool<char[]> TokenBuffers = new(() => new char[Token.MaximumLength]);
+
         public static ObjectPool<DictionarySlim<int, int>> TokenCounts { get; } = new(() => new());
 
         public static ObjectPool<DictionarySlim<int, float>> DocumentScores { get; } = new(() => new(), sizeFactor: 3);
