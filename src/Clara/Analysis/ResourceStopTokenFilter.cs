@@ -11,9 +11,8 @@ namespace Clara.Analysis
         {
         }
 
-#pragma warning disable CA1000 // Do not declare static members on generic types
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1000:Do not declare static members on generic types", Justification = "Intended for use via non-generic subclass")]
         public static IReadOnlyCollection<string> DefaultStopwords { get; } = LoadResource();
-#pragma warning restore CA1000 // Do not declare static members on generic types
 
         private static IReadOnlyCollection<string> LoadResource()
         {

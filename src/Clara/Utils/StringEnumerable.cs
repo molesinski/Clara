@@ -1,22 +1,26 @@
 ﻿using System.Collections;
 
-namespace Clara.Mapping
+namespace Clara.Utils
 {
-    internal readonly struct StringValues : IEnumerable<string>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Value type used for performance optimization")]
+    public readonly struct StringEnumerable : IEnumerable<string>
     {
         private readonly string? value;
         private readonly IEnumerable<string?>? values;
+        private readonly bool trim;
 
-        public StringValues(string? value)
+        public StringEnumerable(string? value, bool trim = false)
         {
             this.value = value;
             this.values = default;
+            this.trim = trim;
         }
 
-        public StringValues(IEnumerable<string?>? values)
+        public StringEnumerable(IEnumerable<string?>? values, bool trim = false)
         {
             this.value = default;
             this.values = values;
+            this.trim = trim;
         }
 
         public readonly Enumerator GetEnumerator()
@@ -39,16 +43,18 @@ namespace Clara.Mapping
             private readonly string? value;
             private readonly IReadOnlyList<string>? listValues;
             private readonly IEnumerable<string?>? enumerableValues;
+            private readonly bool trim;
             private bool isEnumerated;
             private int index;
             private IEnumerator<string?>? enumerator;
             private string? current;
 
-            internal Enumerator(StringValues source)
+            internal Enumerator(StringEnumerable source)
             {
                 this.value = default;
                 this.listValues = default;
                 this.enumerableValues = default;
+                this.trim = source.trim;
 
                 if (source.value is not null)
                 {
@@ -92,19 +98,28 @@ namespace Clara.Mapping
                     if (this.value is not null)
                     {
                         this.isEnumerated = true;
-                        this.current = this.value;
 
-                        return true;
+                        var value = this.value;
+
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            this.current = this.trim ? value.Trim() : value;
+
+                            return true;
+                        }
                     }
                     else if (this.listValues is not null)
                     {
                         while (this.index < this.listValues.Count)
                         {
-                            this.current = this.listValues[this.index];
+                            var value = this.listValues[this.index];
+
                             this.index++;
 
-                            if (this.current is not null)
+                            if (!string.IsNullOrWhiteSpace(value))
                             {
+                                this.current = this.trim ? value.Trim() : value;
+
                                 return true;
                             }
                         }
@@ -115,10 +130,16 @@ namespace Clara.Mapping
 
                         while (this.enumerator.MoveNext())
                         {
-                            this.current = this.enumerator.Current;
+                            var value = this.enumerator.Current;
 
-                            if (this.current is not null)
+                            if (!string.IsNullOrWhiteSpace(value))
                             {
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                                this.current = this.trim ? value.Trim() : value;
+#else
+                                this.current = this.trim ? value!.Trim() : value;
+#endif
+
                                 return true;
                             }
                         }

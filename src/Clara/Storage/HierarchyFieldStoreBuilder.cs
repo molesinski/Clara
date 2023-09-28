@@ -5,9 +5,9 @@ namespace Clara.Storage
 {
     internal sealed class HierarchyFieldStoreBuilder<TSource> : FieldStoreBuilder<TSource>
     {
-        private readonly DictionarySlim<string, IEnumerable<string>> hierarchyDecodeCache = new();
+        private readonly DictionarySlim<string, string[]> hierarchyDecodeCache = new();
         private readonly HierarchyField<TSource> field;
-        private readonly char separator;
+        private readonly char[] separator;
         private readonly string root;
         private readonly ITokenEncoderBuilder tokenEncoderBuilder;
         private readonly DictionarySlim<int, HashSetSlim<int>>? parentChildren;
@@ -28,8 +28,8 @@ namespace Clara.Storage
             }
 
             this.field = field;
-            this.separator = field.Separator;
-            this.root = field.Root;
+            this.separator = new[] { field.Separator };
+            this.root = field.Root.Trim();
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
 
             if (field.IsFilterable)
@@ -118,23 +118,21 @@ namespace Clara.Storage
             return store;
         }
 
-        private IEnumerable<string> Decode(string hierarchyEncodedToken)
+        private string[] Decode(string hierarchyEncodedToken)
         {
             ref var decodedTokens = ref this.hierarchyDecodeCache.GetValueRefOrAddDefault(hierarchyEncodedToken, out _);
 
             if (decodedTokens is null)
             {
-                var parts = hierarchyEncodedToken.Split(this.separator);
-                var array = new string[1 + parts.Length];
+                var parts = hierarchyEncodedToken.Split(this.separator, StringSplitOptions.RemoveEmptyEntries);
 
-                array[0] = this.root;
+                decodedTokens = new string[1 + parts.Length];
+                decodedTokens[0] = this.root;
 
                 for (var i = 0; i < parts.Length; i++)
                 {
-                    array[1 + i] = parts[i];
+                    decodedTokens[1 + i] = parts[i].Trim();
                 }
-
-                decodedTokens = array;
             }
 
             return decodedTokens;

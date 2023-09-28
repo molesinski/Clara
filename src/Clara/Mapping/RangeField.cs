@@ -1,5 +1,6 @@
 ﻿using Clara.Analysis.Synonyms;
 using Clara.Storage;
+using Clara.Utils;
 
 namespace Clara.Mapping
 {
@@ -42,7 +43,7 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new RangeValues<TValue>(valueMapper(source));
+            this.ValueMapper = source => new PrimitiveEnumerable<TValue>(valueMapper(source));
         }
 
         public RangeField(Func<TSource, IEnumerable<TValue>?> valueMapper, TValue minValue, TValue maxValue, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
@@ -58,10 +59,26 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new RangeValues<TValue>(valueMapper(source));
+            this.ValueMapper = source => new PrimitiveEnumerable<TValue>(valueMapper(source));
         }
 
-        internal Func<TSource, RangeValues<TValue>> ValueMapper { get; }
+        public RangeField(Func<TSource, IEnumerable<TValue?>?> valueMapper, TValue minValue, TValue maxValue, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
+            : base(
+                minValue: minValue,
+                maxValue: maxValue,
+                isFilterable: isFilterable,
+                isFacetable: isFacetable,
+                isSortable: isSortable)
+        {
+            if (valueMapper is null)
+            {
+                throw new ArgumentNullException(nameof(valueMapper));
+            }
+
+            this.ValueMapper = source => new PrimitiveEnumerable<TValue>(valueMapper(source));
+        }
+
+        internal Func<TSource, PrimitiveEnumerable<TValue>> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderStore tokenEncoderStore,

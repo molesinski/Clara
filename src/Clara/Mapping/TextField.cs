@@ -1,6 +1,7 @@
 ﻿using Clara.Analysis;
 using Clara.Analysis.Synonyms;
 using Clara.Storage;
+using Clara.Utils;
 
 namespace Clara.Mapping
 {
@@ -36,7 +37,7 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new StringValues(valueMapper(source));
+            this.ValueMapper = source => new StringEnumerable(valueMapper(source));
         }
 
         public TextField(Func<TSource, IEnumerable<string?>?> valueMapper, IAnalyzer analyzer)
@@ -47,10 +48,10 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new StringValues(valueMapper(source));
+            this.ValueMapper = source => new StringEnumerable(valueMapper(source));
         }
 
-        internal Func<TSource, StringValues> ValueMapper { get; }
+        internal Func<TSource, StringEnumerable> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderStore tokenEncoderStore,

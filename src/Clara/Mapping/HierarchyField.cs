@@ -1,5 +1,6 @@
 ﻿using Clara.Analysis.Synonyms;
 using Clara.Storage;
+using Clara.Utils;
 
 namespace Clara.Mapping
 {
@@ -21,6 +22,11 @@ namespace Clara.Mapping
             if (root is null)
             {
                 throw new ArgumentNullException(nameof(root));
+            }
+
+            if (string.IsNullOrWhiteSpace(root))
+            {
+                throw new ArgumentException("Hierarchy root value must not be empty or whitespace.", nameof(root));
             }
 
             this.Separator = separator;
@@ -46,7 +52,7 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new StringValues(valueMapper(source));
+            this.ValueMapper = source => new StringEnumerable(valueMapper(source), trim: true);
         }
 
         public HierarchyField(Func<TSource, IEnumerable<string?>?> valueMapper, bool isFilterable = false, bool isFacetable = false, char separator = ',', string root = DefaultRoot)
@@ -61,10 +67,10 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new StringValues(valueMapper(source));
+            this.ValueMapper = source => new StringEnumerable(valueMapper(source), trim: true);
         }
 
-        internal Func<TSource, StringValues> ValueMapper { get; }
+        internal Func<TSource, StringEnumerable> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderStore tokenEncoderStore,

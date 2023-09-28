@@ -6,87 +6,65 @@ namespace Clara.Querying
     {
         public static ValuesExpression All(string? value)
         {
-            if (value is not null)
-            {
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    return new AllValuesExpression(new HashSetSlim<string> { value });
-                }
-            }
-
-            return EmptyValuesExpression.Instance;
+            return All(new StringEnumerable(value, trim: true));
         }
 
         public static ValuesExpression All(params string?[] values)
         {
-            return All((IEnumerable<string?>)values);
+            return All(new StringEnumerable(values, trim: true));
         }
 
         public static ValuesExpression All(IEnumerable<string?>? values)
         {
-            if (values is not null)
-            {
-                var result = new HashSetSlim<string>();
-
-                foreach (var value in values)
-                {
-                    if (value is not null)
-                    {
-                        if (!string.IsNullOrWhiteSpace(value))
-                        {
-                            result.Add(value);
-                        }
-                    }
-                }
-
-                if (result.Count > 0)
-                {
-                    return new AllValuesExpression(result);
-                }
-            }
-
-            return EmptyValuesExpression.Instance;
+            return All(new StringEnumerable(values, trim: true));
         }
 
         public static ValuesExpression Any(string? value)
         {
-            if (value is not null)
+            return Any(new StringEnumerable(value, trim: true));
+        }
+
+        public static ValuesExpression Any(params string?[] values)
+        {
+            return Any(new StringEnumerable(values, trim: true));
+        }
+
+        public static ValuesExpression Any(IEnumerable<string?>? values)
+        {
+            return Any(new StringEnumerable(values, trim: true));
+        }
+
+        private static ValuesExpression All(StringEnumerable values)
+        {
+            var result = default(HashSetSlim<string>);
+
+            foreach (var value in values)
             {
-                if (!string.IsNullOrWhiteSpace(value))
-                {
-                    return new AnyValuesExpression(new HashSetSlim<string> { value });
-                }
+                result ??= new();
+                result.Add(value);
+            }
+
+            if (result is not null)
+            {
+                return new AllValuesExpression(result);
             }
 
             return EmptyValuesExpression.Instance;
         }
 
-        public static ValuesExpression Any(params string?[] values)
+        private static ValuesExpression Any(StringEnumerable values)
         {
-            return Any((IEnumerable<string?>)values);
-        }
+            var result = default(HashSetSlim<string>);
 
-        public static ValuesExpression Any(IEnumerable<string?>? values)
-        {
-            if (values is not null)
+            foreach (var value in values)
             {
-                var result = new HashSetSlim<string>();
+                result ??= new();
+                result.Add(value);
+            }
 
-                foreach (var value in values)
-                {
-                    if (value is not null)
-                    {
-                        if (!string.IsNullOrWhiteSpace(value))
-                        {
-                            result.Add(value);
-                        }
-                    }
-                }
-
-                if (result.Count > 0)
-                {
-                    return new AnyValuesExpression(result);
-                }
+            if (result is not null)
+            {
+                return new AnyValuesExpression(result);
             }
 
             return EmptyValuesExpression.Instance;

@@ -6,90 +6,32 @@ namespace Clara.Querying
     {
         public static MatchExpression All(string? token)
         {
-            if (token is not null)
-            {
-                if (!string.IsNullOrWhiteSpace(token))
-                {
-                    return new AllTokensMatchExpression(new ListSlim<string> { token });
-                }
-            }
-
-            return EmptyTokensMatchExpression.Instance;
+            return All(new StringEnumerable(token));
         }
 
         public static MatchExpression All(params string?[] tokens)
         {
-            return All((IEnumerable<string?>)tokens);
+            return All(new StringEnumerable(tokens));
         }
 
         public static MatchExpression All(IEnumerable<string?>? tokens)
         {
-            if (tokens is not null)
-            {
-                var result = new ListSlim<string>();
-
-                foreach (var token in tokens)
-                {
-                    if (token is not null)
-                    {
-                        if (!string.IsNullOrWhiteSpace(token))
-                        {
-                            result.Add(token);
-                        }
-                    }
-                }
-
-                if (result.Count > 0)
-                {
-                    return new AllTokensMatchExpression(result);
-                }
-            }
-
-            return EmptyTokensMatchExpression.Instance;
+            return All(new StringEnumerable(tokens));
         }
 
         public static MatchExpression Any(string? token)
         {
-            if (token is not null)
-            {
-                if (!string.IsNullOrWhiteSpace(token))
-                {
-                    return new AnyTokensMatchExpression(new ListSlim<string> { token });
-                }
-            }
-
-            return EmptyTokensMatchExpression.Instance;
+            return Any(new StringEnumerable(token));
         }
 
         public static MatchExpression Any(params string?[] tokens)
         {
-            return Any((IEnumerable<string?>)tokens);
+            return Any(new StringEnumerable(tokens));
         }
 
         public static MatchExpression Any(IEnumerable<string?>? tokens)
         {
-            if (tokens is not null)
-            {
-                var result = new ListSlim<string>();
-
-                foreach (var token in tokens)
-                {
-                    if (token is not null)
-                    {
-                        if (!string.IsNullOrWhiteSpace(token))
-                        {
-                            result.Add(token);
-                        }
-                    }
-                }
-
-                if (result.Count > 0)
-                {
-                    return new AnyTokensMatchExpression(result);
-                }
-            }
-
-            return EmptyTokensMatchExpression.Instance;
+            return Any(new StringEnumerable(tokens));
         }
 
         public static MatchExpression And(params MatchExpression?[] expressions)
@@ -199,6 +141,42 @@ namespace Clara.Querying
                 {
                     return new OrMatchExpression(result);
                 }
+            }
+
+            return EmptyTokensMatchExpression.Instance;
+        }
+
+        private static MatchExpression All(StringEnumerable tokens)
+        {
+            var result = default(ListSlim<string>);
+
+            foreach (var token in tokens)
+            {
+                result ??= new();
+                result.Add(token);
+            }
+
+            if (result is not null)
+            {
+                return new AllTokensMatchExpression(result);
+            }
+
+            return EmptyTokensMatchExpression.Instance;
+        }
+
+        private static MatchExpression Any(StringEnumerable tokens)
+        {
+            var result = default(ListSlim<string>);
+
+            foreach (var token in tokens)
+            {
+                result ??= new();
+                result.Add(token);
+            }
+
+            if (result is not null)
+            {
+                return new AnyTokensMatchExpression(result);
             }
 
             return EmptyTokensMatchExpression.Instance;

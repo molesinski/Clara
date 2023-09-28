@@ -3,9 +3,8 @@ using Lucene.Net.Analysis.TokenAttributes;
 
 namespace Clara.Analysis
 {
-#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1711:Identifiers should not have incorrect suffix", Justification = "By design")]
     public sealed class SingleTokenStream : TokenStream
-#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
     {
         private readonly ICharTermAttribute charTermAttribute;
         private Token token;

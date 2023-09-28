@@ -1,8 +1,7 @@
 ﻿namespace Clara.Utils
 {
-#pragma warning disable CA1815 // Override equals and operator equals on value types
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Value type used for performance optimization")]
     public readonly struct ObjectPoolLease<TItem> : IDisposable
-#pragma warning restore CA1815 // Override equals and operator equals on value types
         where TItem : class
     {
         private readonly ObjectPool<TItem> pool;

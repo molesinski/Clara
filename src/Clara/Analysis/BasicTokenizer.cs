@@ -140,9 +140,8 @@ namespace Clara.Analysis
             }
         }
 
-#pragma warning disable CA1822 // Mark members as static
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "By design")]
         private bool IsNumber(char c)
-#pragma warning restore CA1822 // Mark members as static
         {
             return char.IsDigit(c);
         }

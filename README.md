@@ -63,7 +63,7 @@ Given sample product data set from [dummyjson.com](https://dummyjson.com/product
 
 ```
 
-We define data model.
+We define data model as follows.
 
 ```csharp
 public class Product
@@ -80,10 +80,10 @@ public class Product
 }
 ```
 
-Then we define model to index mapper. Mapper is a definition of how our index will be built from source
+Now we need to define index model mapper. Mapper is a definition of how our index will be built from source
 documents and what capabilities will it provide afterwards.
 
-We only support single field searching, all text that is to be indexed has to be combined into
+Clara only supports single field searching, all text that is to be indexed has to be combined into
 single field. We can provide more text fields, for example when we want to provide multiple language
 support from single index. In such case we would combine text for each language and use adequate
 analyzer.
@@ -149,7 +149,7 @@ var sharedTokenEncoderStore = new SharedTokenEncoderStore();
 var index = IndexBuilder.Build(Product.Items, new ProductMapper(), sharedTokenEncoderStore);
 ```
 
-With index built, can run queries against it. Result documents can be accessed with `Documents` property and
+With index built, we can run queries against it. Result documents can be accessed with `Documents` property and
 facet results via `Facets`. Documents are not paged, since search engine builds whole result set each time,
 in order to perform facet values computation, while using pooled buffers for result construction. If paging
 is needed, it can be added by simple `Skip`/`Take` logic on top `Documents` collection.
@@ -212,7 +212,13 @@ Price:
   [Max] => 1249
 ```
 
-## More Information
+## Field Mapping
+
+TODO
+
+### Text Fields
+
+TODO
 
 ### Keyword Fields
 
@@ -255,16 +261,25 @@ public sealed class DateOnlyField<TSource> : RangeField<TSource, int>
             isSortable: isSortable)
     {
     }
+
+    public DateOnlyField(Func<TSource, IEnumerable<DateOnly?>> valueMapper, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
+        : base(
+            valueMapper: valueMapper,
+            minValue: DateOnly.MinValue,
+            maxValue: DateOnly.MaxValue,
+            isFilterable: isFilterable,
+            isFacetable: isFacetable,
+            isSortable: isSortable)
+    {
+    }
 }
 ```
 
-### Text Fields
+## Text Analysis
 
-TODO
+### Custom Analyzers
 
-### Analyzers
-
-Above code uses `PorterAnalyzer` which provides basic English language stemming. For other languages
+Internally only `PorterAnalyzer` is provided for English language stemming. For other languages
 [Clara.Analysis.Snowball](https://www.nuget.org/packages/Clara.Analysis.Snowball) or
 [Clara.Analysis.Morfologik](https://www.nuget.org/packages/Clara.Analysis.Morfologik) packages can
 be used. Those packages provide stem and stop token filters for all supported languages.
@@ -272,15 +287,14 @@ be used. Those packages provide stem and stop token filters for all supported la
 Below is shown example analyzer definition `PolishAnalyzer` using Morfologik.
 
 ```csharp
-var polishAnalyzer =
+public static IAnalyzer PolishAnalyzer { get; } =
     new Analyzer(
         new BasicTokenizer(),             // Splits text into tokens
         new LowerInvariantTokenFilter(),  // Transforms into lower case
         new CachingTokenFilter(),         // Prevents new string instance creation
         new PolishStopTokenFilter(),      // Language specific stop words default exclusion set
-        new LengthKeywordTokenFilter(),   // Exclude from stemming tokens with length 2 or less
+        new LengthKeywordTokenFilter(),   // Exclude from stemming tokens with length less then 2
         new DigitsKeywordTokenFilter(),   // Exclude from stemming tokens containing digits
-        new KeywordTokenFilter(keywords), // Exclude from stemming provided keyword tokens
         new PolishStemTokenFilter());     // Language specific token stemming
 ```
 

@@ -1,5 +1,5 @@
-﻿#pragma warning disable SA1516 // Elements should be separated by blank line
-#pragma warning disable CA1707 // Identifiers should not contain underscores
+﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+#pragma warning disable SA1516 // Elements should be separated by blank line
 
 using System.Text.Json;
 

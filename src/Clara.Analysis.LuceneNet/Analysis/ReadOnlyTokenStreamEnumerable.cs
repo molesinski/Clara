@@ -4,9 +4,8 @@ using Lucene.Net.Analysis.TokenAttributes;
 
 namespace Clara.Analysis
 {
-#pragma warning disable CA1815 // Override equals and operator equals on value types
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Value type used for performance optimization")]
     public readonly struct ReadOnlyTokenStreamEnumerable : IEnumerable<Token>
-#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         private readonly TokenStream tokenStream;
 
