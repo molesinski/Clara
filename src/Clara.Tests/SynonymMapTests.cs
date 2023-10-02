@@ -17,6 +17,13 @@ namespace Clara.Tests
                     {
                         new EquivalencySynonym(new[] { "i pad", "i-pad", "ipad" }),
                         new ExplicitMappingSynonym(new[] { "i phone", "i-phone" }, new[] { "iphone" }),
+                        new ExplicitMappingSynonym(new[] { "i pod", "i-pod", "ipod" }, new[] { "i pod", "i-pod", "ipod" }),
+                        new EquivalencySynonym(new[] { "aaa", "bbb" }),
+                        new EquivalencySynonym(new[] { "bbb", "ccc" }),
+                        new EquivalencySynonym(new[] { "ccc", "ddd" }),
+                        new ExplicitMappingSynonym(new[] { "ddd" }, new[] { "eee" }),
+                        new ExplicitMappingSynonym(new[] { "eee" }, new[] { "fff" }),
+                        new ExplicitMappingSynonym(new[] { "fff" }, new[] { "ggg" }),
                     });
         }
 
@@ -84,6 +91,54 @@ namespace Clara.Tests
         [InlineData("phone", SearchMode.Any, "i phone", false /* true for Equivalency */)]
         [InlineData("phone", SearchMode.All, "iphone", false)]
         [InlineData("phone", SearchMode.Any, "iphone", false)]
+        //// ExplicitMapping (TOTAL)
+        [InlineData("i-pod", SearchMode.All, "", false)]
+        [InlineData("i-pod", SearchMode.Any, "", false)]
+        [InlineData("i-pod", SearchMode.All, "xxx", false)]
+        [InlineData("i-pod", SearchMode.Any, "xxx", false)]
+        [InlineData("i pod", SearchMode.All, "i pod", true)] // identity
+        [InlineData("i pod", SearchMode.Any, "i pod", true)] // identity
+        [InlineData("i-pod", SearchMode.All, "i pod", true)] // identity
+        [InlineData("i-pod", SearchMode.Any, "i-pod", true)] // identity
+        [InlineData("ipod", SearchMode.All, "ipod", true)] // identity
+        [InlineData("ipod", SearchMode.Any, "ipod", true)] // identity
+        [InlineData("i-pod", SearchMode.All, "ipod", true)] // transitive
+        [InlineData("i-pod", SearchMode.Any, "ipod", true)] // transitive
+        [InlineData("ipod", SearchMode.All, "i pod", true)] // transitive
+        [InlineData("ipod", SearchMode.Any, "i pod", true)] // transitive
+        [InlineData("i pod", SearchMode.All, "i-pod", true)] // transitive
+        [InlineData("i pod", SearchMode.Any, "i-pod", true)] // transitive
+        [InlineData("xxx i pod", SearchMode.All, "ipod", false)]
+        [InlineData("xxx i pod", SearchMode.Any, "ipod", true)]
+        [InlineData("xxx i-pod", SearchMode.All, "ipod", false)]
+        [InlineData("xxx i-pod", SearchMode.Any, "ipod", true)]
+        [InlineData("xxx ipod", SearchMode.All, "ipod", false)]
+        [InlineData("xxx ipod", SearchMode.Any, "ipod", true)]
+        [InlineData("pod", SearchMode.All, "i pod", true)]
+        [InlineData("pod", SearchMode.Any, "i pod", true)]
+        [InlineData("pod", SearchMode.All, "ipod", true /* false for Equivalency */)]
+        [InlineData("pod", SearchMode.Any, "ipod", true /* false for Equivalency */)]
+        //// Cross synonym
+        [InlineData("aaa", SearchMode.All, "bbb", true)]
+        [InlineData("aaa", SearchMode.Any, "bbb", true)]
+        [InlineData("aaa", SearchMode.All, "ddd", true)]
+        [InlineData("aaa", SearchMode.Any, "ddd", true)]
+        [InlineData("aaa", SearchMode.All, "eee", true)]
+        [InlineData("aaa", SearchMode.Any, "eee", true)]
+        [InlineData("eee", SearchMode.All, "aaa", true)]
+        [InlineData("eee", SearchMode.Any, "aaa", true)]
+        [InlineData("bbb", SearchMode.All, "fff", true)]
+        [InlineData("bbb", SearchMode.Any, "fff", true)]
+        [InlineData("fff", SearchMode.All, "bbb", true)]
+        [InlineData("fff", SearchMode.Any, "bbb", true)]
+        [InlineData("ccc", SearchMode.All, "ggg", true)]
+        [InlineData("ccc", SearchMode.Any, "ggg", true)]
+        [InlineData("ggg", SearchMode.All, "ccc", true)]
+        [InlineData("ggg", SearchMode.Any, "ccc", true)]
+        [InlineData("ddd", SearchMode.All, "ggg", true)]
+        [InlineData("ddd", SearchMode.Any, "ggg", true)]
+        [InlineData("ggg", SearchMode.All, "ddd", true)]
+        [InlineData("ggg", SearchMode.Any, "ddd", true)]
         public void IsMatching(string search, SearchMode mode, string document, bool expected)
         {
             var documentTokens = this.synonymMap.GetTokens(document).ToArray();
