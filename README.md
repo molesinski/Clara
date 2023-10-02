@@ -232,12 +232,24 @@ TODO
 
 ### Range Fields
 
-Range fields represent index fields for `struct` values with `IComparable<T>` interface implementation.
-Internally `DateTime`, `Decimal`, `Double` and `Int32` types are supported. Implementors can support any
-type that fullfills requirements by directly using `RangeField<T>` and providing `minValue` and `maxValue`
-for a given type or by providing their own concrete implementation.
+Range fields represent index fields for `struct` values with `IComparable<T>` interface implementation,
+that is for comparable values, which can be within specific range. Range fields allow filtering by
+subrange and their facet values contain matched documents minimum and maximum values. Sorting is dependant
+on direction `Ascending` or `Descedning`. When sorting by `Ascending` order, then minumum document value
+is used and documents without any value are treated as if they had `maxValue`. While when sorting by
+`Descending` order maximum document value is used and documents without values have `minValue` assigned
+to them.
 
-Below is example implementation for `DateOnly` structure type.
+Internally `DateTime`, `Decimal`, `Double` and `Int32` types are supported. Implementors can support
+any type that fullfills requirements by directly using `RangeField<TValue>` and providing `minValue` and
+`maxValue` for a given type. For example given `DateOnly` type, index field can be defined as follows.
+
+```csharp
+public static RangeField<DateOnly> DateOfBirth { get; } = new(x => x.DateOfBirth, minValue: DateOnly.MinValue, maxValue: DateOnly.MaxValue, isFilterable: true, isFacetable: true, isSortable: true);
+```
+
+Alternatively it is possible to provide own concrete implementation, by creating subclass of
+`RangeField<TValue>`.
 
 ```csharp
 public sealed class DateOnlyField<TSource> : RangeField<TSource, int>
@@ -275,6 +287,13 @@ public sealed class DateOnlyField<TSource> : RangeField<TSource, int>
     {
     }
 }
+```
+
+Defined `DateOnlyField` can be used now directly, without the need to specify `TValue` and `minValue`/`maxValue`
+each time.
+
+```csharp
+public static DateOnlyField DateOfBirth { get; } = new(x => x.DateOfBirth, isFilterable: true, isFacetable: true, isSortable: true);
 ```
 
 ## Text Analysis

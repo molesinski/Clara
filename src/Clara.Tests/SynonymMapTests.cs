@@ -16,7 +16,7 @@ namespace Clara.Tests
                     new Synonym[]
                     {
                         new EquivalencySynonym(new[] { "i pad", "i-pad", "ipad" }),
-                        new ExplicitMappingSynonym(new[] { "i phone", "i-phone" }, "iphone"),
+                        new ExplicitMappingSynonym(new[] { "i phone", "i-phone" }, new[] { "iphone" }),
                     });
         }
 

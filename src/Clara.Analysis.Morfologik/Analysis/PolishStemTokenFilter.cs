@@ -5,7 +5,7 @@ using Morfologik.Stemming.Polish;
 
 namespace Clara.Analysis
 {
-    public class PolishStemTokenFilter : ITokenFilter
+    public sealed class PolishStemTokenFilter : ITokenFilter
     {
         private static readonly ObjectPool<StemmerContext> Pool = new(() => new());
         private readonly bool tokenOnEmptyStem;

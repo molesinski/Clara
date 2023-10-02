@@ -1,6 +1,6 @@
 ﻿namespace Clara.Analysis
 {
-    public class PorterAnalyzer : IAnalyzer
+    public sealed class PorterAnalyzer : IAnalyzer
     {
         private readonly Analyzer analyzer;
 

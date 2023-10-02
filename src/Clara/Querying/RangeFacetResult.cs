@@ -2,7 +2,7 @@
 
 namespace Clara.Querying
 {
-    public class RangeFacetResult<TValue> : FacetResult
+    public sealed class RangeFacetResult<TValue> : FacetResult
         where TValue : struct, IComparable<TValue>
     {
         internal RangeFacetResult(RangeField<TValue> field, TValue min, TValue max)

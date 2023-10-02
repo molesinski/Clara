@@ -2,6 +2,8 @@
 {
     internal static class PermutationHelper
     {
+        public const int MaximumPermutatedTokenCount = 5;
+
         public static IEnumerable<TItem[]> Permutate<TItem>(IEnumerable<TItem> source)
         {
             if (source is null)

@@ -2,20 +2,20 @@
 
 namespace Clara.Analysis
 {
-    public class CachingTokenFilter : ITokenFilter
+    public sealed class CachingTokenFilter : ITokenFilter
     {
         private readonly ConcurrentDictionary<Token, Token> cache = new();
-        private readonly int size;
+        private readonly int maximumCapacity;
         private int count;
 
-        public CachingTokenFilter(int size = 8192)
+        public CachingTokenFilter(int maximumCapacity = 8192)
         {
-            if (size < 0)
+            if (maximumCapacity < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(size));
+                throw new ArgumentOutOfRangeException(nameof(maximumCapacity));
             }
 
-            this.size = size;
+            this.maximumCapacity = maximumCapacity;
         }
 
         public Token Process(Token token, TokenFilterDelegate next)
@@ -30,7 +30,7 @@ namespace Clara.Analysis
                 return cachedToken;
             }
 
-            if (this.count >= this.size)
+            if (this.count >= this.maximumCapacity)
             {
                 return next(token);
             }

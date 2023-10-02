@@ -4,7 +4,7 @@ namespace Clara.Analysis.Synonyms
 {
     public abstract class Synonym
     {
-        private readonly ListSlim<string> phrases;
+        private readonly HashSetSlim<string> phrases = new();
 
         internal Synonym(IEnumerable<string> phrases)
         {
@@ -12,8 +12,6 @@ namespace Clara.Analysis.Synonyms
             {
                 throw new ArgumentNullException(nameof(phrases));
             }
-
-            this.phrases = new ListSlim<string>();
 
             foreach (var phrase in phrases)
             {
@@ -26,7 +24,7 @@ namespace Clara.Analysis.Synonyms
             }
         }
 
-        public IEnumerable<string> Phrases
+        public IReadOnlyCollection<string> Phrases
         {
             get
             {

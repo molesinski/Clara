@@ -1,18 +1,18 @@
 ﻿namespace Clara.Analysis
 {
-    public class LengthStopTokenFilter : ITokenFilter
+    public sealed class LengthStopTokenFilter : ITokenFilter
     {
         private readonly int minimumLength;
         private readonly int maximumLength;
 
-        public LengthStopTokenFilter(int minimumLength = 1, int maximumLength = Token.MaximumLength)
+        public LengthStopTokenFilter(int minimumLength = 2, int maximumLength = Token.MaximumLength)
         {
-            if (minimumLength < 1 || minimumLength > Token.MaximumLength)
+            if (minimumLength < 2 || minimumLength > Token.MaximumLength)
             {
                 throw new ArgumentOutOfRangeException(nameof(minimumLength));
             }
 
-            if (maximumLength < 1 || maximumLength > Token.MaximumLength)
+            if (maximumLength < 2 || maximumLength > Token.MaximumLength)
             {
                 throw new ArgumentOutOfRangeException(nameof(minimumLength));
             }

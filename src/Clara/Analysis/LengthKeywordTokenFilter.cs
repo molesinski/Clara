@@ -1,6 +1,6 @@
 ﻿namespace Clara.Analysis
 {
-    public class LengthKeywordTokenFilter : ITokenFilter
+    public sealed class LengthKeywordTokenFilter : ITokenFilter
     {
         private readonly int minimumLength;
         private readonly int maximumLength;

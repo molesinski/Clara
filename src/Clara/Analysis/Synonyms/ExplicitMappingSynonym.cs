@@ -1,23 +1,46 @@
-﻿namespace Clara.Analysis.Synonyms
+﻿using Clara.Utils;
+
+namespace Clara.Analysis.Synonyms
 {
     public sealed class ExplicitMappingSynonym : Synonym
     {
-        public ExplicitMappingSynonym(IEnumerable<string> phrases, string mappedPhrase)
+        private readonly HashSetSlim<string> mappedPhrases = new();
+
+        public ExplicitMappingSynonym(IEnumerable<string> phrases, IEnumerable<string> mappedPhrases)
             : base(phrases)
         {
-            if (mappedPhrase is null)
+            if (mappedPhrases is null)
             {
-                throw new ArgumentNullException(nameof(mappedPhrase));
+                throw new ArgumentNullException(nameof(mappedPhrases));
             }
 
-            if (string.IsNullOrWhiteSpace(mappedPhrase))
+            foreach (var mappedPhrase in mappedPhrases)
             {
-                throw new ArgumentException("Mapped phrase cannot be empty or whitespace.", nameof(mappedPhrase));
+                if (string.IsNullOrWhiteSpace(mappedPhrase))
+                {
+                    throw new ArgumentException("Mapped phrases cannot be empty or whitespace.", nameof(mappedPhrases));
+                }
+
+                this.mappedPhrases.Add(mappedPhrase);
             }
 
-            this.MappedPhrase = mappedPhrase;
+            if (!(this.Phrases.Count >= 1))
+            {
+                throw new ArgumentException("At least one phrase must be specified.");
+            }
+
+            if (!(this.MappedPhrases.Count >= 1))
+            {
+                throw new ArgumentException("At least one mapped phrase must be specified.");
+            }
         }
 
-        public string MappedPhrase { get; }
+        public IReadOnlyCollection<string> MappedPhrases
+        {
+            get
+            {
+                return this.mappedPhrases;
+            }
+        }
     }
 }
