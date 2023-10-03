@@ -6,7 +6,10 @@ namespace Clara.Analysis.Synonyms
 {
     public sealed class SynonymMap : ISynonymMap
     {
+        public const int MaximumPermutatedTokenCount = 5;
+
         private readonly IAnalyzer analyzer;
+        private readonly HashSet<Synonym> synonyms = new();
         private readonly TokenNode root;
 
         public SynonymMap(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, int permutatedTokenCountThreshold = 1)
@@ -21,13 +24,23 @@ namespace Clara.Analysis.Synonyms
                 throw new ArgumentNullException(nameof(synonyms));
             }
 
-            if (permutatedTokenCountThreshold < 1 || permutatedTokenCountThreshold > PermutationHelper.MaximumPermutatedTokenCount)
+            foreach (var synonym in synonyms)
+            {
+                if (synonym is null)
+                {
+                    throw new ArgumentException("Synonyms must not be null.", nameof(synonyms));
+                }
+
+                this.synonyms.Add(synonym);
+            }
+
+            if (permutatedTokenCountThreshold < 1 || permutatedTokenCountThreshold > MaximumPermutatedTokenCount)
             {
                 throw new ArgumentOutOfRangeException(nameof(permutatedTokenCountThreshold));
             }
 
             this.analyzer = analyzer;
-            this.root = TokenNode.Build(analyzer, synonyms, permutatedTokenCountThreshold);
+            this.root = TokenNode.Build(analyzer, this.synonyms, permutatedTokenCountThreshold);
         }
 
         public IAnalyzer Analyzer
@@ -35,6 +48,14 @@ namespace Clara.Analysis.Synonyms
             get
             {
                 return this.analyzer;
+            }
+        }
+
+        public IReadOnlyCollection<Synonym> Synonyms
+        {
+            get
+            {
+                return this.synonyms;
             }
         }
 
@@ -268,7 +289,7 @@ namespace Clara.Analysis.Synonyms
                                 break;
                             }
 
-                            if (!this.backtrackingNode.IsEmpty)
+                            if (this.backtrackingNode.HasSynonyms)
                             {
                                 this.current = new SynonymResult(this.backtrackingNode);
                                 this.backtrackingNode = null;
@@ -381,29 +402,29 @@ namespace Clara.Analysis.Synonyms
 
         private sealed class TokenNode
         {
+            private readonly Dictionary<string, TokenNode> children = new();
             private readonly TokenNode? parent;
             private readonly string? token;
-            private readonly string[] tokenPath;
-            private readonly Dictionary<string, TokenNode> children;
-            private TokenAggregate aggregate;
+            private readonly string[] tokenPath = Array.Empty<string>();
+            private TokenNodeAggregate aggregate;
             private MatchExpression? matchExpression;
             private ListSlim<string>? replacementTokens;
 
             private TokenNode()
             {
-                this.parent = null;
-                this.token = null;
-                this.tokenPath = Array.Empty<string>();
-                this.children = new();
                 this.aggregate = new(this);
             }
 
             private TokenNode(TokenNode parent, string token)
-                : this()
             {
                 if (parent is null)
                 {
                     throw new ArgumentNullException(nameof(parent));
+                }
+
+                if (token is null)
+                {
+                    throw new ArgumentNullException(nameof(token));
                 }
 
                 var length = parent.tokenPath.Length;
@@ -416,6 +437,15 @@ namespace Clara.Analysis.Synonyms
                 this.parent = parent;
                 this.token = token;
                 this.tokenPath = pathTokens;
+                this.aggregate = new(this);
+            }
+
+            public IReadOnlyDictionary<string, TokenNode> Children
+            {
+                get
+                {
+                    return this.children;
+                }
             }
 
             public TokenNode Parent
@@ -444,14 +474,6 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public Dictionary<string, TokenNode> Children
-            {
-                get
-                {
-                    return this.children;
-                }
-            }
-
             public bool IsRoot
             {
                 get
@@ -460,13 +482,13 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public bool IsEmpty
+            public bool HasSynonyms
             {
                 get
                 {
-                    return this.aggregate.Nodes.Count <= 1
-                        && this.aggregate.MappedTo.Count == 0
-                        && this.aggregate.MappedFrom.Count == 0;
+                    return this.aggregate.Nodes.Count > 1
+                        || this.aggregate.MappedTo.Count > 0
+                        || this.aggregate.MappedFrom.Count > 0;
                 }
             }
 
@@ -477,20 +499,26 @@ namespace Clara.Analysis.Synonyms
                     if (this.matchExpression is null)
                     {
                         var expressions = new ListSlim<MatchExpression>();
+                        var synonymTokens = new HashSetSlim<string>();
 
-                        expressions.Add(Match.All(this.aggregate.SynonymToken));
+                        if (this.aggregate.MappedFrom.Count > 0 || this.aggregate.Nodes.Count > 1)
+                        {
+                            synonymTokens.Add(this.aggregate.SynonymToken);
+                        }
 
                         if (this.aggregate.MappedTo.Count > 0)
                         {
                             foreach (var node in this.aggregate.MappedTo)
                             {
-                                expressions.Add(Match.All(node.aggregate.SynonymToken));
+                                synonymTokens.Add(node.aggregate.SynonymToken);
                             }
                         }
                         else
                         {
                             expressions.Add(Match.All(this.tokenPath));
                         }
+
+                        expressions.Add(Match.Any(synonymTokens));
 
                         this.matchExpression = Match.Or(expressions);
                     }
@@ -506,14 +534,19 @@ namespace Clara.Analysis.Synonyms
                     if (this.replacementTokens is null)
                     {
                         var replacementTokens = new ListSlim<string>();
+                        var synonymTokens = new HashSetSlim<string>();
 
-                        replacementTokens.Add(this.aggregate.SynonymToken);
+                        if (this.aggregate.MappedFrom.Count > 0 || this.aggregate.Nodes.Count > 1)
+                        {
+                            synonymTokens.Add(this.aggregate.SynonymToken);
+                        }
 
                         if (this.aggregate.MappedTo.Count > 0)
                         {
                             foreach (var node in this.aggregate.MappedTo)
                             {
-                                replacementTokens.Add(node.aggregate.SynonymToken);
+                                synonymTokens.Add(node.aggregate.SynonymToken);
+
                                 replacementTokens.AddRange(node.tokenPath);
                             }
                         }
@@ -521,6 +554,8 @@ namespace Clara.Analysis.Synonyms
                         {
                             replacementTokens.AddRange(this.tokenPath);
                         }
+
+                        replacementTokens.AddRange(synonymTokens);
 
                         this.replacementTokens = replacementTokens;
                     }
@@ -535,36 +570,37 @@ namespace Clara.Analysis.Synonyms
 
                 foreach (var synonym in synonyms)
                 {
-                    if (synonym is EquivalencySynonym equivalencySynonym)
+                    var aggregate = new TokenNodeAggregate();
+
+                    foreach (var tokens in GetTokenPermutations(synonym.Phrases))
                     {
-                        var aggregate = new TokenAggregate();
+                        var node = root;
 
-                        foreach (var tokens in GetTokenPermutations(equivalencySynonym.Phrases))
+                        foreach (var token in tokens)
                         {
-                            var node = root;
-
-                            foreach (var token in tokens)
+                            if (!node.children.TryGetValue(token, out var child))
                             {
-                                if (!node.children.TryGetValue(token, out var child))
-                                {
-                                    node.children.Add(token, child = new TokenNode(node, token));
-                                }
-
-                                node = child;
+                                node.children.Add(token, child = new TokenNode(node, token));
                             }
 
-                            aggregate.UnionWith(node.aggregate);
+                            node = child;
                         }
 
-                        foreach (var node in aggregate.Nodes)
-                        {
-                            node.aggregate = aggregate;
-                        }
+                        aggregate.MergeWith(node.aggregate);
                     }
-                    else if (synonym is ExplicitMappingSynonym explicitMappingSynonym)
-                    {
-                        var mappedTo = new HashSet<TokenNode>();
 
+                    if (aggregate.Nodes.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    foreach (var node in aggregate.Nodes)
+                    {
+                        node.aggregate = aggregate;
+                    }
+
+                    if (synonym is ExplicitMappingSynonym explicitMappingSynonym)
+                    {
                         foreach (var tokens in GetTokenPermutations(explicitMappingSynonym.MappedPhrases))
                         {
                             var node = root;
@@ -579,72 +615,49 @@ namespace Clara.Analysis.Synonyms
                                 node = child;
                             }
 
-                            mappedTo.Add(node);
-                        }
-
-                        foreach (var tokens in GetTokenPermutations(explicitMappingSynonym.Phrases))
-                        {
-                            var node = root;
-
-                            foreach (var token in tokens)
-                            {
-                                if (!node.children.TryGetValue(token, out var child))
-                                {
-                                    node.children.Add(token, child = new TokenNode(node, token));
-                                }
-
-                                node = child;
-                            }
-
-                            foreach (var mappedNode in mappedTo)
-                            {
-                                node.aggregate.MapTo(mappedNode.aggregate);
-                                mappedNode.aggregate.MapFrom(node.aggregate);
-                            }
+                            aggregate.MapTo(node.aggregate);
                         }
                     }
                 }
 
                 return root;
 
-                IEnumerable<string[]> GetTokenPermutations(IEnumerable<string> phrases)
+                IEnumerable<IEnumerable<string>> GetTokenPermutations(IEnumerable<string> phrases)
                 {
                     foreach (var phrase in phrases)
                     {
-                        var tokens = analyzer.GetTokens(phrase).ToArray();
+                        var tokens = analyzer.GetTokens(phrase).ToList();
 
-                        if (permutatedTokenCountThreshold > 1 && tokens.Length <= permutatedTokenCountThreshold)
+                        if (tokens.Count > 0)
                         {
-                            foreach (var tokenPermutation in PermutationHelper.Permutate(tokens))
+                            if (tokens.Count > 1 && tokens.Count <= permutatedTokenCountThreshold)
                             {
-                                yield return tokenPermutation;
+                                foreach (var tokenPermutation in PermutationHelper.Permutate(tokens))
+                                {
+                                    yield return tokenPermutation;
+                                }
                             }
-                        }
-                        else
-                        {
-                            yield return tokens;
+                            else
+                            {
+                                yield return tokens;
+                            }
                         }
                     }
                 }
             }
 
-            private sealed class TokenAggregate
+            private sealed class TokenNodeAggregate
             {
-                private readonly string synonymToken;
-                private readonly HashSet<TokenNode> nodes;
-                private readonly HashSet<TokenNode> mappedTo;
-                private readonly HashSet<TokenNode> mappedFrom;
+                private readonly string synonymToken = string.Concat("__SYNONYM__", Guid.NewGuid().ToString("N"));
+                private readonly HashSet<TokenNode> nodes = new();
+                private readonly HashSet<TokenNode> mappedTo = new();
+                private readonly HashSet<TokenNode> mappedFrom = new();
 
-                public TokenAggregate()
+                public TokenNodeAggregate()
                 {
-                    this.synonymToken = string.Concat("__$Synonym$<", Guid.NewGuid().ToString("N"), ">");
-                    this.nodes = new();
-                    this.mappedTo = new();
-                    this.mappedFrom = new();
                 }
 
-                public TokenAggregate(TokenNode node)
-                    : this()
+                public TokenNodeAggregate(TokenNode node)
                 {
                     if (node is null)
                     {
@@ -686,34 +699,31 @@ namespace Clara.Analysis.Synonyms
                     }
                 }
 
-                public void UnionWith(TokenAggregate aggregate)
+                public void MergeWith(TokenNodeAggregate aggregate)
                 {
                     this.nodes.UnionWith(aggregate.nodes);
                     this.mappedFrom.UnionWith(aggregate.mappedFrom);
                     this.mappedTo.UnionWith(aggregate.mappedTo);
                 }
 
-                public void MapTo(TokenAggregate aggregate)
+                public void MapTo(TokenNodeAggregate aggregate)
                 {
                     this.mappedTo.UnionWith(aggregate.nodes);
                     this.mappedTo.UnionWith(aggregate.mappedTo);
+
+                    aggregate.mappedFrom.UnionWith(this.nodes);
+                    aggregate.mappedFrom.UnionWith(this.mappedFrom);
 
                     foreach (var node in this.mappedFrom)
                     {
                         node.aggregate.mappedTo.UnionWith(aggregate.nodes);
                         node.aggregate.mappedTo.UnionWith(aggregate.mappedTo);
                     }
-                }
 
-                public void MapFrom(TokenAggregate aggregate)
-                {
-                    this.mappedFrom.UnionWith(aggregate.nodes);
-                    this.mappedFrom.UnionWith(aggregate.mappedFrom);
-
-                    foreach (var node in this.mappedTo)
+                    foreach (var node in aggregate.mappedTo)
                     {
-                        node.aggregate.mappedFrom.UnionWith(aggregate.nodes);
-                        node.aggregate.mappedFrom.UnionWith(aggregate.mappedFrom);
+                        node.aggregate.mappedFrom.UnionWith(this.nodes);
+                        node.aggregate.mappedFrom.UnionWith(this.mappedFrom);
                     }
                 }
             }

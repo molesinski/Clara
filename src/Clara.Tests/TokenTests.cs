@@ -7,9 +7,9 @@ namespace Clara.Tests
     {
         [Theory]
         [InlineData("", "", "")]
-        [InlineData("aaa", "", "aaa")]
-        [InlineData("", "bbb", "bbb")]
-        [InlineData("aaa", "bbb", "aaabbb")]
+        [InlineData("abc", "", "abc")]
+        [InlineData("", "abc", "abc")]
+        [InlineData("abc", "def", "abcdef")]
         public void Append(string input, string chars, object expected)
         {
             if (expected is Type exceptionType)
@@ -40,12 +40,12 @@ namespace Clara.Tests
         [Theory]
         [InlineData("", 1, "", typeof(ArgumentOutOfRangeException))]
         [InlineData("", 0, "", "")]
-        [InlineData("aaa", 0, "", "")]
-        [InlineData("aaa", 1, "", "a")]
-        [InlineData("aaa", 2, "", "aa")]
-        [InlineData("aaa", 3, "", "aaa")]
-        [InlineData("", 0, "bbb", "bbb")]
-        [InlineData("aaa", 3, "bbb", "aaabbb")]
+        [InlineData("abc", 0, "", "")]
+        [InlineData("abc", 1, "", "a")]
+        [InlineData("abc", 2, "", "ab")]
+        [InlineData("abc", 3, "", "abc")]
+        [InlineData("", 0, "abc", "abc")]
+        [InlineData("abc", 3, "def", "abcdef")]
         public void Write(string input, int startIndex, string chars, object expected)
         {
             if (expected is Type exceptionType)
@@ -76,12 +76,12 @@ namespace Clara.Tests
         [Theory]
         [InlineData("", 1, "", typeof(ArgumentOutOfRangeException))]
         [InlineData("", 0, "", "")]
-        [InlineData("aaa", 0, "", "aaa")]
-        [InlineData("aaa", 1, "", "aaa")]
-        [InlineData("aaa", 3, "", "aaa")]
-        [InlineData("", 0, "bbb", "bbb")]
-        [InlineData("aaa", 3, "bbb", "aaabbb")]
-        [InlineData("aaa", 1, "bbb", "abbbaa")]
+        [InlineData("abc", 0, "", "abc")]
+        [InlineData("abc", 1, "", "abc")]
+        [InlineData("abc", 3, "", "abc")]
+        [InlineData("", 0, "abc", "abc")]
+        [InlineData("abc", 3, "def", "abcdef")]
+        [InlineData("abc", 1, "def", "adefbc")]
         public void Insert(string input, int startIndex, string chars, object expected)
         {
             if (expected is Type exceptionType)
@@ -151,10 +151,10 @@ namespace Clara.Tests
         [Theory]
         [InlineData("", 1, typeof(ArgumentOutOfRangeException))]
         [InlineData("", 0, "")]
-        [InlineData("aaa", 0, "")]
-        [InlineData("aaa", 1, "a")]
-        [InlineData("aaa", 2, "aa")]
-        [InlineData("aaa", 3, "aaa")]
+        [InlineData("abc", 0, "")]
+        [InlineData("abc", 1, "a")]
+        [InlineData("abc", 2, "ab")]
+        [InlineData("abc", 3, "abc")]
         public void Remove(string input, int startIndex, object expected)
         {
             if (expected is Type exceptionType)

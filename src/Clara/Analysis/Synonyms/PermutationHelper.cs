@@ -2,30 +2,24 @@
 {
     internal static class PermutationHelper
     {
-        public const int MaximumPermutatedTokenCount = 5;
-
-        public static IEnumerable<TItem[]> Permutate<TItem>(IEnumerable<TItem> source)
+        public static IEnumerable<IEnumerable<TItem>> Permutate<TItem>(IEnumerable<TItem> source)
         {
             if (source is null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
 
-            if (source is not IReadOnlyList<TItem> list)
-            {
-                list = source.ToArray();
-            }
+            var array = source.ToArray();
+            var length = array.Length;
 
-            var length = list.Count;
-
-            if (length <= 0)
+            if (length == 0)
             {
                 yield break;
             }
 
             if (length == 1)
             {
-                yield return list.ToArray();
+                yield return array;
                 yield break;
             }
 
@@ -41,10 +35,10 @@
             {
                 for (var i = 0; i < length; i++)
                 {
-                    result[i] = list[transform[i]];
+                    result[i] = array[transform[i]];
                 }
 
-                yield return result;
+                yield return result.ToArray();
 
                 var j = length - 2;
 
