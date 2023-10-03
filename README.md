@@ -114,7 +114,7 @@ public sealed class ProductMapper : IIndexMapper<Product>
     public static DoubleField<Product> Rating { get; } = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);
     public static Int32Field<Product> Stock { get; } = new(x => x.Stock, isFilterable: true, isFacetable: true, isSortable: true);
     public static KeywordField<Product> Brand { get; } = new(x => x.Brand, isFilterable: true, isFacetable: true);
-    public static KeywordField<Product> Category { get; } = new(x => x.Category, isFilterable: true, isFacetable: true);
+    public static HierarchyField<Product> Category { get; } = new(x => x.Category, separator: "-", root: "all", HierarchyValueHandling.Path, isFilterable: true, isFacetable: true);
 
     public IEnumerable<Field> GetFields()
     {
@@ -160,9 +160,10 @@ is needed, it can be added by simple `Skip`/`Take` logic on top `Documents` coll
 // Query result must always be disposed in order to return pooled buffers for reuse
 using var result = index.Query(
     index.QueryBuilder()
-        .Search(ProductMapper.Text, "smartphone")
-        .Filter(ProductMapper.Brand, Values.Any("Apple", "Samsung"))
-        .Filter(ProductMapper.Price, from: 300, to: 1500)
+        .Search(ProductMapper.Text, "watch ring leather bag", SearchMode.Any)
+        .Filter(ProductMapper.Brand, Values.Any("Eastern Watches", "Bracelet", "Copenhagen Luxe"))
+        .Filter(ProductMapper.Category, Values.Any("womens"))
+        .Filter(ProductMapper.Price, from: 10, to: 90)
         .Facet(ProductMapper.Brand)
         .Facet(ProductMapper.Category)
         .Facet(ProductMapper.Price)
@@ -172,7 +173,7 @@ Console.WriteLine("Documents:");
 
 foreach (var document in result.Documents.Take(10))
 {
-    Console.WriteLine($"  [{document.Document.Title}] => {document.Score}");
+    Console.WriteLine($"  [{document.Document.Title}] ${document.Document.Price} => {document.Score}");
 }
 
 Console.WriteLine("Brands:");
@@ -186,7 +187,12 @@ Console.WriteLine("Categories:");
 
 foreach (var value in result.Facets.Field(ProductMapper.Category).Values.Take(5))
 {
-    Console.WriteLine($"  {(value.IsSelected ? "(x)" : "( )")} [{value.Value}] => {value.Count}");
+    Console.WriteLine($"  (x) [{value.Value}] => {value.Count}");
+
+    foreach (var child in value.Children)
+    {
+        Console.WriteLine($"    ( ) [{child.Value}] => {child.Count}");
+    }
 }
 
 var priceFacet = result.Facets.Field(ProductMapper.Price);
@@ -200,18 +206,24 @@ Running this query against sample data results in following output.
 
 ```
 Documents:
-  [Samsung Universe 9] => 3,3160777
-  [iPhone X] => 2,9904046
-  [iPhone 9] => 3,5479112
+  [Fashion Magnetic Wrist Watch] $60 => 3,0435636
+  [Leather Hand Bag] $57 => 5,781354
+  [Fancy hand clutch] $44 => 5,527814
+  [Steel Analog Couple Watches] $35 => 3,2157867
+  [Stainless Steel Women] $35 => 3,3605182
 Brands:
-  (x) [Apple] => 2
-  (x) [Samsung] => 1
-  ( ) [Huawei] => 1
-Categries:
-  ( ) [smartphones] => 3
+  (x) [Eastern Watches] => 2
+  (x) [Bracelet] => 2
+  (x) [Copenhagen Luxe] => 1
+  ( ) [LouisWill] => 2
+  ( ) [Luxury Digital] => 1
+Categories:
+  (x) [womens] => 5
+    ( ) [womens-watches] => 3
+    ( ) [womens-bags] => 2
 Price:
-  [Min] => 549
-  [Max] => 1249
+  [Min] => 35
+  [Max] => 100
 ```
 
 ## Field Mapping

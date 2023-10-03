@@ -215,12 +215,7 @@ namespace Clara
                         }
                     }
 
-                    var facetResult = store.Facet(facetExpression, fieldFilterExpression, ref documentResultBuilder);
-
-                    if (facetResult is not null)
-                    {
-                        facetResults.Instance.Add(facetResult);
-                    }
+                    facetResults.Instance.Add(store.Facet(facetExpression, fieldFilterExpression, ref documentResultBuilder));
                 }
             }
 

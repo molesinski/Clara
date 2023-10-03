@@ -2,7 +2,7 @@
 {
     public enum SearchMode
     {
-        All,
+        All = 0,
         Any,
     }
 }

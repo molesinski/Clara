@@ -36,7 +36,7 @@ namespace Clara.Storage
             this.documentValueMinMax = documentValueMinMax;
         }
 
-        public FacetResult? Facet(ref DocumentResultBuilder documentResultBuilder)
+        public FacetResult Facet(ref DocumentResultBuilder documentResultBuilder)
         {
             var hasMinMax = false;
             var min = this.maxValue;
@@ -65,7 +65,7 @@ namespace Clara.Storage
                 return new RangeFacetResult<TValue>(this.field, min, max);
             }
 
-            return null;
+            return new RangeFacetResult<TValue>(this.field, default, default);
         }
 
         public DocumentList Sort(SortDirection direction, ref DocumentResultBuilder documentResultBuilder)

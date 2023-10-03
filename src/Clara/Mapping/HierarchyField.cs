@@ -6,17 +6,25 @@ namespace Clara.Mapping
 {
     public abstract class HierarchyField : Field
     {
-        public const string DefaultRoot = "0";
-
-        internal HierarchyField(bool isFilterable, bool isFacetable, char separator, string root)
+        internal HierarchyField(string separator, string root, HierarchyValueHandling valueHandling, bool isFilterable, bool isFacetable)
             : base(
                 isFilterable: isFilterable,
                 isFacetable: isFacetable,
                 isSortable: false)
         {
-            if (!isFilterable && !isFacetable)
+            if (separator is null)
             {
-                throw new InvalidOperationException("Either filtering or faceting must be enabled for given field.");
+                throw new ArgumentNullException(nameof(separator));
+            }
+
+            if (string.IsNullOrWhiteSpace(separator))
+            {
+                throw new ArgumentException("Hierarchy separator value must not be empty or whitespace.", nameof(separator));
+            }
+
+            if (separator.Trim().Length != separator.Length)
+            {
+                throw new ArgumentException("Hierarchy separator value must not start or end with whitespace.", nameof(separator));
             }
 
             if (root is null)
@@ -29,23 +37,42 @@ namespace Clara.Mapping
                 throw new ArgumentException("Hierarchy root value must not be empty or whitespace.", nameof(root));
             }
 
-            this.Separator = separator;
-            this.Root = root;
+            if (root.Trim().Length != root.Length)
+            {
+                throw new ArgumentException("Hierarchy root value must not start or end with whitespace.", nameof(root));
+            }
+
+            if (valueHandling != HierarchyValueHandling.Identifiers && valueHandling != HierarchyValueHandling.Path)
+            {
+                throw new ArgumentOutOfRangeException(nameof(valueHandling));
+            }
+
+            if (!isFilterable && !isFacetable)
+            {
+                throw new InvalidOperationException("Either filtering or faceting must be enabled for given field.");
+            }
+
+            this.Separator = separator.Trim();
+            this.Root = root.Trim();
+            this.ValueHandling = valueHandling;
         }
 
-        public char Separator { get; }
+        public string Separator { get; }
 
         public string Root { get; }
+
+        public HierarchyValueHandling ValueHandling { get; }
     }
 
     public sealed class HierarchyField<TSource> : HierarchyField
     {
-        public HierarchyField(Func<TSource, string?> valueMapper, bool isFilterable = false, bool isFacetable = false, char separator = ',', string root = DefaultRoot)
+        public HierarchyField(Func<TSource, string?> valueMapper, string separator, string root, HierarchyValueHandling valueHandling = HierarchyValueHandling.Identifiers, bool isFilterable = false, bool isFacetable = false)
             : base(
-                isFilterable: isFilterable,
-                isFacetable: isFacetable,
                 separator: separator,
-                root: root)
+                root: root,
+                valueHandling: valueHandling,
+                isFilterable: isFilterable,
+                isFacetable: isFacetable)
         {
             if (valueMapper is null)
             {
@@ -55,12 +82,13 @@ namespace Clara.Mapping
             this.ValueMapper = source => new StringEnumerable(valueMapper(source), trim: true);
         }
 
-        public HierarchyField(Func<TSource, IEnumerable<string?>?> valueMapper, bool isFilterable = false, bool isFacetable = false, char separator = ',', string root = DefaultRoot)
+        public HierarchyField(Func<TSource, IEnumerable<string?>?> valueMapper, string separator, string root, HierarchyValueHandling valueHandling = HierarchyValueHandling.Identifiers, bool isFilterable = false, bool isFacetable = false)
             : base(
-                isFilterable: isFilterable,
-                isFacetable: isFacetable,
                 separator: separator,
-                root: root)
+                root: root,
+                valueHandling: valueHandling,
+                isFilterable: isFilterable,
+                isFacetable: isFacetable)
         {
             if (valueMapper is null)
             {

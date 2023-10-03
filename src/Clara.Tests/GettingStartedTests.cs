@@ -23,9 +23,10 @@ namespace Clara.Tests
 
             using var result = index.Query(
                 index.QueryBuilder()
-                    .Search(ProductMapper.Text, "smartphone", SearchMode.Any)
-                    .Filter(ProductMapper.Brand, Values.Any("Apple", "Samsung"))
-                    .Filter(ProductMapper.Price, from: 300, to: 1500)
+                    .Search(ProductMapper.Text, "watch ring leather bag", SearchMode.Any)
+                    .Filter(ProductMapper.Brand, Values.Any("Eastern Watches", "Bracelet", "Copenhagen Luxe"))
+                    .Filter(ProductMapper.Category, Values.Any("womens"))
+                    .Filter(ProductMapper.Price, from: 10, to: 90)
                     .Facet(ProductMapper.Brand)
                     .Facet(ProductMapper.Category)
                     .Facet(ProductMapper.Price)
@@ -35,7 +36,7 @@ namespace Clara.Tests
 
             foreach (var document in result.Documents.Take(10))
             {
-                this.output.WriteLine($"  [{document.Document.Title}] => {document.Score}");
+                this.output.WriteLine($"  [{document.Document.Title}] ${document.Document.Price} => {document.Score}");
             }
 
             this.output.WriteLine("Brands:");
@@ -49,7 +50,12 @@ namespace Clara.Tests
 
             foreach (var value in result.Facets.Field(ProductMapper.Category).Values.Take(5))
             {
-                this.output.WriteLine($"  {(value.IsSelected ? "(x)" : "( )")} [{value.Value}] => {value.Count}");
+                this.output.WriteLine($"  (x) [{value.Value}] => {value.Count}");
+
+                foreach (var child in value.Children)
+                {
+                    this.output.WriteLine($"    ( ) [{child.Value}] => {child.Count}");
+                }
             }
 
             var priceFacet = result.Facets.Field(ProductMapper.Price);

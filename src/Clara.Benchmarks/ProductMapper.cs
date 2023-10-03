@@ -16,7 +16,7 @@ namespace Clara.Benchmarks
         public static DoubleField<Product> Rating { get; } = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);
         public static Int32Field<Product> Stock { get; } = new(x => x.Stock, isFilterable: true, isFacetable: true, isSortable: true);
         public static KeywordField<Product> Brand { get; } = new(x => x.Brand, isFilterable: true, isFacetable: true);
-        public static KeywordField<Product> Category { get; } = new(x => x.Category, isFilterable: true, isFacetable: true);
+        public static HierarchyField<Product> Category { get; } = new(x => x.Category, separator: "-", root: "all", HierarchyValueHandling.Path, isFilterable: true, isFacetable: true);
 
         public static string CommonTextPhrase { get; } = Guid.NewGuid().ToString("N");
 

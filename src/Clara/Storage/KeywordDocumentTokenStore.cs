@@ -35,7 +35,7 @@ namespace Clara.Storage
             this.documentTokens = documentTokens;
         }
 
-        public FacetResult? Facet(KeywordFilterExpression? keywordFilterExpression, ref DocumentResultBuilder documentResultBuilder)
+        public FacetResult Facet(KeywordFilterExpression? keywordFilterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             using var selectedValues = SharedObjectPools.SelectedValues.Lease();
 

@@ -7,8 +7,7 @@ namespace Clara.Storage
     {
         private readonly DictionarySlim<string, string[]> hierarchyDecodeCache = new();
         private readonly HierarchyField<TSource> field;
-        private readonly char[] separator;
-        private readonly string root;
+        private readonly string[] separatorArray;
         private readonly ITokenEncoderBuilder tokenEncoderBuilder;
         private readonly DictionarySlim<int, HashSetSlim<int>>? parentChildren;
         private readonly DictionarySlim<int, HashSetSlim<int>>? tokenDocuments;
@@ -28,8 +27,7 @@ namespace Clara.Storage
             }
 
             this.field = field;
-            this.separator = new[] { field.Separator };
-            this.root = field.Root.Trim();
+            this.separatorArray = new[] { field.Separator };
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
 
             if (field.IsFilterable)
@@ -111,7 +109,7 @@ namespace Clara.Storage
             var store =
                 new HierarchyFieldStore(
                     this.tokenDocuments is not null ? new TokenDocumentStore(tokenEncoder, this.tokenDocuments) : null,
-                    this.documentTokens is not null && this.parentChildren is not null ? new HierarchyDocumentTokenStore(this.field, this.root, tokenEncoder, this.documentTokens, this.parentChildren) : null);
+                    this.documentTokens is not null && this.parentChildren is not null ? new HierarchyDocumentTokenStore(this.field, tokenEncoder, this.documentTokens, this.parentChildren) : null);
 
             this.isBuilt = true;
 
@@ -124,14 +122,30 @@ namespace Clara.Storage
 
             if (decodedTokens is null)
             {
-                var parts = hierarchyEncodedToken.Split(this.separator, StringSplitOptions.RemoveEmptyEntries);
+                var parts = hierarchyEncodedToken.Split(this.separatorArray, StringSplitOptions.RemoveEmptyEntries);
 
                 decodedTokens = new string[1 + parts.Length];
-                decodedTokens[0] = this.root;
+                decodedTokens[0] = this.field.Root;
 
                 for (var i = 0; i < parts.Length; i++)
                 {
-                    decodedTokens[1 + i] = parts[i].Trim();
+                    parts[i] = parts[i].Trim();
+
+                    if (this.field.ValueHandling == HierarchyValueHandling.Path)
+                    {
+                        if (i == 0)
+                        {
+                            decodedTokens[1 + i] = parts[i];
+                        }
+                        else
+                        {
+                            decodedTokens[1 + i] = string.Concat(decodedTokens[1 + i - 1], this.field.Separator, parts[i]);
+                        }
+                    }
+                    else
+                    {
+                        decodedTokens[1 + i] = parts[i];
+                    }
                 }
             }
 

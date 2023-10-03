@@ -6,7 +6,6 @@ namespace Clara.Storage
 {
     internal sealed class HierarchyDocumentTokenStore
     {
-        private readonly string root;
         private readonly HierarchyField field;
         private readonly ITokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, HashSetSlim<int>> documentTokens;
@@ -14,7 +13,6 @@ namespace Clara.Storage
 
         public HierarchyDocumentTokenStore(
             HierarchyField field,
-            string root,
             ITokenEncoder tokenEncoder,
             DictionarySlim<int, HashSetSlim<int>> documentTokens,
             DictionarySlim<int, HashSetSlim<int>> parentChildren)
@@ -22,11 +20,6 @@ namespace Clara.Storage
             if (field is null)
             {
                 throw new ArgumentNullException(nameof(field));
-            }
-
-            if (root is null)
-            {
-                throw new ArgumentNullException(nameof(root));
             }
 
             if (tokenEncoder is null)
@@ -44,7 +37,6 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(parentChildren));
             }
 
-            this.root = root;
             this.field = field;
             this.tokenEncoder = tokenEncoder;
             this.documentTokens = documentTokens;
@@ -65,7 +57,7 @@ namespace Clara.Storage
 
             if (selectedValues.Instance.Count == 0)
             {
-                selectedValues.Instance.Add(this.root);
+                selectedValues.Instance.Add(this.field.Root);
             }
 
             using var filteredTokens = SharedObjectPools.FilteredTokens.Lease();

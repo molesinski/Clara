@@ -26,7 +26,7 @@ namespace Clara.Storage
             throw new InvalidOperationException("Field does not support filtering.");
         }
 
-        public virtual FacetResult? Facet(FacetExpression facetExpression, FilterExpression? filterExpression, ref DocumentResultBuilder documentResultBuilder)
+        public virtual FacetResult Facet(FacetExpression facetExpression, FilterExpression? filterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             throw new InvalidOperationException("Field does not support faceting.");
         }
