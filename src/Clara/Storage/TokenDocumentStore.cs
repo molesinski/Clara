@@ -42,13 +42,13 @@ namespace Clara.Storage
 
         public double FilterOrder { get; }
 
-        public void Filter(Field field, ValuesExpression valuesExpression, ref DocumentResultBuilder documentResultBuilder)
+        public void Filter(Field field, FilterMode mode, HashSetSlim<string> values, ref DocumentResultBuilder documentResultBuilder)
         {
-            if (valuesExpression is AnyValuesExpression anyValuesExpression)
+            if (mode == FilterMode.Any)
             {
-                if (anyValuesExpression.Values.Count == 1)
+                if (values.Count == 1)
                 {
-                    foreach (var token in (HashSetSlim<string>)anyValuesExpression.Values)
+                    foreach (var token in values)
                     {
                         if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
@@ -67,7 +67,7 @@ namespace Clara.Storage
                 {
                     using var tempSet = SharedObjectPools.DocumentSets.Lease();
 
-                    foreach (var token in (HashSetSlim<string>)anyValuesExpression.Values)
+                    foreach (var token in values)
                     {
                         if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
@@ -81,9 +81,9 @@ namespace Clara.Storage
                     documentResultBuilder.IntersectWith(field, tempSet.Instance);
                 }
             }
-            else if (valuesExpression is AllValuesExpression allValuesExpression)
+            else if (mode == FilterMode.All)
             {
-                foreach (var token in (HashSetSlim<string>)allValuesExpression.Values)
+                foreach (var token in values)
                 {
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
@@ -102,7 +102,7 @@ namespace Clara.Storage
             }
             else
             {
-                throw new InvalidOperationException("Unsupported values expression encountered.");
+                throw new InvalidOperationException("Unsupported filter mode enum value encountered.");
             }
         }
     }

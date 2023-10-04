@@ -9,11 +9,6 @@ namespace Clara.Querying
             return All(new StringEnumerable(token));
         }
 
-        public static MatchExpression All(params string?[] tokens)
-        {
-            return All(new StringEnumerable(tokens));
-        }
-
         public static MatchExpression All(IEnumerable<string?>? tokens)
         {
             return All(new StringEnumerable(tokens));
@@ -24,19 +19,9 @@ namespace Clara.Querying
             return Any(new StringEnumerable(token));
         }
 
-        public static MatchExpression Any(params string?[] tokens)
-        {
-            return Any(new StringEnumerable(tokens));
-        }
-
         public static MatchExpression Any(IEnumerable<string?>? tokens)
         {
             return Any(new StringEnumerable(tokens));
-        }
-
-        public static MatchExpression And(params MatchExpression?[] expressions)
-        {
-            return And((IEnumerable<MatchExpression?>)expressions);
         }
 
         public static MatchExpression And(IEnumerable<MatchExpression?>? expressions)
@@ -58,7 +43,7 @@ namespace Clara.Querying
                 {
                     var expression = queue.Dequeue();
 
-                    if (expression is EmptyTokensMatchExpression)
+                    if (expression is EmptyMatchExpression)
                     {
                         continue;
                     }
@@ -87,12 +72,7 @@ namespace Clara.Querying
                 }
             }
 
-            return EmptyTokensMatchExpression.Instance;
-        }
-
-        public static MatchExpression Or(params MatchExpression?[] expressions)
-        {
-            return Or((IEnumerable<MatchExpression?>)expressions);
+            return EmptyMatchExpression.Instance;
         }
 
         public static MatchExpression Or(IEnumerable<MatchExpression?>? expressions)
@@ -114,7 +94,7 @@ namespace Clara.Querying
                 {
                     var expression = queue.Dequeue();
 
-                    if (expression is EmptyTokensMatchExpression)
+                    if (expression is EmptyMatchExpression)
                     {
                         continue;
                     }
@@ -143,7 +123,7 @@ namespace Clara.Querying
                 }
             }
 
-            return EmptyTokensMatchExpression.Instance;
+            return EmptyMatchExpression.Instance;
         }
 
         private static MatchExpression All(StringEnumerable tokens)
@@ -161,7 +141,7 @@ namespace Clara.Querying
                 return new AllTokensMatchExpression(result);
             }
 
-            return EmptyTokensMatchExpression.Instance;
+            return EmptyMatchExpression.Instance;
         }
 
         private static MatchExpression Any(StringEnumerable tokens)
@@ -179,7 +159,7 @@ namespace Clara.Querying
                 return new AnyTokensMatchExpression(result);
             }
 
-            return EmptyTokensMatchExpression.Instance;
+            return EmptyMatchExpression.Instance;
         }
     }
 }

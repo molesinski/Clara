@@ -4,7 +4,7 @@ namespace Clara.Querying
 {
     public abstract class SortExpression
     {
-        protected SortExpression(Field field, SortDirection direction)
+        protected SortExpression(Field field, SortDirection sortDirection)
         {
             if (field is null)
             {
@@ -16,17 +16,17 @@ namespace Clara.Querying
                 throw new ArgumentException("Sorting is not enabled for given field.", nameof(field));
             }
 
-            if (direction != SortDirection.Ascending && direction != SortDirection.Descending)
+            if (sortDirection != SortDirection.Ascending && sortDirection != SortDirection.Descending)
             {
-                throw new ArgumentOutOfRangeException(nameof(direction));
+                throw new ArgumentException("Illegal sort direction enum value.", nameof(sortDirection));
             }
 
             this.Field = field;
-            this.Direction = direction;
+            this.SortDirection = sortDirection;
         }
 
         public Field Field { get; }
 
-        public SortDirection Direction { get; }
+        public SortDirection SortDirection { get; }
     }
 }

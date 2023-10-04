@@ -49,9 +49,9 @@ namespace Clara.Storage
 
             if (hierarchyFilterExpression is not null)
             {
-                if (hierarchyFilterExpression.ValuesExpression.Values.Count > 0)
+                if (hierarchyFilterExpression.Values.Count > 0)
                 {
-                    selectedValues.Instance.UnionWith(hierarchyFilterExpression.ValuesExpression.Values);
+                    selectedValues.Instance.UnionWith(hierarchyFilterExpression.Values);
                 }
             }
 

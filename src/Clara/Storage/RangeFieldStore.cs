@@ -62,7 +62,7 @@ namespace Clara.Storage
             {
                 if (this.documentValueMinMaxStore is not null)
                 {
-                    return this.documentValueMinMaxStore.Sort(rangeSortExpression.Direction, ref documentResultBuilder);
+                    return this.documentValueMinMaxStore.Sort(rangeSortExpression.SortDirection, ref documentResultBuilder);
                 }
             }
 

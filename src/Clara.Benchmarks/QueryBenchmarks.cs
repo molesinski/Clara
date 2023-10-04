@@ -54,8 +54,8 @@ namespace Clara.Benchmarks
         {
             using var result = this.index_x100.Query(
                 this.index.QueryBuilder()
-                    .Search(ProductMapper.Text, this.allTextSynonym)
-                    .Filter(ProductMapper.Brand, Values.Any(this.topBrand))
+                    .Search(ProductMapper.Text, SearchMode.Any, this.allTextSynonym)
+                    .Filter(ProductMapper.Brand, FilterMode.Any, this.topBrand)
                     .Filter(ProductMapper.Price, from: 1, to: this.maxPrice - 1)
                     .Facet(ProductMapper.Brand)
                     .Facet(ProductMapper.Category)
@@ -70,8 +70,8 @@ namespace Clara.Benchmarks
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Search(ProductMapper.Text, this.allTextSynonym)
-                    .Filter(ProductMapper.Brand, Values.Any(this.topBrand))
+                    .Search(ProductMapper.Text, SearchMode.Any, this.allTextSynonym)
+                    .Filter(ProductMapper.Brand, FilterMode.Any, this.topBrand)
                     .Filter(ProductMapper.Price, from: 1, to: this.maxPrice - 1)
                     .Facet(ProductMapper.Brand)
                     .Facet(ProductMapper.Category)
@@ -86,7 +86,7 @@ namespace Clara.Benchmarks
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Search(ProductMapper.Text, this.allTextSynonym));
+                    .Search(ProductMapper.Text, SearchMode.Any, this.allTextSynonym));
 
             ConsumeResult(result);
         }
@@ -96,7 +96,7 @@ namespace Clara.Benchmarks
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Filter(ProductMapper.Brand, Values.Any(this.topBrand))
+                    .Filter(ProductMapper.Brand, FilterMode.Any, this.topBrand)
                     .Filter(ProductMapper.Price, from: 1, to: this.maxPrice - 1));
 
             ConsumeResult(result);

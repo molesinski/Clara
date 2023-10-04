@@ -49,8 +49,8 @@ namespace Clara.Storage
 
             MatchExpression matchExpression =
                 tokens.Instance.Count == 0
-                    ? EmptyTokensMatchExpression.Instance
-                    : searchExpression.Mode == SearchMode.All
+                    ? EmptyMatchExpression.Instance
+                    : searchExpression.SearchMode == SearchMode.All
                         ? new AllTokensMatchExpression(tokens.Instance)
                         : new AnyTokensMatchExpression(tokens.Instance);
 

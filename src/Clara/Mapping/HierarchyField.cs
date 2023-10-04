@@ -44,7 +44,7 @@ namespace Clara.Mapping
 
             if (valueHandling != HierarchyValueHandling.Identifiers && valueHandling != HierarchyValueHandling.Path)
             {
-                throw new ArgumentOutOfRangeException(nameof(valueHandling));
+                throw new ArgumentException("Illegal value handling enum value.", nameof(valueHandling));
             }
 
             if (!isFilterable && !isFacetable)

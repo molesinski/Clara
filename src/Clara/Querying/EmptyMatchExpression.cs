@@ -1,16 +1,14 @@
 ﻿using System.Text;
-using Clara.Utils;
 
 namespace Clara.Querying
 {
-    public sealed class EmptyTokensMatchExpression : TokensMatchExpression
+    public sealed class EmptyMatchExpression : MatchExpression
     {
-        private EmptyTokensMatchExpression()
-            : base(new ListSlim<string>())
+        private EmptyMatchExpression()
         {
         }
 
-        internal static EmptyTokensMatchExpression Instance { get; } = new EmptyTokensMatchExpression();
+        internal static EmptyMatchExpression Instance { get; } = new EmptyMatchExpression();
 
         public override bool IsMatching(IReadOnlyCollection<string> tokens)
         {

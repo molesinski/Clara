@@ -1,8 +1,33 @@
 ﻿# TODO
 
 * [ ] `README.md` documentation
-  * [ ] Document field mapping
-  * [ ] Document text fields
-  * [ ] Document keyword fields
-  * [ ] Document hierarchy fields
-  * [ ] Document synonym maps
+  * [ ] Field Mapping
+    * [ ] Basic concepts
+    * [ ] Single or enumerable values
+    * [ ] Null, empty and whitespace value handling
+  * [ ] Text fields
+    * [ ] Basic concepts
+    * [ ] Single field searching limitations
+    * [ ] Search document scoring
+  * [ ] Keyword fields
+    * [ ] Basic concepts
+    * [ ] Filtering
+    * [ ] Faceting
+  * [ ] Hierarchy fields
+    * [ ] Basic concepts
+    * [ ] Value handling
+    * [ ] Filtering
+    * [ ] Faceting
+  * [ ] Analyzers
+    * [ ] Basic concepts
+    * [ ] Tokenizer
+    * [ ] Filter tokens
+    * [ ] Role of caching token filter
+    * [ ] Role of stem token filter
+  * [ ] Synonym maps
+    * [ ] Basic concepts
+    * [ ] Index and query time
+    * [ ] Synonym types
+    * [ ] Synthetic tokens and explicit mappings
+    * [ ] Multi token synonym handling
+    * [ ] Automatic multi token permutations

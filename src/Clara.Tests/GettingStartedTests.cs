@@ -23,9 +23,9 @@ namespace Clara.Tests
 
             using var result = index.Query(
                 index.QueryBuilder()
-                    .Search(ProductMapper.Text, "watch ring leather bag", SearchMode.Any)
-                    .Filter(ProductMapper.Brand, Values.Any("Eastern Watches", "Bracelet", "Copenhagen Luxe"))
-                    .Filter(ProductMapper.Category, Values.Any("womens"))
+                    .Search(ProductMapper.Text, SearchMode.Any, "watch ring leather bag")
+                    .Filter(ProductMapper.Brand, FilterMode.Any, "Eastern Watches", "Bracelet", "Copenhagen Luxe")
+                    .Filter(ProductMapper.Category, FilterMode.Any, "womens")
                     .Filter(ProductMapper.Price, from: 10, to: 90)
                     .Facet(ProductMapper.Brand)
                     .Facet(ProductMapper.Category)

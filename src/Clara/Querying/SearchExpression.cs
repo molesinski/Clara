@@ -4,11 +4,16 @@ namespace Clara.Querying
 {
     public sealed class SearchExpression
     {
-        public SearchExpression(TextField field, string text, SearchMode mode)
+        public SearchExpression(TextField field, SearchMode searchMode, string text)
         {
             if (field is null)
             {
                 throw new ArgumentNullException(nameof(field));
+            }
+
+            if (searchMode != SearchMode.All && searchMode != SearchMode.Any)
+            {
+                throw new ArgumentException("Illegal search mode enum value.", nameof(searchMode));
             }
 
             if (text is null)
@@ -16,21 +21,16 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(text));
             }
 
-            if (mode != SearchMode.All && mode != SearchMode.Any)
-            {
-                throw new ArgumentOutOfRangeException(nameof(mode));
-            }
-
             this.Field = field;
+            this.SearchMode = searchMode;
             this.Text = text;
-            this.Mode = mode;
         }
 
         public TextField Field { get; }
 
-        public string Text { get; }
+        public SearchMode SearchMode { get; }
 
-        public SearchMode Mode { get; }
+        public string Text { get; }
 
         internal bool IsEmpty
         {

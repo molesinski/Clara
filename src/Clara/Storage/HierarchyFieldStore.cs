@@ -1,4 +1,5 @@
 ﻿using Clara.Querying;
+using Clara.Utils;
 
 namespace Clara.Storage
 {
@@ -34,7 +35,7 @@ namespace Clara.Storage
             {
                 if (this.tokenDocumentStore is not null)
                 {
-                    this.tokenDocumentStore.Filter(hierarchyFilterExpression.Field, hierarchyFilterExpression.ValuesExpression, ref documentResultBuilder);
+                    this.tokenDocumentStore.Filter(hierarchyFilterExpression.Field, hierarchyFilterExpression.FilterMode, (HashSetSlim<string>)hierarchyFilterExpression.Values, ref documentResultBuilder);
                     return;
                 }
             }

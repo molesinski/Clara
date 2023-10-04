@@ -41,9 +41,9 @@ namespace Clara.Storage
 
             if (keywordFilterExpression is not null)
             {
-                if (keywordFilterExpression.ValuesExpression.Values.Count > 0)
+                if (keywordFilterExpression.Values.Count > 0)
                 {
-                    selectedValues.Instance.UnionWith(keywordFilterExpression.ValuesExpression.Values);
+                    selectedValues.Instance.UnionWith(keywordFilterExpression.Values);
                 }
             }
 

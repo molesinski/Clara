@@ -184,7 +184,7 @@ namespace Clara.Storage
 
                 return new DocumentScoring(documentScores);
             }
-            else if (matchExpression is EmptyTokensMatchExpression)
+            else if (matchExpression is EmptyMatchExpression)
             {
                 documentResultBuilder.Clear();
 

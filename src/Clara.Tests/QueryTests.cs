@@ -43,19 +43,13 @@ namespace Clara.Tests
             this.index = IndexBuilder.Build(Product.Items, new ProductMapper(), synonymMapBindings);
         }
 
-        public enum FilterMode
-        {
-            All = 0,
-            Any,
-        }
-
         [Fact]
         public void ComplexQuery()
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Search(ProductMapper.Text, AllNoneTextPhrase, SearchMode.Any)
-                    .Filter(ProductMapper.Brand, Values.Any(this.topBrands[0]))
+                    .Search(ProductMapper.Text, SearchMode.Any, AllNoneTextPhrase)
+                    .Filter(ProductMapper.Brand, FilterMode.Any, this.topBrands[0])
                     .Filter(ProductMapper.Price, from: 1, to: this.maxPrice - 1)
                     .Facet(ProductMapper.Brand)
                     .Facet(ProductMapper.Category)
@@ -117,7 +111,7 @@ namespace Clara.Tests
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Search(ProductMapper.Text, text, mode));
+                    .Search(ProductMapper.Text, mode, text));
 
             Assert.Equal(expectedCount, result.Documents.Count);
         }
@@ -144,16 +138,9 @@ namespace Clara.Tests
                     _ => this.topBrands.Take(count),
                 };
 
-            var valuesExpression =
-                mode switch
-                {
-                    FilterMode.All => Values.All(values),
-                    _ => Values.Any(values),
-                };
-
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Filter(ProductMapper.Brand, valuesExpression));
+                    .Filter(ProductMapper.Brand, mode, values));
 
             if (expectedCount < 0)
             {
