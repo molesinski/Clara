@@ -15,7 +15,7 @@ namespace Clara.Storage
 
         public static ObjectPool<HashSetSlim<int>> DocumentSets { get; } = new(() => new(), sizeFactor: 12);
 
-        public static ObjectPool<HashSetSlim<Field>> FieldSets { get; } = new(() => new());
+        public static ObjectPool<HashSet<Field>> FieldSets { get; } = new(() => new(), x => x.Clear());
 
         public static ObjectPool<HashSetSlim<int>> FilteredTokens { get; } = new(() => new());
 

@@ -10,7 +10,7 @@ namespace Clara.Tests
     {
         public static IAnalyzer Analyzer { get; } = new PorterAnalyzer();
 
-        public static TextField<Product> Text { get; } = new(x => GetText(x), Analyzer);
+        public static TextField<Product> Text { get; } = new(GetText, Analyzer, Similarity.TFIDF);
         public static DecimalField<Product> Price { get; } = new(x => x.Price, isFilterable: true, isFacetable: true, isSortable: true);
         public static DoubleField<Product> DiscountPercentage { get; } = new(x => x.DiscountPercentage, isFilterable: true, isFacetable: true, isSortable: true);
         public static DoubleField<Product> Rating { get; } = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);

@@ -286,11 +286,11 @@ namespace Clara
 
         private sealed class FilterExpressionComparer : IComparer<FilterExpression>
         {
-            private readonly HashSetSlim<Field> facetFields;
+            private readonly HashSet<Field> facetFields;
             private readonly Dictionary<Field, FieldStore> fieldStores;
 
             public FilterExpressionComparer(
-                HashSetSlim<Field> facetFields,
+                HashSet<Field> facetFields,
                 Dictionary<Field, FieldStore> fieldStores)
             {
                 if (facetFields is null)

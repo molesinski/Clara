@@ -7,7 +7,7 @@ namespace Clara.Mapping
 {
     public abstract class TextField : Field
     {
-        internal TextField(IAnalyzer analyzer, Similarity? similarity = null)
+        internal TextField(IAnalyzer analyzer, Similarity? similarity)
             : base(
                 isFilterable: false,
                 isFacetable: false,
@@ -29,8 +29,8 @@ namespace Clara.Mapping
 
     public sealed class TextField<TSource> : TextField
     {
-        public TextField(Func<TSource, string?> valueMapper, IAnalyzer analyzer)
-            : base(analyzer)
+        public TextField(Func<TSource, string?> valueMapper, IAnalyzer analyzer, Similarity? similarity = null)
+            : base(analyzer, similarity)
         {
             if (valueMapper is null)
             {
@@ -40,8 +40,8 @@ namespace Clara.Mapping
             this.ValueMapper = source => new PrimitiveEnumerable<TextWeight>(new TextWeight(valueMapper(source)));
         }
 
-        public TextField(Func<TSource, IEnumerable<string?>?> valueMapper, IAnalyzer analyzer)
-            : base(analyzer)
+        public TextField(Func<TSource, IEnumerable<string?>?> valueMapper, IAnalyzer analyzer, Similarity? similarity = null)
+            : base(analyzer, similarity)
         {
             if (valueMapper is null)
             {
@@ -51,8 +51,8 @@ namespace Clara.Mapping
             this.ValueMapper = source => new PrimitiveEnumerable<TextWeight>(valueMapper(source)?.Select(x => new TextWeight(x)));
         }
 
-        public TextField(Func<TSource, IEnumerable<TextWeight>?> valueMapper, IAnalyzer analyzer)
-            : base(analyzer)
+        public TextField(Func<TSource, IEnumerable<TextWeight>?> valueMapper, IAnalyzer analyzer, Similarity? similarity = null)
+            : base(analyzer, similarity)
         {
             if (valueMapper is null)
             {
@@ -62,8 +62,8 @@ namespace Clara.Mapping
             this.ValueMapper = source => new PrimitiveEnumerable<TextWeight>(valueMapper(source));
         }
 
-        public TextField(Func<TSource, IEnumerable<TextWeight?>?> valueMapper, IAnalyzer analyzer)
-            : base(analyzer)
+        public TextField(Func<TSource, IEnumerable<TextWeight?>?> valueMapper, IAnalyzer analyzer, Similarity? similarity = null)
+            : base(analyzer, similarity)
         {
             if (valueMapper is null)
             {

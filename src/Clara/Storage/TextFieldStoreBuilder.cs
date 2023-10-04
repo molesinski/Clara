@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Clara.Analysis.Synonyms;
+﻿using Clara.Analysis.Synonyms;
 using Clara.Mapping;
 using Clara.Utils;
 

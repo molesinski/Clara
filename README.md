@@ -108,7 +108,7 @@ public sealed class ProductMapper : IIndexMapper<Product>
 {
     public static IAnalyzer Analyzer { get; } = new PorterAnalyzer();
 
-    public static TextField<Product> Text { get; } = new(x => GetText(x), Analyzer);
+    public static TextField<Product> Text { get; } = new(GetText, Analyzer, Similarity.TFIDF);
     public static DecimalField<Product> Price { get; } = new(x => x.Price, isFilterable: true, isFacetable: true, isSortable: true);
     public static DoubleField<Product> DiscountPercentage { get; } = new(x => x.DiscountPercentage, isFilterable: true, isFacetable: true, isSortable: true);
     public static DoubleField<Product> Rating { get; } = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);
@@ -206,11 +206,11 @@ Running this query against sample data results in following output.
 
 ```
 Documents:
-  [Fashion Magnetic Wrist Watch] $60 => 4,147661
-  [Leather Hand Bag] $57 => 8,943645
-  [Fancy hand clutch] $44 => 5,659004
-  [Steel Analog Couple Watches] $35 => 4,1916823
-  [Stainless Steel Women] $35 => 3,4578035
+  [Fashion Magnetic Wrist Watch] $60 => 18,420681
+  [Leather Hand Bag] $57 => 25,16224
+  [Fancy hand clutch] $44 => 5,5294294
+  [Steel Analog Couple Watches] $35 => 18,420681
+  [Stainless Steel Women] $35 => 6,9077554
 Brands:
   (x) [Eastern Watches] => 2
   (x) [Bracelet] => 2

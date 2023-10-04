@@ -8,32 +8,36 @@ namespace Clara.Mapping
         {
         }
 
-        public static Similarity None { get; } = new NoneTextSimilarity();
+        public static Similarity None { get; } = new NoneSimilarity();
 
         public static Similarity Default { get; } = BM25();
 
+        public static Similarity TFIDF { get; } = new TFIDFSimilarity();
+
         public static Similarity BM25(double k1 = 1.2, double b = 0.75)
         {
-            return new BM25TextSimilarity(k1, b);
+            return new BM25Similarity(k1, b);
         }
 
         internal abstract void Process(
             DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
             DictionarySlim<int, float> documentLengths);
 
-        private sealed class NoneTextSimilarity : Similarity
+        private sealed class NoneSimilarity : Similarity
         {
-            internal override void Process(DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores, DictionarySlim<int, float> documentLengths)
+            internal override void Process(
+                DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
+                DictionarySlim<int, float> documentLengths)
             {
             }
         }
 
-        private sealed class BM25TextSimilarity : Similarity
+        private sealed class BM25Similarity : Similarity
         {
             private readonly double k1;
             private readonly double b;
 
-            public BM25TextSimilarity(double k1 = 1.2, double b = 0.75)
+            public BM25Similarity(double k1 = 1.2, double b = 0.75)
             {
                 if (k1 < 0)
                 {
@@ -62,14 +66,14 @@ namespace Clara.Mapping
 
                 var k1 = this.k1;
                 var b = this.b;
-                var averageLength = 0.0;
+                var averageDocumentLength = 0.0;
 
                 foreach (var pair in documentLengths)
                 {
-                    averageLength += pair.Value;
+                    averageDocumentLength += pair.Value;
                 }
 
-                averageLength /= documentCount;
+                averageDocumentLength /= documentCount;
 
                 foreach (var tokenDocumentScoresItem in tokenDocumentScores)
                 {
@@ -80,12 +84,44 @@ namespace Clara.Mapping
                     foreach (var documentScoresItem in documentScores)
                     {
                         var documentId = documentScoresItem.Key;
+                        var documentLength = documentLengths[documentId];
 
                         ref var score = ref documentScores.GetValueRefOrAddDefault(documentId, out _);
 
-                        var frequency = score;
-                        var length = documentLengths[documentId];
-                        var weighted = inverseDocumentFrequency * ((frequency * (k1 + 1.0)) / (frequency + (k1 * (1.0 - b + (b * (length / averageLength))))));
+                        var weighted = ((score * (k1 + 1.0)) / (score + (k1 * (1.0 - b + (b * (documentLength / averageDocumentLength)))))) * inverseDocumentFrequency;
+
+                        score = (float)weighted;
+                    }
+                }
+            }
+        }
+
+        private sealed class TFIDFSimilarity : Similarity
+        {
+            internal override void Process(
+                DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
+                DictionarySlim<int, float> documentLengths)
+            {
+                var documentCount = documentLengths.Count;
+
+                if (documentCount == 0)
+                {
+                    return;
+                }
+
+                foreach (var tokenDocumentScoresItem in tokenDocumentScores)
+                {
+                    var documentScores = tokenDocumentScoresItem.Value;
+                    var documentFrequency = documentScores.Count;
+                    var inverseDocumentFrequency = Math.Log(1 + (documentCount / documentFrequency));
+
+                    foreach (var documentScoresItem in documentScores)
+                    {
+                        var documentId = documentScoresItem.Key;
+
+                        ref var score = ref documentScores.GetValueRefOrAddDefault(documentId, out _);
+
+                        var weighted = score * inverseDocumentFrequency;
 
                         score = (float)weighted;
                     }
