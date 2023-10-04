@@ -12,8 +12,8 @@ namespace Clara.Storage
         public TextDocumentStore(
             ITokenEncoder tokenEncoder,
             DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
-            DictionarySlim<int, int> documentLengths,
-            Weight weight)
+            DictionarySlim<int, float> documentLengths,
+            Similarity similarity)
         {
             if (tokenEncoder is null)
             {
@@ -25,12 +25,12 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(tokenDocumentScores));
             }
 
-            if (weight is null)
+            if (similarity is null)
             {
-                throw new ArgumentNullException(nameof(weight));
+                throw new ArgumentNullException(nameof(similarity));
             }
 
-            weight.Process(tokenDocumentScores, documentLengths);
+            similarity.Process(tokenDocumentScores, documentLengths);
 
             this.tokenEncoder = tokenEncoder;
             this.tokenDocumentScores = tokenDocumentScores;

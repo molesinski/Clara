@@ -11,8 +11,7 @@ namespace Clara.Storage
         private readonly ISynonymMap? synonymMap;
         private readonly ITokenEncoderBuilder tokenEncoderBuilder;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
-        private readonly DictionarySlim<int, int> documentLengths;
-        private readonly StringBuilder builder;
+        private readonly DictionarySlim<int, float> documentLengths;
         private bool isBuilt;
 
         public TextFieldStoreBuilder(TextField<TSource> field, TokenEncoderStore tokenEncoderStore, ISynonymMap? synonymMap)
@@ -32,7 +31,6 @@ namespace Clara.Storage
             this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
             this.tokenDocumentScores = new();
             this.documentLengths = new();
-            this.builder = new();
         }
 
         public override void Index(int documentId, TSource item)
@@ -42,47 +40,33 @@ namespace Clara.Storage
                 throw new InvalidOperationException("Current instance is already built.");
             }
 
-            var builder = this.builder;
-            var lastValue = default(string?);
-            var valueCount = 0;
-
-            builder.Clear();
+            var analyzer = this.synonymMap ?? this.field.Analyzer;
 
             foreach (var value in this.field.ValueMapper(item))
             {
-                if (builder.Length > 0)
+                if (!string.IsNullOrWhiteSpace(value.Text))
                 {
-                    builder.Append(' ');
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    foreach (var token in analyzer.GetTokens(value.Text))
+#else
+                    foreach (var token in analyzer.GetTokens(value.Text!))
+#endif
+                    {
+                        var tokenId = this.tokenEncoderBuilder.Encode(token);
+
+                        ref var documents = ref this.tokenDocumentScores.GetValueRefOrAddDefault(tokenId, out _);
+
+                        documents ??= new DictionarySlim<int, float>();
+
+                        ref var score = ref documents.GetValueRefOrAddDefault(documentId, out _);
+
+                        score += value.Weight;
+
+                        ref var length = ref this.documentLengths.GetValueRefOrAddDefault(documentId, out _);
+
+                        length += value.Weight;
+                    }
                 }
-
-                builder.Append(value);
-                lastValue = value;
-                valueCount++;
-            }
-
-            if (valueCount == 0)
-            {
-                return;
-            }
-
-            var analyzer = this.synonymMap ?? this.field.Analyzer;
-            var text = valueCount == 1 ? lastValue! : builder.ToString();
-
-            foreach (var token in analyzer.GetTokens(text))
-            {
-                var tokenId = this.tokenEncoderBuilder.Encode(token);
-
-                ref var documents = ref this.tokenDocumentScores.GetValueRefOrAddDefault(tokenId, out _);
-
-                documents ??= new DictionarySlim<int, float>();
-
-                ref var score = ref documents.GetValueRefOrAddDefault(documentId, out _);
-
-                score++;
-
-                ref var length = ref this.documentLengths.GetValueRefOrAddDefault(documentId, out _);
-
-                length++;
             }
         }
 
@@ -99,7 +83,7 @@ namespace Clara.Storage
                 new TextFieldStore(
                     this.field.Analyzer,
                     this.synonymMap,
-                    new TextDocumentStore(tokenEncoder, this.tokenDocumentScores, this.documentLengths, this.field.Weight));
+                    new TextDocumentStore(tokenEncoder, this.tokenDocumentScores, this.documentLengths, this.field.Similarity));
 
             this.isBuilt = true;
 

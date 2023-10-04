@@ -50,7 +50,7 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void ComplexQuery_x100()
+        public void QueryComplex_x100()
         {
             using var result = this.index_x100.Query(
                 this.index.QueryBuilder()
@@ -66,7 +66,7 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void ComplexQuery()
+        public void QueryComplex()
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
@@ -82,7 +82,7 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void SearchQuery()
+        public void QuerySearch()
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
@@ -92,7 +92,7 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void FilterQuery()
+        public void QueryFilter()
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
@@ -103,7 +103,7 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void FacetQuery()
+        public void QueryFacet()
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
@@ -115,7 +115,7 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void SortQuery()
+        public void QuerySort()
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
@@ -125,7 +125,7 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void BasicQuery()
+        public void Query()
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder());

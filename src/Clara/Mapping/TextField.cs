@@ -7,7 +7,7 @@ namespace Clara.Mapping
 {
     public abstract class TextField : Field
     {
-        internal TextField(IAnalyzer analyzer, Weight? weight = null)
+        internal TextField(IAnalyzer analyzer, Similarity? similarity = null)
             : base(
                 isFilterable: false,
                 isFacetable: false,
@@ -19,12 +19,12 @@ namespace Clara.Mapping
             }
 
             this.Analyzer = analyzer;
-            this.Weight = weight ?? Weight.Default;
+            this.Similarity = similarity ?? Similarity.Default;
         }
 
         public IAnalyzer Analyzer { get; }
 
-        public Weight Weight { get; }
+        public Similarity Similarity { get; }
     }
 
     public sealed class TextField<TSource> : TextField
@@ -37,7 +37,7 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new StringEnumerable(valueMapper(source));
+            this.ValueMapper = source => new PrimitiveEnumerable<TextWeight>(new TextWeight(valueMapper(source)));
         }
 
         public TextField(Func<TSource, IEnumerable<string?>?> valueMapper, IAnalyzer analyzer)
@@ -48,10 +48,32 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new StringEnumerable(valueMapper(source));
+            this.ValueMapper = source => new PrimitiveEnumerable<TextWeight>(valueMapper(source)?.Select(x => new TextWeight(x)));
         }
 
-        internal Func<TSource, StringEnumerable> ValueMapper { get; }
+        public TextField(Func<TSource, IEnumerable<TextWeight>?> valueMapper, IAnalyzer analyzer)
+            : base(analyzer)
+        {
+            if (valueMapper is null)
+            {
+                throw new ArgumentNullException(nameof(valueMapper));
+            }
+
+            this.ValueMapper = source => new PrimitiveEnumerable<TextWeight>(valueMapper(source));
+        }
+
+        public TextField(Func<TSource, IEnumerable<TextWeight?>?> valueMapper, IAnalyzer analyzer)
+            : base(analyzer)
+        {
+            if (valueMapper is null)
+            {
+                throw new ArgumentNullException(nameof(valueMapper));
+            }
+
+            this.ValueMapper = source => new PrimitiveEnumerable<TextWeight>(valueMapper(source));
+        }
+
+        internal Func<TSource, PrimitiveEnumerable<TextWeight>> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderStore tokenEncoderStore,

@@ -131,13 +131,13 @@ public sealed class ProductMapper : IIndexMapper<Product>
 
     public Product GetDocument(Product item) => item;
 
-    private static string GetText(Product product)
+    private static IEnumerable<TextWeight> GetText(Product product)
     {
-        yield return product.Id.ToString(CultureInfo.InvariantCulture);
-        yield return product.Title;
-        yield return product.Description;
-        yield return product.Brand;
-        yield return product.Category;
+        yield return new(product.Id.ToString(CultureInfo.InvariantCulture));
+        yield return new(product.Title, weight: 4);
+        yield return new(product.Description);
+        yield return new(product.Brand, weight: 4);
+        yield return new(product.Category);
     }
 }
 ```
@@ -206,11 +206,11 @@ Running this query against sample data results in following output.
 
 ```
 Documents:
-  [Fashion Magnetic Wrist Watch] $60 => 3,0435636
-  [Leather Hand Bag] $57 => 5,781354
-  [Fancy hand clutch] $44 => 5,527814
-  [Steel Analog Couple Watches] $35 => 3,2157867
-  [Stainless Steel Women] $35 => 3,3605182
+  [Fashion Magnetic Wrist Watch] $60 => 4,147661
+  [Leather Hand Bag] $57 => 8,943645
+  [Fancy hand clutch] $44 => 5,659004
+  [Steel Analog Couple Watches] $35 => 4,1916823
+  [Stainless Steel Women] $35 => 3,4578035
 Brands:
   (x) [Eastern Watches] => 2
   (x) [Bracelet] => 2
@@ -358,26 +358,24 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 ### Index Benchmarks
 
-| Method             | Mean        | Error       | StdDev      | Gen0      | Gen1      | Gen2      | Allocated   |
-|------------------- |------------:|------------:|------------:|----------:|----------:|----------:|------------:|
-| Index_x100         | 67,078.6 μs | 1,297.01 μs | 2,057.19 μs | 2428.5714 | 2285.7143 | 1000.0000 | 31207.79 KB |
-| IndexSynonym       |    518.7 μs |     6.80 μs |     6.03 μs |   36.1328 |   12.6953 |         - |    558.2 KB |
-| Index              |    461.0 μs |     9.05 μs |     9.68 μs |   34.6680 |   13.1836 |         - |   538.11 KB |
-| SharedIndex_x100   | 63,849.0 μs | 1,119.16 μs |   992.11 μs | 2250.0000 | 2000.0000 |  875.0000 | 29918.68 KB |
-| SharedIndexSynonym |    494.7 μs |     2.49 μs |     2.33 μs |   32.2266 |   10.7422 |         - |   505.49 KB |
-| SharedIndex        |    444.4 μs |     8.71 μs |    10.37 μs |   31.2500 |   10.7422 |         - |   485.41 KB |
+| Method           | Mean        | Error       | StdDev      | Gen0      | Gen1      | Gen2      | Allocated   |
+|----------------- |------------:|------------:|------------:|----------:|----------:|----------:|------------:|
+| Index_x100       | 74,853.4 μs | 1,220.53 μs | 1,081.97 μs | 3000.0000 | 2714.2857 | 1285.7143 | 35700.77 KB |
+| Index            |    503.1 μs |     2.29 μs |     2.14 μs |   38.0859 |   14.6484 |         - |   583.83 KB |
+| IndexShared_x100 | 67,306.5 μs | 1,130.15 μs | 1,001.85 μs | 2625.0000 | 2250.0000 | 1000.0000 | 34409.86 KB |
+| IndexShared      |    481.3 μs |     1.94 μs |     1.62 μs |   34.6680 |   11.7188 |         - |   531.13 KB |
 
 ### Query Benchmarks
 
 | Method            | Mean       | Error     | StdDev    | Gen0   | Allocated |
 |------------------ |-----------:|----------:|----------:|-------:|----------:|
-| ComplexQuery_x100 | 573.715 μs | 3.2767 μs | 3.0650 μs |      - |    1545 B |
-| ComplexQuery      |  12.380 μs | 0.0277 μs | 0.0231 μs | 0.0916 |    1544 B |
-| SearchQuery       |   7.170 μs | 0.0200 μs | 0.0187 μs | 0.0458 |     720 B |
-| FilterQuery       |   1.448 μs | 0.0041 μs | 0.0036 μs | 0.0420 |     672 B |
-| FacetQuery        |  10.439 μs | 0.0327 μs | 0.0290 μs | 0.0305 |     640 B |
-| SortQuery         |   3.588 μs | 0.0110 μs | 0.0103 μs | 0.0229 |     408 B |
-| BasicQuery        |   1.501 μs | 0.0032 μs | 0.0028 μs | 0.0191 |     312 B |
+| QueryComplex_x100 | 568.620 μs | 4.5425 μs | 4.2491 μs |      - |    1545 B |
+| QueryComplex      |  12.202 μs | 0.0395 μs | 0.0350 μs | 0.0916 |    1544 B |
+| QuerySearch       |   7.122 μs | 0.0065 μs | 0.0060 μs | 0.0458 |     720 B |
+| QueryFilter       |   1.483 μs | 0.0057 μs | 0.0053 μs | 0.0420 |     672 B |
+| QueryFacet        |   9.888 μs | 0.0779 μs | 0.0691 μs | 0.0305 |     640 B |
+| QuerySort         |   3.515 μs | 0.0135 μs | 0.0126 μs | 0.0229 |     408 B |
+| Query             |   1.444 μs | 0.0041 μs | 0.0038 μs | 0.0191 |     312 B |
 
 > Due to internal buffer structures pooling, memory allocation per search execution is constant
 > after initial allocation of pooled buffers.
