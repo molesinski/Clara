@@ -1,12 +1,12 @@
 ﻿using System.Text;
 using Clara.Utils;
 
-namespace Clara.Querying
+namespace Clara.Analysis.MatchExpressions
 {
-    public sealed class OrMatchExpression : CompoundMatchExpression
+    public sealed class AndMatchExpression : CompoundMatchExpression
     {
-        internal OrMatchExpression(ListSlim<MatchExpression> expressions)
-            : base(expressions)
+        internal AndMatchExpression(ScoringMode scoringMode, ListSlim<MatchExpression> expressions)
+            : base(scoringMode, expressions)
         {
         }
 
@@ -14,13 +14,13 @@ namespace Clara.Querying
         {
             foreach (var expression in this.Expressions)
             {
-                if (expression.IsMatching(tokens))
+                if (!expression.IsMatching(tokens))
                 {
-                    return true;
+                    return false;
                 }
             }
 
-            return false;
+            return true;
         }
 
         internal override void ToString(StringBuilder builder)
@@ -33,7 +33,7 @@ namespace Clara.Querying
             {
                 if (!isFirst)
                 {
-                    builder.Append(" OR ");
+                    builder.Append(" AND ");
                 }
 
                 expression.ToString(builder);

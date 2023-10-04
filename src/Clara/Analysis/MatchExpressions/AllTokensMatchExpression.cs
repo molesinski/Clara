@@ -1,20 +1,20 @@
 ﻿using System.Text;
 using Clara.Utils;
 
-namespace Clara.Querying
+namespace Clara.Analysis.MatchExpressions
 {
-    public sealed class AndMatchExpression : CompoundMatchExpression
+    public sealed class AllTokensMatchExpression : TokensMatchExpression
     {
-        internal AndMatchExpression(ListSlim<MatchExpression> expressions)
-            : base(expressions)
+        internal AllTokensMatchExpression(ScoringMode scoringMode, ListSlim<string> tokens)
+            : base(scoringMode, tokens)
         {
         }
 
         public override bool IsMatching(IReadOnlyCollection<string> tokens)
         {
-            foreach (var expression in this.Expressions)
+            foreach (var token in this.Tokens)
             {
-                if (!expression.IsMatching(tokens))
+                if (!tokens.Contains(token))
                 {
                     return false;
                 }
@@ -25,18 +25,20 @@ namespace Clara.Querying
 
         internal override void ToString(StringBuilder builder)
         {
-            builder.Append('(');
+            builder.Append("ALL(");
 
             var isFirst = true;
 
-            foreach (var expression in this.Expressions)
+            foreach (var token in this.Tokens)
             {
                 if (!isFirst)
                 {
-                    builder.Append(" AND ");
+                    builder.Append(", ");
                 }
 
-                expression.ToString(builder);
+                builder.Append('"');
+                builder.Append(token);
+                builder.Append('"');
 
                 isFirst = false;
             }

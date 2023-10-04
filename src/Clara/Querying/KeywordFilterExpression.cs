@@ -13,7 +13,7 @@ namespace Clara.Querying
             }
 
             this.FilterMode = filterMode;
-            this.Values = FilterValuesHelper.GetValues(value);
+            this.Values = FilterValues.Get(value);
         }
 
         public KeywordFilterExpression(KeywordField field, FilterMode filterMode, IEnumerable<string?>? values)
@@ -25,7 +25,7 @@ namespace Clara.Querying
             }
 
             this.FilterMode = filterMode;
-            this.Values = FilterValuesHelper.GetValues(values);
+            this.Values = FilterValues.Get(values);
         }
 
         public FilterMode FilterMode { get; }

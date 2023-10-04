@@ -1,5 +1,5 @@
-﻿using Clara.Mapping;
-using Clara.Querying;
+﻿using Clara.Analysis.MatchExpressions;
+using Clara.Mapping;
 using Clara.Utils;
 
 namespace Clara.Storage
@@ -69,7 +69,7 @@ namespace Clara.Storage
                         {
                             if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                             {
-                                documentScores.Instance.UnionWith(documents, ValueCombiner.Sum);
+                                documentScores.Instance.UnionWith(documents, ScoringValueCombiner.Get(anyValuesMatchExpression.ScoringMode));
                             }
                         }
                     }
@@ -113,12 +113,12 @@ namespace Clara.Storage
                             {
                                 if (isFirst)
                                 {
-                                    documentScores.Instance.UnionWith(documents, ValueCombiner.Sum);
+                                    documentScores.Instance.UnionWith(documents, ScoringValueCombiner.Get(allValuesMatchExpression.ScoringMode));
                                     isFirst = false;
                                 }
                                 else
                                 {
-                                    documentScores.Instance.IntersectWith(documents, ValueCombiner.Sum);
+                                    documentScores.Instance.IntersectWith(documents, ScoringValueCombiner.Get(allValuesMatchExpression.ScoringMode));
                                 }
 
                                 continue;
@@ -145,9 +145,9 @@ namespace Clara.Storage
                     {
                         tempScores.Instance.Clear();
 
-                        this.SearchPartial(expression, tempScores.Instance);
+                        this.Search(expression, tempScores.Instance);
 
-                        documentScores.Instance.UnionWith(tempScores.Instance, ValueCombiner.Sum);
+                        documentScores.Instance.UnionWith(tempScores.Instance, ScoringValueCombiner.Get(orMatchExpression.ScoringMode));
                     }
                 }
 
@@ -166,16 +166,16 @@ namespace Clara.Storage
                     {
                         tempScores.Instance.Clear();
 
-                        this.SearchPartial(expression, tempScores.Instance);
+                        this.Search(expression, tempScores.Instance);
 
                         if (isFirst)
                         {
-                            documentScores.Instance.UnionWith(tempScores.Instance, ValueCombiner.Sum);
+                            documentScores.Instance.UnionWith(tempScores.Instance, ScoringValueCombiner.Get(andMatchExpression.ScoringMode));
                             isFirst = false;
                         }
                         else
                         {
-                            documentScores.Instance.IntersectWith(tempScores.Instance, ValueCombiner.Sum);
+                            documentScores.Instance.IntersectWith(tempScores.Instance, ScoringValueCombiner.Get(andMatchExpression.ScoringMode));
                         }
                     }
                 }
@@ -196,7 +196,7 @@ namespace Clara.Storage
             }
         }
 
-        private void SearchPartial(MatchExpression matchExpression, DictionarySlim<int, float> partialScores)
+        private void Search(MatchExpression matchExpression, DictionarySlim<int, float> partialScores)
         {
             if (matchExpression is AnyTokensMatchExpression anyValuesMatchExpression)
             {
@@ -206,7 +206,7 @@ namespace Clara.Storage
                     {
                         if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                         {
-                            partialScores.UnionWith(documents, ValueCombiner.Sum);
+                            partialScores.UnionWith(documents, ScoringValueCombiner.Get(anyValuesMatchExpression.ScoringMode));
                         }
                     }
                 }
@@ -223,12 +223,12 @@ namespace Clara.Storage
                         {
                             if (isFirst)
                             {
-                                partialScores.UnionWith(documents, ValueCombiner.Sum);
+                                partialScores.UnionWith(documents, ScoringValueCombiner.Get(allValuesMatchExpression.ScoringMode));
                                 isFirst = false;
                             }
                             else
                             {
-                                partialScores.IntersectWith(documents, ValueCombiner.Sum);
+                                partialScores.IntersectWith(documents, ScoringValueCombiner.Get(allValuesMatchExpression.ScoringMode));
                             }
 
                             continue;
@@ -248,9 +248,9 @@ namespace Clara.Storage
                 {
                     tempScores.Instance.Clear();
 
-                    this.SearchPartial(expression, tempScores.Instance);
+                    this.Search(expression, tempScores.Instance);
 
-                    partialScores.UnionWith(tempScores.Instance, ValueCombiner.Max);
+                    partialScores.UnionWith(tempScores.Instance, ScoringValueCombiner.Get(orMatchExpression.ScoringMode));
                 }
             }
             else if (matchExpression is AndMatchExpression andMatchExpression)
@@ -263,16 +263,16 @@ namespace Clara.Storage
                 {
                     tempScores.Instance.Clear();
 
-                    this.SearchPartial(expression, tempScores.Instance);
+                    this.Search(expression, tempScores.Instance);
 
                     if (isFirst)
                     {
-                        partialScores.UnionWith(tempScores.Instance, ValueCombiner.Max);
+                        partialScores.UnionWith(tempScores.Instance, ScoringValueCombiner.Get(andMatchExpression.ScoringMode));
                         isFirst = false;
                     }
                     else
                     {
-                        partialScores.IntersectWith(tempScores.Instance, ValueCombiner.Max);
+                        partialScores.IntersectWith(tempScores.Instance, ScoringValueCombiner.Get(andMatchExpression.ScoringMode));
                     }
                 }
             }

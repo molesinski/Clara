@@ -1,4 +1,4 @@
-﻿using Clara.Querying;
+﻿using Clara.Analysis.MatchExpressions;
 
 namespace Clara.Analysis.Synonyms
 {

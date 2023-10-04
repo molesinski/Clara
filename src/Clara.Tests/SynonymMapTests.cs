@@ -1,4 +1,5 @@
 ﻿using Clara.Analysis;
+using Clara.Analysis.MatchExpressions;
 using Clara.Analysis.Synonyms;
 using Clara.Querying;
 using Xunit;
@@ -193,8 +194,8 @@ namespace Clara.Tests
 
             var matchExpression =
                 mode == SearchMode.All
-                    ? Match.All(synonymMap.Analyzer.GetTokens(search))
-                    : Match.Any(synonymMap.Analyzer.GetTokens(search));
+                    ? Match.All(ScoringMode.Sum, synonymMap.Analyzer.GetTokens(search))
+                    : Match.Any(ScoringMode.Sum, synonymMap.Analyzer.GetTokens(search));
 
             matchExpression = synonymMap.Process(matchExpression);
 
@@ -202,7 +203,7 @@ namespace Clara.Tests
 
             if (output is not null)
             {
-                output.WriteLine(string.Concat("Document: ", string.Join(", ", documentTokens)));
+                output.WriteLine(string.Concat("Document: ", string.Join(", ", documentTokens.Select(x => $"\"{x}\""))));
                 output.WriteLine(string.Concat("Expression: ", matchExpression.ToString()));
             }
 

@@ -1,4 +1,5 @@
 ﻿using Clara.Analysis;
+using Clara.Analysis.MatchExpressions;
 using Clara.Analysis.Synonyms;
 using Clara.Querying;
 
@@ -51,8 +52,8 @@ namespace Clara.Storage
                 tokens.Instance.Count == 0
                     ? EmptyMatchExpression.Instance
                     : searchExpression.SearchMode == SearchMode.All
-                        ? new AllTokensMatchExpression(tokens.Instance)
-                        : new AnyTokensMatchExpression(tokens.Instance);
+                        ? new AllTokensMatchExpression(ScoringMode.Sum, tokens.Instance)
+                        : new AnyTokensMatchExpression(ScoringMode.Sum, tokens.Instance);
 
             if (this.synonymMap is not null)
             {

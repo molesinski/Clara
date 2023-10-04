@@ -1,5 +1,6 @@
 ﻿using System.Collections;
-using Clara.Querying;
+using Clara.Analysis.MatchExpressions;
+using Clara.Storage;
 using Clara.Utils;
 
 namespace Clara.Analysis.Synonyms
@@ -114,8 +115,9 @@ namespace Clara.Analysis.Synonyms
 
             if (matchExpression is AllTokensMatchExpression allValuesMatchExpression)
             {
+                using var tokens = SharedObjectPools.Tokens.Lease();
+
                 var expressions = default(ListSlim<MatchExpression>?);
-                var tokens = default(ListSlim<string>?);
 
                 foreach (var synonymResult in new SynonymResultEnumerable(this.root, allValuesMatchExpression.Tokens))
                 {
@@ -126,19 +128,18 @@ namespace Clara.Analysis.Synonyms
                     }
                     else if (synonymResult.Token is string token)
                     {
-                        tokens ??= new();
-                        tokens.Add(token);
+                        tokens.Instance.Add(token);
                     }
                 }
 
                 if (expressions is null)
                 {
-                    return matchExpression;
+                    return allValuesMatchExpression;
                 }
 
-                if (tokens is not null)
+                if (tokens.Instance.Count > 0)
                 {
-                    expressions.Insert(0, new AllTokensMatchExpression(tokens));
+                    expressions.Insert(0, new AllTokensMatchExpression(allValuesMatchExpression.ScoringMode, new ListSlim<string>(tokens.Instance)));
                 }
 
                 if (expressions.Count == 1)
@@ -147,13 +148,14 @@ namespace Clara.Analysis.Synonyms
                 }
                 else
                 {
-                    return new AndMatchExpression(expressions);
+                    return new AndMatchExpression(allValuesMatchExpression.ScoringMode, expressions);
                 }
             }
             else if (matchExpression is AnyTokensMatchExpression anyValuesMatchExpression)
             {
+                using var tokens = SharedObjectPools.Tokens.Lease();
+
                 var expressions = default(ListSlim<MatchExpression>?);
-                var tokens = default(ListSlim<string>?);
 
                 foreach (var synonymResult in new SynonymResultEnumerable(this.root, anyValuesMatchExpression.Tokens))
                 {
@@ -164,19 +166,18 @@ namespace Clara.Analysis.Synonyms
                     }
                     else if (synonymResult.Token is string token)
                     {
-                        tokens ??= new();
-                        tokens.Add(token);
+                        tokens.Instance.Add(token);
                     }
                 }
 
                 if (expressions is null)
                 {
-                    return matchExpression;
+                    return anyValuesMatchExpression;
                 }
 
-                if (tokens is not null)
+                if (tokens.Instance.Count > 0)
                 {
-                    expressions.Insert(0, new AnyTokensMatchExpression(tokens));
+                    expressions.Insert(0, new AnyTokensMatchExpression(anyValuesMatchExpression.ScoringMode, new ListSlim<string>(tokens.Instance)));
                 }
 
                 if (expressions.Count == 1)
@@ -185,7 +186,7 @@ namespace Clara.Analysis.Synonyms
                 }
                 else
                 {
-                    return new OrMatchExpression(expressions);
+                    return new OrMatchExpression(anyValuesMatchExpression.ScoringMode, expressions);
                 }
             }
             else
@@ -402,10 +403,12 @@ namespace Clara.Analysis.Synonyms
 
         private sealed class TokenNode
         {
+            private static readonly ListSlim<string> EmptyTokenPath = new();
+
             private readonly Dictionary<string, TokenNode> children = new();
             private readonly TokenNode? parent;
             private readonly string? token;
-            private readonly string[] tokenPath = Array.Empty<string>();
+            private readonly ListSlim<string> tokenPath = EmptyTokenPath;
             private TokenNodeAggregate aggregate;
             private MatchExpression? matchExpression;
             private ListSlim<string>? replacementTokens;
@@ -427,16 +430,13 @@ namespace Clara.Analysis.Synonyms
                     throw new ArgumentNullException(nameof(token));
                 }
 
-                var length = parent.tokenPath.Length;
-                var pathTokens = new string[length + 1];
+                var tokenPath = new ListSlim<string>(parent.tokenPath);
 
-                Array.Copy(parent.tokenPath, pathTokens, length);
-
-                pathTokens[length] = token;
+                tokenPath.Add(token);
 
                 this.parent = parent;
                 this.token = token;
-                this.tokenPath = pathTokens;
+                this.tokenPath = tokenPath;
                 this.aggregate = new(this);
             }
 
@@ -515,12 +515,22 @@ namespace Clara.Analysis.Synonyms
                         }
                         else
                         {
-                            expressions.Add(Match.All(this.tokenPath));
+                            expressions.Add(Match.All(ScoringMode.Sum, this.tokenPath));
                         }
 
-                        expressions.Add(Match.Any(synonymTokens));
+                        if (synonymTokens.Count > 0)
+                        {
+                            expressions.Add(Match.Any(ScoringMode.Max, synonymTokens));
+                        }
 
-                        this.matchExpression = Match.Or(expressions);
+                        if (expressions.Count == 1)
+                        {
+                            this.matchExpression = expressions[0];
+                        }
+                        else
+                        {
+                            this.matchExpression = new OrMatchExpression(ScoringMode.Max, expressions);
+                        }
                     }
 
                     return this.matchExpression;

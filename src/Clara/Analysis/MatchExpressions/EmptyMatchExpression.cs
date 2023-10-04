@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Clara.Querying
+namespace Clara.Analysis.MatchExpressions
 {
     public sealed class EmptyMatchExpression : MatchExpression
     {

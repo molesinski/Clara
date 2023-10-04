@@ -1,12 +1,12 @@
 ﻿using System.Text;
 using Clara.Utils;
 
-namespace Clara.Querying
+namespace Clara.Analysis.MatchExpressions
 {
     public sealed class AnyTokensMatchExpression : TokensMatchExpression
     {
-        internal AnyTokensMatchExpression(ListSlim<string> tokens)
-            : base(tokens)
+        internal AnyTokensMatchExpression(ScoringMode scoringMode, ListSlim<string> tokens)
+            : base(scoringMode, tokens)
         {
         }
 

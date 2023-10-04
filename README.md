@@ -371,13 +371,13 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 | Method            | Mean       | Error     | StdDev    | Gen0   | Allocated |
 |------------------ |-----------:|----------:|----------:|-------:|----------:|
-| ComplexQuery_x100 | 567.553 μs | 3.7753 μs | 3.3467 μs |      - |    1537 B |
-| ComplexQuery      |  12.123 μs | 0.0198 μs | 0.0166 μs | 0.0916 |    1536 B |
-| SearchQuery       |   7.181 μs | 0.0253 μs | 0.0236 μs | 0.0381 |     712 B |
-| FilterQuery       |   1.472 μs | 0.0049 μs | 0.0043 μs | 0.0420 |     672 B |
-| FacetQuery        |   9.791 μs | 0.0240 μs | 0.0224 μs | 0.0305 |     640 B |
-| SortQuery         |   3.384 μs | 0.0121 μs | 0.0114 μs | 0.0229 |     408 B |
-| BasicQuery        |   1.394 μs | 0.0038 μs | 0.0036 μs | 0.0191 |     312 B |
+| ComplexQuery_x100 | 573.715 μs | 3.2767 μs | 3.0650 μs |      - |    1545 B |
+| ComplexQuery      |  12.380 μs | 0.0277 μs | 0.0231 μs | 0.0916 |    1544 B |
+| SearchQuery       |   7.170 μs | 0.0200 μs | 0.0187 μs | 0.0458 |     720 B |
+| FilterQuery       |   1.448 μs | 0.0041 μs | 0.0036 μs | 0.0420 |     672 B |
+| FacetQuery        |  10.439 μs | 0.0327 μs | 0.0290 μs | 0.0305 |     640 B |
+| SortQuery         |   3.588 μs | 0.0110 μs | 0.0103 μs | 0.0229 |     408 B |
+| BasicQuery        |   1.501 μs | 0.0032 μs | 0.0028 μs | 0.0191 |     312 B |
 
 > Due to internal buffer structures pooling, memory allocation per search execution is constant
 > after initial allocation of pooled buffers.
