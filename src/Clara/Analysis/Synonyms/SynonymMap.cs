@@ -75,6 +75,11 @@ namespace Clara.Analysis.Synonyms
                 throw new ArgumentNullException(nameof(text));
             }
 
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return Array.Empty<string>();
+            }
+
             if (this.IsEmpty)
             {
                 return this.analyzer.GetTokens(text);

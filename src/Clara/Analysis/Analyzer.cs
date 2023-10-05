@@ -33,13 +33,28 @@
 
         public IEnumerable<string> GetTokens(string text)
         {
-            foreach (var token in this.tokenizer.GetTokens(text))
+            if (text is null)
             {
-                var result = this.pipeline(token);
+                throw new ArgumentNullException(nameof(text));
+            }
 
-                if (result.Length > 0)
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return Array.Empty<string>();
+            }
+
+            return GetTokensEnumerable(text);
+
+            IEnumerable<string> GetTokensEnumerable(string text)
+            {
+                foreach (var token in this.tokenizer.GetTokens(text))
                 {
-                    yield return result.ToString();
+                    var result = this.pipeline(token);
+
+                    if (result.Length > 0)
+                    {
+                        yield return result.ToString();
+                    }
                 }
             }
         }

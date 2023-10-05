@@ -17,19 +17,24 @@ namespace Clara.Analysis
 
             if (string.IsNullOrWhiteSpace(text))
             {
-                yield break;
+                return Array.Empty<Token>();
             }
 
-            using var context = Pool.Lease();
+            return GetTokensEnumerable(text);
 
-            context.Instance.Reader.Set(text);
-            context.Instance.Tokenizer.SetReader(context.Instance.Reader);
-
-            using var disposable = context.Instance.Tokenizer;
-
-            foreach (var token in new TokenStreamEnumerable(context.Instance.Tokenizer, context.Instance.Chars))
+            IEnumerable<Token> GetTokensEnumerable(string text)
             {
-                yield return token;
+                using var context = Pool.Lease();
+
+                context.Instance.Reader.Set(text);
+                context.Instance.Tokenizer.SetReader(context.Instance.Reader);
+
+                using var disposable = context.Instance.Tokenizer;
+
+                foreach (var token in new TokenStreamEnumerable(context.Instance.Tokenizer, context.Instance.Chars))
+                {
+                    yield return token;
+                }
             }
         }
 

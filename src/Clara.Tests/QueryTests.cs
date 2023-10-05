@@ -134,7 +134,7 @@ namespace Clara.Tests
                 {
                     -2 => default(IEnumerable<string>),
                     -1 => new[] { default(string) },
-                    0 => Enumerable.Empty<string>(),
+                    0 => Array.Empty<string>(),
                     _ => this.topBrands.Take(count),
                 };
 
@@ -146,7 +146,7 @@ namespace Clara.Tests
             {
                 var valuesSet = new HashSet<string?>(
                     count <= 0
-                        ? Enumerable.Empty<string>()
+                        ? Array.Empty<string>()
                         : this.topBrands.Take(count));
 
                 expectedCount =

@@ -37,9 +37,12 @@ namespace Clara.Analysis
                 throw new ArgumentNullException(nameof(next));
             }
 
-            if (this.stopwords.Contains(token))
+            if (this.stopwords.Count > 0)
             {
-                return default;
+                if (this.stopwords.Contains(token))
+                {
+                    return default;
+                }
             }
 
             return next(token);

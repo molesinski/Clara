@@ -20,9 +20,9 @@
                 new Analyzer(
                     new BasicTokenizer(),
                     new LowerInvariantTokenFilter(),
-                    new CachingTokenFilter(),
                     new PorterPossessiveTokenFilter(),
                     new PorterStopTokenFilter(),
+                    new CachingTokenFilter(),
                     new LengthKeywordTokenFilter(),
                     new DigitsKeywordTokenFilter(),
                     new KeywordTokenFilter(keywords),

@@ -141,7 +141,7 @@ namespace Clara.Tests
                         new ExplicitMappingSynonym(new[] { "fff" }, new[] { "ggg" }),
                     });
 
-            var phrases = Enumerable.Empty<string>()
+            var phrases = Array.Empty<string>()
                 .Concat(synonymMap.Synonyms.SelectMany(x => x.Phrases))
                 .Concat(synonymMap.Synonyms.OfType<ExplicitMappingSynonym>().SelectMany(x => x.MappedPhrases))
                 .Distinct()

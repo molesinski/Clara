@@ -326,8 +326,8 @@ public static IAnalyzer PolishAnalyzer { get; } =
     new Analyzer(
         new BasicTokenizer(),             // Splits text into tokens
         new LowerInvariantTokenFilter(),  // Transforms into lower case
-        new CachingTokenFilter(),         // Prevents new string instance creation
         new PolishStopTokenFilter(),      // Language specific stop words default exclusion set
+        new CachingTokenFilter(),         // Prevents new string instance creation
         new LengthKeywordTokenFilter(),   // Exclude from stemming tokens with length less then 2
         new DigitsKeywordTokenFilter(),   // Exclude from stemming tokens containing digits
         new PolishStemTokenFilter());     // Language specific token stemming
@@ -346,7 +346,7 @@ TODO
 ## Benchmarks
 
 Index and query benchmarks and tests are performed using sample 100 product data set. Benchmark
-variants with `x100` suffix use data set combined 100 times.
+variants with `x100` suffix are based on data set multiplied 100 times.
 
 ```
 BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
@@ -355,6 +355,17 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
   [Host]     : .NET 7.0.11 (7.0.1123.42427), X64 RyuJIT AVX2 DEBUG
   DefaultJob : .NET 7.0.11 (7.0.1123.42427), X64 RyuJIT AVX2
 ```
+
+### Analyzer Benchmarks
+
+| Method           | Mean       | Error     | StdDev    | Gen0   | Allocated |
+|----------------- |-----------:|----------:|----------:|-------:|----------:|
+| EmptyTokenizer   |   7.067 ns | 0.0255 ns | 0.0226 ns |      - |         - |
+| EmptyAnalyzer    |   8.790 ns | 0.0200 ns | 0.0187 ns |      - |         - |
+| EmptySynonymMap  |   9.044 ns | 0.0317 ns | 0.0281 ns |      - |         - |
+| PhraseTokenizer  | 248.515 ns | 0.8997 ns | 0.8416 ns | 0.0057 |      96 B |
+| PhraseAnalyzer   | 566.483 ns | 2.5801 ns | 2.4134 ns | 0.0095 |     160 B |
+| PhraseSynonymMap | 761.689 ns | 2.5601 ns | 2.1378 ns | 0.0200 |     320 B |
 
 ### Index Benchmarks
 
@@ -377,8 +388,12 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 | QuerySort         |   3.515 μs | 0.0135 μs | 0.0126 μs | 0.0229 |     408 B |
 | Query             |   1.444 μs | 0.0041 μs | 0.0038 μs | 0.0191 |     312 B |
 
-> Due to internal buffer structures pooling, memory allocation per search execution is constant
-> after initial allocation of pooled buffers.
+### Memory Allocations
+
+Clara depends heavily on internal buffer pooling in order to provide minimal query execution memory
+footprint. Due to that fact, memory allocation per search execution is constant after initial buffer
+allocation. Although there are compromises being made regarding `Query` and `QueryResult` object
+allocations and text analysis pipeline to provide ease of use and extensibility. 
 
 ## License
 

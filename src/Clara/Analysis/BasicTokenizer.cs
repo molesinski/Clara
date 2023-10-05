@@ -31,75 +31,77 @@ namespace Clara.Analysis
 
             if (string.IsNullOrWhiteSpace(text))
             {
-                yield break;
+                return Array.Empty<Token>();
             }
 
-            var previous = ' ';
-            var current = text[0];
-            var index = -1;
+            return GetTokensEnumerable(text);
 
-            using var buffer = SharedObjectPools.TokenBuffers.Lease();
-
-            for (var i = 0; i < text.Length; i++)
+            IEnumerable<Token> GetTokensEnumerable(string text)
             {
-                var next = ' ';
+                var previous = ' ';
+                var current = text[0];
+                var index = -1;
 
-                if (i + 1 < text.Length)
-                {
-                    next = text[i + 1];
-                }
+                using var buffer = SharedObjectPools.TokenBuffers.Lease();
 
-                if (index == -1)
+                for (var i = 0; i < text.Length; i++)
                 {
-                    if (this.IsWordOrNumber(current))
+                    var next = ' ';
+
+                    if (i + 1 < text.Length)
                     {
-                        index = i;
+                        next = text[i + 1];
                     }
-                }
-                else
-                {
-                    if (this.IsWordOrNumber(current))
+
+                    if (index == -1)
                     {
-                    }
-                    else if (this.IsWordConnectingCharacter(current) && this.IsWord(previous) && this.IsWord(next))
-                    {
-                    }
-                    else if (this.IsNumberDecimalSeparator(current) && this.IsNumber(previous) && this.IsNumber(next))
-                    {
+                        if (this.IsWordOrNumber(current))
+                        {
+                            index = i;
+                        }
                     }
                     else
                     {
-                        var count = i - index;
-
-                        if (count <= Token.MaximumLength)
+                        if (this.IsWordOrNumber(current))
                         {
-                            yield return ToToken(text, index, count, buffer.Instance);
                         }
+                        else if (this.IsWordConnectingCharacter(current) && this.IsWord(previous) && this.IsWord(next))
+                        {
+                        }
+                        else if (this.IsNumberDecimalSeparator(current) && this.IsNumber(previous) && this.IsNumber(next))
+                        {
+                        }
+                        else
+                        {
+                            var count = i - index;
 
-                        index = -1;
+                            if (count <= Token.MaximumLength)
+                            {
+                                text.CopyTo(index, buffer.Instance, 0, count);
+
+                                yield return new Token(buffer.Instance, count);
+                            }
+
+                            index = -1;
+                        }
+                    }
+
+                    previous = current;
+                    current = next;
+                }
+
+                if (index != -1)
+                {
+                    var count = text.Length - index;
+
+                    if (count <= Token.MaximumLength)
+                    {
+                        text.CopyTo(index, buffer.Instance, 0, count);
+
+                        yield return new Token(buffer.Instance, count);
                     }
                 }
-
-                previous = current;
-                current = next;
             }
-
-            if (index != -1)
-            {
-                var count = text.Length - index;
-
-                if (count <= Token.MaximumLength)
-                {
-                    yield return ToToken(text, index, count, buffer.Instance);
-                }
-            }
-        }
-
-        private static Token ToToken(string text, int index, int count, char[] chars)
-        {
-            text.CopyTo(index, chars, 0, count);
-
-            return new Token(chars, count);
         }
 
         private bool IsWordOrNumber(char c)
