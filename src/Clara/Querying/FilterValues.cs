@@ -2,36 +2,46 @@
 
 namespace Clara.Querying
 {
-    internal static class FilterValues
+    internal readonly struct FilterValues : IDisposable
     {
         private static readonly HashSetSlim<string> Empty = new();
 
-        public static HashSetSlim<string> Get(string? value)
+        private readonly ObjectPoolLease<HashSetSlim<string>>? lease;
+
+        public FilterValues(string? value)
         {
-            return Get(new StringEnumerable(value, trim: true));
+            this.lease = CreateLease(new StringEnumerable(value, trim: true));
         }
 
-        public static HashSetSlim<string> Get(IEnumerable<string?>? values)
+        public FilterValues(IEnumerable<string?>? values)
         {
-            return Get(new StringEnumerable(values, trim: true));
+            this.lease = CreateLease(new StringEnumerable(values, trim: true));
         }
 
-        private static HashSetSlim<string> Get(StringEnumerable values)
+        public readonly HashSetSlim<string> Value
         {
-            var result = default(HashSetSlim<string>);
+            get
+            {
+                return this.lease?.Instance ?? Empty;
+            }
+        }
+
+        public void Dispose()
+        {
+            this.lease?.Dispose();
+        }
+
+        private static ObjectPoolLease<HashSetSlim<string>>? CreateLease(StringEnumerable values)
+        {
+            var lease = default(ObjectPoolLease<HashSetSlim<string>>?);
 
             foreach (var value in values)
             {
-                result ??= new();
-                result.Add(value);
+                lease ??= SharedObjectPools.FilterValues.Lease();
+                lease.Value.Instance.Add(value);
             }
 
-            if (result is not null)
-            {
-                return result;
-            }
-
-            return Empty;
+            return lease;
         }
     }
 }

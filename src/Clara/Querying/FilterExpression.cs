@@ -2,7 +2,7 @@
 
 namespace Clara.Querying
 {
-    public abstract class FilterExpression
+    public abstract class FilterExpression : IDisposable
     {
         internal FilterExpression(Field field)
         {
@@ -24,5 +24,15 @@ namespace Clara.Querying
         internal abstract bool IsEmpty { get; }
 
         internal abstract bool IsBranchingRequiredForFaceting { get; }
+
+        public void Dispose()
+        {
+            this.Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+        }
     }
 }

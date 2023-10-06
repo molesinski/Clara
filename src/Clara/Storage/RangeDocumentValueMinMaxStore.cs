@@ -7,8 +7,6 @@ namespace Clara.Storage
     internal sealed class RangeDocumentValueMinMaxStore<TValue>
         where TValue : struct, IComparable<TValue>
     {
-        private static readonly ObjectPool<ListSlim<DocumentValue<TValue>>> SortedDocumentListsPool = new(() => new());
-
         private readonly RangeField<TValue> field;
         private readonly TValue minValue;
         private readonly TValue maxValue;
@@ -93,7 +91,7 @@ namespace Clara.Storage
             Func<int, TValue> valueSelector,
             IComparer<DocumentValue<TValue>> comparer)
         {
-            using var sortedDocuments = SortedDocumentListsPool.Lease();
+            using var sortedDocuments = SharedObjectPools<TValue>.SortedDocumentLists.Lease();
 
             foreach (var documentId in documentSet)
             {

@@ -1,5 +1,4 @@
 ﻿using Clara.Mapping;
-using Clara.Storage;
 using Clara.Utils;
 
 namespace Clara.Querying
@@ -237,6 +236,11 @@ namespace Clara.Querying
         {
             if (!this.isDisposed)
             {
+                foreach (var filter in this.filters.Instance)
+                {
+                    filter.Dispose();
+                }
+
                 this.facets.Dispose();
                 this.filters.Dispose();
 

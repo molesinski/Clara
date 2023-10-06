@@ -7,30 +7,17 @@ namespace Clara.Storage
         private static readonly ListSlim<int> Empty = new();
 
         private readonly ObjectPoolLease<ListSlim<int>>? lease;
-        private readonly ListSlim<int>? instance;
 
         public DocumentList(ObjectPoolLease<ListSlim<int>> lease)
         {
             this.lease = lease;
-            this.instance = null;
-        }
-
-        public DocumentList(ListSlim<int> instance)
-        {
-            if (instance is null)
-            {
-                throw new ArgumentNullException(nameof(instance));
-            }
-
-            this.lease = null;
-            this.instance = instance;
         }
 
         public readonly ListSlim<int> Value
         {
             get
             {
-                return this.lease?.Instance ?? this.instance ?? Empty;
+                return this.lease?.Instance ?? Empty;
             }
         }
 

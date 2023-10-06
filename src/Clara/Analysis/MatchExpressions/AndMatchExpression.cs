@@ -3,7 +3,7 @@ using Clara.Utils;
 
 namespace Clara.Analysis.MatchExpressions
 {
-    public sealed class AndMatchExpression : CompoundMatchExpression
+    public sealed class AndMatchExpression : ComplexMatchExpression
     {
         internal AndMatchExpression(ScoringMode scoringMode, ListSlim<MatchExpression> expressions)
             : base(scoringMode, expressions)
@@ -12,7 +12,7 @@ namespace Clara.Analysis.MatchExpressions
 
         public override bool IsMatching(IReadOnlyCollection<string> tokens)
         {
-            foreach (var expression in this.Expressions)
+            foreach (var expression in (ListSlim<MatchExpression>)this.Expressions)
             {
                 if (!expression.IsMatching(tokens))
                 {
@@ -29,7 +29,7 @@ namespace Clara.Analysis.MatchExpressions
 
             var isFirst = true;
 
-            foreach (var expression in this.Expressions)
+            foreach (var expression in (ListSlim<MatchExpression>)this.Expressions)
             {
                 if (!isFirst)
                 {

@@ -29,7 +29,7 @@
                     new PorterStemTokenFilter());
         }
 
-        public IEnumerable<string> GetTokens(string text)
+        public IDisposableEnumerable<string> GetTokens(string text)
         {
             return this.analyzer.GetTokens(text);
         }

@@ -1,14 +1,12 @@
-﻿using Clara.Analysis;
-using Clara.Mapping;
+﻿using Clara.Mapping;
 using Clara.Querying;
+using Clara.Storage;
 using Clara.Utils;
 
-namespace Clara.Storage
+namespace Clara
 {
     internal static class SharedObjectPools
     {
-        public static readonly ObjectPool<char[]> TokenBuffers = new(() => new char[Token.MaximumLength]);
-
         public static ObjectPool<DictionarySlim<int, int>> TokenCounts { get; } = new(() => new());
 
         public static ObjectPool<DictionarySlim<int, float>> DocumentScores { get; } = new(() => new(), sizeFactor: 3);
@@ -19,7 +17,7 @@ namespace Clara.Storage
 
         public static ObjectPool<HashSetSlim<int>> FilteredTokens { get; } = new(() => new());
 
-        public static ObjectPool<HashSetSlim<string>> SelectedValues { get; } = new(() => new());
+        public static ObjectPool<HashSetSlim<string>> FilterValues { get; } = new(() => new(), sizeFactor: 11);
 
         public static ObjectPool<ListSlim<string>> Tokens { get; } = new(() => new(), sizeFactor: 2);
 
@@ -38,5 +36,13 @@ namespace Clara.Storage
         public static ObjectPool<ListSlim<KeywordFacetValue>> KeywordFacetValues { get; } = new(() => new(), sizeFactor: 12);
 
         public static ObjectPool<ListSlim<DocumentResultBuilderFacet>> QueryResultBuilderFacets { get; } = new(() => new(), sizeFactor: 12);
+
+        public static ObjectPool<FilterExpressionComparer> FilterExpressionComparers { get; } = new(() => new());
+    }
+
+    internal static class SharedObjectPools<TValue>
+        where TValue : struct, IComparable<TValue>
+    {
+        public static ObjectPool<ListSlim<DocumentValue<TValue>>> SortedDocumentLists { get; } = new(() => new());
     }
 }

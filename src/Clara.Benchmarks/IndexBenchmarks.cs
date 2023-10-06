@@ -19,25 +19,25 @@ namespace Clara.Benchmarks
         [Benchmark]
         public void Index_x100()
         {
-            _ = IndexBuilder.Build(Product.Items_x100, new ProductMapper());
+            IndexBuilder.Build(Product.Items_x100, new ProductMapper());
         }
 
         [Benchmark]
         public void Index()
         {
-            _ = IndexBuilder.Build(Product.Items, new ProductMapper());
+            IndexBuilder.Build(Product.Items, new ProductMapper());
         }
 
         [Benchmark]
         public void IndexShared_x100()
         {
-            _ = IndexBuilder.Build(Product.Items_x100, new ProductMapper(), this.sharedTokenEncoderStore);
+            IndexBuilder.Build(Product.Items_x100, new ProductMapper(), this.sharedTokenEncoderStore);
         }
 
         [Benchmark]
         public void IndexShared()
         {
-            _ = IndexBuilder.Build(Product.Items, new ProductMapper(), this.sharedTokenEncoderStore);
+            IndexBuilder.Build(Product.Items, new ProductMapper(), this.sharedTokenEncoderStore);
         }
     }
 }

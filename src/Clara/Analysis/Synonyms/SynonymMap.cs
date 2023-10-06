@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using Clara.Analysis.MatchExpressions;
-using Clara.Storage;
 using Clara.Utils;
 
 namespace Clara.Analysis.Synonyms
@@ -9,6 +8,7 @@ namespace Clara.Analysis.Synonyms
     {
         public const int MaximumPermutatedTokenCount = 5;
 
+        private readonly ObjectPool<TokenEnumerable> enumerablePool;
         private readonly IAnalyzer analyzer;
         private readonly HashSet<Synonym> synonyms = new();
         private readonly TokenNode root;
@@ -40,6 +40,7 @@ namespace Clara.Analysis.Synonyms
                 throw new ArgumentOutOfRangeException(nameof(permutatedTokenCountThreshold));
             }
 
+            this.enumerablePool = new(() => new(this));
             this.analyzer = analyzer;
             this.root = TokenNode.Build(analyzer, this.synonyms, permutatedTokenCountThreshold);
         }
@@ -68,7 +69,7 @@ namespace Clara.Analysis.Synonyms
             }
         }
 
-        public IEnumerable<string> GetTokens(string text)
+        public IDisposableEnumerable<string> GetTokens(string text)
         {
             if (text is null)
             {
@@ -77,7 +78,7 @@ namespace Clara.Analysis.Synonyms
 
             if (string.IsNullOrWhiteSpace(text))
             {
-                return Array.Empty<string>();
+                return DisposableEnumerable<string>.Empty;
             }
 
             if (this.IsEmpty)
@@ -85,25 +86,11 @@ namespace Clara.Analysis.Synonyms
                 return this.analyzer.GetTokens(text);
             }
 
-            return GetTokensEnumerable(text);
+            var enumerable = this.enumerablePool.Lease();
 
-            IEnumerable<string> GetTokensEnumerable(string text)
-            {
-                foreach (var item in new SynonymResultEnumerable(this.root, this.analyzer.GetTokens(text)))
-                {
-                    if (item.Node is TokenNode node)
-                    {
-                        foreach (var token in node.ReplacementTokens)
-                        {
-                            yield return token;
-                        }
-                    }
-                    else if (item.Token is string token)
-                    {
-                        yield return token;
-                    }
-                }
-            }
+            enumerable.Instance.Initialize(text, enumerable);
+
+            return enumerable.Instance;
         }
 
         public MatchExpression Process(MatchExpression matchExpression)
@@ -406,6 +393,190 @@ namespace Clara.Analysis.Synonyms
             public TokenNode? Node { get; }
         }
 
+        private sealed class TokenEnumerable : IDisposableEnumerable<string>
+        {
+            private readonly Enumerator enumerator;
+            private ObjectPoolLease<TokenEnumerable> lease;
+            private bool isDisposed;
+
+            public TokenEnumerable(SynonymMap synonymMap)
+            {
+                this.enumerator = new Enumerator(synonymMap);
+                this.lease = default;
+                this.isDisposed = true;
+            }
+
+            public void Initialize(string text, ObjectPoolLease<TokenEnumerable> lease)
+            {
+                if (!this.isDisposed)
+                {
+                    throw new InvalidOperationException("Current object instance is already initialized.");
+                }
+
+                this.enumerator.Initialize(text);
+                this.lease = lease;
+                this.isDisposed = false;
+            }
+
+            public Enumerator GetEnumerator()
+            {
+                if (this.isDisposed)
+                {
+                    throw new ObjectDisposedException(this.GetType().FullName);
+                }
+
+                return this.enumerator;
+            }
+
+            IEnumerator<string> IEnumerable<string>.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
+
+            void IDisposable.Dispose()
+            {
+                if (!this.isDisposed)
+                {
+                    this.enumerator.Dispose();
+                    this.lease.Dispose();
+                    this.lease = default;
+
+                    this.isDisposed = true;
+                }
+            }
+
+            public sealed class Enumerator : IEnumerator<string>
+            {
+                private readonly IAnalyzer analyzer;
+                private readonly TokenNode root;
+                private string text;
+                private IDisposableEnumerable<string>? tokensEnumerable;
+                private SynonymResultEnumerable.Enumerator synonymResultEnumerator;
+                private ListSlim<string>.Enumerator replacementTokenEnumerator;
+                private string current;
+                private int state;
+
+                public Enumerator(SynonymMap synonymMap)
+                {
+                    this.analyzer = synonymMap.analyzer;
+                    this.root = synonymMap.root;
+                    this.text = default!;
+                    this.synonymResultEnumerator = default;
+                    this.replacementTokenEnumerator = default;
+                    this.current = default!;
+                    this.state = 0;
+                }
+
+                public string Current
+                {
+                    get
+                    {
+                        return this.current;
+                    }
+                }
+
+                object IEnumerator.Current
+                {
+                    get
+                    {
+                        return this.current;
+                    }
+                }
+
+                public void Initialize(string text)
+                {
+                    this.text = text;
+                }
+
+                public bool MoveNext()
+                {
+                    if (this.state == 0)
+                    {
+                        this.tokensEnumerable = this.analyzer.GetTokens(this.text);
+                        this.synonymResultEnumerator = new SynonymResultEnumerable(this.root, this.tokensEnumerable).GetEnumerator();
+                        this.state = 1;
+                    }
+
+                    if (this.state == 2)
+                    {
+                        if (this.replacementTokenEnumerator.MoveNext())
+                        {
+                            this.current = this.replacementTokenEnumerator.Current;
+
+                            return true;
+                        }
+
+                        this.replacementTokenEnumerator.Dispose();
+                        this.replacementTokenEnumerator = default;
+                        this.state = 1;
+                    }
+
+                    while (this.synonymResultEnumerator.MoveNext())
+                    {
+                        if (this.synonymResultEnumerator.Current.Node is TokenNode node)
+                        {
+                            this.replacementTokenEnumerator = node.ReplacementTokens.GetEnumerator();
+                            this.state = 2;
+
+                            if (this.replacementTokenEnumerator.MoveNext())
+                            {
+                                this.current = this.replacementTokenEnumerator.Current;
+
+                                return true;
+                            }
+
+                            this.replacementTokenEnumerator.Dispose();
+                            this.replacementTokenEnumerator = default;
+                            this.state = 1;
+                        }
+                        else if (this.synonymResultEnumerator.Current.Token is string token)
+                        {
+                            this.current = token;
+
+                            return true;
+                        }
+                    }
+
+                    this.current = default!;
+
+                    return false;
+                }
+
+                public void Reset()
+                {
+                    if (this.state == 2)
+                    {
+                        this.replacementTokenEnumerator.Dispose();
+                        this.replacementTokenEnumerator = default;
+                        this.state = 1;
+                    }
+
+                    if (this.state == 1)
+                    {
+                        this.synonymResultEnumerator.Dispose();
+                        this.synonymResultEnumerator = default;
+                        this.tokensEnumerable?.Dispose();
+                        this.tokensEnumerable = default;
+                        this.state = 0;
+                    }
+
+                    this.current = default!;
+                }
+
+                public void Dispose()
+                {
+                    this.Reset();
+
+                    this.text = default!;
+                }
+            }
+        }
+
         private sealed class TokenNode
         {
             private static readonly ListSlim<string> EmptyTokenPath = new();
@@ -641,20 +812,22 @@ namespace Clara.Analysis.Synonyms
                 {
                     foreach (var phrase in phrases)
                     {
-                        var tokens = analyzer.GetTokens(phrase).ToList();
+                        using var tokens = analyzer.GetTokens(phrase);
 
-                        if (tokens.Count > 0)
+                        var tokenList = tokens.ToList();
+
+                        if (tokenList.Count > 0)
                         {
-                            if (tokens.Count > 1 && tokens.Count <= permutatedTokenCountThreshold)
+                            if (tokenList.Count > 1 && tokenList.Count <= permutatedTokenCountThreshold)
                             {
-                                foreach (var tokenPermutation in PermutationHelper.Permutate(tokens))
+                                foreach (var tokenPermutation in PermutationHelper.Permutate(tokenList))
                                 {
                                     yield return tokenPermutation;
                                 }
                             }
                             else
                             {
-                                yield return tokens;
+                                yield return tokenList;
                             }
                         }
                     }

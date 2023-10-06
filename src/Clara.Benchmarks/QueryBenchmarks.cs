@@ -1,5 +1,6 @@
 ﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
 #pragma warning disable SA1310 // Field names should not contain underscore
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
 
 using BenchmarkDotNet.Attributes;
 using Clara.Analysis.Synonyms;
@@ -137,7 +138,6 @@ namespace Clara.Benchmarks
         {
             foreach (var document in result.Documents)
             {
-                _ = document;
             }
 
             foreach (var facet in result.Facets)
@@ -146,7 +146,6 @@ namespace Clara.Benchmarks
                 {
                     foreach (var value in keywordFacetResult.Values)
                     {
-                        _ = value;
                     }
                 }
                 else if (facet is HierarchyFacetResult hierarchyFacetResult)
@@ -155,7 +154,6 @@ namespace Clara.Benchmarks
                     {
                         foreach (var child in value.Children)
                         {
-                            _ = child;
                         }
                     }
                 }

@@ -2,9 +2,9 @@
 
 namespace Clara.Analysis.MatchExpressions
 {
-    public abstract class CompoundMatchExpression : MatchExpression
+    public abstract class ComplexMatchExpression : MatchExpression
     {
-        internal CompoundMatchExpression(ScoringMode scoringMode, ListSlim<MatchExpression> expressions)
+        internal ComplexMatchExpression(ScoringMode scoringMode, ListSlim<MatchExpression> expressions)
         {
             if (scoringMode != ScoringMode.Sum && scoringMode != ScoringMode.Max)
             {

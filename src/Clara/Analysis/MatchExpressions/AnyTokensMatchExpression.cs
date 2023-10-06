@@ -12,7 +12,7 @@ namespace Clara.Analysis.MatchExpressions
 
         public override bool IsMatching(IReadOnlyCollection<string> tokens)
         {
-            foreach (var token in this.Tokens)
+            foreach (var token in (ListSlim<string>)this.Tokens)
             {
                 if (tokens.Contains(token))
                 {
@@ -29,7 +29,7 @@ namespace Clara.Analysis.MatchExpressions
 
             var isFirst = true;
 
-            foreach (var token in this.Tokens)
+            foreach (var token in (ListSlim<string>)this.Tokens)
             {
                 if (!isFirst)
                 {

@@ -1,4 +1,6 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿#pragma warning disable IDE0059 // Unnecessary assignment of a value
+
+using BenchmarkDotNet.Attributes;
 using Clara.Analysis;
 using Clara.Analysis.Synonyms;
 
@@ -37,56 +39,32 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void EmptyTokenizer()
+        public void Tokenizer()
         {
-            foreach (var token in this.tokenizer.GetTokens(string.Empty))
+            using var tokens = this.tokenizer.GetTokens("The quick brown fox jumps over the lazy dog");
+
+            foreach (var token in tokens)
             {
-                _ = token;
             }
         }
 
         [Benchmark]
-        public void EmptyAnalyzer()
+        public void Analyzer()
         {
-            foreach (var token in this.analyzer.GetTokens(string.Empty))
+            using var tokens = this.analyzer.GetTokens("The quick brown fox jumps over the lazy dog");
+
+            foreach (var token in tokens)
             {
-                _ = token;
             }
         }
 
         [Benchmark]
-        public void EmptySynonymMap()
+        public void SynonymMap()
         {
-            foreach (var token in this.synonymMap.GetTokens(string.Empty))
-            {
-                _ = token;
-            }
-        }
+            using var tokens = this.synonymMap.GetTokens("The quick brown fox jumps over the lazy dog");
 
-        [Benchmark]
-        public void PhraseTokenizer()
-        {
-            foreach (var token in this.tokenizer.GetTokens("The quick brown fox jumps over the lazy dog"))
+            foreach (var token in tokens)
             {
-                _ = token;
-            }
-        }
-
-        [Benchmark]
-        public void PhraseAnalyzer()
-        {
-            foreach (var token in this.analyzer.GetTokens("The quick brown fox jumps over the lazy dog"))
-            {
-                _ = token;
-            }
-        }
-
-        [Benchmark]
-        public void PhraseSynonymMap()
-        {
-            foreach (var token in this.synonymMap.GetTokens("The quick brown fox jumps over the lazy dog"))
-            {
-                _ = token;
             }
         }
     }

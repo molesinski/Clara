@@ -46,10 +46,12 @@ namespace Clara.Storage
                 if (!string.IsNullOrWhiteSpace(value.Text))
                 {
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    foreach (var token in analyzer.GetTokens(value.Text))
+                    using var tokens = analyzer.GetTokens(value.Text);
 #else
-                    foreach (var token in analyzer.GetTokens(value.Text!))
+                    using var tokens = analyzer.GetTokens(value.Text!);
 #endif
+
+                    foreach (var token in tokens)
                     {
                         var tokenId = this.tokenEncoderBuilder.Encode(token);
 

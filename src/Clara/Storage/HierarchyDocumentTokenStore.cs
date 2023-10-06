@@ -45,7 +45,7 @@ namespace Clara.Storage
 
         public FacetResult Facet(HierarchyFilterExpression? hierarchyFilterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
-            using var selectedValues = SharedObjectPools.SelectedValues.Lease();
+            using var selectedValues = SharedObjectPools.FilterValues.Lease();
 
             if (hierarchyFilterExpression is not null)
             {

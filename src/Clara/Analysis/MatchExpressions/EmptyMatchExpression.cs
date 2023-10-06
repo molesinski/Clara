@@ -8,7 +8,7 @@ namespace Clara.Analysis.MatchExpressions
         {
         }
 
-        internal static EmptyMatchExpression Instance { get; } = new EmptyMatchExpression();
+        internal static MatchExpression Instance { get; } = new EmptyMatchExpression();
 
         public override bool IsMatching(IReadOnlyCollection<string> tokens)
         {

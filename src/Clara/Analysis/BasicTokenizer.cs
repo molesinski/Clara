@@ -1,13 +1,11 @@
-﻿using Clara.Storage;
+﻿using System.Collections;
+using Clara.Utils;
 
 namespace Clara.Analysis
 {
     public sealed class BasicTokenizer : ITokenizer
     {
-        public static readonly IEnumerable<char> DefaultAdditionalWordCharacters = new[] { '_' };
-        public static readonly IEnumerable<char> DefaultWordConnectingCharacters = new[] { '-', '\'', '\u2019', '\uFF07' };
-        public static readonly IEnumerable<char> DefaultNumberConnectingCharacters = new[] { '.', ',' };
-
+        private readonly ObjectPool<TokenEnumerable> enumerablePool;
         private readonly char[]? additionalWordCharacters;
         private readonly char[]? wordConnectingCharacters;
         private readonly char[]? numberConnectingCharacters;
@@ -17,12 +15,13 @@ namespace Clara.Analysis
             IEnumerable<char>? wordConnectingCharacters = null,
             IEnumerable<char>? numberConnectingCharacters = null)
         {
+            this.enumerablePool = new(() => new(this));
             this.additionalWordCharacters = additionalWordCharacters?.ToArray();
             this.wordConnectingCharacters = wordConnectingCharacters?.ToArray();
             this.numberConnectingCharacters = numberConnectingCharacters?.ToArray();
         }
 
-        public IEnumerable<Token> GetTokens(string text)
+        public IDisposableEnumerable<Token> GetTokens(string text)
         {
             if (text is null)
             {
@@ -31,180 +30,320 @@ namespace Clara.Analysis
 
             if (string.IsNullOrWhiteSpace(text))
             {
-                return Array.Empty<Token>();
+                return DisposableEnumerable<Token>.Empty;
             }
 
-            return GetTokensEnumerable(text);
+            var enumerable = this.enumerablePool.Lease();
 
-            IEnumerable<Token> GetTokensEnumerable(string text)
+            enumerable.Instance.Initialize(text, enumerable);
+
+            return enumerable.Instance;
+        }
+
+        private sealed class TokenEnumerable : IDisposableEnumerable<Token>
+        {
+            private readonly Enumerator enumerator;
+            private ObjectPoolLease<TokenEnumerable> lease;
+            private bool isDisposed;
+
+            public TokenEnumerable(BasicTokenizer tokenizer)
             {
-                var previous = ' ';
-                var current = text[0];
-                var index = -1;
+                this.enumerator = new Enumerator(tokenizer);
+                this.lease = default;
+                this.isDisposed = true;
+            }
 
-                using var buffer = SharedObjectPools.TokenBuffers.Lease();
-
-                for (var i = 0; i < text.Length; i++)
+            public void Initialize(string text, ObjectPoolLease<TokenEnumerable> lease)
+            {
+                if (!this.isDisposed)
                 {
-                    var next = ' ';
+                    throw new InvalidOperationException("Current object instance is already initialized.");
+                }
 
-                    if (i + 1 < text.Length)
-                    {
-                        next = text[i + 1];
-                    }
+                this.enumerator.Initialize(text);
+                this.lease = lease;
+                this.isDisposed = false;
+            }
 
-                    if (index == -1)
+            public Enumerator GetEnumerator()
+            {
+                if (this.isDisposed)
+                {
+                    throw new ObjectDisposedException(this.GetType().FullName);
+                }
+
+                return this.enumerator;
+            }
+
+            IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
+
+            void IDisposable.Dispose()
+            {
+                if (!this.isDisposed)
+                {
+                    this.enumerator.Dispose();
+                    this.lease.Dispose();
+                    this.lease = default;
+                    this.isDisposed = true;
+                }
+            }
+
+            public sealed class Enumerator : IEnumerator<Token>
+            {
+                public static readonly IEnumerable<char> DefaultAdditionalWordCharacters = new[] { '_' };
+                public static readonly IEnumerable<char> DefaultWordConnectingCharacters = new[] { '-', '\'', '\u2019', '\uFF07' };
+                public static readonly IEnumerable<char> DefaultNumberConnectingCharacters = new[] { '.', ',' };
+
+                private readonly char[]? additionalWordCharacters;
+                private readonly char[]? wordConnectingCharacters;
+                private readonly char[]? numberConnectingCharacters;
+                private readonly char[] buffer;
+                private string text;
+                private Token current;
+                private int startIndex;
+                private int index;
+
+                public Enumerator(BasicTokenizer tokenizer)
+                {
+                    this.additionalWordCharacters = tokenizer.additionalWordCharacters;
+                    this.wordConnectingCharacters = tokenizer.wordConnectingCharacters;
+                    this.numberConnectingCharacters = tokenizer.numberConnectingCharacters;
+                    this.buffer = new char[Token.MaximumLength];
+                    this.text = default!;
+                    this.current = default;
+                    this.startIndex = -1;
+                    this.index = 0;
+                }
+
+                public Token Current
+                {
+                    get
                     {
-                        if (this.IsWordOrNumber(current))
-                        {
-                            index = i;
-                        }
+                        return this.current;
                     }
-                    else
+                }
+
+                object IEnumerator.Current
+                {
+                    get
                     {
-                        if (this.IsWordOrNumber(current))
+                        return this.current;
+                    }
+                }
+
+                public void Initialize(string text)
+                {
+                    this.text = text;
+                }
+
+                public bool MoveNext()
+                {
+                    while (this.index < this.text.Length)
+                    {
+                        var previousChar = ' ';
+                        var currentChar = this.text[this.index];
+                        var nextChar = ' ';
+                        var hasToken = false;
+
+                        if (this.index - 1 >= 0)
                         {
+                            previousChar = this.text[this.index - 1];
                         }
-                        else if (this.IsWordConnectingCharacter(current) && this.IsWord(previous) && this.IsWord(next))
+
+                        if (this.index + 1 < this.text.Length)
                         {
+                            nextChar = this.text[this.index + 1];
                         }
-                        else if (this.IsNumberDecimalSeparator(current) && this.IsNumber(previous) && this.IsNumber(next))
+
+                        if (this.startIndex == -1)
                         {
+                            if (this.IsWordOrNumber(currentChar))
+                            {
+                                this.startIndex = this.index;
+                            }
                         }
                         else
                         {
-                            var count = i - index;
-
-                            if (count <= Token.MaximumLength)
+                            if (this.IsWordOrNumber(currentChar))
                             {
-                                text.CopyTo(index, buffer.Instance, 0, count);
-
-                                yield return new Token(buffer.Instance, count);
                             }
+                            else if (this.IsWordConnectingCharacter(currentChar) && this.IsWord(previousChar) && this.IsWord(nextChar))
+                            {
+                            }
+                            else if (this.IsNumberDecimalSeparator(currentChar) && IsNumber(previousChar) && IsNumber(nextChar))
+                            {
+                            }
+                            else
+                            {
+                                var count = this.index - this.startIndex;
 
-                            index = -1;
+                                if (count <= Token.MaximumLength)
+                                {
+                                    this.text.CopyTo(this.startIndex, this.buffer, 0, count);
+                                    this.current = new Token(this.buffer, count);
+                                    hasToken = true;
+                                }
+
+                                this.startIndex = -1;
+                            }
+                        }
+
+                        this.index++;
+
+                        if (hasToken)
+                        {
+                            return true;
                         }
                     }
 
-                    previous = current;
-                    current = next;
-                }
-
-                if (index != -1)
-                {
-                    var count = text.Length - index;
-
-                    if (count <= Token.MaximumLength)
+                    if (this.startIndex != -1)
                     {
-                        text.CopyTo(index, buffer.Instance, 0, count);
+                        var hasToken = false;
+                        var count = this.text.Length - this.startIndex;
 
-                        yield return new Token(buffer.Instance, count);
+                        if (count <= Token.MaximumLength)
+                        {
+                            this.text.CopyTo(this.startIndex, this.buffer, 0, count);
+                            this.current = new Token(this.buffer, count);
+                            hasToken = true;
+                        }
+
+                        this.startIndex = -1;
+
+                        if (hasToken)
+                        {
+                            return true;
+                        }
                     }
+
+                    this.current = default;
+                    return false;
                 }
-            }
-        }
 
-        private bool IsWordOrNumber(char c)
-        {
-            return this.IsWord(c) || this.IsNumber(c);
-        }
-
-        private bool IsWord(char c)
-        {
-            if (char.IsLetter(c))
-            {
-                return true;
-            }
-
-            if (this.additionalWordCharacters is null)
-            {
-                return
-                    c switch
-                    {
-                        '_' => true,
-                        _ => false,
-                    };
-            }
-            else
-            {
-                var chars = this.additionalWordCharacters;
-                var length = chars.Length;
-
-                for (var i = 0; i < length; i++)
+                public void Reset()
                 {
-                    if (c == chars[i])
+                    this.current = default;
+                    this.startIndex = -1;
+                    this.index = 0;
+                }
+
+                public void Dispose()
+                {
+                    this.Reset();
+
+                    this.text = default!;
+                }
+
+                private static bool IsNumber(char c)
+                {
+                    return char.IsDigit(c);
+                }
+
+                private bool IsWordOrNumber(char c)
+                {
+                    return this.IsWord(c) || IsNumber(c);
+                }
+
+                private bool IsWord(char c)
+                {
+                    if (char.IsLetter(c))
                     {
                         return true;
                     }
-                }
 
-                return false;
-            }
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "By design")]
-        private bool IsNumber(char c)
-        {
-            return char.IsDigit(c);
-        }
-
-        private bool IsWordConnectingCharacter(char c)
-        {
-            if (this.wordConnectingCharacters is null)
-            {
-                return
-                    c switch
+                    if (this.additionalWordCharacters is null)
                     {
-                        '-' => true,
-                        '\'' => true,
-                        '\u2019' => true,
-                        '\uFF07' => true,
-                        _ => false,
-                    };
-            }
-            else
-            {
-                var chars = this.wordConnectingCharacters;
-                var length = chars.Length;
-
-                for (var i = 0; i < length; i++)
-                {
-                    if (c == chars[i])
+                        return
+                            c switch
+                            {
+                                '_' => true,
+                                _ => false,
+                            };
+                    }
+                    else
                     {
-                        return true;
+                        var chars = this.additionalWordCharacters;
+                        var length = chars.Length;
+
+                        for (var i = 0; i < length; i++)
+                        {
+                            if (c == chars[i])
+                            {
+                                return true;
+                            }
+                        }
+
+                        return false;
                     }
                 }
 
-                return false;
-            }
-        }
-
-        private bool IsNumberDecimalSeparator(char c)
-        {
-            if (this.numberConnectingCharacters is null)
-            {
-                return
-                    c switch
-                    {
-                        '.' => true,
-                        ',' => true,
-                        _ => false,
-                    };
-            }
-            else
-            {
-                var chars = this.numberConnectingCharacters;
-                var length = chars.Length;
-
-                for (var i = 0; i < length; i++)
+                private bool IsWordConnectingCharacter(char c)
                 {
-                    if (c == chars[i])
+                    if (this.wordConnectingCharacters is null)
                     {
-                        return true;
+                        return
+                            c switch
+                            {
+                                '-' => true,
+                                '\'' => true,
+                                '\u2019' => true,
+                                '\uFF07' => true,
+                                _ => false,
+                            };
+                    }
+                    else
+                    {
+                        var chars = this.wordConnectingCharacters;
+                        var length = chars.Length;
+
+                        for (var i = 0; i < length; i++)
+                        {
+                            if (c == chars[i])
+                            {
+                                return true;
+                            }
+                        }
+
+                        return false;
                     }
                 }
 
-                return false;
+                private bool IsNumberDecimalSeparator(char c)
+                {
+                    if (this.numberConnectingCharacters is null)
+                    {
+                        return
+                            c switch
+                            {
+                                '.' => true,
+                                ',' => true,
+                                _ => false,
+                            };
+                    }
+                    else
+                    {
+                        var chars = this.numberConnectingCharacters;
+                        var length = chars.Length;
+
+                        for (var i = 0; i < length; i++)
+                        {
+                            if (c == chars[i])
+                            {
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    }
+                }
             }
         }
     }

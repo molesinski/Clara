@@ -4,6 +4,9 @@ namespace Clara.Querying
 {
     public sealed class HierarchyFilterExpression : FilterExpression
     {
+        private readonly FilterValues values;
+        private bool isDisposed;
+
         public HierarchyFilterExpression(HierarchyField field, FilterMode filterMode, string? value)
             : base(field)
         {
@@ -13,7 +16,7 @@ namespace Clara.Querying
             }
 
             this.FilterMode = filterMode;
-            this.Values = FilterValues.Get(value);
+            this.values = new FilterValues(value);
         }
 
         public HierarchyFilterExpression(HierarchyField field, FilterMode filterMode, IEnumerable<string?>? values)
@@ -25,12 +28,23 @@ namespace Clara.Querying
             }
 
             this.FilterMode = filterMode;
-            this.Values = FilterValues.Get(values);
+            this.values = new FilterValues(values);
         }
 
         public FilterMode FilterMode { get; }
 
-        public IReadOnlyCollection<string> Values { get; }
+        public IReadOnlyCollection<string> Values
+        {
+            get
+            {
+                if (this.isDisposed)
+                {
+                    throw new ObjectDisposedException(this.GetType().Name);
+                }
+
+                return this.values.Value;
+            }
+        }
 
         internal override bool IsEmpty
         {
@@ -46,6 +60,18 @@ namespace Clara.Querying
             {
                 return false;
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!this.isDisposed)
+            {
+                this.values.Dispose();
+
+                this.isDisposed = true;
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

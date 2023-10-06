@@ -358,42 +358,39 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 ### Analyzer Benchmarks
 
-| Method           | Mean       | Error     | StdDev    | Gen0   | Allocated |
-|----------------- |-----------:|----------:|----------:|-------:|----------:|
-| EmptyTokenizer   |   7.067 ns | 0.0255 ns | 0.0226 ns |      - |         - |
-| EmptyAnalyzer    |   8.790 ns | 0.0200 ns | 0.0187 ns |      - |         - |
-| EmptySynonymMap  |   9.044 ns | 0.0317 ns | 0.0281 ns |      - |         - |
-| PhraseTokenizer  | 248.515 ns | 0.8997 ns | 0.8416 ns | 0.0057 |      96 B |
-| PhraseAnalyzer   | 566.483 ns | 2.5801 ns | 2.4134 ns | 0.0095 |     160 B |
-| PhraseSynonymMap | 761.689 ns | 2.5601 ns | 2.1378 ns | 0.0200 |     320 B |
+| Method     | Mean     | Error   | StdDev  | Allocated |
+|----------- |---------:|--------:|--------:|----------:|
+| Tokenizer  | 274.2 ns | 1.75 ns | 1.63 ns |         - |
+| Analyzer   | 599.6 ns | 2.14 ns | 2.00 ns |         - |
+| SynonymMap | 867.0 ns | 7.45 ns | 6.97 ns |         - |
 
 ### Index Benchmarks
 
 | Method           | Mean        | Error       | StdDev      | Gen0      | Gen1      | Gen2      | Allocated   |
 |----------------- |------------:|------------:|------------:|----------:|----------:|----------:|------------:|
-| Index_x100       | 74,853.4 μs | 1,220.53 μs | 1,081.97 μs | 3000.0000 | 2714.2857 | 1285.7143 | 35700.77 KB |
-| Index            |    503.1 μs |     2.29 μs |     2.14 μs |   38.0859 |   14.6484 |         - |   583.83 KB |
-| IndexShared_x100 | 67,306.5 μs | 1,130.15 μs | 1,001.85 μs | 2625.0000 | 2250.0000 | 1000.0000 | 34409.86 KB |
-| IndexShared      |    481.3 μs |     1.94 μs |     1.62 μs |   34.6680 |   11.7188 |         - |   531.13 KB |
+| Index_x100       | 65,643.4 μs | 1,093.76 μs | 1,170.32 μs | 2125.0000 | 2000.0000 | 1000.0000 | 26322.28 KB |
+| Index            |    527.3 μs |     1.72 μs |     1.53 μs |   31.2500 |   11.7188 |         - |   490.08 KB |
+| IndexShared_x100 | 60,626.3 μs | 1,101.92 μs | 1,224.78 μs | 1777.7778 | 1666.6667 |  777.7778 |  25034.3 KB |
+| IndexShared      |    511.3 μs |     1.99 μs |     1.86 μs |   28.3203 |    8.7891 |         - |   437.38 KB |
 
 ### Query Benchmarks
 
 | Method            | Mean       | Error     | StdDev    | Gen0   | Allocated |
 |------------------ |-----------:|----------:|----------:|-------:|----------:|
-| QueryComplex_x100 | 568.620 μs | 4.5425 μs | 4.2491 μs |      - |    1545 B |
-| QueryComplex      |  12.202 μs | 0.0395 μs | 0.0350 μs | 0.0916 |    1544 B |
-| QuerySearch       |   7.122 μs | 0.0065 μs | 0.0060 μs | 0.0458 |     720 B |
-| QueryFilter       |   1.483 μs | 0.0057 μs | 0.0053 μs | 0.0420 |     672 B |
-| QueryFacet        |   9.888 μs | 0.0779 μs | 0.0691 μs | 0.0305 |     640 B |
-| QuerySort         |   3.515 μs | 0.0135 μs | 0.0126 μs | 0.0229 |     408 B |
-| Query             |   1.444 μs | 0.0041 μs | 0.0038 μs | 0.0191 |     312 B |
+| QueryComplex_x100 | 544.548 μs | 9.0192 μs | 8.4366 μs |      - |    1185 B |
+| QueryComplex      |  12.280 μs | 0.0373 μs | 0.0292 μs | 0.0610 |    1184 B |
+| QuerySearch       |   6.424 μs | 0.0369 μs | 0.0327 μs | 0.0305 |     552 B |
+| QueryFilter       |   1.563 μs | 0.0032 μs | 0.0029 μs | 0.0286 |     472 B |
+| QueryFacet        |   9.952 μs | 0.0270 μs | 0.0253 μs | 0.0305 |     632 B |
+| QuerySort         |   3.420 μs | 0.0151 μs | 0.0141 μs | 0.0229 |     400 B |
+| Query             |   1.415 μs | 0.0077 μs | 0.0072 μs | 0.0191 |     304 B |
 
 ### Memory Allocations
 
 Clara depends heavily on internal buffer pooling in order to provide minimal query execution memory
 footprint. Due to that fact, memory allocation per search execution is constant after initial buffer
 allocation. Although there are compromises being made regarding `Query` and `QueryResult` object
-allocations and text analysis pipeline to provide ease of use and extensibility. 
+allocations to provide ease of use. 
 
 ## License
 

@@ -8,7 +8,7 @@ namespace Clara.Analysis
     {
         private static readonly ObjectPool<OperationContext> Pool = new(() => new());
 
-        public IEnumerable<Token> GetTokens(string text)
+        public IDisposableEnumerable<Token> GetTokens(string text)
         {
             if (text is null)
             {
@@ -17,12 +17,12 @@ namespace Clara.Analysis
 
             if (string.IsNullOrWhiteSpace(text))
             {
-                return Array.Empty<Token>();
+                return DisposableEnumerable<Token>.Empty;
             }
 
-            return GetTokensEnumerable(text);
+            return new DisposableEnumerable<Token>(GetTokensEnumerable(text));
 
-            IEnumerable<Token> GetTokensEnumerable(string text)
+            static IEnumerable<Token> GetTokensEnumerable(string text)
             {
                 using var context = Pool.Lease();
 
