@@ -2,13 +2,13 @@
 
 namespace Clara.Analysis
 {
-    public sealed class CachingTokenFilter : ITokenFilter
+    public sealed class StringPoolTokenFilter : ITokenFilter
     {
-        private readonly ConcurrentDictionary<Token, Token> cache = new();
+        private readonly ConcurrentDictionary<Token, Token> pool = new();
         private readonly int maximumCapacity;
         private int count;
 
-        public CachingTokenFilter(int maximumCapacity = 8192)
+        public StringPoolTokenFilter(int maximumCapacity = 8192)
         {
             if (maximumCapacity < 0)
             {
@@ -25,7 +25,7 @@ namespace Clara.Analysis
                 throw new ArgumentNullException(nameof(next));
             }
 
-            if (this.cache.TryGetValue(token, out var cachedToken))
+            if (this.pool.TryGetValue(token, out var cachedToken))
             {
                 return cachedToken;
             }
@@ -38,7 +38,7 @@ namespace Clara.Analysis
             var inputToken = token.ToReadOnly();
             var outputToken = next(token).ToReadOnly();
 
-            if (this.cache.TryAdd(inputToken, outputToken))
+            if (this.pool.TryAdd(inputToken, outputToken))
             {
                 Interlocked.Increment(ref this.count);
             }

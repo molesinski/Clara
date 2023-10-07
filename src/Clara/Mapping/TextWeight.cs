@@ -1,7 +1,6 @@
 ﻿namespace Clara.Mapping
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Value type used for performance optimization")]
-    public readonly struct TextWeight
+    public readonly record struct TextWeight
     {
         public TextWeight(string? text)
         {

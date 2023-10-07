@@ -1,6 +1,6 @@
 ﻿namespace Clara.Analysis.MatchExpressions
 {
-    public enum ScoringMode
+    public enum ScoreAggregation
     {
         Sum = 0,
         Max,

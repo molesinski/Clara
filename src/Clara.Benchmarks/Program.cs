@@ -18,9 +18,9 @@ namespace Clara.Benchmarks
             var switcher = new BenchmarkSwitcher(
                 new[]
                 {
-                    typeof(AnalyzerBenchmarks),
-                    typeof(IndexBenchmarks),
-                    typeof(QueryBenchmarks),
+                    typeof(TokenizationBenchmarks),
+                    typeof(IndexingBenchmarks),
+                    typeof(QueryingBenchmarks),
                 });
 
             switcher.Run(args, config);

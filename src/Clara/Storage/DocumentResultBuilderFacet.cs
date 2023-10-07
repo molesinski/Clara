@@ -56,7 +56,7 @@ namespace Clara.Storage
             }
         }
 
-        public readonly DocumentResultBuilderFacet IntersectWith(IEnumerable<int> documents)
+        public readonly DocumentResultBuilderFacet IntersectWith(HashSetSlim<int> documents)
         {
             if (this.facetDocuments is null)
             {
@@ -74,7 +74,28 @@ namespace Clara.Storage
             }
         }
 
-        public readonly DocumentResultBuilderFacet ExceptWith(IEnumerable<int> documents)
+        public readonly DocumentResultBuilderFacet IntersectWith<TValue>(DictionarySlim<int, TValue> documents)
+        {
+            if (this.facetDocuments is null)
+            {
+                var facetDocuments = SharedObjectPools.DocumentSets.Lease();
+
+                foreach (var key in documents.Keys)
+                {
+                    facetDocuments.Instance.Add(key);
+                }
+
+                return new DocumentResultBuilderFacet(this.field, facetDocuments);
+            }
+            else
+            {
+                this.facetDocuments.Value.Instance.IntersectWith(documents.Keys);
+
+                return this;
+            }
+        }
+
+        public readonly DocumentResultBuilderFacet ExceptWith(HashSetSlim<int> documents)
         {
             if (this.facetDocuments is null)
             {

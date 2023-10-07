@@ -105,18 +105,16 @@ namespace Clara.Analysis.Synonyms
                 return matchExpression;
             }
 
-            if (matchExpression is AllTokensMatchExpression allValuesMatchExpression)
+            if (matchExpression is AllMatchExpression allMatchExpression)
             {
-                using var tokens = SharedObjectPools.Tokens.Lease();
+                using var tokens = SharedObjectPools.MatchTokens.Lease();
+                using var expressions = SharedObjectPools.MatchExpressions.Lease();
 
-                var expressions = default(ListSlim<MatchExpression>?);
-
-                foreach (var synonymResult in new SynonymResultEnumerable(this.root, allValuesMatchExpression.Tokens))
+                foreach (var synonymResult in new SynonymResultEnumerable(this.root, new StringEnumerable(allMatchExpression.Tokens)))
                 {
                     if (synonymResult.Node is TokenNode node)
                     {
-                        expressions ??= new();
-                        expressions.Add(node.MatchExpression);
+                        expressions.Instance.Add(node.MatchExpression);
                     }
                     else if (synonymResult.Token is string token)
                     {
@@ -124,37 +122,44 @@ namespace Clara.Analysis.Synonyms
                     }
                 }
 
-                if (expressions is null)
+                if (expressions.Instance.Count == 0)
                 {
-                    return allValuesMatchExpression;
+                    return allMatchExpression;
                 }
 
-                if (tokens.Instance.Count > 0)
+                try
                 {
-                    expressions.Insert(0, new AllTokensMatchExpression(allValuesMatchExpression.ScoringMode, new ListSlim<string>(tokens.Instance)));
-                }
+                    if (tokens.Instance.Count > 0)
+                    {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                        expressions.Instance.Insert(0, Match.All(allMatchExpression.ScoreAggregation, tokens.Instance));
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                    }
 
-                if (expressions.Count == 1)
-                {
-                    return expressions[0];
+                    if (expressions.Instance.Count == 1)
+                    {
+                        return expressions.Instance[0];
+                    }
+                    else
+                    {
+                        return Match.And(allMatchExpression.ScoreAggregation, expressions.Instance);
+                    }
                 }
-                else
+                finally
                 {
-                    return new AndMatchExpression(allValuesMatchExpression.ScoringMode, expressions);
+                    allMatchExpression.Dispose();
                 }
             }
-            else if (matchExpression is AnyTokensMatchExpression anyValuesMatchExpression)
+            else if (matchExpression is AnyMatchExpression anyMatchExpression)
             {
-                using var tokens = SharedObjectPools.Tokens.Lease();
+                using var tokens = SharedObjectPools.MatchTokens.Lease();
+                using var expressions = SharedObjectPools.MatchExpressions.Lease();
 
-                var expressions = default(ListSlim<MatchExpression>?);
-
-                foreach (var synonymResult in new SynonymResultEnumerable(this.root, anyValuesMatchExpression.Tokens))
+                foreach (var synonymResult in new SynonymResultEnumerable(this.root, new StringEnumerable(anyMatchExpression.Tokens)))
                 {
                     if (synonymResult.Node is TokenNode node)
                     {
-                        expressions ??= new();
-                        expressions.Add(node.MatchExpression);
+                        expressions.Instance.Add(node.MatchExpression);
                     }
                     else if (synonymResult.Token is string token)
                     {
@@ -162,23 +167,32 @@ namespace Clara.Analysis.Synonyms
                     }
                 }
 
-                if (expressions is null)
+                if (expressions.Instance.Count == 0)
                 {
-                    return anyValuesMatchExpression;
+                    return anyMatchExpression;
                 }
 
-                if (tokens.Instance.Count > 0)
+                try
                 {
-                    expressions.Insert(0, new AnyTokensMatchExpression(anyValuesMatchExpression.ScoringMode, new ListSlim<string>(tokens.Instance)));
-                }
+                    if (tokens.Instance.Count > 0)
+                    {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                        expressions.Instance.Insert(0, Match.Any(anyMatchExpression.ScoreAggregation, tokens.Instance));
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                    }
 
-                if (expressions.Count == 1)
-                {
-                    return expressions[0];
+                    if (expressions.Instance.Count == 1)
+                    {
+                        return expressions.Instance[0];
+                    }
+                    else
+                    {
+                        return Match.Or(anyMatchExpression.ScoreAggregation, expressions.Instance);
+                    }
                 }
-                else
+                finally
                 {
-                    return new OrMatchExpression(anyValuesMatchExpression.ScoringMode, expressions);
+                    anyMatchExpression.Dispose();
                 }
             }
             else
@@ -190,18 +204,13 @@ namespace Clara.Analysis.Synonyms
         private readonly struct SynonymResultEnumerable : IEnumerable<SynonymResult>
         {
             private readonly TokenNode root;
-            private readonly IEnumerable<string> tokens;
+            private readonly StringEnumerable tokens;
 
-            public SynonymResultEnumerable(TokenNode root, IEnumerable<string> tokens)
+            public SynonymResultEnumerable(TokenNode root, StringEnumerable tokens)
             {
                 if (root is null)
                 {
                     throw new ArgumentNullException(nameof(root));
-                }
-
-                if (tokens is null)
-                {
-                    throw new ArgumentNullException(nameof(tokens));
                 }
 
                 this.root = root;
@@ -226,23 +235,25 @@ namespace Clara.Analysis.Synonyms
             public struct Enumerator : IEnumerator<SynonymResult>
             {
                 private readonly TokenNode root;
-                private readonly IEnumerable<string> tokens;
+                private readonly StringEnumerable tokens;
+                private StringEnumerable.Enumerator enumerator;
+                private bool isEnumeratorSet;
+                private bool isEnumerated;
                 private TokenNode currentNode;
                 private TokenNode? backtrackingNode;
-                private IEnumerator<string>? enumerator;
                 private string? previousToken;
-                private bool isEnumerated;
                 private SynonymResult current;
 
                 public Enumerator(SynonymResultEnumerable source)
                 {
                     this.root = source.root;
                     this.tokens = source.tokens;
+                    this.enumerator = default;
+                    this.isEnumeratorSet = false;
+                    this.isEnumerated = false;
                     this.currentNode = this.root;
                     this.backtrackingNode = null;
                     this.previousToken = null;
-                    this.enumerator = null;
-                    this.isEnumerated = false;
                     this.current = default;
                 }
 
@@ -269,7 +280,11 @@ namespace Clara.Analysis.Synonyms
                         return false;
                     }
 
-                    this.enumerator ??= this.tokens.GetEnumerator();
+                    if (!this.isEnumeratorSet)
+                    {
+                        this.enumerator = this.tokens.GetEnumerator();
+                        this.isEnumeratorSet = true;
+                    }
 
                     while (this.backtrackingNode is not null || !this.isEnumerated)
                     {
@@ -350,16 +365,20 @@ namespace Clara.Analysis.Synonyms
                     this.currentNode = this.root;
                     this.backtrackingNode = null;
                     this.previousToken = null;
-                    this.enumerator?.Dispose();
-                    this.enumerator = null;
+
+                    if (this.isEnumeratorSet)
+                    {
+                        this.enumerator.Dispose();
+                        this.enumerator = default;
+                    }
+
                     this.isEnumerated = false;
                     this.current = default;
                 }
 
                 public void Dispose()
                 {
-                    this.enumerator?.Dispose();
-                    this.enumerator = null;
+                    this.Reset();
                 }
             }
         }
@@ -498,7 +517,7 @@ namespace Clara.Analysis.Synonyms
                     if (this.state == 0)
                     {
                         this.tokensEnumerable = this.analyzer.GetTokens(this.text);
-                        this.synonymResultEnumerator = new SynonymResultEnumerable(this.root, this.tokensEnumerable).GetEnumerator();
+                        this.synonymResultEnumerator = new SynonymResultEnumerable(this.root, new StringEnumerable(this.tokensEnumerable)).GetEnumerator();
                         this.state = 1;
                     }
 
@@ -675,10 +694,13 @@ namespace Clara.Analysis.Synonyms
                     if (this.matchExpression is null)
                     {
                         var expressions = new ListSlim<MatchExpression>();
-                        var synonymTokens = new HashSetSlim<string>();
+                        var synonymTokens = new ListSlim<string>();
+                        var isThisSynonymTokenAdded = false;
 
                         if (this.aggregate.MappedFrom.Count > 0 || this.aggregate.Nodes.Count > 1)
                         {
+                            isThisSynonymTokenAdded = true;
+
                             synonymTokens.Add(this.aggregate.SynonymToken);
                         }
 
@@ -686,26 +708,34 @@ namespace Clara.Analysis.Synonyms
                         {
                             foreach (var node in this.aggregate.MappedTo)
                             {
+                                if (node == this)
+                                {
+                                    if (isThisSynonymTokenAdded)
+                                    {
+                                        continue;
+                                    }
+                                }
+
                                 synonymTokens.Add(node.aggregate.SynonymToken);
                             }
                         }
                         else
                         {
-                            expressions.Add(Match.All(ScoringMode.Sum, this.tokenPath));
+                            expressions.Add(Match.All(ScoreAggregation.Sum, this.tokenPath));
                         }
 
                         if (synonymTokens.Count > 0)
                         {
-                            expressions.Add(Match.Any(ScoringMode.Max, synonymTokens));
+                            expressions.Add(Match.Any(ScoreAggregation.Max, synonymTokens));
                         }
 
                         if (expressions.Count == 1)
                         {
-                            this.matchExpression = expressions[0];
+                            this.matchExpression = expressions[0].ToPersistent();
                         }
                         else
                         {
-                            this.matchExpression = new OrMatchExpression(ScoringMode.Max, expressions);
+                            this.matchExpression = Match.Or(ScoreAggregation.Max, expressions).ToPersistent();
                         }
                     }
 

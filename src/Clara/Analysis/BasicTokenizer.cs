@@ -105,7 +105,6 @@ namespace Clara.Analysis
                 private readonly char[]? additionalWordCharacters;
                 private readonly char[]? wordConnectingCharacters;
                 private readonly char[]? numberConnectingCharacters;
-                private readonly char[] buffer;
                 private string text;
                 private Token current;
                 private int startIndex;
@@ -116,9 +115,8 @@ namespace Clara.Analysis
                     this.additionalWordCharacters = tokenizer.additionalWordCharacters;
                     this.wordConnectingCharacters = tokenizer.wordConnectingCharacters;
                     this.numberConnectingCharacters = tokenizer.numberConnectingCharacters;
-                    this.buffer = new char[Token.MaximumLength];
                     this.text = default!;
-                    this.current = default;
+                    this.current = new Token(new char[Token.MaximumLength], 0);
                     this.startIndex = -1;
                     this.index = 0;
                 }
@@ -187,8 +185,7 @@ namespace Clara.Analysis
 
                                 if (count <= Token.MaximumLength)
                                 {
-                                    this.text.CopyTo(this.startIndex, this.buffer, 0, count);
-                                    this.current = new Token(this.buffer, count);
+                                    this.current.Set(this.text.AsSpan(this.startIndex, count));
                                     hasToken = true;
                                 }
 
@@ -211,8 +208,7 @@ namespace Clara.Analysis
 
                         if (count <= Token.MaximumLength)
                         {
-                            this.text.CopyTo(this.startIndex, this.buffer, 0, count);
-                            this.current = new Token(this.buffer, count);
+                            this.current.Set(this.text.AsSpan(this.startIndex, count));
                             hasToken = true;
                         }
 
@@ -224,13 +220,13 @@ namespace Clara.Analysis
                         }
                     }
 
-                    this.current = default;
+                    this.current.Clear();
                     return false;
                 }
 
                 public void Reset()
                 {
-                    this.current = default;
+                    this.current.Clear();
                     this.startIndex = -1;
                     this.index = 0;
                 }

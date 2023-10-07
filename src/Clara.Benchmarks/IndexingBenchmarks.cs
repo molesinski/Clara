@@ -7,11 +7,11 @@ using Clara.Storage;
 namespace Clara.Benchmarks
 {
     [MemoryDiagnoser]
-    public class IndexBenchmarks
+    public class IndexingBenchmarks
     {
         private readonly SharedTokenEncoderStore sharedTokenEncoderStore;
 
-        public IndexBenchmarks()
+        public IndexingBenchmarks()
         {
             this.sharedTokenEncoderStore = new SharedTokenEncoderStore();
         }

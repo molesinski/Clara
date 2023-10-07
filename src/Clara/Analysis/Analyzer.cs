@@ -186,7 +186,9 @@ namespace Clara.Analysis
 
                     while (this.tokensEnumerator.MoveNext())
                     {
-                        var token = this.pipeline(this.tokensEnumerator.Current);
+                        var token = this.tokensEnumerator.Current;
+
+                        token = this.pipeline(token);
 
                         if (token.Length > 0)
                         {

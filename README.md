@@ -327,7 +327,7 @@ public static IAnalyzer PolishAnalyzer { get; } =
         new BasicTokenizer(),             // Splits text into tokens
         new LowerInvariantTokenFilter(),  // Transforms into lower case
         new PolishStopTokenFilter(),      // Language specific stop words default exclusion set
-        new CachingTokenFilter(),         // Prevents new string instance creation
+        new StringPoolTokenFilter(),      // Prevents new string instance creation
         new LengthKeywordTokenFilter(),   // Exclude from stemming tokens with length less then 2
         new DigitsKeywordTokenFilter(),   // Exclude from stemming tokens containing digits
         new PolishStemTokenFilter());     // Language specific token stemming
@@ -356,34 +356,34 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
   DefaultJob : .NET 7.0.11 (7.0.1123.42427), X64 RyuJIT AVX2
 ```
 
-### Analyzer Benchmarks
+### Tokenization Benchmarks
 
 | Method     | Mean     | Error   | StdDev  | Allocated |
 |----------- |---------:|--------:|--------:|----------:|
-| Tokenizer  | 274.2 ns | 1.75 ns | 1.63 ns |         - |
-| Analyzer   | 599.6 ns | 2.14 ns | 2.00 ns |         - |
-| SynonymMap | 867.0 ns | 7.45 ns | 6.97 ns |         - |
+| Tokenizer  | 231.5 ns | 0.87 ns | 0.82 ns |         - |
+| Analyzer   | 522.3 ns | 5.75 ns | 5.38 ns |         - |
+| SynonymMap | 829.8 ns | 9.22 ns | 8.62 ns |         - |
 
-### Index Benchmarks
+### Indexing Benchmarks
 
 | Method           | Mean        | Error       | StdDev      | Gen0      | Gen1      | Gen2      | Allocated   |
 |----------------- |------------:|------------:|------------:|----------:|----------:|----------:|------------:|
-| Index_x100       | 65,643.4 μs | 1,093.76 μs | 1,170.32 μs | 2125.0000 | 2000.0000 | 1000.0000 | 26322.28 KB |
-| Index            |    527.3 μs |     1.72 μs |     1.53 μs |   31.2500 |   11.7188 |         - |   490.08 KB |
-| IndexShared_x100 | 60,626.3 μs | 1,101.92 μs | 1,224.78 μs | 1777.7778 | 1666.6667 |  777.7778 |  25034.3 KB |
-| IndexShared      |    511.3 μs |     1.99 μs |     1.86 μs |   28.3203 |    8.7891 |         - |   437.38 KB |
+| Index_x100       | 63,842.8 μs | 1,273.85 μs | 1,826.91 μs | 2125.0000 | 2000.0000 | 1000.0000 | 26322.51 KB |
+| Index            |    488.5 μs |     0.81 μs |     0.76 μs |   31.7383 |   11.7188 |         - |   490.08 KB |
+| IndexShared_x100 | 60,338.6 μs | 1,181.74 μs | 1,732.18 μs | 1777.7778 | 1666.6667 |  777.7778 | 25033.51 KB |
+| IndexShared      |    469.6 μs |     4.06 μs |     3.80 μs |   28.3203 |   10.2539 |         - |   437.38 KB |
 
-### Query Benchmarks
+### Querying Benchmarks
 
 | Method            | Mean       | Error     | StdDev    | Gen0   | Allocated |
 |------------------ |-----------:|----------:|----------:|-------:|----------:|
-| QueryComplex_x100 | 544.548 μs | 9.0192 μs | 8.4366 μs |      - |    1185 B |
-| QueryComplex      |  12.280 μs | 0.0373 μs | 0.0292 μs | 0.0610 |    1184 B |
-| QuerySearch       |   6.424 μs | 0.0369 μs | 0.0327 μs | 0.0305 |     552 B |
-| QueryFilter       |   1.563 μs | 0.0032 μs | 0.0029 μs | 0.0286 |     472 B |
-| QueryFacet        |   9.952 μs | 0.0270 μs | 0.0253 μs | 0.0305 |     632 B |
-| QuerySort         |   3.420 μs | 0.0151 μs | 0.0141 μs | 0.0229 |     400 B |
-| Query             |   1.415 μs | 0.0077 μs | 0.0072 μs | 0.0191 |     304 B |
+| QueryComplex_x100 | 476.375 μs | 8.2326 μs | 7.7008 μs |      - |    1056 B |
+| QueryComplex      |  11.746 μs | 0.1383 μs | 0.1294 μs | 0.0610 |    1056 B |
+| QuerySearch       |   6.833 μs | 0.0209 μs | 0.0185 μs | 0.0305 |     504 B |
+| QueryFilter       |   1.136 μs | 0.0057 μs | 0.0053 μs | 0.0267 |     432 B |
+| QueryFacet        |   9.425 μs | 0.0787 μs | 0.0736 μs | 0.0305 |     632 B |
+| QuerySort         |   3.474 μs | 0.0137 μs | 0.0121 μs | 0.0229 |     400 B |
+| Query             |   1.411 μs | 0.0097 μs | 0.0091 μs | 0.0191 |     304 B |
 
 ### Memory Allocations
 

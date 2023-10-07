@@ -2,11 +2,13 @@
 
 namespace Clara.Analysis.MatchExpressions
 {
-    public abstract class MatchExpression
+    public abstract class MatchExpression : IDisposable
     {
         internal MatchExpression()
         {
         }
+
+        public abstract MatchExpression ToPersistent();
 
         public abstract bool IsMatching(IReadOnlyCollection<string> tokens);
 
@@ -19,6 +21,16 @@ namespace Clara.Analysis.MatchExpressions
             return builder.ToString();
         }
 
+        public void Dispose()
+        {
+            this.Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
         internal abstract void ToString(StringBuilder builder);
+
+        protected virtual void Dispose(bool disposing)
+        {
+        }
     }
 }

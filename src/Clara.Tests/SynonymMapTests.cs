@@ -197,8 +197,8 @@ namespace Clara.Tests
 
             var matchExpression =
                 mode == SearchMode.All
-                    ? Match.All(ScoringMode.Sum, searchTokens)
-                    : Match.Any(ScoringMode.Sum, searchTokens);
+                    ? Match.All(ScoreAggregation.Sum, searchTokens)
+                    : Match.Any(ScoreAggregation.Sum, searchTokens);
 
             matchExpression = synonymMap.Process(matchExpression);
 
@@ -209,6 +209,8 @@ namespace Clara.Tests
                 output.WriteLine(string.Concat("Document: ", string.Join(", ", documentTokensList.Select(x => $"\"{x}\""))));
                 output.WriteLine(string.Concat("Expression: ", matchExpression.ToString()));
             }
+
+            matchExpression.Dispose();
 
             return isMatching;
         }

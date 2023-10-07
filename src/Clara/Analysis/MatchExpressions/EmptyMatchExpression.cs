@@ -10,6 +10,11 @@ namespace Clara.Analysis.MatchExpressions
 
         internal static MatchExpression Instance { get; } = new EmptyMatchExpression();
 
+        public override MatchExpression ToPersistent()
+        {
+            return this;
+        }
+
         public override bool IsMatching(IReadOnlyCollection<string> tokens)
         {
             return false;

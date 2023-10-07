@@ -22,7 +22,7 @@
     * [ ] Basic concepts
     * [ ] Tokenizer
     * [ ] Filter tokens
-    * [ ] Role of caching token filter
+    * [ ] Role of string pool token filter
     * [ ] Role of stem token filter
   * [ ] Synonym maps
     * [ ] Basic concepts

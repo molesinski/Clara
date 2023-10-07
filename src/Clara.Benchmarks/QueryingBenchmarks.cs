@@ -1,6 +1,5 @@
 ﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
 #pragma warning disable SA1310 // Field names should not contain underscore
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
 
 using BenchmarkDotNet.Attributes;
 using Clara.Analysis.Synonyms;
@@ -9,18 +8,18 @@ using Clara.Querying;
 namespace Clara.Benchmarks
 {
     [MemoryDiagnoser]
-    public class QueryBenchmarks
+    public class QueryingBenchmarks
     {
-        private readonly string allTextSynonym;
+        private const string AllTextPhrase = "__ALL";
+        private const string AllNoneTextPhrase = "__ALL __NONE";
+
         private readonly string? topBrand;
         private readonly decimal? maxPrice;
         private readonly Index<Product> index;
         private readonly Index<Product> index_x100;
 
-        public QueryBenchmarks()
+        public QueryingBenchmarks()
         {
-            this.allTextSynonym = Guid.NewGuid().ToString("N");
-
             this.topBrand = Product.Items
                 .Select(x => x.Brand)
                 .Where(x => !string.IsNullOrWhiteSpace(x))
@@ -40,7 +39,7 @@ namespace Clara.Benchmarks
                             ProductMapper.Analyzer,
                             new Synonym[]
                             {
-                                new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, this.allTextSynonym }),
+                                new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, AllTextPhrase }),
                             }),
                         ProductMapper.Text),
                 };
@@ -55,7 +54,7 @@ namespace Clara.Benchmarks
         {
             using var result = this.index_x100.Query(
                 this.index.QueryBuilder()
-                    .Search(ProductMapper.Text, SearchMode.Any, this.allTextSynonym)
+                    .Search(ProductMapper.Text, SearchMode.Any, AllNoneTextPhrase)
                     .Filter(ProductMapper.Brand, FilterMode.Any, this.topBrand)
                     .Filter(ProductMapper.Price, from: 1, to: this.maxPrice - 1)
                     .Facet(ProductMapper.Brand)
@@ -71,7 +70,7 @@ namespace Clara.Benchmarks
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Search(ProductMapper.Text, SearchMode.Any, this.allTextSynonym)
+                    .Search(ProductMapper.Text, SearchMode.Any, AllNoneTextPhrase)
                     .Filter(ProductMapper.Brand, FilterMode.Any, this.topBrand)
                     .Filter(ProductMapper.Price, from: 1, to: this.maxPrice - 1)
                     .Facet(ProductMapper.Brand)
@@ -87,7 +86,7 @@ namespace Clara.Benchmarks
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Search(ProductMapper.Text, SearchMode.Any, this.allTextSynonym));
+                    .Search(ProductMapper.Text, SearchMode.Any, AllNoneTextPhrase));
 
             ConsumeResult(result);
         }
@@ -138,6 +137,7 @@ namespace Clara.Benchmarks
         {
             foreach (var document in result.Documents)
             {
+                _ = document;
             }
 
             foreach (var facet in result.Facets)
@@ -154,6 +154,7 @@ namespace Clara.Benchmarks
                     {
                         foreach (var child in value.Children)
                         {
+                            _ = child;
                         }
                     }
                 }

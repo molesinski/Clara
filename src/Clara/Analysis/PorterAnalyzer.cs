@@ -22,7 +22,7 @@
                     new LowerInvariantTokenFilter(),
                     new PorterPossessiveTokenFilter(),
                     new PorterStopTokenFilter(),
-                    new CachingTokenFilter(),
+                    new StringPoolTokenFilter(),
                     new LengthKeywordTokenFilter(),
                     new DigitsKeywordTokenFilter(),
                     new KeywordTokenFilter(keywords),

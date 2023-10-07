@@ -161,11 +161,6 @@ namespace Clara.Utils
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            if (key is null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
             var entries = this.entries;
             var collisionCount = 0;
 
@@ -198,11 +193,6 @@ namespace Clara.Utils
 
         public bool Remove(TKey key)
         {
-            if (key is null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
             var entries = this.entries;
             var bucketIndex = key.GetHashCode() & this.size - 1;
             var entryIndex = this.buckets[bucketIndex] - 1;
@@ -256,11 +246,6 @@ namespace Clara.Utils
 
         public ref TValue GetValueRefOrAddDefault(TKey key, out bool exists)
         {
-            if (key is null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
             var entries = this.entries;
             var collisionCount = 0;
             var bucketIndex = key.GetHashCode() & this.size - 1;
@@ -580,11 +565,6 @@ namespace Clara.Utils
 
         private int FindEntry(TKey key)
         {
-            if (key is null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
             var entries = this.entries;
             var collisionCount = 0;
 
@@ -832,7 +812,7 @@ namespace Clara.Utils
     }
 
     internal sealed class DictionarySlimDebugView<TKey, TValue>
-        where TKey : IEquatable<TKey>
+        where TKey : notnull, IEquatable<TKey>
     {
         private readonly DictionarySlim<TKey, TValue> source;
 

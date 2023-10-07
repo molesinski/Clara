@@ -327,6 +327,16 @@ namespace Clara.Analysis
             this.length = startIndex;
         }
 
+        public void Clear()
+        {
+            if (this.chars is null)
+            {
+                throw new InvalidOperationException("Read only tokens cannot be modified.");
+            }
+
+            this.length = 0;
+        }
+
         public override readonly bool Equals(object? obj)
         {
             if (obj is not Token other)

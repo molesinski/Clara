@@ -84,7 +84,7 @@ namespace Clara.Storage
             }
         }
 
-        public void IntersectWith(Field? field, IEnumerable<int> documents)
+        public void IntersectWith(Field? field, HashSetSlim<int> documents)
         {
             if (this.documents is null)
             {
@@ -112,7 +112,39 @@ namespace Clara.Storage
             }
         }
 
-        public void ExceptWith(IEnumerable<int> documents)
+        public void IntersectWith<TValue>(Field? field, DictionarySlim<int, TValue> documents)
+        {
+            if (this.documents is null)
+            {
+                this.documents = SharedObjectPools.DocumentSets.Lease();
+
+                foreach (var key in documents.Keys)
+                {
+                    this.documents.Value.Instance.Add(key);
+                }
+            }
+            else
+            {
+                this.documents.Value.Instance.IntersectWith(documents.Keys);
+
+                if (this.facets is not null)
+                {
+                    var count = this.facets.Value.Instance.Count;
+
+                    for (var i = 0; i < count; i++)
+                    {
+                        var item = this.facets.Value.Instance[i];
+
+                        if (item.Field != field)
+                        {
+                            this.facets.Value.Instance[i] = item.IntersectWith(documents);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void ExceptWith(HashSetSlim<int> documents)
         {
             if (this.documents is null)
             {

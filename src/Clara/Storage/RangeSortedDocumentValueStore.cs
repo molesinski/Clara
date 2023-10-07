@@ -46,7 +46,7 @@ namespace Clara.Storage
                 hi = BinarySearchHigh(list, to.Value);
             }
 
-            using var documents = SharedObjectPools.Documents.Lease();
+            using var documents = SharedObjectPools.DocumentSets.Lease();
 
             for (var i = lo; i <= hi; i++)
             {

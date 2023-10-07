@@ -4,159 +4,185 @@ namespace Clara.Analysis.MatchExpressions
 {
     public static class Match
     {
-        public static MatchExpression All(ScoringMode scoringMode, string? token)
+        public static MatchExpression Empty
         {
-            return All(scoringMode, new StringEnumerable(token));
-        }
-
-        public static MatchExpression All(ScoringMode scoringMode, IEnumerable<string?>? tokens)
-        {
-            return All(scoringMode, new StringEnumerable(tokens));
-        }
-
-        public static MatchExpression Any(ScoringMode scoringMode, string? token)
-        {
-            return Any(scoringMode, new StringEnumerable(token));
-        }
-
-        public static MatchExpression Any(ScoringMode scoringMode, IEnumerable<string?>? tokens)
-        {
-            return Any(scoringMode, new StringEnumerable(tokens));
-        }
-
-        public static MatchExpression And(ScoringMode scoringMode, IEnumerable<MatchExpression?>? expressions)
-        {
-            if (expressions is not null)
+            get
             {
-                var result = new ListSlim<MatchExpression>();
-                var queue = new Queue<MatchExpression>();
-
-                foreach (var expression in expressions)
-                {
-                    if (expression is not null)
-                    {
-                        queue.Enqueue(expression);
-                    }
-                }
-
-                while (queue.Count > 0)
-                {
-                    var expression = queue.Dequeue();
-
-                    if (expression is EmptyMatchExpression)
-                    {
-                        continue;
-                    }
-
-                    if (expression is AndMatchExpression andMatchExpression && andMatchExpression.ScoringMode == scoringMode)
-                    {
-                        foreach (var expression2 in (ListSlim<MatchExpression>)andMatchExpression.Expressions)
-                        {
-                            queue.Enqueue(expression2);
-                        }
-
-                        continue;
-                    }
-
-                    result.Add(expression);
-                }
-
-                if (result.Count == 1)
-                {
-                    return result[0];
-                }
-
-                if (result.Count > 1)
-                {
-                    return new AndMatchExpression(scoringMode, result);
-                }
+                return EmptyMatchExpression.Instance;
             }
-
-            return EmptyMatchExpression.Instance;
         }
 
-        public static MatchExpression Or(ScoringMode scoringMode, IEnumerable<MatchExpression?>? expressions)
+        public static MatchExpression All(ScoreAggregation scoreAggregation, string? token)
         {
-            if (expressions is not null)
-            {
-                var result = new ListSlim<MatchExpression>();
-                var queue = new Queue<MatchExpression>();
-
-                foreach (var expression in expressions)
-                {
-                    if (expression is not null)
-                    {
-                        queue.Enqueue(expression);
-                    }
-                }
-
-                while (queue.Count > 0)
-                {
-                    var expression = queue.Dequeue();
-
-                    if (expression is EmptyMatchExpression)
-                    {
-                        continue;
-                    }
-
-                    if (expression is OrMatchExpression orMatchExpression && orMatchExpression.ScoringMode == scoringMode)
-                    {
-                        foreach (var expression2 in (ListSlim<MatchExpression>)orMatchExpression.Expressions)
-                        {
-                            queue.Enqueue(expression2);
-                        }
-
-                        continue;
-                    }
-
-                    result.Add(expression);
-                }
-
-                if (result.Count == 1)
-                {
-                    return result[0];
-                }
-
-                if (result.Count > 1)
-                {
-                    return new OrMatchExpression(scoringMode, result);
-                }
-            }
-
-            return EmptyMatchExpression.Instance;
+            return All(scoreAggregation, new StringEnumerable(token));
         }
 
-        private static MatchExpression All(ScoringMode scoringMode, StringEnumerable tokens)
+        public static MatchExpression All(ScoreAggregation scoreAggregation, IEnumerable<string?>? tokens)
         {
-            var result = default(ListSlim<string>);
+            return All(scoreAggregation, new StringEnumerable(tokens));
+        }
+
+        public static MatchExpression Any(ScoreAggregation scoreAggregation, string? token)
+        {
+            return Any(scoreAggregation, new StringEnumerable(token));
+        }
+
+        public static MatchExpression Any(ScoreAggregation scoreAggregation, IEnumerable<string?>? tokens)
+        {
+            return Any(scoreAggregation, new StringEnumerable(tokens));
+        }
+
+        public static MatchExpression And(ScoreAggregation scoreAggregation, IEnumerable<MatchExpression?>? expressions)
+        {
+            return And(scoreAggregation, new ObjectEnumerable<MatchExpression>(expressions));
+        }
+
+        public static MatchExpression Or(ScoreAggregation scoreAggregation, IEnumerable<MatchExpression?>? expressions)
+        {
+            return Or(scoreAggregation, new ObjectEnumerable<MatchExpression>(expressions));
+        }
+
+        private static MatchExpression All(ScoreAggregation scoreAggregation, StringEnumerable tokens)
+        {
+            var result = default(ObjectPoolLease<ListSlim<string>>?);
 
             foreach (var token in tokens)
             {
-                result ??= new();
-                result.Add(token);
+                result ??= SharedObjectPools.MatchTokens.Lease();
+                result.Value.Instance.Add(token);
             }
 
             if (result is not null)
             {
-                return new AllTokensMatchExpression(scoringMode, result);
+                return new DisposableAllMatchExpression(scoreAggregation, result.Value);
             }
 
             return EmptyMatchExpression.Instance;
         }
 
-        private static MatchExpression Any(ScoringMode scoringMode, StringEnumerable tokens)
+        private static MatchExpression Any(ScoreAggregation scoreAggregation, StringEnumerable tokens)
         {
-            var result = default(ListSlim<string>);
+            var result = default(ObjectPoolLease<ListSlim<string>>?);
 
             foreach (var token in tokens)
             {
-                result ??= new();
-                result.Add(token);
+                result ??= SharedObjectPools.MatchTokens.Lease();
+                result.Value.Instance.Add(token);
             }
 
             if (result is not null)
             {
-                return new AnyTokensMatchExpression(scoringMode, result);
+                return new DisposableAnyMatchExpression(scoreAggregation, result.Value);
+            }
+
+            return EmptyMatchExpression.Instance;
+        }
+
+        private static MatchExpression And(ScoreAggregation scoreAggregation, ObjectEnumerable<MatchExpression> expressions)
+        {
+            using var queue = SharedObjectPools.MatchExpressionQueues.Lease();
+            var result = default(ObjectPoolLease<ListSlim<MatchExpression>>?);
+
+            foreach (var expression in expressions)
+            {
+                queue.Instance.Enqueue(expression);
+            }
+
+            while (queue.Instance.Count > 0)
+            {
+                var expression = queue.Instance.Dequeue();
+
+                if (expression is EmptyMatchExpression)
+                {
+                    continue;
+                }
+
+                if (expression is AndMatchExpression andMatchExpression && andMatchExpression.ScoreAggregation == scoreAggregation)
+                {
+                    foreach (var expression2 in (ListSlim<MatchExpression>)andMatchExpression.Expressions)
+                    {
+                        queue.Instance.Enqueue(expression2);
+                    }
+
+                    andMatchExpression.Discard();
+
+                    continue;
+                }
+
+                result ??= SharedObjectPools.MatchExpressions.Lease();
+                result.Value.Instance.Add(expression);
+            }
+
+            if (result is not null)
+            {
+                if (result.Value.Instance.Count == 1)
+                {
+                    try
+                    {
+                        return result.Value.Instance[0];
+                    }
+                    finally
+                    {
+                        result.Value.Dispose();
+                    }
+                }
+
+                return new DisposableAndMatchExpression(scoreAggregation, result.Value);
+            }
+
+            return EmptyMatchExpression.Instance;
+        }
+
+        private static MatchExpression Or(ScoreAggregation scoreAggregation, ObjectEnumerable<MatchExpression> expressions)
+        {
+            using var queue = SharedObjectPools.MatchExpressionQueues.Lease();
+            var result = default(ObjectPoolLease<ListSlim<MatchExpression>>?);
+
+            foreach (var expression in expressions)
+            {
+                queue.Instance.Enqueue(expression);
+            }
+
+            while (queue.Instance.Count > 0)
+            {
+                var expression = queue.Instance.Dequeue();
+
+                if (expression is EmptyMatchExpression)
+                {
+                    continue;
+                }
+
+                if (expression is OrMatchExpression orMatchExpression && orMatchExpression.ScoreAggregation == scoreAggregation)
+                {
+                    foreach (var expression2 in (ListSlim<MatchExpression>)orMatchExpression.Expressions)
+                    {
+                        queue.Instance.Enqueue(expression2);
+                    }
+
+                    orMatchExpression.Discard();
+
+                    continue;
+                }
+
+                result ??= SharedObjectPools.MatchExpressions.Lease();
+                result.Value.Instance.Add(expression);
+            }
+
+            if (result is not null)
+            {
+                if (result.Value.Instance.Count == 1)
+                {
+                    try
+                    {
+                        return result.Value.Instance[0];
+                    }
+                    finally
+                    {
+                        result.Value.Dispose();
+                    }
+                }
+
+                return new DisposableOrMatchExpression(scoreAggregation, result.Value);
             }
 
             return EmptyMatchExpression.Instance;

@@ -130,11 +130,6 @@ namespace Clara.Utils
 
         public bool Add(TItem item)
         {
-            if (item is null)
-            {
-                throw new ArgumentNullException(nameof(item));
-            }
-
             var entries = this.entries;
             var collisionCount = 0;
             var bucketIndex = item.GetHashCode() & this.size - 1;
@@ -161,11 +156,6 @@ namespace Clara.Utils
 
         public bool Remove(TItem item)
         {
-            if (item is null)
-            {
-                throw new ArgumentNullException(nameof(item));
-            }
-
             var entries = this.entries;
             var bucketIndex = item.GetHashCode() & this.size - 1;
             var entryIndex = this.buckets[bucketIndex] - 1;
@@ -485,11 +475,6 @@ namespace Clara.Utils
 
         private int FindItem(TItem item)
         {
-            if (item is null)
-            {
-                throw new ArgumentNullException(nameof(item));
-            }
-
             var entries = this.entries;
             var collisionCount = 0;
 
@@ -631,7 +616,7 @@ namespace Clara.Utils
     }
 
     internal sealed class HashSetSlimDebugView<TItem>
-        where TItem : IEquatable<TItem>
+        where TItem : notnull, IEquatable<TItem>
     {
         private readonly HashSetSlim<TItem> source;
 

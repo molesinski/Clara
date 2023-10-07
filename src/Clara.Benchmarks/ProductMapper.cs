@@ -18,7 +18,7 @@ namespace Clara.Benchmarks
         public static KeywordField<Product> Brand { get; } = new(x => x.Brand, isFilterable: true, isFacetable: true);
         public static HierarchyField<Product> Category { get; } = new(x => x.Category, separator: "-", root: "all", HierarchyValueHandling.Path, isFilterable: true, isFacetable: true);
 
-        public static string CommonTextPhrase { get; } = Guid.NewGuid().ToString("N");
+        public static string CommonTextPhrase { get; } = "__COMMON";
 
         public IEnumerable<Field> GetFields()
         {

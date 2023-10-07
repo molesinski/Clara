@@ -2,10 +2,7 @@
 {
     public readonly record struct DocumentResult<TDocument>
     {
-        public DocumentResult(
-            string key,
-            TDocument document,
-            float score)
+        public DocumentResult(string key, TDocument document, float score)
         {
             this.Key = key;
             this.Document = document;
