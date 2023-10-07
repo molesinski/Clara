@@ -2,14 +2,13 @@
 {
     internal static class PermutationHelper
     {
-        public static IEnumerable<IEnumerable<TItem>> Permutate<TItem>(IEnumerable<TItem> source)
+        public static IEnumerable<TItem[]> Permutate<TItem>(TItem[] array)
         {
-            if (source is null)
+            if (array is null)
             {
-                throw new ArgumentNullException(nameof(source));
+                throw new ArgumentNullException(nameof(array));
             }
 
-            var array = source.ToArray();
             var length = array.Length;
 
             if (length == 0)

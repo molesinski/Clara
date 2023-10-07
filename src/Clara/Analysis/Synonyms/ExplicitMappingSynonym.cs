@@ -18,7 +18,7 @@ namespace Clara.Analysis.Synonyms
             {
                 if (string.IsNullOrWhiteSpace(mappedPhrase))
                 {
-                    throw new ArgumentException("Mapped phrases cannot be empty or whitespace.", nameof(mappedPhrases));
+                    throw new ArgumentException("Mapped phrases cannot be null, empty or whitespace.", nameof(mappedPhrases));
                 }
 
                 this.mappedPhrases.Add(mappedPhrase);

@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Globalization;
 using Clara.Analysis.MatchExpressions;
 using Clara.Utils;
 
@@ -694,13 +695,10 @@ namespace Clara.Analysis.Synonyms
                     if (this.matchExpression is null)
                     {
                         var expressions = new ListSlim<MatchExpression>();
-                        var synonymTokens = new ListSlim<string>();
-                        var isThisSynonymTokenAdded = false;
+                        var synonymTokens = new HashSetSlim<string>();
 
                         if (this.aggregate.MappedFrom.Count > 0 || this.aggregate.Nodes.Count > 1)
                         {
-                            isThisSynonymTokenAdded = true;
-
                             synonymTokens.Add(this.aggregate.SynonymToken);
                         }
 
@@ -708,20 +706,8 @@ namespace Clara.Analysis.Synonyms
                         {
                             foreach (var node in this.aggregate.MappedTo)
                             {
-                                if (node == this)
-                                {
-                                    if (isThisSynonymTokenAdded)
-                                    {
-                                        continue;
-                                    }
-                                }
-
                                 synonymTokens.Add(node.aggregate.SynonymToken);
                             }
-                        }
-                        else
-                        {
-                            expressions.Add(Match.All(ScoreAggregation.Sum, this.tokenPath));
                         }
 
                         if (synonymTokens.Count > 0)
@@ -771,7 +757,10 @@ namespace Clara.Analysis.Synonyms
                             replacementTokens.AddRange(this.tokenPath);
                         }
 
-                        replacementTokens.AddRange(synonymTokens);
+                        if (synonymTokens.Count > 0)
+                        {
+                            replacementTokens.AddRange(synonymTokens);
+                        }
 
                         this.replacementTokens = replacementTokens;
                     }
@@ -788,7 +777,7 @@ namespace Clara.Analysis.Synonyms
                 {
                     var aggregate = new TokenNodeAggregate();
 
-                    foreach (var tokens in GetTokenPermutations(synonym.Phrases))
+                    foreach (var tokens in GetTokenPermutations((HashSetSlim<string>)synonym.Phrases))
                     {
                         var node = root;
 
@@ -817,7 +806,7 @@ namespace Clara.Analysis.Synonyms
 
                     if (synonym is ExplicitMappingSynonym explicitMappingSynonym)
                     {
-                        foreach (var tokens in GetTokenPermutations(explicitMappingSynonym.MappedPhrases))
+                        foreach (var tokens in GetTokenPermutations((HashSetSlim<string>)explicitMappingSynonym.MappedPhrases))
                         {
                             var node = root;
 
@@ -838,26 +827,26 @@ namespace Clara.Analysis.Synonyms
 
                 return root;
 
-                IEnumerable<IEnumerable<string>> GetTokenPermutations(IEnumerable<string> phrases)
+                IEnumerable<string[]> GetTokenPermutations(HashSetSlim<string> phrases)
                 {
                     foreach (var phrase in phrases)
                     {
-                        using var tokens = analyzer.GetTokens(phrase);
+                        using var tokenEnumerable = analyzer.GetTokens(phrase);
 
-                        var tokenList = tokens.ToList();
+                        var tokens = tokenEnumerable.ToArray();
 
-                        if (tokenList.Count > 0)
+                        if (tokens.Length > 0)
                         {
-                            if (tokenList.Count > 1 && tokenList.Count <= permutatedTokenCountThreshold)
+                            if (tokens.Length > 1 && tokens.Length <= permutatedTokenCountThreshold)
                             {
-                                foreach (var tokenPermutation in PermutationHelper.Permutate(tokenList))
+                                foreach (var tokenPermutation in PermutationHelper.Permutate(tokens))
                                 {
                                     yield return tokenPermutation;
                                 }
                             }
                             else
                             {
-                                yield return tokenList;
+                                yield return tokens;
                             }
                         }
                     }
