@@ -797,15 +797,16 @@ namespace Clara.Utils
                     return true;
                 }
 
-                void IEnumerator.Reset()
+                public void Reset()
                 {
                     this.index = 0;
                     this.count = this.source.count;
                     this.current = default!;
                 }
 
-                public readonly void Dispose()
+                public void Dispose()
                 {
+                    this.Reset();
                 }
             }
         }

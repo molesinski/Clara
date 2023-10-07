@@ -149,9 +149,7 @@ namespace Clara.Utils
 
             public void Dispose()
             {
-                this.enumerator?.Dispose();
-                this.enumerator = default;
-                this.current = default;
+                this.Reset();
             }
         }
     }

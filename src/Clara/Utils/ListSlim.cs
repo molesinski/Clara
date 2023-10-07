@@ -355,8 +355,9 @@ namespace Clara.Utils
                 this.current = default!;
             }
 
-            public readonly void Dispose()
+            public void Dispose()
             {
+                this.Reset();
             }
         }
     }

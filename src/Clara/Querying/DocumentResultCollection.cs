@@ -142,8 +142,9 @@ namespace Clara.Querying
                 this.current = default;
             }
 
-            public readonly void Dispose()
+            public void Dispose()
             {
+                this.Reset();
             }
         }
     }

@@ -107,13 +107,7 @@ namespace Clara.Analysis
 
             public void Dispose()
             {
-                if (this.isStarted)
-                {
-                    this.tokenStream.End();
-                }
-
-                this.isStarted = false;
-                this.current = default;
+                this.Reset();
             }
         }
     }

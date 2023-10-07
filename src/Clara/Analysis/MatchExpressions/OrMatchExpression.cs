@@ -58,12 +58,12 @@ namespace Clara.Analysis.MatchExpressions
         }
     }
 
-    internal sealed class DisposableOrMatchExpression : OrMatchExpression
+    internal sealed class IntermittentOrMatchExpression : OrMatchExpression
     {
         private readonly ObjectPoolLease<ListSlim<MatchExpression>> expressions;
         private bool isDisposed;
 
-        internal DisposableOrMatchExpression(ScoreAggregation scoreAggregation, ObjectPoolLease<ListSlim<MatchExpression>> expressions)
+        internal IntermittentOrMatchExpression(ScoreAggregation scoreAggregation, ObjectPoolLease<ListSlim<MatchExpression>> expressions)
             : base(scoreAggregation)
         {
             this.expressions = expressions;

@@ -1,26 +1,32 @@
 ﻿using System.Collections;
 
-namespace Clara.Utils
+namespace Clara.Mapping
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Value type used for performance optimization")]
-    public readonly struct StringEnumerable : IEnumerable<string>
+    internal readonly struct TextWeightEnumerable : IEnumerable<TextWeight>
     {
         private readonly string? value;
         private readonly IEnumerable<string?>? values;
-        private readonly bool trim;
+        private readonly IEnumerable<TextWeight>? structValues;
 
-        public StringEnumerable(string? value, bool trim = false)
+        public TextWeightEnumerable(string? value)
         {
             this.value = value;
             this.values = default;
-            this.trim = trim;
+            this.structValues = default;
         }
 
-        public StringEnumerable(IEnumerable<string?>? values, bool trim = false)
+        public TextWeightEnumerable(IEnumerable<string?>? values)
         {
             this.value = default;
             this.values = values;
-            this.trim = trim;
+            this.structValues = default;
+        }
+
+        public TextWeightEnumerable(IEnumerable<TextWeight>? values)
+        {
+            this.value = default;
+            this.values = default;
+            this.structValues = values;
         }
 
         public readonly Enumerator GetEnumerator()
@@ -28,7 +34,7 @@ namespace Clara.Utils
             return new Enumerator(this);
         }
 
-        readonly IEnumerator<string> IEnumerable<string>.GetEnumerator()
+        readonly IEnumerator<TextWeight> IEnumerable<TextWeight>.GetEnumerator()
         {
             return this.GetEnumerator();
         }
@@ -38,23 +44,26 @@ namespace Clara.Utils
             return this.GetEnumerator();
         }
 
-        public struct Enumerator : IEnumerator<string>
+        public struct Enumerator : IEnumerator<TextWeight>
         {
             private readonly string? value;
             private readonly IReadOnlyList<string>? listValues;
             private readonly IEnumerable<string?>? enumerableValues;
-            private readonly bool trim;
+            private readonly IReadOnlyList<TextWeight>? structListValues;
+            private readonly IEnumerable<TextWeight>? structEnumerableValues;
             private bool isEnumerated;
             private int index;
             private IEnumerator<string?>? enumerator;
-            private string? current;
+            private IEnumerator<TextWeight>? structEnumerator;
+            private TextWeight current;
 
-            internal Enumerator(StringEnumerable source)
+            internal Enumerator(TextWeightEnumerable source)
             {
                 this.value = default;
                 this.listValues = default;
                 this.enumerableValues = default;
-                this.trim = source.trim;
+                this.structListValues = default;
+                this.structEnumerableValues = default;
 
                 if (source.value is not null)
                 {
@@ -68,18 +77,27 @@ namespace Clara.Utils
                 {
                     this.enumerableValues = source.values;
                 }
+                else if (source.structValues is IReadOnlyList<TextWeight> structListValues)
+                {
+                    this.structListValues = structListValues;
+                }
+                else if (source.structValues is not null)
+                {
+                    this.structEnumerableValues = source.structValues;
+                }
 
                 this.isEnumerated = false;
                 this.index = 0;
                 this.enumerator = default;
+                this.structEnumerator = default;
                 this.current = default;
             }
 
-            public readonly string Current
+            public readonly TextWeight Current
             {
                 get
                 {
-                    return this.current!;
+                    return this.current;
                 }
             }
 
@@ -87,7 +105,7 @@ namespace Clara.Utils
             {
                 get
                 {
-                    return this.current!;
+                    return this.current;
                 }
             }
 
@@ -103,7 +121,7 @@ namespace Clara.Utils
 
                         if (!string.IsNullOrWhiteSpace(value))
                         {
-                            this.current = this.trim ? value.Trim() : value;
+                            this.current = new TextWeight(value);
 
                             return true;
                         }
@@ -118,7 +136,7 @@ namespace Clara.Utils
 
                             if (!string.IsNullOrWhiteSpace(value))
                             {
-                                this.current = this.trim ? value.Trim() : value;
+                                this.current = new TextWeight(value);
 
                                 return true;
                             }
@@ -135,13 +153,34 @@ namespace Clara.Utils
                             if (!string.IsNullOrWhiteSpace(value))
                             {
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                                this.current = this.trim ? value.Trim() : value;
+                                this.current = new TextWeight(value);
 #else
-                                this.current = this.trim ? value!.Trim() : value;
+                                this.current = new TextWeight(value!);
 #endif
 
                                 return true;
                             }
+                        }
+                    }
+                    else if (this.structListValues is not null)
+                    {
+                        while (this.index < this.structListValues.Count)
+                        {
+                            this.current = this.structListValues[this.index];
+                            this.index++;
+
+                            return true;
+                        }
+                    }
+                    else if (this.structEnumerableValues is not null)
+                    {
+                        this.structEnumerator ??= this.structEnumerableValues.GetEnumerator();
+
+                        while (this.structEnumerator.MoveNext())
+                        {
+                            this.current = this.structEnumerator.Current;
+
+                            return true;
                         }
                     }
                 }
@@ -158,6 +197,8 @@ namespace Clara.Utils
                 this.index = 0;
                 this.enumerator?.Dispose();
                 this.enumerator = default;
+                this.structEnumerator?.Dispose();
+                this.structEnumerator = default;
                 this.current = default;
             }
 

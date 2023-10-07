@@ -287,17 +287,6 @@ public sealed class DateOnlyField<TSource> : RangeField<TSource, int>
             isSortable: isSortable)
     {
     }
-
-    public DateOnlyField(Func<TSource, IEnumerable<DateOnly?>> valueMapper, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
-        : base(
-            valueMapper: valueMapper,
-            minValue: DateOnly.MinValue,
-            maxValue: DateOnly.MaxValue,
-            isFilterable: isFilterable,
-            isFacetable: isFacetable,
-            isSortable: isSortable)
-    {
-    }
 }
 ```
 
@@ -349,7 +338,7 @@ Index and query benchmarks and tests are performed using sample 100 product data
 variants with `x100` suffix are based on data set multiplied 100 times.
 
 ```
-BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
+BenchmarkDotNet v0.13.9+228a464e8be6c580ad9408e98f18813f6407fb5a, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 12th Gen Intel Core i9-12900K, 1 CPU, 24 logical and 16 physical cores
 .NET SDK 7.0.308
   [Host]     : .NET 7.0.11 (7.0.1123.42427), X64 RyuJIT AVX2 DEBUG
@@ -360,30 +349,30 @@ BenchmarkDotNet v0.13.8, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 | Method     | Mean     | Error   | StdDev  | Allocated |
 |----------- |---------:|--------:|--------:|----------:|
-| Tokenizer  | 231.5 ns | 0.87 ns | 0.82 ns |         - |
-| Analyzer   | 522.3 ns | 5.75 ns | 5.38 ns |         - |
-| SynonymMap | 829.8 ns | 9.22 ns | 8.62 ns |         - |
+| Tokenizer  | 225.7 ns | 1.68 ns | 1.57 ns |         - |
+| Analyzer   | 547.3 ns | 2.45 ns | 2.30 ns |         - |
+| SynonymMap | 844.5 ns | 3.92 ns | 3.66 ns |         - |
 
 ### Indexing Benchmarks
 
-| Method           | Mean        | Error       | StdDev      | Gen0      | Gen1      | Gen2      | Allocated   |
-|----------------- |------------:|------------:|------------:|----------:|----------:|----------:|------------:|
-| Index_x100       | 63,842.8 μs | 1,273.85 μs | 1,826.91 μs | 2125.0000 | 2000.0000 | 1000.0000 | 26322.51 KB |
-| Index            |    488.5 μs |     0.81 μs |     0.76 μs |   31.7383 |   11.7188 |         - |   490.08 KB |
-| IndexShared_x100 | 60,338.6 μs | 1,181.74 μs | 1,732.18 μs | 1777.7778 | 1666.6667 |  777.7778 | 25033.51 KB |
-| IndexShared      |    469.6 μs |     4.06 μs |     3.80 μs |   28.3203 |   10.2539 |         - |   437.38 KB |
+| Method           | Mean        | Error       | StdDev    | Gen0      | Gen1      | Gen2      | Allocated   |
+|----------------- |------------:|------------:|----------:|----------:|----------:|----------:|------------:|
+| Index_x100       | 63,649.3 μs | 1,121.55 μs | 994.23 μs | 2125.0000 | 2000.0000 | 1000.0000 | 26323.67 KB |
+| Index            |    483.2 μs |     2.35 μs |   2.20 μs |   31.7383 |   11.7188 |         - |   490.08 KB |
+| IndexShared_x100 | 59,672.4 μs | 1,050.55 μs | 982.69 μs | 1900.0000 | 1800.0000 |  900.0000 | 25033.93 KB |
+| IndexShared      |    467.6 μs |     3.54 μs |   3.31 μs |   28.3203 |   10.2539 |         - |   437.38 KB |
 
 ### Querying Benchmarks
 
 | Method            | Mean       | Error     | StdDev    | Gen0   | Allocated |
 |------------------ |-----------:|----------:|----------:|-------:|----------:|
-| QueryComplex_x100 | 434.564 μs | 3.2725 μs | 3.0611 μs |      - |    1056 B |
-| QueryComplex      |  11.076 μs | 0.0683 μs | 0.0639 μs | 0.0610 |    1056 B |
-| QuerySearch       |   6.129 μs | 0.0326 μs | 0.0305 μs | 0.0305 |     504 B |
-| QueryFilter       |   1.110 μs | 0.0028 μs | 0.0026 μs | 0.0267 |     432 B |
-| QueryFacet        |   9.505 μs | 0.0286 μs | 0.0268 μs | 0.0305 |     632 B |
-| QuerySort         |   3.219 μs | 0.0063 μs | 0.0059 μs | 0.0229 |     400 B |
-| Query             |   1.434 μs | 0.0079 μs | 0.0073 μs | 0.0191 |     304 B |
+| QueryComplex_x100 | 430.199 μs | 6.6222 μs | 6.1944 μs |      - |    1056 B |
+| QueryComplex      |  11.185 μs | 0.0482 μs | 0.0451 μs | 0.0610 |    1056 B |
+| QuerySearch       |   6.310 μs | 0.0176 μs | 0.0156 μs | 0.0305 |     504 B |
+| QueryFilter       |   1.150 μs | 0.0056 μs | 0.0052 μs | 0.0267 |     432 B |
+| QueryFacet        |   9.759 μs | 0.0406 μs | 0.0380 μs | 0.0305 |     632 B |
+| QuerySort         |   3.500 μs | 0.0097 μs | 0.0081 μs | 0.0229 |     400 B |
+| Query             |   1.461 μs | 0.0207 μs | 0.0194 μs | 0.0191 |     304 B |
 
 ### Memory Allocations
 

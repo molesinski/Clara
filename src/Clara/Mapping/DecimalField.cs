@@ -23,16 +23,5 @@
                 isSortable: isSortable)
         {
         }
-
-        public DecimalField(Func<TSource, IEnumerable<decimal?>?> valueMapper, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
-            : base(
-                valueMapper: valueMapper,
-                minValue: decimal.MinValue,
-                maxValue: decimal.MaxValue,
-                isFilterable: isFilterable,
-                isFacetable: isFacetable,
-                isSortable: isSortable)
-        {
-        }
     }
 }

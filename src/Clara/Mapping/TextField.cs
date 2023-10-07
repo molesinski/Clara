@@ -1,7 +1,6 @@
 ﻿using Clara.Analysis;
 using Clara.Analysis.Synonyms;
 using Clara.Storage;
-using Clara.Utils;
 
 namespace Clara.Mapping
 {
@@ -37,7 +36,7 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new PrimitiveEnumerable<TextWeight>(new TextWeight(valueMapper(source)));
+            this.ValueMapper = source => new TextWeightEnumerable(valueMapper(source));
         }
 
         public TextField(Func<TSource, IEnumerable<string?>?> valueMapper, IAnalyzer analyzer, Similarity? similarity = null)
@@ -48,7 +47,7 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new PrimitiveEnumerable<TextWeight>(valueMapper(source)?.Select(x => new TextWeight(x)));
+            this.ValueMapper = source => new TextWeightEnumerable(valueMapper(source));
         }
 
         public TextField(Func<TSource, IEnumerable<TextWeight>?> valueMapper, IAnalyzer analyzer, Similarity? similarity = null)
@@ -59,21 +58,10 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new PrimitiveEnumerable<TextWeight>(valueMapper(source));
+            this.ValueMapper = source => new TextWeightEnumerable(valueMapper(source));
         }
 
-        public TextField(Func<TSource, IEnumerable<TextWeight?>?> valueMapper, IAnalyzer analyzer, Similarity? similarity = null)
-            : base(analyzer, similarity)
-        {
-            if (valueMapper is null)
-            {
-                throw new ArgumentNullException(nameof(valueMapper));
-            }
-
-            this.ValueMapper = source => new PrimitiveEnumerable<TextWeight>(valueMapper(source));
-        }
-
-        internal Func<TSource, PrimitiveEnumerable<TextWeight>> ValueMapper { get; }
+        internal Func<TSource, TextWeightEnumerable> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderStore tokenEncoderStore,
