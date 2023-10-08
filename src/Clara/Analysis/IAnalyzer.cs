@@ -2,6 +2,6 @@
 {
     public interface IAnalyzer
     {
-        IEnumerable<string> GetTokens(string text);
+        IEnumerable<Token> GetTokens(string text);
     }
 }

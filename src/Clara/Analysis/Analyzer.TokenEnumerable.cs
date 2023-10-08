@@ -6,7 +6,7 @@ namespace Clara.Analysis
     public sealed partial class Analyzer
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "By design")]
-        public readonly record struct TokenEnumerable : IEnumerable<string>
+        public readonly record struct TokenEnumerable : IEnumerable<Token>
         {
             private static readonly ObjectPool<Enumerator> Pool = new(() => new());
 
@@ -19,7 +19,7 @@ namespace Clara.Analysis
                 this.text = text;
             }
 
-            public IEnumerator<string> GetEnumerator()
+            public IEnumerator<Token> GetEnumerator()
             {
                 var lease = Pool.Lease();
 
@@ -28,7 +28,7 @@ namespace Clara.Analysis
                 return lease.Instance;
             }
 
-            IEnumerator<string> IEnumerable<string>.GetEnumerator()
+            IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
             {
                 return this.GetEnumerator();
             }
@@ -38,17 +38,17 @@ namespace Clara.Analysis
                 return this.GetEnumerator();
             }
 
-            private sealed class Enumerator : IEnumerator<string>
+            private sealed class Enumerator : IEnumerator<Token>
             {
                 private ObjectPoolLease<Enumerator>? lease;
                 private ITokenizer tokenizer = default!;
                 private TokenFilterDelegate pipeline = default!;
                 private string text = default!;
                 private bool isEmpty;
-                private string current = default!;
+                private Token current;
                 private IEnumerator<Token>? enumerator;
 
-                public string Current
+                public Token Current
                 {
                     get
                     {
@@ -94,7 +94,7 @@ namespace Clara.Analysis
 
                         if (token.Length > 0)
                         {
-                            this.current = token.ToString();
+                            this.current = token;
 
                             return true;
                         }

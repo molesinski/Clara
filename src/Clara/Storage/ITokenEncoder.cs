@@ -1,9 +1,13 @@
-﻿namespace Clara.Storage
+﻿using Clara.Analysis;
+
+namespace Clara.Storage
 {
     internal interface ITokenEncoder
     {
         string Decode(int id);
 
-        bool TryEncode(string token, out int id);
+        Token? ToReadOnly(Token token);
+
+        bool TryEncode(Token token, out int id);
     }
 }

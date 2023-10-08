@@ -7,7 +7,7 @@ namespace Clara.Analysis
 {
     public class LuceneEnglishAnalyzer : IAnalyzer
     {
-        private readonly IEnumerable<string> emptyEnumerable;
+        private readonly IEnumerable<Token> emptyEnumerable;
 
         public LuceneEnglishAnalyzer()
         {
@@ -25,7 +25,7 @@ namespace Clara.Analysis
             return new TokenEnumerable(text);
         }
 
-        IEnumerable<string> IAnalyzer.GetTokens(string text)
+        IEnumerable<Token> IAnalyzer.GetTokens(string text)
         {
             if (text is null)
             {
@@ -41,7 +41,7 @@ namespace Clara.Analysis
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "By design")]
-        public readonly record struct TokenEnumerable : IEnumerable<string>
+        public readonly record struct TokenEnumerable : IEnumerable<Token>
         {
             private static readonly ObjectPool<Enumerator> Pool = new(() => new());
 
@@ -52,7 +52,7 @@ namespace Clara.Analysis
                 this.text = text;
             }
 
-            public IEnumerator<string> GetEnumerator()
+            public IEnumerator<Token> GetEnumerator()
             {
                 var lease = Pool.Lease();
 
@@ -61,7 +61,7 @@ namespace Clara.Analysis
                 return lease.Instance;
             }
 
-            IEnumerator<string> IEnumerable<string>.GetEnumerator()
+            IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
             {
                 return this.GetEnumerator();
             }
@@ -71,16 +71,16 @@ namespace Clara.Analysis
                 return this.GetEnumerator();
             }
 
-            private sealed class Enumerator : IEnumerator<string>
+            private sealed class Enumerator : IEnumerator<Token>
             {
 #pragma warning disable CA2213 // Disposable fields should be disposed
                 private readonly ReusableStringReader reader;
                 private readonly Lucene.Net.Analysis.Analyzer analyzer;
 #pragma warning restore CA2213 // Disposable fields should be disposed
-                private readonly char[] buffer;
+                private readonly char[] chars;
                 private ObjectPoolLease<Enumerator>? lease;
                 private bool isEmpty;
-                private string current = default!;
+                private Token current;
                 private TokenStreamEnumerable.Enumerator enumerator;
                 private bool isEnumeratorSet;
 
@@ -88,10 +88,10 @@ namespace Clara.Analysis
                 {
                     this.reader = new ReusableStringReader();
                     this.analyzer = new EnglishAnalyzer(LuceneVersion.LUCENE_48);
-                    this.buffer = new char[Token.MaximumLength];
+                    this.chars = new char[Token.MaximumLength];
                 }
 
-                public string Current
+                public Token Current
                 {
                     get
                     {
@@ -111,7 +111,7 @@ namespace Clara.Analysis
                 {
                     this.lease = lease;
                     this.isEmpty = string.IsNullOrWhiteSpace(text);
-                    this.current = default!;
+                    this.current = default;
                     this.enumerator = default;
                     this.isEnumeratorSet = false;
 
@@ -122,14 +122,14 @@ namespace Clara.Analysis
                 {
                     if (this.isEmpty)
                     {
-                        this.current = default!;
+                        this.current = default;
 
                         return false;
                     }
 
                     if (!this.isEnumeratorSet)
                     {
-                        this.enumerator = new TokenStreamEnumerable(this.analyzer.GetTokenStream(string.Empty, this.reader), this.buffer).GetEnumerator();
+                        this.enumerator = new TokenStreamEnumerable(this.analyzer.GetTokenStream(string.Empty, this.reader), this.chars).GetEnumerator();
                         this.isEnumeratorSet = true;
                     }
 
@@ -139,13 +139,13 @@ namespace Clara.Analysis
 
                         if (token.Length > 0)
                         {
-                            this.current = token.ToString();
+                            this.current = token;
 
                             return true;
                         }
                     }
 
-                    this.current = default!;
+                    this.current = default;
 
                     return false;
                 }
@@ -159,7 +159,7 @@ namespace Clara.Analysis
                     }
 
                     this.isEnumeratorSet = false;
-                    this.current = default!;
+                    this.current = default;
                 }
 
                 public void Dispose()

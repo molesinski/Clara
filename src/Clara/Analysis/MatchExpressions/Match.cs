@@ -12,24 +12,24 @@ namespace Clara.Analysis.MatchExpressions
             }
         }
 
-        public static MatchExpression All(ScoreAggregation scoreAggregation, string? token)
+        public static MatchExpression All(ScoreAggregation scoreAggregation, Token? token)
         {
-            return All(scoreAggregation, new StringEnumerable(token));
+            return All(scoreAggregation, new PrimitiveEnumerable<Token>(token));
         }
 
-        public static MatchExpression All(ScoreAggregation scoreAggregation, IEnumerable<string?>? tokens)
+        public static MatchExpression All(ScoreAggregation scoreAggregation, IEnumerable<Token>? tokens)
         {
-            return All(scoreAggregation, new StringEnumerable(tokens));
+            return All(scoreAggregation, new PrimitiveEnumerable<Token>(tokens));
         }
 
-        public static MatchExpression Any(ScoreAggregation scoreAggregation, string? token)
+        public static MatchExpression Any(ScoreAggregation scoreAggregation, Token? token)
         {
-            return Any(scoreAggregation, new StringEnumerable(token));
+            return Any(scoreAggregation, new PrimitiveEnumerable<Token>(token));
         }
 
-        public static MatchExpression Any(ScoreAggregation scoreAggregation, IEnumerable<string?>? tokens)
+        public static MatchExpression Any(ScoreAggregation scoreAggregation, IEnumerable<Token>? tokens)
         {
-            return Any(scoreAggregation, new StringEnumerable(tokens));
+            return Any(scoreAggregation, new PrimitiveEnumerable<Token>(tokens));
         }
 
         public static MatchExpression And(ScoreAggregation scoreAggregation, IEnumerable<MatchExpression?>? expressions)
@@ -42,9 +42,9 @@ namespace Clara.Analysis.MatchExpressions
             return Or(scoreAggregation, new ObjectEnumerable<MatchExpression>(expressions));
         }
 
-        private static MatchExpression All(ScoreAggregation scoreAggregation, StringEnumerable tokens)
+        private static MatchExpression All(ScoreAggregation scoreAggregation, PrimitiveEnumerable<Token> tokens)
         {
-            var result = default(ObjectPoolLease<ListSlim<string>>?);
+            var result = default(ObjectPoolLease<ListSlim<Token>>?);
 
             foreach (var token in tokens)
             {
@@ -60,9 +60,9 @@ namespace Clara.Analysis.MatchExpressions
             return EmptyMatchExpression.Instance;
         }
 
-        private static MatchExpression Any(ScoreAggregation scoreAggregation, StringEnumerable tokens)
+        private static MatchExpression Any(ScoreAggregation scoreAggregation, PrimitiveEnumerable<Token> tokens)
         {
-            var result = default(ObjectPoolLease<ListSlim<string>>?);
+            var result = default(ObjectPoolLease<ListSlim<Token>>?);
 
             foreach (var token in tokens)
             {

@@ -121,7 +121,8 @@ namespace Clara.Querying
                 {
                     var documentId = this.documentList[this.index];
                     var key = this.tokenEncoder.Decode(documentId);
-                    this.documentMap.TryGetValue(documentId, out var document);
+                    var document = this.documentMap[documentId];
+
                     this.documentScoring.TryGetValue(documentId, out var score);
 
                     this.current = new DocumentResult<TDocument>(key, document, score);

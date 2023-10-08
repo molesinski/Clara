@@ -22,14 +22,13 @@
                     new LowerInvariantTokenFilter(),
                     new PorterPossessiveTokenFilter(),
                     new PorterStopTokenFilter(),
-                    new StringPoolTokenFilter(),
                     new LengthKeywordTokenFilter(),
                     new DigitsKeywordTokenFilter(),
                     new KeywordTokenFilter(keywords),
                     new PorterStemTokenFilter());
         }
 
-        public IEnumerable<string> GetTokens(string text)
+        public IEnumerable<Token> GetTokens(string text)
         {
             return this.analyzer.GetTokens(text);
         }

@@ -5,41 +5,12 @@ namespace Clara.Analysis.Synonyms
 {
     public sealed partial class SynonymMap
     {
-        private readonly struct SynonymResult
-        {
-            public SynonymResult(string token)
-            {
-                if (token is null)
-                {
-                    throw new ArgumentNullException(nameof(token));
-                }
-
-                this.Token = token;
-                this.Node = null;
-            }
-
-            public SynonymResult(TokenNode node)
-            {
-                if (node is null)
-                {
-                    throw new ArgumentNullException(nameof(node));
-                }
-
-                this.Token = null;
-                this.Node = node;
-            }
-
-            public string? Token { get; }
-
-            public TokenNode? Node { get; }
-        }
-
         private readonly struct SynonymResultEnumerable : IEnumerable<SynonymResult>
         {
             private readonly TokenNode root;
-            private readonly StringEnumerable tokens;
+            private readonly PrimitiveEnumerable<Token> tokens;
 
-            public SynonymResultEnumerable(TokenNode root, StringEnumerable tokens)
+            public SynonymResultEnumerable(TokenNode root, PrimitiveEnumerable<Token> tokens)
             {
                 if (root is null)
                 {
@@ -68,13 +39,13 @@ namespace Clara.Analysis.Synonyms
             public struct Enumerator : IEnumerator<SynonymResult>
             {
                 private readonly TokenNode root;
-                private readonly StringEnumerable tokens;
-                private StringEnumerable.Enumerator enumerator;
+                private readonly PrimitiveEnumerable<Token> tokens;
+                private PrimitiveEnumerable<Token>.Enumerator enumerator;
                 private bool isEnumeratorSet;
                 private bool isEnumerated;
                 private TokenNode currentNode;
                 private TokenNode? backtrackingNode;
-                private string? previousToken;
+                private Token? previousToken;
                 private SynonymResult current;
 
                 public Enumerator(SynonymResultEnumerable source)

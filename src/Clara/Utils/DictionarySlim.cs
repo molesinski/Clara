@@ -136,6 +136,13 @@ namespace Clara.Utils
 
                 throw new KeyNotFoundException($"The given key '{key}' was not present in the dictionary.");
             }
+
+            set
+            {
+                ref var valueRef = ref this.GetValueRefOrAddDefault(key, out _);
+
+                valueRef = value;
+            }
         }
 
         public void Clear()

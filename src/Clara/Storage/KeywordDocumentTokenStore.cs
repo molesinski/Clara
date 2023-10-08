@@ -1,4 +1,5 @@
-﻿using Clara.Mapping;
+﻿using Clara.Analysis;
+using Clara.Mapping;
 using Clara.Querying;
 using Clara.Utils;
 

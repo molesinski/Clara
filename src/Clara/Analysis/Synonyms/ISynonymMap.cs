@@ -7,5 +7,7 @@ namespace Clara.Analysis.Synonyms
         IAnalyzer Analyzer { get; }
 
         MatchExpression Process(MatchExpression matchExpression);
+
+        Token? ToReadOnly(Token token);
     }
 }

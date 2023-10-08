@@ -1,4 +1,5 @@
-﻿using Clara.Mapping;
+﻿using Clara.Analysis;
+using Clara.Mapping;
 using Clara.Utils;
 
 namespace Clara.Storage
@@ -49,7 +50,7 @@ namespace Clara.Storage
 
             foreach (var token in values)
             {
-                var tokenId = this.tokenEncoderBuilder.Encode(token);
+                var tokenId = this.tokenEncoderBuilder.Encode(new Token(token));
 
                 if (this.tokenDocuments is not null)
                 {

@@ -1,4 +1,5 @@
-﻿using Clara.Mapping;
+﻿using Clara.Analysis;
+using Clara.Mapping;
 using Clara.Querying;
 using Clara.Utils;
 
@@ -64,7 +65,7 @@ namespace Clara.Storage
 
             foreach (var selectedToken in selectedValues.Instance)
             {
-                if (this.tokenEncoder.TryEncode(selectedToken, out var parentId))
+                if (this.tokenEncoder.TryEncode(new Token(selectedToken), out var parentId))
                 {
                     filteredTokens.Instance.Add(parentId);
 
@@ -103,7 +104,7 @@ namespace Clara.Storage
 
             foreach (var selectedToken in selectedValues.Instance)
             {
-                if (this.tokenEncoder.TryEncode(selectedToken, out var parentId))
+                if (this.tokenEncoder.TryEncode(new Token(selectedToken), out var parentId))
                 {
                     var parent = this.tokenEncoder.Decode(parentId);
                     tokenCounts.Instance.TryGetValue(parentId, out var parentCount);

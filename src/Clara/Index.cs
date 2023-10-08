@@ -1,4 +1,5 @@
-﻿using Clara.Mapping;
+﻿using Clara.Analysis;
+using Clara.Mapping;
 using Clara.Querying;
 using Clara.Storage;
 using Clara.Utils;
@@ -88,7 +89,7 @@ namespace Clara
                 {
                     if (includedDocument is not null)
                     {
-                        if (this.tokenEncoder.TryEncode(includedDocument, out var documentId))
+                        if (this.tokenEncoder.TryEncode(new Token(includedDocument), out var documentId))
                         {
                             includedDocuments.Instance.Add(documentId);
                         }
@@ -179,7 +180,7 @@ namespace Clara
                 {
                     if (excludeDocument is not null)
                     {
-                        if (this.tokenEncoder.TryEncode(excludeDocument, out var documentId))
+                        if (this.tokenEncoder.TryEncode(new Token(excludeDocument), out var documentId))
                         {
                             excludeDocuments.Instance.Add(documentId);
                         }

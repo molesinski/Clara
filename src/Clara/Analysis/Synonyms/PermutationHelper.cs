@@ -1,15 +1,18 @@
-﻿namespace Clara.Analysis.Synonyms
+﻿using Clara.Utils;
+
+namespace Clara.Analysis.Synonyms
 {
     internal static class PermutationHelper
     {
-        public static IEnumerable<TItem[]> Permutate<TItem>(TItem[] array)
+        public static IEnumerable<ListSlim<TItem>> Permutate<TItem>(ListSlim<TItem> list)
+            where TItem : notnull
         {
-            if (array is null)
+            if (list is null)
             {
-                throw new ArgumentNullException(nameof(array));
+                throw new ArgumentNullException(nameof(list));
             }
 
-            var length = array.Length;
+            var length = list.Count;
 
             if (length == 0)
             {
@@ -18,12 +21,12 @@
 
             if (length == 1)
             {
-                yield return array;
+                yield return list;
                 yield break;
             }
 
             var transform = new int[length];
-            var result = new TItem[length];
+            var result = new ListSlim<TItem>(list);
 
             for (var i = 0; i < length; i++)
             {
@@ -34,10 +37,10 @@
             {
                 for (var i = 0; i < length; i++)
                 {
-                    result[i] = array[transform[i]];
+                    result[i] = list[transform[i]];
                 }
 
-                yield return result.ToArray();
+                yield return result;
 
                 var j = length - 2;
 

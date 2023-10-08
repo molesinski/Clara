@@ -8,22 +8,22 @@ namespace Clara.Analysis
     public readonly struct TokenStreamEnumerable : IEnumerable<Token>
     {
         private readonly TokenStream tokenStream;
-        private readonly char[] buffer;
+        private readonly char[] chars;
 
-        public TokenStreamEnumerable(TokenStream tokenStream, char[] buffer)
+        public TokenStreamEnumerable(TokenStream tokenStream, char[] chars)
         {
             if (tokenStream is null)
             {
                 throw new ArgumentNullException(nameof(tokenStream));
             }
 
-            if (buffer is null)
+            if (chars is null)
             {
-                throw new ArgumentNullException(nameof(buffer));
+                throw new ArgumentNullException(nameof(chars));
             }
 
             this.tokenStream = tokenStream;
-            this.buffer = buffer;
+            this.chars = chars;
         }
 
         public readonly Enumerator GetEnumerator()
@@ -52,7 +52,7 @@ namespace Clara.Analysis
             {
                 this.tokenStream = source.tokenStream;
                 this.charTermAttribute = source.tokenStream.GetAttribute<ICharTermAttribute>();
-                this.current = new(source.buffer, 0);
+                this.current = new(source.chars, 0);
                 this.isStarted = false;
             }
 

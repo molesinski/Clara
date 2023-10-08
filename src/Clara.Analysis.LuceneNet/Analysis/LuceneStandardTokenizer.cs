@@ -78,7 +78,7 @@ namespace Clara.Analysis
                 private readonly ReusableStringReader reader;
                 private readonly Tokenizer tokenizer;
 #pragma warning restore CA2213 // Disposable fields should be disposed
-                private readonly char[] buffer;
+                private readonly char[] chars;
                 private ObjectPoolLease<Enumerator>? lease;
                 private bool isEmpty;
                 private Token current;
@@ -89,7 +89,7 @@ namespace Clara.Analysis
                 {
                     this.reader = new ReusableStringReader();
                     this.tokenizer = new StandardTokenizer(LuceneVersion.LUCENE_48, this.reader);
-                    this.buffer = new char[Token.MaximumLength];
+                    this.chars = new char[Token.MaximumLength];
                 }
 
                 public Token Current
@@ -131,7 +131,7 @@ namespace Clara.Analysis
 
                     if (!this.isEnumeratorSet)
                     {
-                        this.enumerator = new TokenStreamEnumerable(this.tokenizer, this.buffer).GetEnumerator();
+                        this.enumerator = new TokenStreamEnumerable(this.tokenizer, this.chars).GetEnumerator();
                         this.isEnumeratorSet = true;
                     }
 

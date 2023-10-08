@@ -8,9 +8,10 @@ namespace Clara.Analysis.Synonyms
         public const int MaximumPermutatedTokenCount = 5;
 
         private readonly HashSet<Synonym> synonyms;
-        private readonly IEnumerable<string> emptyEnumerable;
+        private readonly IEnumerable<Token> emptyEnumerable;
         private readonly IAnalyzer analyzer;
         private readonly TokenNode root;
+        private readonly DictionarySlim<Token, string> tokenMap;
 
         public SynonymMap(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, int permutatedTokenCountThreshold = 1)
         {
@@ -43,7 +44,7 @@ namespace Clara.Analysis.Synonyms
 
             this.emptyEnumerable = new TokenEnumerable(this, string.Empty);
             this.analyzer = analyzer;
-            this.root = TokenNode.Build(analyzer, this.synonyms, permutatedTokenCountThreshold);
+            this.root = TokenNode.Build(analyzer, this.synonyms, permutatedTokenCountThreshold, out this.tokenMap);
         }
 
         public IAnalyzer Analyzer
@@ -80,7 +81,7 @@ namespace Clara.Analysis.Synonyms
             return new TokenEnumerable(this, text);
         }
 
-        IEnumerable<string> IAnalyzer.GetTokens(string text)
+        IEnumerable<Token> IAnalyzer.GetTokens(string text)
         {
             if (text is null)
             {
@@ -112,13 +113,13 @@ namespace Clara.Analysis.Synonyms
                 using var tokens = SharedObjectPools.MatchTokens.Lease();
                 using var expressions = SharedObjectPools.MatchExpressions.Lease();
 
-                foreach (var synonymResult in new SynonymResultEnumerable(this.root, new StringEnumerable(allMatchExpression.Tokens)))
+                foreach (var synonymResult in new SynonymResultEnumerable(this.root, new PrimitiveEnumerable<Token>(allMatchExpression.Tokens)))
                 {
                     if (synonymResult.Node is TokenNode node)
                     {
                         expressions.Instance.Add(node.MatchExpression);
                     }
-                    else if (synonymResult.Token is string token)
+                    else if (synonymResult.Token is Token token)
                     {
                         tokens.Instance.Add(token);
                     }
@@ -157,13 +158,13 @@ namespace Clara.Analysis.Synonyms
                 using var tokens = SharedObjectPools.MatchTokens.Lease();
                 using var expressions = SharedObjectPools.MatchExpressions.Lease();
 
-                foreach (var synonymResult in new SynonymResultEnumerable(this.root, new StringEnumerable(anyMatchExpression.Tokens)))
+                foreach (var synonymResult in new SynonymResultEnumerable(this.root, new PrimitiveEnumerable<Token>(anyMatchExpression.Tokens)))
                 {
                     if (synonymResult.Node is TokenNode node)
                     {
                         expressions.Instance.Add(node.MatchExpression);
                     }
-                    else if (synonymResult.Token is string token)
+                    else if (synonymResult.Token is Token token)
                     {
                         tokens.Instance.Add(token);
                     }
@@ -201,6 +202,16 @@ namespace Clara.Analysis.Synonyms
             {
                 return matchExpression;
             }
+        }
+
+        public Token? ToReadOnly(Token token)
+        {
+            if (this.tokenMap.TryGetValue(token, out var value))
+            {
+                return new Token(value);
+            }
+
+            return null;
         }
     }
 }

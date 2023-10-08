@@ -1,4 +1,5 @@
-﻿using Clara.Analysis.MatchExpressions;
+﻿using Clara.Analysis;
+using Clara.Analysis.MatchExpressions;
 using Clara.Mapping;
 using Clara.Utils;
 
@@ -42,7 +43,7 @@ namespace Clara.Storage
             {
                 if (anyMatchExpression.Tokens.Count == 1)
                 {
-                    foreach (var token in (ListSlim<string>)anyMatchExpression.Tokens)
+                    foreach (var token in (ListSlim<Token>)anyMatchExpression.Tokens)
                     {
                         if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
@@ -63,7 +64,7 @@ namespace Clara.Storage
                 {
                     var documentScores = SharedObjectPools.DocumentScores.Lease();
 
-                    foreach (var token in (ListSlim<string>)anyMatchExpression.Tokens)
+                    foreach (var token in (ListSlim<Token>)anyMatchExpression.Tokens)
                     {
                         if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
@@ -83,7 +84,7 @@ namespace Clara.Storage
             {
                 if (allMatchExpression.Tokens.Count == 1)
                 {
-                    foreach (var token in (ListSlim<string>)allMatchExpression.Tokens)
+                    foreach (var token in (ListSlim<Token>)allMatchExpression.Tokens)
                     {
                         if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
@@ -105,7 +106,7 @@ namespace Clara.Storage
                     var documentScores = SharedObjectPools.DocumentScores.Lease();
                     var isFirst = true;
 
-                    foreach (var token in (ListSlim<string>)allMatchExpression.Tokens)
+                    foreach (var token in (ListSlim<Token>)allMatchExpression.Tokens)
                     {
                         if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
@@ -200,7 +201,7 @@ namespace Clara.Storage
         {
             if (matchExpression is AnyMatchExpression anyMatchExpression)
             {
-                foreach (var token in (ListSlim<string>)anyMatchExpression.Tokens)
+                foreach (var token in (ListSlim<Token>)anyMatchExpression.Tokens)
                 {
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
@@ -215,7 +216,7 @@ namespace Clara.Storage
             {
                 var isFirst = true;
 
-                foreach (var token in (ListSlim<string>)allMatchExpression.Tokens)
+                foreach (var token in (ListSlim<Token>)allMatchExpression.Tokens)
                 {
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {

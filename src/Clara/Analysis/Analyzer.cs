@@ -2,7 +2,7 @@
 {
     public sealed partial class Analyzer : IAnalyzer
     {
-        private readonly IEnumerable<string> emptyEnumerable;
+        private readonly IEnumerable<Token> emptyEnumerable;
         private readonly ITokenizer tokenizer;
         private readonly TokenFilterDelegate pipeline;
 
@@ -43,7 +43,7 @@
             return new TokenEnumerable(this, text);
         }
 
-        IEnumerable<string> IAnalyzer.GetTokens(string text)
+        IEnumerable<Token> IAnalyzer.GetTokens(string text)
         {
             if (text is null)
             {

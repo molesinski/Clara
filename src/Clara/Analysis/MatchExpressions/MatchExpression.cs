@@ -10,7 +10,7 @@ namespace Clara.Analysis.MatchExpressions
 
         public abstract MatchExpression ToPersistent();
 
-        public abstract bool IsMatching(IReadOnlyCollection<string> tokens);
+        public abstract bool IsMatching(IReadOnlyCollection<Token> tokens);
 
         public override string ToString()
         {

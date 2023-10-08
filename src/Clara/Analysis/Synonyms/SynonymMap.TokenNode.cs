@@ -7,34 +7,34 @@ namespace Clara.Analysis.Synonyms
     {
         private sealed partial class TokenNode
         {
-            private static readonly ListSlim<string> EmptyTokenPath = new();
+            private static readonly ListSlim<Token> EmptyTokenPath = new();
 
-            private readonly Dictionary<string, TokenNode> children = new();
+            private readonly Dictionary<Token, TokenNode> children = new();
             private readonly TokenNode? parent;
-            private readonly string? token;
-            private readonly ListSlim<string> tokenPath = EmptyTokenPath;
+            private readonly Token? token;
+            private readonly ListSlim<Token> tokenPath = EmptyTokenPath;
             private TokenAggregate aggregate;
             private MatchExpression? matchExpression;
-            private ListSlim<string>? replacementTokens;
+            private ListSlim<Token>? replacementTokens;
 
             private TokenNode()
             {
                 this.aggregate = new(this);
             }
 
-            private TokenNode(TokenNode parent, string token)
+            private TokenNode(TokenNode parent, Token token)
             {
                 if (parent is null)
                 {
                     throw new ArgumentNullException(nameof(parent));
                 }
 
-                if (token is null)
+                if (token.Length == 0)
                 {
-                    throw new ArgumentNullException(nameof(token));
+                    throw new ArgumentException("Token must be not empty.", nameof(token));
                 }
 
-                var tokenPath = new ListSlim<string>(parent.tokenPath);
+                var tokenPath = new ListSlim<Token>(parent.tokenPath);
 
                 tokenPath.Add(token);
 
@@ -44,7 +44,7 @@ namespace Clara.Analysis.Synonyms
                 this.aggregate = new(this);
             }
 
-            public IReadOnlyDictionary<string, TokenNode> Children
+            public IReadOnlyDictionary<Token, TokenNode> Children
             {
                 get
                 {
@@ -65,7 +65,7 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public string Token
+            public Token Token
             {
                 get
                 {
@@ -74,7 +74,7 @@ namespace Clara.Analysis.Synonyms
                         throw new InvalidOperationException("Unable to retrieve token value for root token node.");
                     }
 
-                    return this.token;
+                    return this.token.Value;
                 }
             }
 
@@ -103,7 +103,7 @@ namespace Clara.Analysis.Synonyms
                     if (this.matchExpression is null)
                     {
                         var expressions = new ListSlim<MatchExpression>();
-                        var synonymTokens = new HashSetSlim<string>();
+                        var synonymTokens = new HashSetSlim<Token>();
 
                         if (this.aggregate.MappedFrom.Count > 0 || this.aggregate.Nodes.Count > 1)
                         {
@@ -137,14 +137,14 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public ListSlim<string> ReplacementTokens
+            public ListSlim<Token> ReplacementTokens
             {
                 get
                 {
                     if (this.replacementTokens is null)
                     {
-                        var replacementTokens = new ListSlim<string>();
-                        var synonymTokens = new HashSetSlim<string>();
+                        var replacementTokens = new ListSlim<Token>();
+                        var synonymTokens = new HashSetSlim<Token>();
 
                         if (this.aggregate.MappedFrom.Count > 0 || this.aggregate.Nodes.Count > 1)
                         {
@@ -177,15 +177,17 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public static TokenNode Build(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, int permutatedTokenCountThreshold)
+            public static TokenNode Build(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, int permutatedTokenCountThreshold, out DictionarySlim<Token, string> tokenMap)
             {
+                tokenMap = new DictionarySlim<Token, string>();
+
                 var root = new TokenNode();
 
                 foreach (var synonym in synonyms)
                 {
                     var aggregate = new TokenAggregate();
 
-                    foreach (var tokens in GetTokenPermutations((HashSetSlim<string>)synonym.Phrases))
+                    foreach (var tokens in GetTokenPermutations((HashSetSlim<string>)synonym.Phrases, tokenMap))
                     {
                         var node = root;
 
@@ -214,7 +216,7 @@ namespace Clara.Analysis.Synonyms
 
                     if (synonym is ExplicitMappingSynonym explicitMappingSynonym)
                     {
-                        foreach (var tokens in GetTokenPermutations((HashSetSlim<string>)explicitMappingSynonym.MappedPhrases))
+                        foreach (var tokens in GetTokenPermutations((HashSetSlim<string>)explicitMappingSynonym.MappedPhrases, tokenMap))
                         {
                             var node = root;
 
@@ -235,15 +237,27 @@ namespace Clara.Analysis.Synonyms
 
                 return root;
 
-                IEnumerable<string[]> GetTokenPermutations(HashSetSlim<string> phrases)
+                IEnumerable<ListSlim<Token>> GetTokenPermutations(HashSetSlim<string> phrases, DictionarySlim<Token, string> tokenMap)
                 {
                     foreach (var phrase in phrases)
                     {
-                        var tokens = analyzer.GetTokens(phrase).ToArray();
+                        var tokens = new ListSlim<Token>();
 
-                        if (tokens.Length > 0)
+                        foreach (var token in analyzer.GetTokens(phrase))
                         {
-                            if (tokens.Length > 1 && tokens.Length <= permutatedTokenCountThreshold)
+                            if (!tokenMap.TryGetValue(token, out var value))
+                            {
+                                value = token.ToString();
+
+                                tokenMap[new Token(value)] = value;
+                            }
+
+                            tokens.Add(new Token(value));
+                        }
+
+                        if (tokens.Count > 0)
+                        {
+                            if (tokens.Count > 1 && tokens.Count <= permutatedTokenCountThreshold)
                             {
                                 foreach (var tokenPermutation in PermutationHelper.Permutate(tokens))
                                 {

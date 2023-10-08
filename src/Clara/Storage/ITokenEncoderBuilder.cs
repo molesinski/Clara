@@ -1,9 +1,11 @@
-﻿namespace Clara.Storage
+﻿using Clara.Analysis;
+
+namespace Clara.Storage
 {
     internal interface ITokenEncoderBuilder
     {
         ITokenEncoder Build();
 
-        int Encode(string token);
+        int Encode(Token token);
     }
 }

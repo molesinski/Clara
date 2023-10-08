@@ -1,4 +1,5 @@
-﻿using Clara.Analysis.Synonyms;
+﻿using Clara.Analysis;
+using Clara.Analysis.Synonyms;
 using Clara.Mapping;
 using Clara.Storage;
 using Clara.Utils;
@@ -161,7 +162,7 @@ namespace Clara
             }
 
             var documentKey = this.indexMapper.GetDocumentKey(item);
-            var documentId = this.tokenEncoderBuilder.Encode(documentKey);
+            var documentId = this.tokenEncoderBuilder.Encode(new Token(documentKey));
 
             ref var document = ref this.documentMap.GetValueRefOrAddDefault(documentId, out var exists);
 

@@ -1,4 +1,5 @@
-﻿using Clara.Analysis.MatchExpressions;
+﻿using Clara.Analysis;
+using Clara.Analysis.MatchExpressions;
 using Clara.Mapping;
 using Clara.Querying;
 using Clara.Storage;
@@ -24,7 +25,7 @@ namespace Clara
 
         public static ObjectPool<ListSlim<MatchExpression>> MatchExpressions { get; } = new(() => new(), sizeFactor: 2);
 
-        public static ObjectPool<ListSlim<string>> MatchTokens { get; } = new(() => new(), sizeFactor: 3);
+        public static ObjectPool<ListSlim<Token>> MatchTokens { get; } = new(() => new(), sizeFactor: 3);
 
         public static ObjectPool<ListSlim<int>> Documents { get; } = new(() => new());
 

@@ -1,4 +1,5 @@
-﻿using Clara.Mapping;
+﻿using Clara.Analysis;
+using Clara.Mapping;
 using Clara.Utils;
 
 namespace Clara.Storage
@@ -17,16 +18,16 @@ namespace Clara.Storage
 
         private sealed class TokenEncoderBuilder : ITokenEncoderBuilder
         {
-            private readonly DictionarySlim<string, int> encoder = new();
+            private readonly DictionarySlim<Token, int> encoder = new();
             private readonly DictionarySlim<int, string> decoder = new();
             private int nextId = 1;
             private bool isBuilt;
 
-            public int Encode(string token)
+            public int Encode(Token token)
             {
-                if (token is null)
+                if (token.Length == 0)
                 {
-                    throw new ArgumentNullException(nameof(token));
+                    throw new ArgumentException("Token must be not empty.", nameof(token));
                 }
 
                 if (this.isBuilt)
@@ -34,16 +35,16 @@ namespace Clara.Storage
                     throw new InvalidOperationException("Current instance is already built.");
                 }
 
-                ref var id = ref this.encoder.GetValueRefOrAddDefault(token, out var exists);
-
-                if (!exists)
+                if (this.encoder.TryGetValue(token, out var id))
                 {
-                    id = this.nextId++;
-
-                    ref var value = ref this.decoder.GetValueRefOrAddDefault(id, out _);
-
-                    value = token;
+                    return id;
                 }
+
+                var value = token.ToString();
+
+                id = this.nextId++;
+                this.encoder[new Token(value)] = id;
+                this.decoder[id] = value;
 
                 return id;
             }
@@ -64,11 +65,11 @@ namespace Clara.Storage
 
             private sealed class TokenEncoder : ITokenEncoder
             {
-                private readonly DictionarySlim<string, int> encoder;
+                private readonly DictionarySlim<Token, int> encoder;
                 private readonly DictionarySlim<int, string> decoder;
 
                 public TokenEncoder(
-                    DictionarySlim<string, int> encoder,
+                    DictionarySlim<Token, int> encoder,
                     DictionarySlim<int, string> decoder)
                 {
                     if (encoder is null)
@@ -85,19 +86,29 @@ namespace Clara.Storage
                     this.decoder = decoder;
                 }
 
-                public bool TryEncode(string token, out int id)
+                public bool TryEncode(Token token, out int id)
                 {
                     return this.encoder.TryGetValue(token, out id);
                 }
 
+                public Token? ToReadOnly(Token token)
+                {
+                    if (this.encoder.TryGetValue(token, out var id))
+                    {
+                        return new Token(this.decoder[id]);
+                    }
+
+                    return null;
+                }
+
                 public string Decode(int id)
                 {
-                    if (!this.decoder.TryGetValue(id, out var token))
+                    if (!this.decoder.TryGetValue(id, out var value))
                     {
                         throw new InvalidOperationException("Specified id does not correspond to any encoded token.");
                     }
 
-                    return token;
+                    return value.ToString();
                 }
             }
         }

@@ -6,7 +6,7 @@
         {
             private sealed class TokenAggregate
             {
-                private readonly string synonymToken = string.Concat("__SYNONYM__", Guid.NewGuid().ToString("N"));
+                private readonly Token synonymToken = new Token(string.Concat("__SYNONYM__", Guid.NewGuid().ToString("N")));
                 private readonly HashSet<TokenNode> nodes = new();
                 private readonly HashSet<TokenNode> mappedTo = new();
                 private readonly HashSet<TokenNode> mappedFrom = new();
@@ -25,7 +25,7 @@
                     this.nodes.Add(node);
                 }
 
-                public string SynonymToken
+                public Token SynonymToken
                 {
                     get
                     {

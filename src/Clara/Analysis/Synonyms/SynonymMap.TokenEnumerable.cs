@@ -6,7 +6,7 @@ namespace Clara.Analysis.Synonyms
     public sealed partial class SynonymMap
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "By design")]
-        public readonly record struct TokenEnumerable : IEnumerable<string>
+        public readonly record struct TokenEnumerable : IEnumerable<Token>
         {
             private static readonly ObjectPool<Enumerator> Pool = new(() => new());
 
@@ -19,7 +19,7 @@ namespace Clara.Analysis.Synonyms
                 this.text = text;
             }
 
-            public IEnumerator<string> GetEnumerator()
+            public IEnumerator<Token> GetEnumerator()
             {
                 var lease = Pool.Lease();
 
@@ -28,7 +28,7 @@ namespace Clara.Analysis.Synonyms
                 return lease.Instance;
             }
 
-            IEnumerator<string> IEnumerable<string>.GetEnumerator()
+            IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
             {
                 return this.GetEnumerator();
             }
@@ -38,7 +38,7 @@ namespace Clara.Analysis.Synonyms
                 return this.GetEnumerator();
             }
 
-            private sealed class Enumerator : IEnumerator<string>
+            private sealed class Enumerator : IEnumerator<Token>
             {
                 private ObjectPoolLease<Enumerator>? lease;
                 private IAnalyzer analyzer = default!;
@@ -46,11 +46,11 @@ namespace Clara.Analysis.Synonyms
                 private string text = default!;
                 private bool isEmpty;
                 private SynonymResultEnumerable.Enumerator synonymResultEnumerator;
-                private ListSlim<string>.Enumerator replacementTokenEnumerator;
-                private string current = default!;
+                private ListSlim<Token>.Enumerator replacementTokenEnumerator;
+                private Token current;
                 private int state;
 
-                public string Current
+                public Token Current
                 {
                     get
                     {
@@ -75,7 +75,7 @@ namespace Clara.Analysis.Synonyms
                     this.isEmpty = string.IsNullOrWhiteSpace(text);
                     this.synonymResultEnumerator = default;
                     this.replacementTokenEnumerator = default;
-                    this.current = default!;
+                    this.current = default;
                     this.state = 0;
                 }
 
@@ -83,14 +83,14 @@ namespace Clara.Analysis.Synonyms
                 {
                     if (this.isEmpty)
                     {
-                        this.current = default!;
+                        this.current = default;
 
                         return false;
                     }
 
                     if (this.state == 0)
                     {
-                        this.synonymResultEnumerator = new SynonymResultEnumerable(this.root, new StringEnumerable(this.analyzer.GetTokens(this.text))).GetEnumerator();
+                        this.synonymResultEnumerator = new SynonymResultEnumerable(this.root, new PrimitiveEnumerable<Token>(this.analyzer.GetTokens(this.text))).GetEnumerator();
                         this.state = 1;
                     }
 
@@ -126,7 +126,7 @@ namespace Clara.Analysis.Synonyms
                             this.replacementTokenEnumerator = default;
                             this.state = 1;
                         }
-                        else if (this.synonymResultEnumerator.Current.Token is string token)
+                        else if (this.synonymResultEnumerator.Current.Token is Token token)
                         {
                             this.current = token;
 
@@ -134,7 +134,7 @@ namespace Clara.Analysis.Synonyms
                         }
                     }
 
-                    this.current = default!;
+                    this.current = default;
 
                     return false;
                 }
@@ -155,7 +155,7 @@ namespace Clara.Analysis.Synonyms
                         this.state = 0;
                     }
 
-                    this.current = default!;
+                    this.current = default;
                 }
 
                 public void Dispose()

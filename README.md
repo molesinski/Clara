@@ -316,7 +316,6 @@ public static IAnalyzer PolishAnalyzer { get; } =
         new BasicTokenizer(),             // Splits text into tokens
         new LowerInvariantTokenFilter(),  // Transforms into lower case
         new PolishStopTokenFilter(),      // Language specific stop words default exclusion set
-        new StringPoolTokenFilter(),      // Prevents new string instance creation
         new LengthKeywordTokenFilter(),   // Exclude from stemming tokens with length less then 2
         new DigitsKeywordTokenFilter(),   // Exclude from stemming tokens containing digits
         new PolishStemTokenFilter());     // Language specific token stemming
@@ -338,7 +337,7 @@ Index and query benchmarks and tests are performed using sample 100 product data
 variants with `x100` suffix are based on data set multiplied 100 times.
 
 ```
-BenchmarkDotNet v0.13.9+228a464e8be6c580ad9408e98f18813f6407fb5a, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
+BenchmarkDotNet v0.13.9, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 12th Gen Intel Core i9-12900K, 1 CPU, 24 logical and 16 physical cores
 .NET SDK 7.0.308
   [Host]     : .NET 7.0.11 (7.0.1123.42427), X64 RyuJIT AVX2 DEBUG
@@ -347,42 +346,39 @@ BenchmarkDotNet v0.13.9+228a464e8be6c580ad9408e98f18813f6407fb5a, Windows 11 (10
 
 ### Tokenization Benchmarks
 
-| Method           | Mean      | Error     | StdDev   | Allocated |
-|----------------- |----------:|----------:|---------:|----------:|
-| TokenizerEmpty   |  30.20 ns |  0.150 ns | 0.008 ns |         - |
-| TokenizerPhrase  | 209.64 ns | 18.007 ns | 0.987 ns |      32 B |
-| AnalyzerEmpty    |  29.41 ns |  1.069 ns | 0.059 ns |         - |
-| AnalyzerPhrase   | 539.89 ns | 10.665 ns | 0.585 ns |      64 B |
-| SynonymMapEmpty  |  31.77 ns |  3.454 ns | 0.189 ns |         - |
-| SynonymMapPhrase | 873.73 ns | 20.561 ns | 1.127 ns |      96 B |
+| Method         | Mean       | Error     | StdDev  | Allocated |
+|--------------- |-----------:|----------:|--------:|----------:|
+| BasicTokenizer |   208.1 ns |  35.12 ns | 1.92 ns |      32 B |
+| PorterAnalyzer |   848.7 ns |  41.35 ns | 2.27 ns |      64 B |
+| SynonymMap     | 1,320.6 ns | 135.09 ns | 7.40 ns |      96 B |
 
 ### Indexing Benchmarks
 
-| Method           | Mean        | Error        | StdDev      | Allocated   |
-|----------------- |------------:|-------------:|------------:|------------:|
-| Index_x100       | 67,241.6 μs | 35,560.05 μs | 1,949.17 μs | 30073.90 KB |
-| Index            |    513.3 μs |     29.57 μs |     1.62 μs |   527.58 KB |
-| IndexShared_x100 | 63,551.3 μs | 70,968.01 μs | 3,890.00 μs | 28782.81 KB |
-| IndexShared      |    488.3 μs |     28.25 μs |     1.55 μs |   474.88 KB |
+| Method           | Mean        | Error        | StdDev    | Allocated   |
+|----------------- |------------:|-------------:|----------:|------------:|
+| Index_x100       | 85,960.4 μs |  6,948.05 μs | 380.85 μs | 31359.42 KB |
+| Index            |    733.3 μs |     46.26 μs |   2.54 μs |   600.86 KB |
+| IndexShared_x100 | 80,592.0 μs | 10,784.78 μs | 591.15 μs | 29214.51 KB |
+| IndexShared      |    677.5 μs |    104.34 μs |   5.72 μs |   495.38 KB |
 
 ### Querying Benchmarks
 
 | Method            | Mean       | Error     | StdDev    | Allocated |
 |------------------ |-----------:|----------:|----------:|----------:|
-| QueryComplex_x100 | 430.782 μs | 3.7012 μs | 3.4621 μs |    1120 B |
-| QueryComplex      |  10.986 μs | 0.1126 μs | 0.1053 μs |    1120 B |
-| QuerySearch       |   6.433 μs | 0.0148 μs | 0.0139 μs |     568 B |
-| QueryFilter       |   1.131 μs | 0.0027 μs | 0.0025 μs |     432 B |
-| QueryFacet        |   9.523 μs | 0.0669 μs | 0.0626 μs |     632 B |
-| QuerySort         |   3.369 μs | 0.0064 μs | 0.0060 μs |     400 B |
-| Query             |   1.391 μs | 0.0043 μs | 0.0038 μs |     304 B |
+| QueryComplex_x100 | 431.477 μs | 2.4383 μs | 2.2808 μs |    1080 B |
+| QueryComplex      |  11.521 μs | 0.0715 μs | 0.0669 μs |    1080 B |
+| QuerySearch       |   6.698 μs | 0.0126 μs | 0.0118 μs |     528 B |
+| QueryFilter       |   1.125 μs | 0.0027 μs | 0.0026 μs |     432 B |
+| QueryFacet        |   9.436 μs | 0.0879 μs | 0.0822 μs |     632 B |
+| QuerySort         |   3.509 μs | 0.0105 μs | 0.0098 μs |     400 B |
+| Query             |   1.279 μs | 0.0022 μs | 0.0021 μs |     304 B |
 
 ### Memory Allocations
 
 Clara depends heavily on internal buffer pooling in order to provide minimal query execution memory
 footprint. Due to that fact, memory allocation per search execution is constant after initial buffer
 allocation. Although there are compromises being made regarding `Query` and `QueryResult` object
-allocations to provide ease of use. 
+allocations to provide ease of use and proper disposal of internal buffers. 
 
 ## License
 
