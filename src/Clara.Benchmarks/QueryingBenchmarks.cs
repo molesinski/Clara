@@ -7,7 +7,7 @@ using Clara.Querying;
 
 namespace Clara.Benchmarks
 {
-    [MemoryDiagnoser]
+    [MemoryDiagnoser(false)]
     public class QueryingBenchmarks
     {
         private const string AllTextPhrase = "__ALL";

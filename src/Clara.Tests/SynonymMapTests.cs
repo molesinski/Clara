@@ -190,23 +190,20 @@ namespace Clara.Tests
 
         private static bool IsMatching(ISynonymMap synonymMap, string search, SearchMode mode, string document, ITestOutputHelper? output)
         {
-            using var documentTokens = synonymMap.GetTokens(document);
-            using var searchTokens = synonymMap.Analyzer.GetTokens(search);
-
-            var documentTokensList = documentTokens.ToList();
+            var documentTokens = synonymMap.GetTokens(document).ToList();
 
             var matchExpression =
                 mode == SearchMode.All
-                    ? Match.All(ScoreAggregation.Sum, searchTokens)
-                    : Match.Any(ScoreAggregation.Sum, searchTokens);
+                    ? Match.All(ScoreAggregation.Sum, synonymMap.Analyzer.GetTokens(search))
+                    : Match.Any(ScoreAggregation.Sum, synonymMap.Analyzer.GetTokens(search));
 
             matchExpression = synonymMap.Process(matchExpression);
 
-            var isMatching = matchExpression.IsMatching(documentTokensList);
+            var isMatching = matchExpression.IsMatching(documentTokens);
 
             if (output is not null)
             {
-                output.WriteLine(string.Concat("Document: ", string.Join(", ", documentTokensList.Select(x => $"\"{x}\""))));
+                output.WriteLine(string.Concat("Document: ", string.Join(", ", documentTokens.Select(x => $"\"{x}\""))));
                 output.WriteLine(string.Concat("Expression: ", matchExpression.ToString()));
             }
 

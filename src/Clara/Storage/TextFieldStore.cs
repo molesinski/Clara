@@ -45,13 +45,12 @@ namespace Clara.Storage
 
             try
             {
-                using (var tokens = this.analyzer.GetTokens(searchExpression.Text))
-                {
-                    matchExpression =
-                        searchExpression.SearchMode == SearchMode.All
-                            ? Match.All(ScoreAggregation.Sum, tokens)
-                            : Match.Any(ScoreAggregation.Sum, tokens);
-                }
+                var tokens = this.analyzer.GetTokens(searchExpression.Text);
+
+                matchExpression =
+                    searchExpression.SearchMode == SearchMode.All
+                        ? Match.All(ScoreAggregation.Sum, tokens)
+                        : Match.Any(ScoreAggregation.Sum, tokens);
 
                 if (this.synonymMap is not null)
                 {

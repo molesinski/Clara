@@ -6,7 +6,8 @@ using Clara.Storage;
 
 namespace Clara.Benchmarks
 {
-    [MemoryDiagnoser]
+    [MemoryDiagnoser(false)]
+    [ShortRunJob]
     public class IndexingBenchmarks
     {
         private readonly SharedTokenEncoderStore sharedTokenEncoderStore;

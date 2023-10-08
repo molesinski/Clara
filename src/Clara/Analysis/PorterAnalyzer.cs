@@ -2,7 +2,7 @@
 {
     public sealed class PorterAnalyzer : IAnalyzer
     {
-        private readonly Analyzer analyzer;
+        private readonly IAnalyzer analyzer;
 
         public PorterAnalyzer()
             : this(keywords: Array.Empty<string>())
@@ -29,7 +29,7 @@
                     new PorterStemTokenFilter());
         }
 
-        public IDisposableEnumerable<string> GetTokens(string text)
+        public IEnumerable<string> GetTokens(string text)
         {
             return this.analyzer.GetTokens(text);
         }
