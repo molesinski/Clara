@@ -49,7 +49,7 @@ namespace Clara.Mapping
 
             if (!isFilterable && !isFacetable)
             {
-                throw new InvalidOperationException("Either filtering or faceting must be enabled for given field.");
+                throw new InvalidOperationException("Filtering or faceting must be enabled.");
             }
 
             this.Separator = separator.Trim();

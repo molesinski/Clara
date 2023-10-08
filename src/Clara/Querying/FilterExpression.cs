@@ -13,7 +13,7 @@ namespace Clara.Querying
 
             if (!field.IsFilterable)
             {
-                throw new ArgumentException("Filtering is not enabled for given field.", nameof(field));
+                throw new ArgumentException("Filtering is not enabled.", nameof(field));
             }
 
             this.Field = field;

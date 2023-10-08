@@ -13,7 +13,7 @@ namespace Clara.Querying
 
             if (!field.IsSortable)
             {
-                throw new ArgumentException("Sorting is not enabled for given field.", nameof(field));
+                throw new ArgumentException("Sorting is not enabled.", nameof(field));
             }
 
             if (sortDirection != SortDirection.Ascending && sortDirection != SortDirection.Descending)

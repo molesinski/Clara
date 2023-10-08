@@ -13,7 +13,7 @@ namespace Clara.Querying
 
             if (!field.IsFacetable)
             {
-                throw new ArgumentException("Faceting is not enabled for given field.", nameof(field));
+                throw new ArgumentException("Faceting is not enabled.", nameof(field));
             }
 
             this.Field = field;

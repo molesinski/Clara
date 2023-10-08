@@ -13,9 +13,14 @@ namespace Clara.Mapping
                 isFacetable: isFacetable,
                 isSortable: isSortable)
         {
+            if (!(minValue.CompareTo(maxValue) <= 0))
+            {
+                throw new ArgumentException("Min value has to be less or equal to max value.", nameof(minValue));
+            }
+
             if (!isFilterable && !isFacetable && !isSortable)
             {
-                throw new InvalidOperationException("Either filtering, faceting or sorting must be enabled for given field.");
+                throw new InvalidOperationException("Filtering, faceting or sorting must be enabled.");
             }
 
             this.MinValue = minValue;

@@ -50,23 +50,26 @@ namespace Clara.Storage
 
             foreach (var value in values)
             {
-                hadValues = true;
-
-                if (this.documentValues is not null)
+                if (this.minValue.CompareTo(value) <= 0 && value.CompareTo(this.maxValue) <= 0)
                 {
-                    this.documentValues.Add(new DocumentValue<TValue>(documentId, value));
-                }
+                    hadValues = true;
 
-                if (this.documentValueMinMax is not null)
-                {
-                    if (value.CompareTo(min) < 0)
+                    if (this.documentValues is not null)
                     {
-                        min = value;
+                        this.documentValues.Add(new DocumentValue<TValue>(documentId, value));
                     }
 
-                    if (value.CompareTo(max) > 0)
+                    if (this.documentValueMinMax is not null)
                     {
-                        max = value;
+                        if (value.CompareTo(min) < 0)
+                        {
+                            min = value;
+                        }
+
+                        if (value.CompareTo(max) > 0)
+                        {
+                            max = value;
+                        }
                     }
                 }
             }
