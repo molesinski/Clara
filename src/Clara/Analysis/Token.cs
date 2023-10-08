@@ -4,7 +4,7 @@ namespace Clara.Analysis
 {
     public struct Token : IEquatable<Token>
     {
-        public const int MaximumLength = 100;
+        public const int MaximumLength = 255;
 
         private readonly string? value;
         private readonly char[]? chars;
@@ -23,8 +23,7 @@ namespace Clara.Analysis
             }
 
             this.value = value;
-            this.chars = null;
-            this.length = 0;
+            this.length = value.Length;
         }
 
         public Token(char[] chars, int count)
@@ -44,27 +43,23 @@ namespace Clara.Analysis
                 throw new ArgumentException("Writeable tokens must have character buffer length greater than or equal to maximum token length.", nameof(chars));
             }
 
-            this.value = null;
             this.chars = chars;
             this.length = count;
+        }
+
+        public readonly bool IsEmpty
+        {
+            get
+            {
+                return this.length == 0;
+            }
         }
 
         public readonly int Length
         {
             get
             {
-                if (this.chars is not null)
-                {
-                    return this.length;
-                }
-                else if (this.value is not null)
-                {
-                    return this.value.Length;
-                }
-                else
-                {
-                    return 0;
-                }
+                return this.length;
             }
         }
 
@@ -72,28 +67,22 @@ namespace Clara.Analysis
         {
             get
             {
-                if (this.chars is not null)
-                {
-                    if (index < 0 || index >= this.length)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index));
-                    }
-
-                    return this.chars[index];
-                }
-                else if (this.value is not null)
-                {
-                    if (index < 0 || index >= this.value.Length)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index));
-                    }
-
-                    return this.value[index];
-                }
-                else
+                if (index < 0 || index >= this.length)
                 {
                     throw new ArgumentOutOfRangeException(nameof(index));
                 }
+
+                if (this.value is not null)
+                {
+                    return this.value[index];
+                }
+
+                if (this.chars is not null)
+                {
+                    return this.chars[index];
+                }
+
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             set
@@ -140,18 +129,17 @@ namespace Clara.Analysis
 
         public readonly ReadOnlySpan<char> AsReadOnlySpan()
         {
+            if (this.value is not null)
+            {
+                return this.value.AsSpan();
+            }
+
             if (this.chars is not null)
             {
                 return this.chars.AsSpan(0, this.length);
             }
-            else if (this.value is not null)
-            {
-                return this.value.AsSpan();
-            }
-            else
-            {
-                return ReadOnlySpan<char>.Empty;
-            }
+
+            return ReadOnlySpan<char>.Empty;
         }
 
         public readonly Token ToReadOnly()
@@ -349,21 +337,24 @@ namespace Clara.Analysis
 
         public readonly bool Equals(Token other)
         {
-            var a = this.AsReadOnlySpan();
-            var b = other.AsReadOnlySpan();
-
-            if (a.Length != b.Length)
+            if (this.length != other.length)
             {
                 return false;
             }
 
-            return a.SequenceEqual(b);
+            if (this.length == 0)
+            {
+                return true;
+            }
+
+            return this.AsReadOnlySpan().SequenceEqual(other.AsReadOnlySpan());
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1307:Specify StringComparison for clarity", Justification = "Intended comparison mode StringComparison.Ordinal ends up in the same call")]
         public override readonly int GetHashCode()
         {
 #if NET6_0_OR_GREATER
-            return string.GetHashCode(this.AsReadOnlySpan(), StringComparison.Ordinal);
+            return string.GetHashCode(this.AsReadOnlySpan());
 #else
             var span = this.AsReadOnlySpan();
 

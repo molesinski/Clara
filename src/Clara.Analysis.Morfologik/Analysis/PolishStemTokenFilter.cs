@@ -8,12 +8,6 @@ namespace Clara.Analysis
     public sealed class PolishStemTokenFilter : ITokenFilter
     {
         private static readonly ObjectPool<StemmerContext> Pool = new(() => new());
-        private readonly bool tokenOnEmptyStem;
-
-        public PolishStemTokenFilter(bool tokenOnEmptyStem = true)
-        {
-            this.tokenOnEmptyStem = tokenOnEmptyStem;
-        }
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
@@ -43,12 +37,7 @@ namespace Clara.Analysis
                 return token;
             }
 
-            if (this.tokenOnEmptyStem)
-            {
-                return token;
-            }
-
-            return default;
+            return token;
         }
 
         private sealed class StemmerContext

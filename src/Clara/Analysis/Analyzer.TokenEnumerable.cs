@@ -92,7 +92,7 @@ namespace Clara.Analysis
 
                         token = this.pipeline(token);
 
-                        if (token.Length > 0)
+                        if (!token.IsEmpty)
                         {
                             this.current = token;
 

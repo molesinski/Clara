@@ -29,7 +29,7 @@ namespace Clara.Analysis.Synonyms
                     throw new ArgumentNullException(nameof(parent));
                 }
 
-                if (token.Length == 0)
+                if (token.IsEmpty)
                 {
                     throw new ArgumentException("Token must be not empty.", nameof(token));
                 }

@@ -52,7 +52,7 @@ namespace Clara.Storage
 
             public int Encode(Token token)
             {
-                if (token.Length == 0)
+                if (token.IsEmpty)
                 {
                     throw new ArgumentException("Token must be not empty.", nameof(token));
                 }

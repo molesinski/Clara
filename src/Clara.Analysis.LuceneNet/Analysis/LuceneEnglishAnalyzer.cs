@@ -137,7 +137,7 @@ namespace Clara.Analysis
                     {
                         var token = this.enumerator.Current;
 
-                        if (token.Length > 0)
+                        if (!token.IsEmpty)
                         {
                             this.current = token;
 
