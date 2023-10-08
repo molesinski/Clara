@@ -8,22 +8,22 @@ namespace Clara.Analysis
     public readonly struct TokenStreamEnumerable : IEnumerable<Token>
     {
         private readonly TokenStream tokenStream;
-        private readonly char[] chars;
+        private readonly char[] buffer;
 
-        public TokenStreamEnumerable(TokenStream tokenStream, char[] chars)
+        public TokenStreamEnumerable(TokenStream tokenStream, char[] buffer)
         {
             if (tokenStream is null)
             {
                 throw new ArgumentNullException(nameof(tokenStream));
             }
 
-            if (chars is null)
+            if (buffer is null)
             {
-                throw new ArgumentNullException(nameof(chars));
+                throw new ArgumentNullException(nameof(buffer));
             }
 
             this.tokenStream = tokenStream;
-            this.chars = chars;
+            this.buffer = buffer;
         }
 
         public readonly Enumerator GetEnumerator()
@@ -45,17 +45,15 @@ namespace Clara.Analysis
         {
             private readonly TokenStream tokenStream;
             private readonly ICharTermAttribute charTermAttribute;
-            private readonly char[] chars;
-            private bool isStarted;
             private Token current;
+            private bool isStarted;
 
             internal Enumerator(TokenStreamEnumerable source)
             {
                 this.tokenStream = source.tokenStream;
                 this.charTermAttribute = source.tokenStream.GetAttribute<ICharTermAttribute>();
-                this.chars = source.chars;
+                this.current = new(source.buffer, 0);
                 this.isStarted = false;
-                this.current = default;
             }
 
             public readonly Token Current
@@ -84,21 +82,12 @@ namespace Clara.Analysis
 
                 if (this.tokenStream.IncrementToken())
                 {
-                    if (this.charTermAttribute.Length == 0)
-                    {
-                        this.current = default;
-
-                        return true;
-                    }
-
-                    var length = this.charTermAttribute.Length;
-
-                    Array.Copy(this.charTermAttribute.Buffer, this.chars, length);
-
-                    this.current = new Token(this.chars, length);
+                    this.current.Set(this.charTermAttribute.Buffer.AsSpan(0, this.charTermAttribute.Length));
 
                     return true;
                 }
+
+                this.current.Clear();
 
                 return false;
             }
@@ -111,12 +100,14 @@ namespace Clara.Analysis
                 }
 
                 this.isStarted = false;
-                this.current = default;
+                this.current.Clear();
             }
 
             public void Dispose()
             {
                 this.Reset();
+
+                this.tokenStream.Dispose();
             }
         }
     }

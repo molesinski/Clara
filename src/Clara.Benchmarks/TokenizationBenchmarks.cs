@@ -10,14 +10,14 @@ namespace Clara.Benchmarks
     {
         private const string Phrase = "The quick brown fox jumps over the lazy dog";
 
-        private readonly ITokenizer tokenizer;
-        private readonly IAnalyzer analyzer;
+        private readonly ITokenizer basicTokenizer;
+        private readonly IAnalyzer porterAnalyzer;
         private readonly ISynonymMap synonymMap;
 
         public TokenizationBenchmarks()
         {
-            this.tokenizer = new BasicTokenizer();
-            this.analyzer = new PorterAnalyzer();
+            this.basicTokenizer = new BasicTokenizer();
+            this.porterAnalyzer = new PorterAnalyzer();
             this.synonymMap =
                 new SynonymMap(
                     new PorterAnalyzer(),
@@ -28,52 +28,25 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void TokenizerEmpty()
+        public void BasicTokenizer()
         {
-            foreach (var token in this.tokenizer.GetTokens(string.Empty))
+            foreach (var token in this.basicTokenizer.GetTokens(Phrase))
             {
                 _ = token;
             }
         }
 
         [Benchmark]
-        public void TokenizerPhrase()
+        public void PorterAnalyzer()
         {
-            foreach (var token in this.tokenizer.GetTokens(Phrase))
+            foreach (var token in this.porterAnalyzer.GetTokens(Phrase))
             {
                 _ = token;
             }
         }
 
         [Benchmark]
-        public void AnalyzerEmpty()
-        {
-            foreach (var token in this.analyzer.GetTokens(string.Empty))
-            {
-                _ = token;
-            }
-        }
-
-        [Benchmark]
-        public void AnalyzerPhrase()
-        {
-            foreach (var token in this.analyzer.GetTokens(Phrase))
-            {
-                _ = token;
-            }
-        }
-
-        [Benchmark]
-        public void SynonymMapEmpty()
-        {
-            foreach (var token in this.synonymMap.GetTokens(string.Empty))
-            {
-                _ = token;
-            }
-        }
-
-        [Benchmark]
-        public void SynonymMapPhrase()
+        public void SynonymMap()
         {
             foreach (var token in this.synonymMap.GetTokens(Phrase))
             {

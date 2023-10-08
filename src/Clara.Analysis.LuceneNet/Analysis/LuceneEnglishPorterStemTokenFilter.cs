@@ -1,5 +1,5 @@
-﻿using System.Collections;
-using Clara.Utils;
+﻿using Clara.Utils;
+using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.En;
 
 namespace Clara.Analysis
@@ -12,51 +12,36 @@ namespace Clara.Analysis
         {
             using var context = Pool.Lease();
 
-            context.Instance.SetToken(token);
-
-            foreach (var stem in context.Instance)
+            foreach (var stem in new ReadOnlyTokenStreamEnumerable(context.Instance.GetTokenStream(token)))
             {
                 return stem;
             }
 
-            return default;
+            return token;
         }
 
-        private sealed class OperationContext : IEnumerable<Token>, IDisposable
+        private sealed class OperationContext : IDisposable
         {
-            private readonly SingleTokenStream stringStream;
+            private readonly SingleTokenStream tokenStream;
             private readonly PorterStemFilter stemmer;
 
             public OperationContext()
             {
-                this.stringStream = new SingleTokenStream();
-                this.stemmer = new PorterStemFilter(this.stringStream);
+                this.tokenStream = new SingleTokenStream();
+                this.stemmer = new PorterStemFilter(this.tokenStream);
             }
 
-            public void SetToken(Token token)
+            public TokenStream GetTokenStream(Token token)
             {
-                this.stringStream.SetToken(token);
-            }
+                this.tokenStream.SetToken(token);
 
-            public ReadOnlyTokenStreamEnumerable.Enumerator GetEnumerator()
-            {
-                return new ReadOnlyTokenStreamEnumerable(this.stemmer).GetEnumerator();
-            }
-
-            IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
-            {
-                return new ReadOnlyTokenStreamEnumerable(this.stemmer).GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return new ReadOnlyTokenStreamEnumerable(this.stemmer).GetEnumerator();
+                return this.stemmer;
             }
 
             public void Dispose()
             {
                 this.stemmer.Dispose();
-                this.stringStream.Dispose();
+                this.tokenStream.Dispose();
             }
         }
     }

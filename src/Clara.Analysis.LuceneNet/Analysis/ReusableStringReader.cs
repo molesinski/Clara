@@ -1,17 +1,17 @@
 ﻿namespace Clara.Analysis
 {
-    public sealed class SettableStringReader : TextReader
+    public sealed class ReusableStringReader : TextReader
     {
         private string text;
         private int position;
 
-        public SettableStringReader()
+        public ReusableStringReader()
         {
             this.text = string.Empty;
             this.position = 0;
         }
 
-        public void Set(string text)
+        public void SetText(string text)
         {
             if (text is null)
             {
