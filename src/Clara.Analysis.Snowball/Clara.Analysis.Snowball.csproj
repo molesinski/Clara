@@ -37,6 +37,7 @@
     <None Remove="Analysis\SwedishStopTokenFilter.txt" />
     <None Remove="Analysis\TamilStopTokenFilter.txt" />
     <None Remove="Analysis\TurkishStopTokenFilter.txt" />
+    <None Remove="Analysis\YiddishStopTokenFilter.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -67,6 +68,7 @@
     <EmbeddedResource Include="Analysis\SwedishStopTokenFilter.txt" />
     <EmbeddedResource Include="Analysis\TamilStopTokenFilter.txt" />
     <EmbeddedResource Include="Analysis\TurkishStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\YiddishStopTokenFilter.txt" />
   </ItemGroup>
 
   <ItemGroup>

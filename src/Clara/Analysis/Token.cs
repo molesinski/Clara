@@ -191,6 +191,28 @@ namespace Clara.Analysis
             this.length = chars.Length;
         }
 
+        public void Set(StringBuilder builder)
+        {
+            if (this.chars is null)
+            {
+                throw new InvalidOperationException("Read only tokens cannot be modified.");
+            }
+
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (builder.Length > MaximumLength)
+            {
+                throw new ArgumentException("Written length would exceed token maximum length.", nameof(builder));
+            }
+
+            builder.CopyTo(0, this.chars, 0, builder.Length);
+
+            this.length = builder.Length;
+        }
+
         public void Append(string chars)
         {
             this.Append(chars.AsSpan());

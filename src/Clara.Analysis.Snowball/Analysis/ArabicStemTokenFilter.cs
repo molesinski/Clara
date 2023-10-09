@@ -1,24 +1,8 @@
-﻿using Clara.Utils;
-using Snowball;
+﻿using Snowball;
 
 namespace Clara.Analysis
 {
-    public sealed class ArabicStemTokenFilter : ITokenFilter
+    public sealed class ArabicStemTokenFilter : SnowballStemTokenFilter<ArabicStemmer>
     {
-        private static readonly ObjectPool<ArabicStemmer> Pool = new(() => new());
-
-        public Token Process(Token token, TokenFilterDelegate next)
-        {
-            using var stemmer = Pool.Lease();
-
-            var stem = stemmer.Instance.Stem(token.ToString());
-
-            if (stem.Length > 0)
-            {
-                return new Token(stem);
-            }
-
-            return default;
-        }
     }
 }
