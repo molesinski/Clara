@@ -19,7 +19,7 @@ namespace Clara.Analysis.MatchExpressions
 
         public abstract IReadOnlyCollection<MatchExpression> Expressions { get; }
 
-        public override bool IsMatching(IReadOnlyCollection<Token> tokens)
+        public override bool IsMatching(IReadOnlyCollection<string> tokens)
         {
             foreach (var expression in (ListSlim<MatchExpression>)this.Expressions)
             {

@@ -9,7 +9,7 @@ namespace Clara.Analysis
     {
         private static readonly ObjectPool<StemmerContext> Pool = new(() => new());
 
-        public Token Process(Token token, TokenFilterDelegate next)
+        public void Process(in Token token, TokenFilterDelegate next)
         {
             using var stemmerContext = Pool.Lease();
 
@@ -32,12 +32,13 @@ namespace Clara.Analysis
                 var encoding = stemmer.Dictionary.Metadata.Decoder;
                 var charCount = encoding.GetChars(buffer.Array, buffer.ArrayOffset, buffer.Limit, chars, 0);
 
-                token.Set(chars.AsSpan(0, charCount));
+                if (charCount > 0 && charCount <= Token.MaximumLength)
+                {
+                    token.Set(chars.AsSpan(0, charCount));
+                }
 
-                return token;
+                break;
             }
-
-            return token;
         }
 
         private sealed class StemmerContext

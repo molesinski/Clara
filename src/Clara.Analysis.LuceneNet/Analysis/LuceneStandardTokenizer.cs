@@ -168,9 +168,11 @@ namespace Clara.Analysis
                 {
                     this.Reset();
 
-                    this.lease?.Dispose();
-                    this.lease = null;
                     this.isEmpty = default;
+
+                    var lease = this.lease;
+                    this.lease = null;
+                    lease?.Dispose();
                 }
             }
         }

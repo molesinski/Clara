@@ -2,15 +2,15 @@
 {
     public sealed partial class SynonymMap
     {
-        private readonly struct SynonymResult
+        private readonly struct SynonymTokenResult
         {
-            public SynonymResult(string token)
+            public SynonymTokenResult(Token token)
             {
                 this.Token = token;
                 this.Node = null;
             }
 
-            public SynonymResult(TokenNode node)
+            public SynonymTokenResult(TokenNode node)
             {
                 if (node is null)
                 {
@@ -21,7 +21,7 @@
                 this.Node = node;
             }
 
-            public string? Token { get; }
+            public Token? Token { get; }
 
             public TokenNode? Node { get; }
         }

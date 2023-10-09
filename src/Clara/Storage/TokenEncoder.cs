@@ -34,11 +34,11 @@ namespace Clara.Storage
             return this.encoder.TryGetValue(value, out id);
         }
 
-        public Token? ToReadOnly(Token token)
+        public string? ToReadOnly(Token token)
         {
             if (this.pool.TryGet(token.AsReadOnlySpan(), out var value))
             {
-                return new Token(value);
+                return value;
             }
 
             return null;

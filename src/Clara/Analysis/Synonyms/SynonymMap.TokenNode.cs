@@ -7,34 +7,34 @@ namespace Clara.Analysis.Synonyms
     {
         private sealed partial class TokenNode
         {
-            private static readonly ListSlim<Token> EmptyTokenPath = new();
+            private static readonly ListSlim<string> EmptyTokenPath = new();
 
-            private readonly Dictionary<Token, TokenNode> children = new();
+            private readonly Dictionary<string, TokenNode> children = new();
             private readonly TokenNode? parent;
-            private readonly Token? token;
-            private readonly ListSlim<Token> tokenPath = EmptyTokenPath;
+            private readonly string? token;
+            private readonly ListSlim<string> tokenPath = EmptyTokenPath;
             private TokenAggregate aggregate;
             private MatchExpression? matchExpression;
-            private ListSlim<Token>? replacementTokens;
+            private ListSlim<string>? replacementTokens;
 
             private TokenNode()
             {
                 this.aggregate = new(this);
             }
 
-            private TokenNode(TokenNode parent, Token token)
+            private TokenNode(TokenNode parent, string token)
             {
                 if (parent is null)
                 {
                     throw new ArgumentNullException(nameof(parent));
                 }
 
-                if (token.IsEmpty)
+                if (token is null)
                 {
-                    throw new ArgumentException("Token must be not empty.", nameof(token));
+                    throw new ArgumentNullException(nameof(token));
                 }
 
-                var tokenPath = new ListSlim<Token>(parent.tokenPath);
+                var tokenPath = new ListSlim<string>(parent.tokenPath);
 
                 tokenPath.Add(token);
 
@@ -44,7 +44,7 @@ namespace Clara.Analysis.Synonyms
                 this.aggregate = new(this);
             }
 
-            public IReadOnlyDictionary<Token, TokenNode> Children
+            public IReadOnlyDictionary<string, TokenNode> Children
             {
                 get
                 {
@@ -65,7 +65,7 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public Token Token
+            public string Token
             {
                 get
                 {
@@ -74,7 +74,7 @@ namespace Clara.Analysis.Synonyms
                         throw new InvalidOperationException("Unable to retrieve token value for root token node.");
                     }
 
-                    return this.token.Value;
+                    return this.token;
                 }
             }
 
@@ -103,7 +103,7 @@ namespace Clara.Analysis.Synonyms
                     if (this.matchExpression is null)
                     {
                         var expressions = new ListSlim<MatchExpression>();
-                        var synonymTokens = new HashSetSlim<Token>();
+                        var synonymTokens = new HashSetSlim<string>();
 
                         if (this.aggregate.MappedFrom.Count > 0 || this.aggregate.Nodes.Count > 1)
                         {
@@ -137,14 +137,14 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public ListSlim<Token> ReplacementTokens
+            public ListSlim<string> ReplacementTokens
             {
                 get
                 {
                     if (this.replacementTokens is null)
                     {
-                        var replacementTokens = new ListSlim<Token>();
-                        var synonymTokens = new HashSetSlim<Token>();
+                        var replacementTokens = new ListSlim<string>();
+                        var synonymTokens = new HashSetSlim<string>();
 
                         if (this.aggregate.MappedFrom.Count > 0 || this.aggregate.Nodes.Count > 1)
                         {
@@ -235,15 +235,15 @@ namespace Clara.Analysis.Synonyms
 
                 return root;
 
-                IEnumerable<ListSlim<Token>> GetTokenPermutations(HashSetSlim<string> phrases, StringPoolSlim stringPool)
+                IEnumerable<ListSlim<string>> GetTokenPermutations(HashSetSlim<string> phrases, StringPoolSlim stringPool)
                 {
                     foreach (var phrase in phrases)
                     {
-                        var tokens = new ListSlim<Token>();
+                        var tokens = new ListSlim<string>();
 
                         foreach (var token in analyzer.GetTokens(phrase))
                         {
-                            tokens.Add(new Token(stringPool.GetOrAdd(token)));
+                            tokens.Add(stringPool.GetOrAdd(token));
                         }
 
                         if (tokens.Count > 0)

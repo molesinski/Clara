@@ -61,9 +61,8 @@
         private static TokenFilterDelegate CreatePipeline(IEnumerable<ITokenFilter> filters)
         {
             TokenFilterDelegate pipeline =
-                token =>
+                (in Token token) =>
                 {
-                    return token;
                 };
 
             foreach (var filter in filters.Reverse())
@@ -73,9 +72,9 @@
                     var next = pipeline;
 
                     pipeline =
-                        token =>
+                        (in Token token) =>
                         {
-                            return filter.Process(token, next);
+                            filter.Process(in token, next);
                         };
                 }
             }

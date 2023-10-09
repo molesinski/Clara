@@ -7,6 +7,8 @@ namespace Clara.Storage
 {
     internal sealed class TextFieldStore : FieldStore
     {
+        private static readonly string InvalidToken = string.Concat("__INVALID__", Guid.NewGuid().ToString());
+
         private readonly TokenEncoder tokenEncoder;
         private readonly IAnalyzer analyzer;
         private readonly ISynonymMap? synonymMap;
@@ -59,7 +61,7 @@ namespace Clara.Storage
                     {
                         var value = this.tokenEncoder.ToReadOnly(token)
                                  ?? this.synonymMap?.ToReadOnly(token)
-                                 ?? default;
+                                 ?? InvalidToken;
 
                         tokens.Instance.Add(value);
                     }

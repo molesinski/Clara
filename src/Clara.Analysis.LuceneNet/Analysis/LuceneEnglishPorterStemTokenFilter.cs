@@ -8,16 +8,19 @@ namespace Clara.Analysis
     {
         private static readonly ObjectPool<OperationContext> Pool = new(() => new());
 
-        public Token Process(Token token, TokenFilterDelegate next)
+        public void Process(in Token token, TokenFilterDelegate next)
         {
             using var context = Pool.Lease();
 
             foreach (var stem in new ReadOnlyTokenStreamEnumerable(context.Instance.GetTokenStream(token)))
             {
-                return stem;
-            }
+                if (!stem.IsEmpty)
+                {
+                    token.Set(stem.AsReadOnlySpan());
+                }
 
-            return token;
+                break;
+            }
         }
 
         private sealed class OperationContext : IDisposable

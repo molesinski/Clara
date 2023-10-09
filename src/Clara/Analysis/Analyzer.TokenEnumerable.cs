@@ -90,7 +90,7 @@ namespace Clara.Analysis
                     {
                         var token = this.enumerator.Current;
 
-                        token = this.pipeline(token);
+                        this.pipeline(in token);
 
                         if (!token.IsEmpty)
                         {
@@ -116,12 +116,14 @@ namespace Clara.Analysis
                 {
                     this.Reset();
 
-                    this.lease?.Dispose();
-                    this.lease = null;
                     this.tokenizer = default!;
                     this.pipeline = default!;
                     this.text = default!;
                     this.isEmpty = default;
+
+                    var lease = this.lease;
+                    this.lease = null;
+                    lease?.Dispose();
                 }
             }
         }

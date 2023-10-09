@@ -111,13 +111,13 @@ namespace Clara.Analysis.Synonyms
                 using var tokens = SharedObjectPools.MatchTokens.Lease();
                 using var expressions = SharedObjectPools.MatchExpressions.Lease();
 
-                foreach (var synonymResult in new SynonymResultEnumerable(this.root, new PrimitiveEnumerable<Token>(allMatchExpression.Tokens)))
+                foreach (var synonymResult in new SynonymEnumerable(this, new StringEnumerable(allMatchExpression.Tokens)))
                 {
                     if (synonymResult.Node is TokenNode node)
                     {
                         expressions.Instance.Add(node.MatchExpression);
                     }
-                    else if (synonymResult.Token is Token token)
+                    else if (synonymResult.Token is string token)
                     {
                         tokens.Instance.Add(token);
                     }
@@ -156,13 +156,13 @@ namespace Clara.Analysis.Synonyms
                 using var tokens = SharedObjectPools.MatchTokens.Lease();
                 using var expressions = SharedObjectPools.MatchExpressions.Lease();
 
-                foreach (var synonymResult in new SynonymResultEnumerable(this.root, new PrimitiveEnumerable<Token>(anyMatchExpression.Tokens)))
+                foreach (var synonymResult in new SynonymEnumerable(this, new StringEnumerable(anyMatchExpression.Tokens)))
                 {
                     if (synonymResult.Node is TokenNode node)
                     {
                         expressions.Instance.Add(node.MatchExpression);
                     }
-                    else if (synonymResult.Token is Token token)
+                    else if (synonymResult.Token is string token)
                     {
                         tokens.Instance.Add(token);
                     }
@@ -202,11 +202,11 @@ namespace Clara.Analysis.Synonyms
             }
         }
 
-        public Token? ToReadOnly(Token token)
+        public string? ToReadOnly(Token token)
         {
             if (this.stringPool.TryGet(token, out var value))
             {
-                return new Token(value);
+                return value;
             }
 
             return null;

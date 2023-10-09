@@ -41,12 +41,12 @@ namespace Clara.Analysis.Synonyms
             private sealed class Enumerator : IEnumerator<Token>
             {
                 private ObjectPoolLease<Enumerator>? lease;
+                private SynonymMap synonymMap = default!;
                 private IAnalyzer analyzer = default!;
-                private TokenNode root = default!;
                 private string text = default!;
                 private bool isEmpty;
-                private SynonymResultEnumerable.Enumerator synonymResultEnumerator;
-                private ListSlim<Token>.Enumerator replacementTokenEnumerator;
+                private SynonymTokenEnumerable.Enumerator synonymResultEnumerator;
+                private ListSlim<string>.Enumerator replacementTokenEnumerator;
                 private Token current;
                 private int state;
 
@@ -69,8 +69,8 @@ namespace Clara.Analysis.Synonyms
                 public void Initialize(ObjectPoolLease<Enumerator> lease, SynonymMap synonymMap, string text)
                 {
                     this.lease = lease;
+                    this.synonymMap = synonymMap;
                     this.analyzer = synonymMap.analyzer;
-                    this.root = synonymMap.root;
                     this.text = text;
                     this.isEmpty = string.IsNullOrWhiteSpace(text);
                     this.synonymResultEnumerator = default;
@@ -90,7 +90,7 @@ namespace Clara.Analysis.Synonyms
 
                     if (this.state == 0)
                     {
-                        this.synonymResultEnumerator = new SynonymResultEnumerable(this.root, new PrimitiveEnumerable<Token>(this.analyzer.GetTokens(this.text))).GetEnumerator();
+                        this.synonymResultEnumerator = new SynonymTokenEnumerable(this.synonymMap, new PrimitiveEnumerable<Token>(this.analyzer.GetTokens(this.text))).GetEnumerator();
                         this.state = 1;
                     }
 
@@ -98,7 +98,7 @@ namespace Clara.Analysis.Synonyms
                     {
                         if (this.replacementTokenEnumerator.MoveNext())
                         {
-                            this.current = this.replacementTokenEnumerator.Current;
+                            this.current = new Token(this.replacementTokenEnumerator.Current);
 
                             return true;
                         }
@@ -117,7 +117,7 @@ namespace Clara.Analysis.Synonyms
 
                             if (this.replacementTokenEnumerator.MoveNext())
                             {
-                                this.current = this.replacementTokenEnumerator.Current;
+                                this.current = new Token(this.replacementTokenEnumerator.Current);
 
                                 return true;
                             }
@@ -162,12 +162,14 @@ namespace Clara.Analysis.Synonyms
                 {
                     this.Reset();
 
-                    this.lease?.Dispose();
-                    this.lease = null;
+                    this.synonymMap = default!;
                     this.analyzer = default!;
-                    this.root = default!;
                     this.text = default!;
                     this.isEmpty = default;
+
+                    var lease = this.lease;
+                    this.lease = null;
+                    lease?.Dispose();
                 }
             }
         }

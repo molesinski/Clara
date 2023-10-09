@@ -15,7 +15,7 @@ namespace Clara.Analysis.MatchExpressions
             return this;
         }
 
-        public override bool IsMatching(IReadOnlyCollection<Token> tokens)
+        public override bool IsMatching(IReadOnlyCollection<string> tokens)
         {
             return false;
         }

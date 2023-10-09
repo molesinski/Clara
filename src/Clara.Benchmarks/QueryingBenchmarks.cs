@@ -53,7 +53,7 @@ namespace Clara.Benchmarks
         public void QueryComplex_x100()
         {
             using var result = this.index_x100.Query(
-                this.index.QueryBuilder()
+                this.index_x100.QueryBuilder()
                     .Search(ProductMapper.Text, SearchMode.Any, AllNoneTextPhrase)
                     .Filter(ProductMapper.Brand, FilterMode.Any, this.topBrand)
                     .Filter(ProductMapper.Price, from: 1, to: this.maxPrice - 1)

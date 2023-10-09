@@ -17,11 +17,11 @@ namespace Clara.Analysis.MatchExpressions
 
         public ScoreAggregation ScoreAggregation { get; }
 
-        public abstract IReadOnlyCollection<Token> Tokens { get; }
+        public abstract IReadOnlyCollection<string> Tokens { get; }
 
-        public override bool IsMatching(IReadOnlyCollection<Token> tokens)
+        public override bool IsMatching(IReadOnlyCollection<string> tokens)
         {
-            foreach (var token in (ListSlim<Token>)this.Tokens)
+            foreach (var token in (ListSlim<string>)this.Tokens)
             {
                 if (tokens.Contains(token))
                 {
@@ -38,7 +38,7 @@ namespace Clara.Analysis.MatchExpressions
 
             var isFirst = true;
 
-            foreach (var token in (ListSlim<Token>)this.Tokens)
+            foreach (var token in (ListSlim<string>)this.Tokens)
             {
                 if (!isFirst)
                 {
@@ -46,7 +46,7 @@ namespace Clara.Analysis.MatchExpressions
                 }
 
                 builder.Append('"');
-                builder.Append(token.ToString());
+                builder.Append(token);
                 builder.Append('"');
 
                 isFirst = false;
@@ -58,17 +58,17 @@ namespace Clara.Analysis.MatchExpressions
 
     internal sealed class DisposableAnyMatchExpression : AnyMatchExpression
     {
-        private readonly ObjectPoolLease<ListSlim<Token>> tokens;
+        private readonly ObjectPoolLease<ListSlim<string>> tokens;
         private bool isDisposed;
 
-        internal DisposableAnyMatchExpression(ScoreAggregation scoreAggregation, ObjectPoolLease<ListSlim<Token>> tokens)
+        internal DisposableAnyMatchExpression(ScoreAggregation scoreAggregation, ObjectPoolLease<ListSlim<string>> tokens)
             : base(scoreAggregation)
         {
             this.tokens = tokens;
             this.isDisposed = false;
         }
 
-        public override IReadOnlyCollection<Token> Tokens
+        public override IReadOnlyCollection<string> Tokens
         {
             get
             {
@@ -90,7 +90,7 @@ namespace Clara.Analysis.MatchExpressions
 
             try
             {
-                var tokens = new ListSlim<Token>(this.tokens.Instance);
+                var tokens = new ListSlim<string>(this.tokens.Instance);
 
                 return new PersistentAnyMatchExpression(this.ScoreAggregation, tokens);
             }
@@ -114,9 +114,9 @@ namespace Clara.Analysis.MatchExpressions
 
     internal sealed class PersistentAnyMatchExpression : AnyMatchExpression
     {
-        private readonly ListSlim<Token> tokens;
+        private readonly ListSlim<string> tokens;
 
-        internal PersistentAnyMatchExpression(ScoreAggregation scoreAggregation, ListSlim<Token> tokens)
+        internal PersistentAnyMatchExpression(ScoreAggregation scoreAggregation, ListSlim<string> tokens)
             : base(scoreAggregation)
         {
             if (tokens is null)
@@ -127,7 +127,7 @@ namespace Clara.Analysis.MatchExpressions
             this.tokens = tokens;
         }
 
-        public override IReadOnlyCollection<Token> Tokens
+        public override IReadOnlyCollection<string> Tokens
         {
             get
             {

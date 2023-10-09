@@ -26,7 +26,7 @@
             this.maximumLength = maximumLength;
         }
 
-        public Token Process(Token token, TokenFilterDelegate next)
+        public void Process(in Token token, TokenFilterDelegate next)
         {
             if (next is null)
             {
@@ -37,10 +37,10 @@
 
             if (length < this.minimumLength || length > this.maximumLength)
             {
-                return token;
+                return;
             }
 
-            return next(token);
+            next(in token);
         }
     }
 }

@@ -182,13 +182,15 @@ namespace Clara.Analysis
                 {
                     this.Reset();
 
-                    this.lease?.Dispose();
-                    this.lease = null;
                     this.additionalWordCharacters = default;
                     this.wordConnectingCharacters = default;
                     this.numberConnectingCharacters = default;
                     this.text = default!;
                     this.isEmpty = default;
+
+                    var lease = this.lease;
+                    this.lease = null;
+                    lease?.Dispose();
                 }
 
                 private static bool IsNumber(char c)

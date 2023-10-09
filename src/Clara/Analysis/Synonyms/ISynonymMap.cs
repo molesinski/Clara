@@ -8,6 +8,6 @@ namespace Clara.Analysis.Synonyms
 
         MatchExpression Process(MatchExpression matchExpression);
 
-        Token? ToReadOnly(Token token);
+        string? ToReadOnly(Token token);
     }
 }
