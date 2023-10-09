@@ -84,35 +84,7 @@ namespace Clara.Storage
             }
         }
 
-        public void IntersectWith(Field? field, HashSetSlim<int> documents)
-        {
-            if (this.documents is null)
-            {
-                this.documents = SharedObjectPools.DocumentSets.Lease();
-                this.documents.Value.Instance.UnionWith(documents);
-            }
-            else
-            {
-                this.documents.Value.Instance.IntersectWith(documents);
-
-                if (this.facets is not null)
-                {
-                    var count = this.facets.Value.Instance.Count;
-
-                    for (var i = 0; i < count; i++)
-                    {
-                        var item = this.facets.Value.Instance[i];
-
-                        if (item.Field != field)
-                        {
-                            this.facets.Value.Instance[i] = item.IntersectWith(documents);
-                        }
-                    }
-                }
-            }
-        }
-
-        public void IntersectWith<TValue>(Field? field, DictionarySlim<int, TValue> documents)
+        public void IntersectWith<TValue>(DictionarySlim<int, TValue> documents)
         {
             if (this.documents is null)
             {
@@ -126,6 +98,31 @@ namespace Clara.Storage
             else
             {
                 this.documents.Value.Instance.IntersectWith(documents.Keys);
+
+                if (this.facets is not null)
+                {
+                    var count = this.facets.Value.Instance.Count;
+
+                    for (var i = 0; i < count; i++)
+                    {
+                        var item = this.facets.Value.Instance[i];
+
+                        this.facets.Value.Instance[i] = item.IntersectWith(documents);
+                    }
+                }
+            }
+        }
+
+        public void IntersectWith(Field? field, HashSetSlim<int> documents)
+        {
+            if (this.documents is null)
+            {
+                this.documents = SharedObjectPools.DocumentSets.Lease();
+                this.documents.Value.Instance.UnionWith(documents);
+            }
+            else
+            {
+                this.documents.Value.Instance.IntersectWith(documents);
 
                 if (this.facets is not null)
                 {

@@ -316,7 +316,6 @@ public static IAnalyzer PolishAnalyzer { get; } =
         new BasicTokenizer(),             // Splits text into tokens
         new LowerInvariantTokenFilter(),  // Transforms into lower case
         new PolishStopTokenFilter(),      // Language specific stop words default exclusion set
-        new LengthKeywordTokenFilter(),   // Exclude from stemming tokens with length less then 2
         new DigitsKeywordTokenFilter(),   // Exclude from stemming tokens containing digits
         new PolishStemTokenFilter());     // Language specific token stemming
 ```
@@ -346,32 +345,32 @@ BenchmarkDotNet v0.13.9, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 ### Tokenization Benchmarks
 
-| Method         | Mean       | Error     | StdDev  | Allocated |
-|--------------- |-----------:|----------:|--------:|----------:|
-| BasicTokenizer |   208.1 ns |  35.12 ns | 1.92 ns |      32 B |
-| PorterAnalyzer |   848.7 ns |  41.35 ns | 2.27 ns |      64 B |
-| SynonymMap     | 1,320.6 ns | 135.09 ns | 7.40 ns |      96 B |
+| Method         | Mean       | Error    | StdDev   | Allocated |
+|--------------- |-----------:|---------:|---------:|----------:|
+| BasicTokenizer |   234.3 ns |  0.36 ns |  0.32 ns |      32 B |
+| PorterAnalyzer |   866.6 ns |  2.23 ns |  2.08 ns |      64 B |
+| SynonymMap     | 1,364.2 ns | 21.62 ns | 20.23 ns |      96 B |
 
 ### Indexing Benchmarks
 
-| Method           | Mean        | Error        | StdDev    | Allocated   |
-|----------------- |------------:|-------------:|----------:|------------:|
-| Index_x100       | 85,960.4 μs |  6,948.05 μs | 380.85 μs | 31359.42 KB |
-| Index            |    733.3 μs |     46.26 μs |   2.54 μs |   600.86 KB |
-| IndexShared_x100 | 80,592.0 μs | 10,784.78 μs | 591.15 μs | 29214.51 KB |
-| IndexShared      |    677.5 μs |    104.34 μs |   5.72 μs |   495.38 KB |
+| Method           | Mean        | Error       | StdDev      | Allocated   |
+|----------------- |------------:|------------:|------------:|------------:|
+| Index_x100       | 85,078.6 μs | 1,694.27 μs | 3,683.20 μs | 29656.17 KB |
+| Index            |    757.4 μs |     8.17 μs |     7.64 μs |    636.1 KB |
+| IndexShared_x100 | 80,790.2 μs | 1,592.88 μs | 2,014.49 μs | 28372.99 KB |
+| IndexShared      |    701.6 μs |     3.14 μs |     2.78 μs |    522.8 KB |
 
 ### Querying Benchmarks
 
 | Method            | Mean       | Error     | StdDev    | Allocated |
 |------------------ |-----------:|----------:|----------:|----------:|
-| QueryComplex_x100 | 431.477 μs | 2.4383 μs | 2.2808 μs |    1080 B |
-| QueryComplex      |  11.521 μs | 0.0715 μs | 0.0669 μs |    1080 B |
-| QuerySearch       |   6.698 μs | 0.0126 μs | 0.0118 μs |     528 B |
-| QueryFilter       |   1.125 μs | 0.0027 μs | 0.0026 μs |     432 B |
-| QueryFacet        |   9.436 μs | 0.0879 μs | 0.0822 μs |     632 B |
-| QuerySort         |   3.509 μs | 0.0105 μs | 0.0098 μs |     400 B |
-| Query             |   1.279 μs | 0.0022 μs | 0.0021 μs |     304 B |
+| QueryComplex_x100 | 448.411 μs | 1.9624 μs | 1.8356 μs |    1080 B |
+| QueryComplex      |  12.082 μs | 0.1547 μs | 0.1447 μs |    1080 B |
+| QuerySearch       |   6.724 μs | 0.0207 μs | 0.0184 μs |     528 B |
+| QueryFilter       |   1.136 μs | 0.0020 μs | 0.0018 μs |     432 B |
+| QueryFacet        |   9.836 μs | 0.0316 μs | 0.0295 μs |     632 B |
+| QuerySort         |   3.569 μs | 0.0360 μs | 0.0337 μs |     400 B |
+| Query             |   1.392 μs | 0.0028 μs | 0.0024 μs |     304 B |
 
 ### Memory Allocations
 

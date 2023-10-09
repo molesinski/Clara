@@ -19,7 +19,7 @@ namespace Clara.Mapping
         public bool IsSortable { get; }
 
         internal abstract FieldStoreBuilder CreateFieldStoreBuilder(
-            TokenEncoderStore tokenEncoderStore,
+            TokenEncoderBuilder tokenEncoderBuilder,
             ISynonymMap? synonymMap);
     }
 }

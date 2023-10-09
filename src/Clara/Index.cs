@@ -1,5 +1,4 @@
-﻿using Clara.Analysis;
-using Clara.Mapping;
+﻿using Clara.Mapping;
 using Clara.Querying;
 using Clara.Storage;
 using Clara.Utils;
@@ -17,13 +16,13 @@ namespace Clara
 
     public sealed class Index<TDocument> : Index
     {
-        private readonly ITokenEncoder tokenEncoder;
+        private readonly TokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, TDocument> documentMap;
         private readonly Dictionary<Field, FieldStore> fieldStores;
         private readonly HashSetSlim<int> allDocuments;
 
         internal Index(
-            ITokenEncoder tokenEncoder,
+            TokenEncoder tokenEncoder,
             DictionarySlim<int, TDocument> documentMap,
             Dictionary<Field, FieldStore> fieldStores)
         {
@@ -77,6 +76,11 @@ namespace Clara
                 throw new ArgumentNullException(nameof(query));
             }
 
+            if (query.Index != this)
+            {
+                throw new InvalidOperationException("Query must be built off current index.");
+            }
+
             var documentResultBuilder = new DocumentResultBuilder(this.allDocuments);
             var documentScoring = default(DocumentScoring);
             var documentList = default(DocumentList);
@@ -89,7 +93,7 @@ namespace Clara
                 {
                     if (includedDocument is not null)
                     {
-                        if (this.tokenEncoder.TryEncode(new Token(includedDocument), out var documentId))
+                        if (this.tokenEncoder.TryEncode(includedDocument, out var documentId))
                         {
                             includedDocuments.Instance.Add(documentId);
                         }
@@ -107,11 +111,7 @@ namespace Clara
                 if (!searchExpression.IsEmpty)
                 {
                     var field = searchExpression.Field;
-
-                    if (!this.fieldStores.TryGetValue(field, out var store))
-                    {
-                        throw new InvalidOperationException("Search expression references field not belonging to current index.");
-                    }
+                    var store = this.fieldStores[field];
 
                     documentScoring = store.Search(searchExpression, ref documentResultBuilder);
                 }
@@ -153,11 +153,7 @@ namespace Clara
                     foreach (var filterExpression in filterExpressions.Instance)
                     {
                         var field = filterExpression.Field;
-
-                        if (!this.fieldStores.TryGetValue(field, out var store))
-                        {
-                            throw new InvalidOperationException("Filter expression references field not belonging to current index.");
-                        }
+                        var store = this.fieldStores[field];
 
                         if (filterExpression.IsBranchingRequiredForFaceting)
                         {
@@ -180,7 +176,7 @@ namespace Clara
                 {
                     if (excludeDocument is not null)
                     {
-                        if (this.tokenEncoder.TryEncode(new Token(excludeDocument), out var documentId))
+                        if (this.tokenEncoder.TryEncode(excludeDocument, out var documentId))
                         {
                             excludeDocuments.Instance.Add(documentId);
                         }
@@ -200,12 +196,7 @@ namespace Clara
                 foreach (var facetExpression in (ListSlim<FacetExpression>)query.Facets)
                 {
                     var field = facetExpression.Field;
-
-                    if (!this.fieldStores.TryGetValue(field, out var store))
-                    {
-                        throw new InvalidOperationException("Facet expression references field not belonging to current index.");
-                    }
-
+                    var store = this.fieldStores[field];
                     var fieldFilterExpression = default(FilterExpression);
 
                     foreach (var filterExpression in (ListSlim<FilterExpression>)query.Filters)
@@ -229,11 +220,7 @@ namespace Clara
                 if (query.Sort is SortExpression sortExpression)
                 {
                     var field = sortExpression.Field;
-
-                    if (!this.fieldStores.TryGetValue(field, out var store))
-                    {
-                        throw new InvalidOperationException("Sort expression references field not belonging to current index.");
-                    }
+                    var store = this.fieldStores[field];
 
                     documentList = store.Sort(sortExpression, ref documentResultBuilder);
                 }

@@ -1,6 +1,4 @@
-﻿using Clara.Mapping;
-
-namespace Clara.Storage
+﻿namespace Clara.Storage
 {
     public abstract class TokenEncoderStore
     {
@@ -10,8 +8,6 @@ namespace Clara.Storage
 
         public object SyncRoot { get; } = new object();
 
-        internal abstract ITokenEncoderBuilder CreateTokenEncoderBuilder();
-
-        internal abstract ITokenEncoderBuilder CreateTokenEncoderBuilder(Field field);
+        internal abstract TokenEncoderBuilder CreateBuilder();
     }
 }

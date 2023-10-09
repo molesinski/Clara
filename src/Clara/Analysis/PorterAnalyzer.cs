@@ -22,7 +22,6 @@
                     new LowerInvariantTokenFilter(),
                     new PorterPossessiveTokenFilter(),
                     new PorterStopTokenFilter(),
-                    new LengthKeywordTokenFilter(),
                     new DigitsKeywordTokenFilter(),
                     new KeywordTokenFilter(keywords),
                     new PorterStemTokenFilter());

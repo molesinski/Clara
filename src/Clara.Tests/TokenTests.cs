@@ -29,7 +29,7 @@ namespace Clara.Tests
                 token.Set(input);
                 token.Append(chars);
 
-                Assert.Equal(expectedString, token.ToString());
+                Assert.Equal(new Token(expectedString), token);
             }
             else
             {
@@ -65,7 +65,7 @@ namespace Clara.Tests
                 token.Set(input);
                 token.Write(startIndex, chars);
 
-                Assert.Equal(expected, token.ToString());
+                Assert.Equal(new Token(expectedString), token);
             }
             else
             {
@@ -101,7 +101,7 @@ namespace Clara.Tests
                 token.Set(input);
                 token.Insert(startIndex, chars);
 
-                Assert.Equal(expected, token.ToString());
+                Assert.Equal(new Token(expectedString), token);
             }
             else
             {
@@ -140,7 +140,7 @@ namespace Clara.Tests
                 token.Set(input);
                 token.Delete(startIndex, count);
 
-                Assert.Equal(expectedString, token.ToString());
+                Assert.Equal(new Token(expectedString), token);
             }
             else
             {
@@ -174,7 +174,7 @@ namespace Clara.Tests
                 token.Set(input);
                 token.Remove(startIndex);
 
-                Assert.Equal(expectedString, token.ToString());
+                Assert.Equal(new Token(expectedString), token);
             }
             else
             {

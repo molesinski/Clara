@@ -8,20 +8,22 @@ namespace Clara.Analysis
     public abstract class SnowballStemTokenFilter<TStemmer> : ITokenFilter
         where TStemmer : Stemmer, new()
     {
+        private static readonly Action<TStemmer, Token> SetBufferContents = CreateBufferContentsSetter();
         private static readonly ObjectPool<TStemmer> Pool = new(() => new());
-        private static readonly Action<TStemmer, Token> BufferContentsSetter = CreateBufferContentsSetter();
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
             using var stemmer = Pool.Lease();
 
-            BufferContentsSetter(stemmer.Instance, token);
+            SetBufferContents(stemmer.Instance, token);
 
             stemmer.Instance.Stem();
 
-            if (stemmer.Instance.Buffer.Length > 0 && stemmer.Instance.Buffer.Length <= Token.MaximumLength)
+            var buffer = stemmer.Instance.Buffer;
+
+            if (buffer.Length > 0 && buffer.Length <= Token.MaximumLength)
             {
-                token.Set(stemmer.Instance.Buffer);
+                token.Set(buffer);
 
                 return token;
             }
@@ -42,8 +44,10 @@ namespace Clara.Analysis
                 (stemmer, token) =>
                 {
                     var current = getCurrent(stemmer);
+
                     current.Clear();
                     token.CopyTo(current);
+
                     setCursor(stemmer, 0);
                     setLimit(stemmer, current.Length);
                     setLimitBackward(stemmer, 0);

@@ -1,12 +1,9 @@
 ﻿using System.Buffers;
 using System.Collections;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Clara.Utils
 {
-    [DebuggerTypeProxy(typeof(HashSetSlimDebugView<>))]
-    [DebuggerDisplay("Count = {Count}")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1710:Identifiers should have correct suffix", Justification = "By design")]
     public sealed class HashSetSlim<TItem> : IReadOnlyCollection<TItem>, IReadOnlyHashCollection<TItem>, IResettable
         where TItem : notnull, IEquatable<TItem>
@@ -131,15 +128,20 @@ namespace Clara.Utils
         public bool Add(TItem item)
         {
             var entries = this.entries;
-            var collisionCount = 0;
             var bucketIndex = item.GetHashCode() & this.size - 1;
+            var i = this.buckets[bucketIndex] - 1;
+            var collisionCount = 0;
 
-            for (var i = this.buckets[bucketIndex] - 1; i >= 0; i = entries[i].Next)
+            while (i >= 0)
             {
-                if (item.Equals(entries[i].Item))
+                ref var entry = ref entries[i];
+
+                if (item.Equals(entry.Item))
                 {
                     return false;
                 }
+
+                i = entry.Next;
 
                 if (collisionCount == this.size)
                 {
@@ -158,30 +160,28 @@ namespace Clara.Utils
         {
             var entries = this.entries;
             var bucketIndex = item.GetHashCode() & this.size - 1;
-            var entryIndex = this.buckets[bucketIndex] - 1;
-
-            var lastIndex = -1;
+            var i = this.buckets[bucketIndex] - 1;
+            var last = -1;
             var collisionCount = 0;
 
-            while (entryIndex != -1)
+            while (i >= 0)
             {
-                var candidate = entries[entryIndex];
+                ref var entry = ref entries[i];
 
-                if (candidate.Item.Equals(item))
+                if (entry.Item.Equals(item))
                 {
-                    if (lastIndex != -1)
+                    if (last != -1)
                     {
-                        entries[lastIndex].Next = candidate.Next;
+                        entries[last].Next = entry.Next;
                     }
                     else
                     {
-                        this.buckets[bucketIndex] = candidate.Next + 1;
+                        this.buckets[bucketIndex] = entry.Next + 1;
                     }
 
-                    entries[entryIndex] = default;
-                    entries[entryIndex].Next = -3 - this.freeList;
-                    this.freeList = entryIndex;
-
+                    entry.Item = default!;
+                    entry.Next = -3 - this.freeList;
+                    this.freeList = i;
                     this.count--;
 
                     if (this.count == 0)
@@ -193,8 +193,8 @@ namespace Clara.Utils
                     return true;
                 }
 
-                lastIndex = entryIndex;
-                entryIndex = candidate.Next;
+                last = i;
+                i = entry.Next;
 
                 if (collisionCount == this.size)
                 {
@@ -466,8 +466,10 @@ namespace Clara.Utils
                 this.lastIndex++;
             }
 
-            entries[entryIndex].Item = item;
-            entries[entryIndex].Next = this.buckets[bucketIndex] - 1;
+            ref var entry = ref entries[entryIndex];
+
+            entry.Item = item;
+            entry.Next = this.buckets[bucketIndex] - 1;
 
             this.buckets[bucketIndex] = entryIndex + 1;
             this.count++;
@@ -476,14 +478,19 @@ namespace Clara.Utils
         private int FindItem(TItem item)
         {
             var entries = this.entries;
+            var i = this.buckets[item.GetHashCode() & this.size - 1] - 1;
             var collisionCount = 0;
 
-            for (var i = this.buckets[item.GetHashCode() & this.size - 1] - 1; i >= 0; i = entries[i].Next)
+            while (i >= 0)
             {
-                if (item.Equals(entries[i].Item))
+                ref var entry = ref entries[i];
+
+                if (item.Equals(entry.Item))
                 {
                     return i;
                 }
+
+                i = entry.Next;
 
                 if (collisionCount == this.size)
                 {
@@ -608,36 +615,10 @@ namespace Clara.Utils
             }
         }
 
-        [DebuggerDisplay("({Item})->{Next}")]
         private struct Entry
         {
             public TItem Item;
             public int Next;
-        }
-    }
-
-    internal sealed class HashSetSlimDebugView<TItem>
-        where TItem : notnull, IEquatable<TItem>
-    {
-        private readonly HashSetSlim<TItem> source;
-
-        public HashSetSlimDebugView(HashSetSlim<TItem> source)
-        {
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            this.source = source;
-        }
-
-        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public TItem[] Items
-        {
-            get
-            {
-                return this.source.ToArray();
-            }
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using Clara.Analysis;
-using Clara.Mapping;
+﻿using Clara.Mapping;
 using Clara.Utils;
 
 namespace Clara.Storage
@@ -9,27 +8,27 @@ namespace Clara.Storage
         private readonly DictionarySlim<string, string[]> hierarchyDecodeCache = new();
         private readonly HierarchyField<TSource> field;
         private readonly string[] separatorArray;
-        private readonly ITokenEncoderBuilder tokenEncoderBuilder;
+        private readonly TokenEncoderBuilder tokenEncoderBuilder;
         private readonly DictionarySlim<int, HashSetSlim<int>>? parentChildren;
         private readonly DictionarySlim<int, HashSetSlim<int>>? tokenDocuments;
         private readonly DictionarySlim<int, HashSetSlim<int>>? documentTokens;
         private bool isBuilt;
 
-        public HierarchyFieldStoreBuilder(HierarchyField<TSource> field, TokenEncoderStore tokenEncoderStore)
+        public HierarchyFieldStoreBuilder(HierarchyField<TSource> field, TokenEncoderBuilder tokenEncoderBuilder)
         {
             if (field is null)
             {
                 throw new ArgumentNullException(nameof(field));
             }
 
-            if (tokenEncoderStore is null)
+            if (tokenEncoderBuilder is null)
             {
-                throw new ArgumentNullException(nameof(tokenEncoderStore));
+                throw new ArgumentNullException(nameof(tokenEncoderBuilder));
             }
 
             this.field = field;
             this.separatorArray = new[] { field.Separator };
-            this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
+            this.tokenEncoderBuilder = tokenEncoderBuilder;
 
             if (field.IsFilterable)
             {
@@ -60,7 +59,7 @@ namespace Clara.Storage
 
                 foreach (var token in decodedTokens)
                 {
-                    var tokenId = this.tokenEncoderBuilder.Encode(new Token(token));
+                    var tokenId = this.tokenEncoderBuilder.Encode(token);
 
                     if (parentId != -1)
                     {
@@ -98,14 +97,12 @@ namespace Clara.Storage
             }
         }
 
-        public override FieldStore Build()
+        public override FieldStore Build(TokenEncoder tokenEncoder)
         {
             if (this.isBuilt)
             {
                 throw new InvalidOperationException("Current instance is already built.");
             }
-
-            var tokenEncoder = this.tokenEncoderBuilder.Build();
 
             var store =
                 new HierarchyFieldStore(

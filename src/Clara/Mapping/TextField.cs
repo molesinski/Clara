@@ -64,10 +64,10 @@ namespace Clara.Mapping
         internal Func<TSource, TextWeightEnumerable> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
-            TokenEncoderStore tokenEncoderStore,
+            TokenEncoderBuilder tokenEncoderBuilder,
             ISynonymMap? synonymMap)
         {
-            return new TextFieldStoreBuilder<TSource>(this, tokenEncoderStore, synonymMap);
+            return new TextFieldStoreBuilder<TSource>(this, tokenEncoderBuilder, synonymMap);
         }
     }
 }

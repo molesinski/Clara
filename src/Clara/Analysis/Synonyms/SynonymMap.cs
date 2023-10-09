@@ -7,11 +7,11 @@ namespace Clara.Analysis.Synonyms
     {
         public const int MaximumPermutatedTokenCount = 5;
 
-        private readonly HashSet<Synonym> synonyms;
+        private readonly HashSet<Synonym> synonyms = new();
+        private readonly StringPoolSlim stringPool = new();
         private readonly IEnumerable<Token> emptyEnumerable;
         private readonly IAnalyzer analyzer;
         private readonly TokenNode root;
-        private readonly DictionarySlim<Token, string> tokenMap;
 
         public SynonymMap(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, int permutatedTokenCountThreshold = 1)
         {
@@ -30,8 +30,6 @@ namespace Clara.Analysis.Synonyms
                 throw new ArgumentOutOfRangeException(nameof(permutatedTokenCountThreshold));
             }
 
-            this.synonyms = new();
-
             foreach (var synonym in synonyms)
             {
                 if (synonym is null)
@@ -44,7 +42,7 @@ namespace Clara.Analysis.Synonyms
 
             this.emptyEnumerable = new TokenEnumerable(this, string.Empty);
             this.analyzer = analyzer;
-            this.root = TokenNode.Build(analyzer, this.synonyms, permutatedTokenCountThreshold, out this.tokenMap);
+            this.root = TokenNode.Build(analyzer, this.synonyms, permutatedTokenCountThreshold, this.stringPool);
         }
 
         public IAnalyzer Analyzer
@@ -206,7 +204,7 @@ namespace Clara.Analysis.Synonyms
 
         public Token? ToReadOnly(Token token)
         {
-            if (this.tokenMap.TryGetValue(token, out var value))
+            if (this.stringPool.TryGet(token, out var value))
             {
                 return new Token(value);
             }

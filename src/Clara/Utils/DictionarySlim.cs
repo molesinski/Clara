@@ -1,12 +1,9 @@
 ﻿using System.Buffers;
 using System.Collections;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Clara.Utils
 {
-    [DebuggerTypeProxy(typeof(DictionarySlimDebugView<,>))]
-    [DebuggerDisplay("Count = {Count}")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1710:Identifiers should have correct suffix", Justification = "By design")]
     public sealed class DictionarySlim<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TValue>>, IResettable
         where TKey : notnull, IEquatable<TKey>
@@ -169,16 +166,21 @@ namespace Clara.Utils
         public bool TryGetValue(TKey key, out TValue value)
         {
             var entries = this.entries;
+            var i = this.buckets[key.GetHashCode() & this.size - 1] - 1;
             var collisionCount = 0;
 
-            for (var i = this.buckets[key.GetHashCode() & this.size - 1] - 1; i >= 0; i = entries[i].Next)
+            while (i >= 0)
             {
-                if (key.Equals(entries[i].Key))
+                ref var entry = ref entries[i];
+
+                if (key.Equals(entry.Key))
                 {
-                    value = entries[i].Value;
+                    value = entry.Value;
 
                     return true;
                 }
+
+                i = entry.Next;
 
                 if (collisionCount == this.size)
                 {
@@ -202,30 +204,29 @@ namespace Clara.Utils
         {
             var entries = this.entries;
             var bucketIndex = key.GetHashCode() & this.size - 1;
-            var entryIndex = this.buckets[bucketIndex] - 1;
-
-            var lastIndex = -1;
+            var i = this.buckets[bucketIndex] - 1;
+            var last = -1;
             var collisionCount = 0;
 
-            while (entryIndex != -1)
+            while (i != -1)
             {
-                var candidate = entries[entryIndex];
+                ref var entry = ref entries[i];
 
-                if (candidate.Key.Equals(key))
+                if (entry.Key.Equals(key))
                 {
-                    if (lastIndex != -1)
+                    if (last != -1)
                     {
-                        entries[lastIndex].Next = candidate.Next;
+                        entries[last].Next = entry.Next;
                     }
                     else
                     {
-                        this.buckets[bucketIndex] = candidate.Next + 1;
+                        this.buckets[bucketIndex] = entry.Next + 1;
                     }
 
-                    entries[entryIndex] = default;
-                    entries[entryIndex].Next = -3 - this.freeList;
-                    this.freeList = entryIndex;
-
+                    entry.Key = default!;
+                    entry.Value = default!;
+                    entry.Next = -3 - this.freeList;
+                    this.freeList = i;
                     this.count--;
 
                     if (this.count == 0)
@@ -237,8 +238,8 @@ namespace Clara.Utils
                     return true;
                 }
 
-                lastIndex = entryIndex;
-                entryIndex = candidate.Next;
+                last = i;
+                i = entry.Next;
 
                 if (collisionCount == this.size)
                 {
@@ -254,17 +255,22 @@ namespace Clara.Utils
         public ref TValue GetValueRefOrAddDefault(TKey key, out bool exists)
         {
             var entries = this.entries;
-            var collisionCount = 0;
             var bucketIndex = key.GetHashCode() & this.size - 1;
+            var i = this.buckets[bucketIndex] - 1;
+            var collisionCount = 0;
 
-            for (var i = this.buckets[bucketIndex] - 1; i >= 0; i = entries[i].Next)
+            while (i >= 0)
             {
-                if (key.Equals(entries[i].Key))
+                ref var entry = ref entries[i];
+
+                if (key.Equals(entry.Key))
                 {
                     exists = true;
 
-                    return ref entries[i].Value;
+                    return ref entry.Value;
                 }
+
+                i = entry.Next;
 
                 if (collisionCount == this.size)
                 {
@@ -560,9 +566,11 @@ namespace Clara.Utils
                 this.lastIndex++;
             }
 
-            entries[entryIndex].Key = key;
-            entries[entryIndex].Value = default!;
-            entries[entryIndex].Next = this.buckets[bucketIndex] - 1;
+            ref var entry = ref entries[entryIndex];
+
+            entry.Key = key;
+            entry.Value = default!;
+            entry.Next = this.buckets[bucketIndex] - 1;
 
             this.buckets[bucketIndex] = entryIndex + 1;
             this.count++;
@@ -573,14 +581,19 @@ namespace Clara.Utils
         private int FindEntry(TKey key)
         {
             var entries = this.entries;
+            var i = this.buckets[key.GetHashCode() & this.size - 1] - 1;
             var collisionCount = 0;
 
-            for (var i = this.buckets[key.GetHashCode() & this.size - 1] - 1; i >= 0; i = entries[i].Next)
+            while (i >= 0)
             {
-                if (key.Equals(entries[i].Key))
+                ref var entry = ref entries[i];
+
+                if (key.Equals(entry.Key))
                 {
                     return i;
                 }
+
+                i = entry.Next;
 
                 if (collisionCount == this.size)
                 {
@@ -704,7 +717,6 @@ namespace Clara.Utils
             }
         }
 
-        [DebuggerDisplay("({Key}, {Value})->{Next}")]
         private struct Entry
         {
             public TKey Key;
@@ -815,31 +827,6 @@ namespace Clara.Utils
                 {
                     this.Reset();
                 }
-            }
-        }
-    }
-
-    internal sealed class DictionarySlimDebugView<TKey, TValue>
-        where TKey : notnull, IEquatable<TKey>
-    {
-        private readonly DictionarySlim<TKey, TValue> source;
-
-        public DictionarySlimDebugView(DictionarySlim<TKey, TValue> source)
-        {
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            this.source = source;
-        }
-
-        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public KeyValuePair<TKey, TValue>[] Items
-        {
-            get
-            {
-                return this.source.ToArray();
             }
         }
     }

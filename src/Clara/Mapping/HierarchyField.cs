@@ -101,10 +101,10 @@ namespace Clara.Mapping
         internal Func<TSource, StringEnumerable> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
-            TokenEncoderStore tokenEncoderStore,
+            TokenEncoderBuilder tokenEncoderBuilder,
             ISynonymMap? synonymMap)
         {
-            return new HierarchyFieldStoreBuilder<TSource>(this, tokenEncoderStore);
+            return new HierarchyFieldStoreBuilder<TSource>(this, tokenEncoderBuilder);
         }
     }
 }

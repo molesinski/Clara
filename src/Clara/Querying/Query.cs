@@ -168,6 +168,19 @@ namespace Clara.Querying
             }
         }
 
+        internal Index Index
+        {
+            get
+            {
+                if (this.isDisposed)
+                {
+                    throw new ObjectDisposedException(this.GetType().FullName);
+                }
+
+                return this.index;
+            }
+        }
+
         public void AddFilter(FilterExpression filterExpression)
         {
             if (this.isDisposed)

@@ -177,17 +177,15 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public static TokenNode Build(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, int permutatedTokenCountThreshold, out DictionarySlim<Token, string> tokenMap)
+            public static TokenNode Build(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, int permutatedTokenCountThreshold, StringPoolSlim stringPool)
             {
-                tokenMap = new DictionarySlim<Token, string>();
-
                 var root = new TokenNode();
 
                 foreach (var synonym in synonyms)
                 {
                     var aggregate = new TokenAggregate();
 
-                    foreach (var tokens in GetTokenPermutations((HashSetSlim<string>)synonym.Phrases, tokenMap))
+                    foreach (var tokens in GetTokenPermutations((HashSetSlim<string>)synonym.Phrases, stringPool))
                     {
                         var node = root;
 
@@ -216,7 +214,7 @@ namespace Clara.Analysis.Synonyms
 
                     if (synonym is ExplicitMappingSynonym explicitMappingSynonym)
                     {
-                        foreach (var tokens in GetTokenPermutations((HashSetSlim<string>)explicitMappingSynonym.MappedPhrases, tokenMap))
+                        foreach (var tokens in GetTokenPermutations((HashSetSlim<string>)explicitMappingSynonym.MappedPhrases, stringPool))
                         {
                             var node = root;
 
@@ -237,7 +235,7 @@ namespace Clara.Analysis.Synonyms
 
                 return root;
 
-                IEnumerable<ListSlim<Token>> GetTokenPermutations(HashSetSlim<string> phrases, DictionarySlim<Token, string> tokenMap)
+                IEnumerable<ListSlim<Token>> GetTokenPermutations(HashSetSlim<string> phrases, StringPoolSlim stringPool)
                 {
                     foreach (var phrase in phrases)
                     {
@@ -245,14 +243,7 @@ namespace Clara.Analysis.Synonyms
 
                         foreach (var token in analyzer.GetTokens(phrase))
                         {
-                            if (!tokenMap.TryGetValue(token, out var value))
-                            {
-                                value = token.ToString();
-
-                                tokenMap[new Token(value)] = value;
-                            }
-
-                            tokens.Add(new Token(value));
+                            tokens.Add(new Token(stringPool.GetOrAdd(token)));
                         }
 
                         if (tokens.Count > 0)

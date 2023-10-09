@@ -6,14 +6,14 @@ namespace Clara.Querying
 {
     public sealed class DocumentResultCollection<TDocument> : IReadOnlyCollection<DocumentResult<TDocument>>, IDisposable
     {
-        private readonly ITokenEncoder tokenEncoder;
+        private readonly TokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, TDocument> documentMap;
         private readonly DocumentScoring documentScoring;
         private readonly DocumentList documentList;
         private bool isDisposed;
 
         internal DocumentResultCollection(
-            ITokenEncoder tokenEncoder,
+            TokenEncoder tokenEncoder,
             DictionarySlim<int, TDocument> documentMap,
             DocumentScoring documentScoring,
             DocumentList documentList)
@@ -80,7 +80,7 @@ namespace Clara.Querying
 
         public struct Enumerator : IEnumerator<DocumentResult<TDocument>>
         {
-            private readonly ITokenEncoder tokenEncoder;
+            private readonly TokenEncoder tokenEncoder;
             private readonly DictionarySlim<int, TDocument> documentMap;
             private readonly DictionarySlim<int, float> documentScoring;
             private readonly ListSlim<int> documentList;

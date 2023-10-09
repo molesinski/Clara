@@ -7,11 +7,11 @@ namespace Clara.Storage
 {
     internal sealed class TextDocumentStore
     {
-        private readonly ITokenEncoder tokenEncoder;
+        private readonly TokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
 
         public TextDocumentStore(
-            ITokenEncoder tokenEncoder,
+            TokenEncoder tokenEncoder,
             DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
             DictionarySlim<int, float> documentLengths,
             Similarity similarity)
@@ -37,7 +37,7 @@ namespace Clara.Storage
             this.tokenDocumentScores = tokenDocumentScores;
         }
 
-        public DocumentScoring Search(Field field, MatchExpression matchExpression, ref DocumentResultBuilder documentResultBuilder)
+        public DocumentScoring Search(MatchExpression matchExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             if (matchExpression is AnyMatchExpression anyMatchExpression)
             {
@@ -45,11 +45,11 @@ namespace Clara.Storage
                 {
                     foreach (var token in (ListSlim<Token>)anyMatchExpression.Tokens)
                     {
-                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
+                        if (this.tokenEncoder.TryEncode(token.ToString(), out var tokenId))
                         {
                             if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                             {
-                                documentResultBuilder.IntersectWith(field, documents);
+                                documentResultBuilder.IntersectWith(documents);
 
                                 return new DocumentScoring(documents);
                             }
@@ -66,7 +66,7 @@ namespace Clara.Storage
 
                     foreach (var token in (ListSlim<Token>)anyMatchExpression.Tokens)
                     {
-                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
+                        if (this.tokenEncoder.TryEncode(token.ToString(), out var tokenId))
                         {
                             if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                             {
@@ -75,7 +75,7 @@ namespace Clara.Storage
                         }
                     }
 
-                    documentResultBuilder.IntersectWith(field, documentScores.Instance);
+                    documentResultBuilder.IntersectWith(documentScores.Instance);
 
                     return new DocumentScoring(documentScores);
                 }
@@ -86,11 +86,11 @@ namespace Clara.Storage
                 {
                     foreach (var token in (ListSlim<Token>)allMatchExpression.Tokens)
                     {
-                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
+                        if (this.tokenEncoder.TryEncode(token.ToString(), out var tokenId))
                         {
                             if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                             {
-                                documentResultBuilder.IntersectWith(field, documents);
+                                documentResultBuilder.IntersectWith(documents);
 
                                 return new DocumentScoring(documents);
                             }
@@ -108,7 +108,7 @@ namespace Clara.Storage
 
                     foreach (var token in (ListSlim<Token>)allMatchExpression.Tokens)
                     {
-                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
+                        if (this.tokenEncoder.TryEncode(token.ToString(), out var tokenId))
                         {
                             if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                             {
@@ -131,7 +131,7 @@ namespace Clara.Storage
                         break;
                     }
 
-                    documentResultBuilder.IntersectWith(field, documentScores.Instance);
+                    documentResultBuilder.IntersectWith(documentScores.Instance);
 
                     return new DocumentScoring(documentScores);
                 }
@@ -152,7 +152,7 @@ namespace Clara.Storage
                     }
                 }
 
-                documentResultBuilder.IntersectWith(field, documentScores.Instance);
+                documentResultBuilder.IntersectWith(documentScores.Instance);
 
                 return new DocumentScoring(documentScores);
             }
@@ -181,7 +181,7 @@ namespace Clara.Storage
                     }
                 }
 
-                documentResultBuilder.IntersectWith(field, documentScores.Instance);
+                documentResultBuilder.IntersectWith(documentScores.Instance);
 
                 return new DocumentScoring(documentScores);
             }
@@ -203,7 +203,7 @@ namespace Clara.Storage
             {
                 foreach (var token in (ListSlim<Token>)anyMatchExpression.Tokens)
                 {
-                    if (this.tokenEncoder.TryEncode(token, out var tokenId))
+                    if (this.tokenEncoder.TryEncode(token.ToString(), out var tokenId))
                     {
                         if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                         {
@@ -218,7 +218,7 @@ namespace Clara.Storage
 
                 foreach (var token in (ListSlim<Token>)allMatchExpression.Tokens)
                 {
-                    if (this.tokenEncoder.TryEncode(token, out var tokenId))
+                    if (this.tokenEncoder.TryEncode(token.ToString(), out var tokenId))
                     {
                         if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                         {

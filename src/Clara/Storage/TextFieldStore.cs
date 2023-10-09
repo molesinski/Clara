@@ -7,25 +7,25 @@ namespace Clara.Storage
 {
     internal sealed class TextFieldStore : FieldStore
     {
+        private readonly TokenEncoder tokenEncoder;
         private readonly IAnalyzer analyzer;
         private readonly ISynonymMap? synonymMap;
-        private readonly ITokenEncoder tokenEncoder;
         private readonly TextDocumentStore textDocumentStore;
 
         public TextFieldStore(
+            TokenEncoder tokenEncoder,
             IAnalyzer analyzer,
             ISynonymMap? synonymMap,
-            ITokenEncoder tokenEncoder,
             TextDocumentStore textDocumentStore)
         {
-            if (analyzer is null)
-            {
-                throw new ArgumentNullException(nameof(analyzer));
-            }
-
             if (tokenEncoder is null)
             {
                 throw new ArgumentNullException(nameof(tokenEncoder));
+            }
+
+            if (analyzer is null)
+            {
+                throw new ArgumentNullException(nameof(analyzer));
             }
 
             if (textDocumentStore is null)
@@ -33,9 +33,9 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(textDocumentStore));
             }
 
+            this.tokenEncoder = tokenEncoder;
             this.analyzer = analyzer;
             this.synonymMap = synonymMap;
-            this.tokenEncoder = tokenEncoder;
             this.textDocumentStore = textDocumentStore;
         }
 
@@ -57,11 +57,11 @@ namespace Clara.Storage
                 {
                     foreach (var token in this.analyzer.GetTokens(searchExpression.Text))
                     {
-                        var readOnlyToken = this.tokenEncoder.ToReadOnly(token)
-                                         ?? this.synonymMap?.ToReadOnly(token)
-                                         ?? default;
+                        var value = this.tokenEncoder.ToReadOnly(token)
+                                 ?? this.synonymMap?.ToReadOnly(token)
+                                 ?? default;
 
-                        tokens.Instance.Add(readOnlyToken);
+                        tokens.Instance.Add(value);
                     }
 
                     matchExpression =
@@ -78,7 +78,7 @@ namespace Clara.Storage
                     }
                 }
 
-                return this.textDocumentStore.Search(searchExpression.Field, matchExpression, ref documentResultBuilder);
+                return this.textDocumentStore.Search(matchExpression, ref documentResultBuilder);
             }
             finally
             {

@@ -5,7 +5,6 @@ using Clara.Analysis.Synonyms;
 namespace Clara.Benchmarks
 {
     [MemoryDiagnoser(false)]
-    [ShortRunJob]
     public class TokenizationBenchmarks
     {
         private const string Phrase = "The quick brown fox jumps over the lazy dog";

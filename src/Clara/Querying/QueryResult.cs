@@ -10,7 +10,7 @@ namespace Clara.Querying
         private bool isDisposed;
 
         internal QueryResult(
-            ITokenEncoder tokenEncoder,
+            TokenEncoder tokenEncoder,
             DictionarySlim<int, TDocument> documentMap,
             DocumentScoring documentScoring,
             DocumentList documentList,

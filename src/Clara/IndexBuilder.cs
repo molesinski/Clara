@@ -1,5 +1,4 @@
-﻿using Clara.Analysis;
-using Clara.Analysis.Synonyms;
+﻿using Clara.Analysis.Synonyms;
 using Clara.Mapping;
 using Clara.Storage;
 using Clara.Utils;
@@ -79,7 +78,7 @@ namespace Clara
     {
         private readonly IIndexMapper<TSource, TDocument> indexMapper;
         private readonly DictionarySlim<int, TDocument> documentMap;
-        private readonly ITokenEncoderBuilder tokenEncoderBuilder;
+        private readonly TokenEncoderBuilder tokenEncoderBuilder;
         private readonly Dictionary<Field, FieldStoreBuilder<TSource>> fieldBuilders;
         private bool isBuilt;
 
@@ -105,7 +104,7 @@ namespace Clara
 
             this.indexMapper = indexMapper;
             this.documentMap = new DictionarySlim<int, TDocument>();
-            this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder();
+            this.tokenEncoderBuilder = tokenEncoderStore.CreateBuilder();
             this.fieldBuilders = new Dictionary<Field, FieldStoreBuilder<TSource>>();
 
             var fields = new HashSet<Field>();
@@ -140,7 +139,7 @@ namespace Clara
             {
                 fieldSynonymMaps.TryGetValue(field, out var synonymMap);
 
-                if (field.CreateFieldStoreBuilder(tokenEncoderStore, synonymMap) is not FieldStoreBuilder<TSource> fieldBuilder)
+                if (field.CreateFieldStoreBuilder(this.tokenEncoderBuilder, synonymMap) is not FieldStoreBuilder<TSource> fieldBuilder)
                 {
                     throw new InvalidOperationException("One of the field value mappers is based on different source type than current index mapper.");
                 }
@@ -162,7 +161,7 @@ namespace Clara
             }
 
             var documentKey = this.indexMapper.GetDocumentKey(item);
-            var documentId = this.tokenEncoderBuilder.Encode(new Token(documentKey));
+            var documentId = this.tokenEncoderBuilder.Encode(documentKey);
 
             ref var document = ref this.documentMap.GetValueRefOrAddDefault(documentId, out var exists);
 
@@ -196,7 +195,7 @@ namespace Clara
                 var field = pair.Key;
                 var builder = pair.Value;
 
-                fieldStores.Add(field, builder.Build());
+                fieldStores.Add(field, builder.Build(tokenEncoder));
             }
 
             var index = new Index<TDocument>(tokenEncoder, this.documentMap, fieldStores);

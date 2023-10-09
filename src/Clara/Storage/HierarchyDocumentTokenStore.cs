@@ -1,5 +1,4 @@
-﻿using Clara.Analysis;
-using Clara.Mapping;
+﻿using Clara.Mapping;
 using Clara.Querying;
 using Clara.Utils;
 
@@ -8,13 +7,13 @@ namespace Clara.Storage
     internal sealed class HierarchyDocumentTokenStore
     {
         private readonly HierarchyField field;
-        private readonly ITokenEncoder tokenEncoder;
+        private readonly TokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, HashSetSlim<int>> documentTokens;
         private readonly DictionarySlim<int, HashSetSlim<int>> parentChildren;
 
         public HierarchyDocumentTokenStore(
             HierarchyField field,
-            ITokenEncoder tokenEncoder,
+            TokenEncoder tokenEncoder,
             DictionarySlim<int, HashSetSlim<int>> documentTokens,
             DictionarySlim<int, HashSetSlim<int>> parentChildren)
         {
@@ -65,7 +64,7 @@ namespace Clara.Storage
 
             foreach (var selectedToken in selectedValues.Instance)
             {
-                if (this.tokenEncoder.TryEncode(new Token(selectedToken), out var parentId))
+                if (this.tokenEncoder.TryEncode(selectedToken, out var parentId))
                 {
                     filteredTokens.Instance.Add(parentId);
 
@@ -104,7 +103,7 @@ namespace Clara.Storage
 
             foreach (var selectedToken in selectedValues.Instance)
             {
-                if (this.tokenEncoder.TryEncode(new Token(selectedToken), out var parentId))
+                if (this.tokenEncoder.TryEncode(selectedToken, out var parentId))
                 {
                     var parent = this.tokenEncoder.Decode(parentId);
                     tokenCounts.Instance.TryGetValue(parentId, out var parentCount);

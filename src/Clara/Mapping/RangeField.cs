@@ -70,7 +70,7 @@ namespace Clara.Mapping
         internal Func<TSource, PrimitiveEnumerable<TValue>> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
-            TokenEncoderStore tokenEncoderStore,
+            TokenEncoderBuilder tokenEncoderBuilder,
             ISynonymMap? synonymMap)
         {
             return new RangeFieldStoreBuilder<TSource, TValue>(this);

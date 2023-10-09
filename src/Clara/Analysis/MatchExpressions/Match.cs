@@ -54,7 +54,7 @@ namespace Clara.Analysis.MatchExpressions
 
             if (result is not null)
             {
-                return new IntermittentAllMatchExpression(scoreAggregation, result.Value);
+                return new DisposableAllMatchExpression(scoreAggregation, result.Value);
             }
 
             return EmptyMatchExpression.Instance;
@@ -72,7 +72,7 @@ namespace Clara.Analysis.MatchExpressions
 
             if (result is not null)
             {
-                return new IntermittentAnyMatchExpression(scoreAggregation, result.Value);
+                return new DisposableAnyMatchExpression(scoreAggregation, result.Value);
             }
 
             return EmptyMatchExpression.Instance;
@@ -127,7 +127,7 @@ namespace Clara.Analysis.MatchExpressions
                     }
                 }
 
-                return new IntermittentAndMatchExpression(scoreAggregation, result.Value);
+                return new DisposableAndMatchExpression(scoreAggregation, result.Value);
             }
 
             return EmptyMatchExpression.Instance;
@@ -182,7 +182,7 @@ namespace Clara.Analysis.MatchExpressions
                     }
                 }
 
-                return new IntermittentOrMatchExpression(scoreAggregation, result.Value);
+                return new DisposableOrMatchExpression(scoreAggregation, result.Value);
             }
 
             return EmptyMatchExpression.Instance;

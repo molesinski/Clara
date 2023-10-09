@@ -1,5 +1,4 @@
-﻿using Clara.Analysis;
-using Clara.Mapping;
+﻿using Clara.Mapping;
 using Clara.Querying;
 using Clara.Utils;
 
@@ -8,12 +7,12 @@ namespace Clara.Storage
     internal sealed class KeywordDocumentTokenStore
     {
         private readonly KeywordField field;
-        private readonly ITokenEncoder tokenEncoder;
+        private readonly TokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, HashSetSlim<int>> documentTokens;
 
         public KeywordDocumentTokenStore(
             KeywordField field,
-            ITokenEncoder tokenEncoder,
+            TokenEncoder tokenEncoder,
             DictionarySlim<int, HashSetSlim<int>> documentTokens)
         {
             if (field is null)

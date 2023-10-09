@@ -85,7 +85,7 @@ namespace Clara.Storage
             }
         }
 
-        public override FieldStore Build()
+        public override FieldStore Build(TokenEncoder tokenEncoder)
         {
             if (this.isBuilt)
             {

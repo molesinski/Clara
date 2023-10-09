@@ -1,5 +1,4 @@
-﻿using Clara.Analysis;
-using Clara.Mapping;
+﻿using Clara.Mapping;
 using Clara.Querying;
 using Clara.Utils;
 
@@ -7,11 +6,11 @@ namespace Clara.Storage
 {
     internal sealed class TokenDocumentStore
     {
-        private readonly ITokenEncoder tokenEncoder;
+        private readonly TokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, HashSetSlim<int>> tokenDocuments;
 
         public TokenDocumentStore(
-            ITokenEncoder tokenEncoder,
+            TokenEncoder tokenEncoder,
             DictionarySlim<int, HashSetSlim<int>> tokenDocuments)
         {
             if (tokenEncoder is null)
@@ -51,7 +50,7 @@ namespace Clara.Storage
                 {
                     foreach (var token in values)
                     {
-                        if (this.tokenEncoder.TryEncode(new Token(token), out var tokenId))
+                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
                             if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
                             {
@@ -70,7 +69,7 @@ namespace Clara.Storage
 
                     foreach (var token in values)
                     {
-                        if (this.tokenEncoder.TryEncode(new Token(token), out var tokenId))
+                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
                             if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
                             {
@@ -86,7 +85,7 @@ namespace Clara.Storage
             {
                 foreach (var token in values)
                 {
-                    if (this.tokenEncoder.TryEncode(new Token(token), out var tokenId))
+                    if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
                         if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
                         {

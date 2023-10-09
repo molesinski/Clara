@@ -7,27 +7,27 @@ namespace Clara.Storage
     internal sealed class TextFieldStoreBuilder<TSource> : FieldStoreBuilder<TSource>
     {
         private readonly TextField<TSource> field;
+        private readonly TokenEncoderBuilder tokenEncoderBuilder;
         private readonly ISynonymMap? synonymMap;
-        private readonly ITokenEncoderBuilder tokenEncoderBuilder;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
         private readonly DictionarySlim<int, float> documentLengths;
         private bool isBuilt;
 
-        public TextFieldStoreBuilder(TextField<TSource> field, TokenEncoderStore tokenEncoderStore, ISynonymMap? synonymMap)
+        public TextFieldStoreBuilder(TextField<TSource> field, TokenEncoderBuilder tokenEncoderBuilder, ISynonymMap? synonymMap)
         {
             if (field is null)
             {
                 throw new ArgumentNullException(nameof(field));
             }
 
-            if (tokenEncoderStore is null)
+            if (tokenEncoderBuilder is null)
             {
-                throw new ArgumentNullException(nameof(tokenEncoderStore));
+                throw new ArgumentNullException(nameof(tokenEncoderBuilder));
             }
 
             this.field = field;
+            this.tokenEncoderBuilder = tokenEncoderBuilder;
             this.synonymMap = synonymMap;
-            this.tokenEncoderBuilder = tokenEncoderStore.CreateTokenEncoderBuilder(field);
             this.tokenDocumentScores = new();
             this.documentLengths = new();
         }
@@ -69,20 +69,18 @@ namespace Clara.Storage
             }
         }
 
-        public override FieldStore Build()
+        public override FieldStore Build(TokenEncoder tokenEncoder)
         {
             if (this.isBuilt)
             {
                 throw new InvalidOperationException("Current instance is already built.");
             }
 
-            var tokenEncoder = this.tokenEncoderBuilder.Build();
-
             var store =
                 new TextFieldStore(
+                    tokenEncoder,
                     this.field.Analyzer,
                     this.synonymMap,
-                    tokenEncoder,
                     new TextDocumentStore(tokenEncoder, this.tokenDocumentScores, this.documentLengths, this.field.Similarity));
 
             this.isBuilt = true;

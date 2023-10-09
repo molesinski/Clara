@@ -56,24 +56,6 @@ namespace Clara.Storage
             }
         }
 
-        public readonly DocumentResultBuilderFacet IntersectWith(HashSetSlim<int> documents)
-        {
-            if (this.facetDocuments is null)
-            {
-                var facetDocuments = SharedObjectPools.DocumentSets.Lease();
-
-                facetDocuments.Instance.UnionWith(documents);
-
-                return new DocumentResultBuilderFacet(this.field, facetDocuments);
-            }
-            else
-            {
-                this.facetDocuments.Value.Instance.IntersectWith(documents);
-
-                return this;
-            }
-        }
-
         public readonly DocumentResultBuilderFacet IntersectWith<TValue>(DictionarySlim<int, TValue> documents)
         {
             if (this.facetDocuments is null)
@@ -90,6 +72,24 @@ namespace Clara.Storage
             else
             {
                 this.facetDocuments.Value.Instance.IntersectWith(documents.Keys);
+
+                return this;
+            }
+        }
+
+        public readonly DocumentResultBuilderFacet IntersectWith(HashSetSlim<int> documents)
+        {
+            if (this.facetDocuments is null)
+            {
+                var facetDocuments = SharedObjectPools.DocumentSets.Lease();
+
+                facetDocuments.Instance.UnionWith(documents);
+
+                return new DocumentResultBuilderFacet(this.field, facetDocuments);
+            }
+            else
+            {
+                this.facetDocuments.Value.Instance.IntersectWith(documents);
 
                 return this;
             }

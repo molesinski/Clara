@@ -1,11 +1,8 @@
 ﻿using System.Collections;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Clara.Utils
 {
-    [DebuggerTypeProxy(typeof(ListSlimDebugView<>))]
-    [DebuggerDisplay("Count = {Count}")]
     public sealed class ListSlim<TItem> : IReadOnlyList<TItem>, IResettable
         where TItem : notnull
     {
@@ -358,31 +355,6 @@ namespace Clara.Utils
             public void Dispose()
             {
                 this.Reset();
-            }
-        }
-    }
-
-    internal sealed class ListSlimDebugView<TItem>
-        where TItem : notnull
-    {
-        private readonly ListSlim<TItem> source;
-
-        public ListSlimDebugView(ListSlim<TItem> source)
-        {
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            this.source = source;
-        }
-
-        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public TItem[] Items
-        {
-            get
-            {
-                return this.source.ToArray();
             }
         }
     }
