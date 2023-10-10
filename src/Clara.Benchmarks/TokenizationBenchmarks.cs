@@ -29,25 +29,25 @@ namespace Clara.Benchmarks
         [Benchmark]
         public void BasicTokenizer()
         {
-            foreach (var token in this.basicTokenizer.GetTokens(Phrase))
+            foreach (var term in this.basicTokenizer.GetTokens(Phrase))
             {
-                _ = token;
+                _ = term;
             }
         }
 
         [Benchmark]
         public void PorterAnalyzer()
         {
-            foreach (var token in this.porterAnalyzer.GetTokens(Phrase))
+            foreach (var term in this.porterAnalyzer.GetTerms(Phrase))
             {
-                _ = token;
+                _ = term;
             }
         }
 
         [Benchmark]
         public void SynonymMap()
         {
-            foreach (var token in this.synonymMap.GetTokens(Phrase))
+            foreach (var token in this.synonymMap.GetTerms(Phrase))
             {
                 _ = token;
             }

@@ -1,6 +1,7 @@
 ﻿using Clara.Analysis;
 using Clara.Analysis.Synonyms;
 using Clara.Storage;
+using Clara.Utils;
 
 namespace Clara.Mapping
 {
@@ -36,7 +37,7 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new TextWeightEnumerable(valueMapper(source));
+            this.ValueMapper = source => new StringEnumerable(valueMapper(source));
         }
 
         public TextField(Func<TSource, IEnumerable<string?>?> valueMapper, IAnalyzer analyzer, Similarity? similarity = null)
@@ -47,21 +48,10 @@ namespace Clara.Mapping
                 throw new ArgumentNullException(nameof(valueMapper));
             }
 
-            this.ValueMapper = source => new TextWeightEnumerable(valueMapper(source));
+            this.ValueMapper = source => new StringEnumerable(valueMapper(source));
         }
 
-        public TextField(Func<TSource, IEnumerable<TextWeight>?> valueMapper, IAnalyzer analyzer, Similarity? similarity = null)
-            : base(analyzer, similarity)
-        {
-            if (valueMapper is null)
-            {
-                throw new ArgumentNullException(nameof(valueMapper));
-            }
-
-            this.ValueMapper = source => new TextWeightEnumerable(valueMapper(source));
-        }
-
-        internal Func<TSource, TextWeightEnumerable> ValueMapper { get; }
+        internal Func<TSource, StringEnumerable> ValueMapper { get; }
 
         internal override FieldStoreBuilder CreateFieldStoreBuilder(
             TokenEncoderBuilder tokenEncoderBuilder,

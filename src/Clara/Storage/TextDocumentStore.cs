@@ -1,6 +1,6 @@
-﻿using Clara.Analysis;
-using Clara.Analysis.MatchExpressions;
+﻿using Clara.Analysis.MatchExpressions;
 using Clara.Mapping;
+using Clara.Querying;
 using Clara.Utils;
 
 namespace Clara.Storage
@@ -37,76 +37,67 @@ namespace Clara.Storage
             this.tokenDocumentScores = tokenDocumentScores;
         }
 
-        public DocumentScoring Search(MatchExpression matchExpression, ref DocumentResultBuilder documentResultBuilder)
+        public DocumentScoring Search(SearchMode mode, ListSlim<SearchTerm> terms, ref DocumentResultBuilder documentResultBuilder)
         {
-            if (matchExpression is AnyMatchExpression anyMatchExpression)
+            if (terms.Count == 0)
             {
-                if (anyMatchExpression.Tokens.Count == 1)
+                documentResultBuilder.Clear();
+
+                return default;
+            }
+
+            if (terms.Count == 1 && terms[0].Token is not null)
+            {
+                var token = terms[0].Token!;
+
+                if (this.tokenEncoder.TryEncode(token, out var tokenId))
                 {
-                    foreach (var token in (ListSlim<string>)anyMatchExpression.Tokens)
+                    if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                     {
-                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
-                        {
-                            if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
-                            {
-                                documentResultBuilder.IntersectWith(documents);
+                        documentResultBuilder.IntersectWith(documents);
 
-                                return new DocumentScoring(documents);
-                            }
-                        }
+                        return new DocumentScoring(documents);
                     }
-
-                    documentResultBuilder.Clear();
-
-                    return default;
                 }
-                else
-                {
-                    var documentScores = SharedObjectPools.DocumentScores.Lease();
 
-                    foreach (var token in (ListSlim<string>)anyMatchExpression.Tokens)
+                documentResultBuilder.Clear();
+
+                return default;
+            }
+
+            var documentScores = SharedObjectPools.DocumentScores.Lease();
+
+            if (mode == SearchMode.Any)
+            {
+                foreach (var term in terms)
+                {
+                    if (term.Token is string token)
                     {
                         if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
                             if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                             {
-                                documentScores.Instance.UnionWith(documents, ScoreCombiner.Get(anyMatchExpression.ScoreAggregation));
+                                documentScores.Instance.UnionWith(documents, ScoreCombiner.Sum);
                             }
                         }
                     }
+                    else if (term.Expression is MatchExpression expression)
+                    {
+                        using var tempScores = SharedObjectPools.DocumentScores.Lease();
 
-                    documentResultBuilder.IntersectWith(documentScores.Instance);
+                        this.Search(expression, tempScores.Instance);
 
-                    return new DocumentScoring(documentScores);
+                        documentScores.Instance.UnionWith(tempScores.Instance, ScoreCombiner.Sum);
+                    }
                 }
             }
-            else if (matchExpression is AllMatchExpression allMatchExpression)
+            else
             {
-                if (allMatchExpression.Tokens.Count == 1)
+                var isFirst = true;
+
+                foreach (var term in terms)
                 {
-                    foreach (var token in (ListSlim<string>)allMatchExpression.Tokens)
-                    {
-                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
-                        {
-                            if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
-                            {
-                                documentResultBuilder.IntersectWith(documents);
-
-                                return new DocumentScoring(documents);
-                            }
-                        }
-                    }
-
-                    documentResultBuilder.Clear();
-
-                    return default;
-                }
-                else
-                {
-                    var documentScores = SharedObjectPools.DocumentScores.Lease();
-                    var isFirst = true;
-
-                    foreach (var token in (ListSlim<string>)allMatchExpression.Tokens)
+                    if (term.Token is string token)
                     {
                         if (this.tokenEncoder.TryEncode(token, out var tokenId))
                         {
@@ -114,12 +105,12 @@ namespace Clara.Storage
                             {
                                 if (isFirst)
                                 {
-                                    documentScores.Instance.UnionWith(documents, ScoreCombiner.Get(allMatchExpression.ScoreAggregation));
+                                    documentScores.Instance.UnionWith(documents, ScoreCombiner.Sum);
                                     isFirst = false;
                                 }
                                 else
                                 {
-                                    documentScores.Instance.IntersectWith(documents, ScoreCombiner.Get(allMatchExpression.ScoreAggregation));
+                                    documentScores.Instance.IntersectWith(documents, ScoreCombiner.Sum);
                                 }
 
                                 continue;
@@ -127,82 +118,48 @@ namespace Clara.Storage
                         }
 
                         documentScores.Instance.Clear();
-
                         break;
                     }
-
-                    documentResultBuilder.IntersectWith(documentScores.Instance);
-
-                    return new DocumentScoring(documentScores);
-                }
-            }
-            else if (matchExpression is OrMatchExpression orMatchExpression)
-            {
-                var documentScores = SharedObjectPools.DocumentScores.Lease();
-
-                using (var tempScores = SharedObjectPools.DocumentScores.Lease())
-                {
-                    foreach (var expression in (ListSlim<MatchExpression>)orMatchExpression.Expressions)
+                    else if (term.Expression is MatchExpression expression)
                     {
-                        tempScores.Instance.Clear();
+                        using var tempScores = SharedObjectPools.DocumentScores.Lease();
 
                         this.Search(expression, tempScores.Instance);
 
-                        documentScores.Instance.UnionWith(tempScores.Instance, ScoreCombiner.Get(orMatchExpression.ScoreAggregation));
+                        if (tempScores.Instance.Count > 0)
+                        {
+                            if (isFirst)
+                            {
+                                documentScores.Instance.UnionWith(tempScores.Instance, ScoreCombiner.Sum);
+                                isFirst = false;
+                            }
+                            else
+                            {
+                                documentScores.Instance.IntersectWith(tempScores.Instance, ScoreCombiner.Sum);
+                            }
+
+                            continue;
+                        }
+
+                        documentScores.Instance.Clear();
+                        break;
                     }
                 }
-
-                documentResultBuilder.IntersectWith(documentScores.Instance);
-
-                return new DocumentScoring(documentScores);
             }
-            else if (matchExpression is AndMatchExpression andMatchExpression)
-            {
-                var documentScores = SharedObjectPools.DocumentScores.Lease();
-                var isFirst = true;
 
-                using (var tempScores = SharedObjectPools.DocumentScores.Lease())
-                {
-                    foreach (var expression in (ListSlim<MatchExpression>)andMatchExpression.Expressions)
-                    {
-                        tempScores.Instance.Clear();
+            documentResultBuilder.IntersectWith(documentScores.Instance);
 
-                        this.Search(expression, tempScores.Instance);
-
-                        if (isFirst)
-                        {
-                            documentScores.Instance.UnionWith(tempScores.Instance, ScoreCombiner.Get(andMatchExpression.ScoreAggregation));
-                            isFirst = false;
-                        }
-                        else
-                        {
-                            documentScores.Instance.IntersectWith(tempScores.Instance, ScoreCombiner.Get(andMatchExpression.ScoreAggregation));
-                        }
-                    }
-                }
-
-                documentResultBuilder.IntersectWith(documentScores.Instance);
-
-                return new DocumentScoring(documentScores);
-            }
-            else if (matchExpression is EmptyMatchExpression)
-            {
-                documentResultBuilder.Clear();
-
-                return default;
-            }
-            else
-            {
-                throw new InvalidOperationException("Unsupported match expression type encountered.");
-            }
+            return new DocumentScoring(documentScores);
         }
 
         private void Search(MatchExpression matchExpression, DictionarySlim<int, float> partialScores)
         {
             if (matchExpression is AnyMatchExpression anyMatchExpression)
             {
-                foreach (var token in (ListSlim<string>)anyMatchExpression.Tokens)
+                for (var i = 0; i < anyMatchExpression.Tokens.Count; i++)
                 {
+                    var token = anyMatchExpression.Tokens[i];
+
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
                         if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
@@ -216,8 +173,10 @@ namespace Clara.Storage
             {
                 var isFirst = true;
 
-                foreach (var token in (ListSlim<string>)allMatchExpression.Tokens)
+                for (var i = 0; i < allMatchExpression.Tokens.Count; i++)
                 {
+                    var token = allMatchExpression.Tokens[i];
+
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
                         if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
@@ -237,7 +196,6 @@ namespace Clara.Storage
                     }
 
                     partialScores.Clear();
-
                     break;
                 }
             }
@@ -245,8 +203,10 @@ namespace Clara.Storage
             {
                 using var tempScores = SharedObjectPools.DocumentScores.Lease();
 
-                foreach (var expression in (ListSlim<MatchExpression>)orMatchExpression.Expressions)
+                for (var i = 0; i < orMatchExpression.Expressions.Count; i++)
                 {
+                    var expression = orMatchExpression.Expressions[i];
+
                     tempScores.Instance.Clear();
 
                     this.Search(expression, tempScores.Instance);
@@ -260,21 +220,31 @@ namespace Clara.Storage
 
                 using var tempScores = SharedObjectPools.DocumentScores.Lease();
 
-                foreach (var expression in (ListSlim<MatchExpression>)andMatchExpression.Expressions)
+                for (var i = 0; i < andMatchExpression.Expressions.Count; i++)
                 {
+                    var expression = andMatchExpression.Expressions[i];
+
                     tempScores.Instance.Clear();
 
                     this.Search(expression, tempScores.Instance);
 
-                    if (isFirst)
+                    if (tempScores.Instance.Count > 0)
                     {
-                        partialScores.UnionWith(tempScores.Instance, ScoreCombiner.Get(andMatchExpression.ScoreAggregation));
-                        isFirst = false;
+                        if (isFirst)
+                        {
+                            partialScores.UnionWith(tempScores.Instance, ScoreCombiner.Get(andMatchExpression.ScoreAggregation));
+                            isFirst = false;
+                        }
+                        else
+                        {
+                            partialScores.IntersectWith(tempScores.Instance, ScoreCombiner.Get(andMatchExpression.ScoreAggregation));
+                        }
+
+                        continue;
                     }
-                    else
-                    {
-                        partialScores.IntersectWith(tempScores.Instance, ScoreCombiner.Get(andMatchExpression.ScoreAggregation));
-                    }
+
+                    partialScores.Clear();
+                    break;
                 }
             }
             else

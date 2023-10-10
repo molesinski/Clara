@@ -6,14 +6,11 @@ using Lucene.Net.Util;
 
 namespace Clara.Analysis
 {
-    public class LuceneStandardTokenizer : ITokenizer
+    public sealed class LuceneStandardTokenizer : ITokenizer
     {
-        private readonly IEnumerable<Token> emptyEnumerable;
+        private readonly IEnumerable<Token> emptyEnumerable = new TokenEnumerable(string.Empty);
 
-        public LuceneStandardTokenizer()
-        {
-            this.emptyEnumerable = new TokenEnumerable(string.Empty);
-        }
+        internal static LuceneStandardTokenizer Instance { get; } = new();
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "By design")]
         public TokenEnumerable GetTokens(string text)
@@ -39,6 +36,11 @@ namespace Clara.Analysis
             }
 
             return new TokenEnumerable(text);
+        }
+
+        public bool Equals(ITokenizer? other)
+        {
+            return other is LuceneStandardTokenizer;
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "By design")]

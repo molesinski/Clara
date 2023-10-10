@@ -125,11 +125,11 @@ namespace Clara.Analysis.Synonyms
 
                         if (expressions.Count == 1)
                         {
-                            this.matchExpression = expressions[0].ToPersistent();
+                            this.matchExpression = expressions[0];
                         }
                         else
                         {
-                            this.matchExpression = Match.Or(ScoreAggregation.Max, expressions).ToPersistent();
+                            this.matchExpression = Match.Or(ScoreAggregation.Max, expressions);
                         }
                     }
 
@@ -241,9 +241,9 @@ namespace Clara.Analysis.Synonyms
                     {
                         var tokens = new ListSlim<string>();
 
-                        foreach (var token in analyzer.GetTokens(phrase))
+                        foreach (var term in analyzer.GetTerms(phrase))
                         {
-                            tokens.Add(stringPool.GetOrAdd(token));
+                            tokens.Add(stringPool.GetOrAdd(term.Token));
                         }
 
                         if (tokens.Count > 0)

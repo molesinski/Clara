@@ -1,12 +1,14 @@
-﻿using Clara.Analysis.MatchExpressions;
+﻿using Clara.Querying;
 
 namespace Clara.Analysis.Synonyms
 {
-    public interface ISynonymMap : IAnalyzer
+    public interface ISynonymMap
     {
         IAnalyzer Analyzer { get; }
 
-        MatchExpression Process(MatchExpression matchExpression);
+        IEnumerable<AnalyzerTerm> GetTerms(string text);
+
+        void Process(SearchMode mode, IList<SearchTerm> terms);
 
         string? ToReadOnly(Token token);
     }

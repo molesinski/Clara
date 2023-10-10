@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace Clara.Utils
 {
-    public sealed class ListSlim<TItem> : IReadOnlyList<TItem>, IResettable
+    public sealed class ListSlim<TItem> : IList<TItem>, IReadOnlyList<TItem>, IResettable
         where TItem : notnull
     {
         private const int MinimumSize = 4;
@@ -77,11 +77,19 @@ namespace Clara.Utils
             }
         }
 
+        public bool IsReadOnly
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         public TItem this[int index]
         {
             get
             {
-                if (index < 0 || index >= this.Count)
+                if (index < 0 || index >= this.count)
                 {
                     throw new ArgumentOutOfRangeException(nameof(index));
                 }
@@ -91,7 +99,7 @@ namespace Clara.Utils
 
             set
             {
-                if (index < 0 || index >= this.Count)
+                if (index < 0 || index >= this.count)
                 {
                     throw new ArgumentOutOfRangeException(nameof(index));
                 }
@@ -100,21 +108,30 @@ namespace Clara.Utils
             }
         }
 
-        public void Clear()
+        public bool Contains(TItem item)
         {
-            if (this.count > 0)
-            {
-#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
-                if (RuntimeHelpers.IsReferenceOrContainsReferences<TItem>())
-                {
-                    Array.Clear(this.entries, 0, this.count);
-                }
-#else
-                Array.Clear(this.entries, 0, this.count);
-#endif
+            return this.IndexOf(item) >= 0;
+        }
 
-                this.count = 0;
+        public int IndexOf(TItem item)
+        {
+            var entries = this.entries;
+            var comparer = EqualityComparer<TItem>.Default;
+
+            for (var i = 0; i < this.count; i++)
+            {
+                if (comparer.Equals(item, entries[i]))
+                {
+                    return i;
+                }
             }
+
+            return -1;
+        }
+
+        public void CopyTo(TItem[] array, int arrayIndex)
+        {
+            Array.Copy(this.entries, 0, array, arrayIndex, this.count);
         }
 
         public void Add(TItem item)
@@ -176,7 +193,7 @@ namespace Clara.Utils
 
         public void Insert(int index, TItem item)
         {
-            if ((uint)index > (uint)this.count)
+            if (index < 0 || index > this.count)
             {
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
@@ -193,6 +210,60 @@ namespace Clara.Utils
 
             this.entries[index] = item;
             this.count++;
+        }
+
+        public bool Remove(TItem item)
+        {
+            var index = this.IndexOf(item);
+
+            if (index >= 0)
+            {
+                this.RemoveAt(index);
+                return true;
+            }
+
+            return false;
+        }
+
+        public void RemoveAt(int index)
+        {
+            if (index < 0 || index >= this.count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+
+            this.count--;
+
+            if (index < this.count)
+            {
+                Array.Copy(this.entries, index + 1, this.entries, index, this.count - index);
+            }
+
+#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
+            if (RuntimeHelpers.IsReferenceOrContainsReferences<TItem>())
+            {
+                this.entries[this.count] = default!;
+            }
+#else
+            this.entries[this.count] = default!;
+#endif
+        }
+
+        public void Clear()
+        {
+            if (this.count > 0)
+            {
+#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
+                if (RuntimeHelpers.IsReferenceOrContainsReferences<TItem>())
+                {
+                    Array.Clear(this.entries, 0, this.count);
+                }
+#else
+                Array.Clear(this.entries, 0, this.count);
+#endif
+
+                this.count = 0;
+            }
         }
 
         public void Sort(IComparer<TItem> comparer)

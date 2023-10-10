@@ -188,17 +188,39 @@ namespace Clara.Tests
             Assert.Equal(expected, IsMatching(synonymMap, search, SearchMode.Any, "xxx", output: null));
         }
 
+        [Fact]
+        public void BacktrackingOrdinal()
+        {
+            var synonymMap =
+                new SynonymMap(
+                    this.analyzer,
+                    new Synonym[]
+                    {
+                        new EquivalencySynonym(new[] { "bbb", "ccc" }),
+                        new EquivalencySynonym(new[] { "mmm nnn ooo", "ppp" }),
+                    });
+
+            var phrase = "aaa a a bbb a a mmm nnn a a mmm nnn";
+
+            var input = synonymMap.Analyzer.GetTerms(phrase).Select(x => new SearchTerm(x.Ordinal, x.Token.ToString())).ToList();
+            var output = input.ToList();
+
+            synonymMap.Process(SearchMode.All, output);
+
+            var expected = string.Join(", ", input.Select(x => x.Ordinal).Distinct().OrderBy(x => x));
+            var actual = string.Join(", ", output.Select(x => x.Ordinal).Distinct().OrderBy(x => x));
+
+            Assert.Equal(expected, actual);
+        }
+
         private static bool IsMatching(ISynonymMap synonymMap, string search, SearchMode mode, string document, ITestOutputHelper? output)
         {
-            var documentTokens = synonymMap.GetTokens(document).Select(x => x.ToString()).ToList();
-            var searchTokens = synonymMap.Analyzer.GetTokens(search).Select(x => x.ToString()).ToList();
+            var documentTokens = synonymMap.GetTerms(document).Select(x => x.Token.ToString()).ToList();
+            var searchTerms = synonymMap.Analyzer.GetTerms(search).Select(x => new SearchTerm(x.Ordinal, x.Token.ToString())).ToList();
 
-            var matchExpression =
-                mode == SearchMode.All
-                    ? Match.All(ScoreAggregation.Sum, searchTokens)
-                    : Match.Any(ScoreAggregation.Sum, searchTokens);
+            synonymMap.Process(mode, searchTerms);
 
-            matchExpression = synonymMap.Process(matchExpression);
+            var matchExpression = Match.Search(mode, searchTerms);
 
             var isMatching = matchExpression.IsMatching(documentTokens);
 
@@ -207,8 +229,6 @@ namespace Clara.Tests
                 output.WriteLine(string.Concat("Document: ", string.Join(", ", documentTokens.Select(x => $"\"{x}\""))));
                 output.WriteLine(string.Concat("Expression: ", matchExpression.ToString()));
             }
-
-            matchExpression.Dispose();
 
             return isMatching;
         }

@@ -61,7 +61,7 @@ namespace Clara.Querying
             }
         }
 
-        public IReadOnlyCollection<FilterExpression> Filters
+        public IReadOnlyList<FilterExpression> Filters
         {
             get
             {
@@ -74,7 +74,7 @@ namespace Clara.Querying
             }
         }
 
-        public IReadOnlyCollection<FacetExpression> Facets
+        public IReadOnlyList<FacetExpression> Facets
         {
             get
             {

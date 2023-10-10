@@ -131,13 +131,14 @@ public sealed class ProductMapper : IIndexMapper<Product>
 
     public Product GetDocument(Product item) => item;
 
-    private static IEnumerable<TextWeight> GetText(Product product)
+    private static IEnumerable<string?> GetText(Product product)
     {
-        yield return new(product.Id.ToString(CultureInfo.InvariantCulture));
-        yield return new(product.Title, weight: 4);
-        yield return new(product.Description);
-        yield return new(product.Brand, weight: 4);
-        yield return new(product.Category);
+        yield return product.Id.ToString(CultureInfo.InvariantCulture);
+        yield return product.Title;
+        yield return product.Description;
+        yield return product.Brand;
+        yield return product.Category;
+        yield return CommonTextPhrase;
     }
 }
 ```
@@ -206,11 +207,11 @@ Running this query against sample data results in following output.
 
 ```
 Documents:
-  [Fashion Magnetic Wrist Watch] $60 => 18,420681
-  [Leather Hand Bag] $57 => 25,16224
-  [Fancy hand clutch] $44 => 5,5294294
-  [Steel Analog Couple Watches] $35 => 18,420681
-  [Stainless Steel Women] $35 => 6,9077554
+  [Fashion Magnetic Wrist Watch] $60 => 6,591674
+  [Leather Hand Bag] $57 => 11,618473
+  [Fancy hand clutch] $44 => 8,573952
+  [Steel Analog Couple Watches] $35 => 6,591674
+  [Stainless Steel Women] $35 => 8,788898
 Brands:
   (x) [Eastern Watches] => 2
   (x) [Bracelet] => 2
@@ -345,32 +346,32 @@ BenchmarkDotNet v0.13.9, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 ### Tokenization Benchmarks
 
-| Method         | Mean       | Error   | StdDev  | Allocated |
-|--------------- |-----------:|--------:|--------:|----------:|
-| BasicTokenizer |   233.9 ns | 1.18 ns | 1.05 ns |      32 B |
-| PorterAnalyzer |   875.3 ns | 3.00 ns | 2.81 ns |      64 B |
-| SynonymMap     | 1,451.4 ns | 5.25 ns | 4.65 ns |      96 B |
+| Method         | Mean       | Error    | StdDev  | Allocated |
+|--------------- |-----------:|---------:|--------:|----------:|
+| BasicTokenizer |   231.6 ns |  0.71 ns | 0.66 ns |      32 B |
+| PorterAnalyzer |   836.5 ns | 10.38 ns | 9.71 ns |      64 B |
+| SynonymMap     | 1,435.6 ns |  5.67 ns | 5.02 ns |      96 B |
 
 ### Indexing Benchmarks
 
 | Method           | Mean        | Error       | StdDev      | Allocated   |
 |----------------- |------------:|------------:|------------:|------------:|
-| Index_x100       | 89,893.0 μs | 1,214.27 μs | 1,076.42 μs | 30384.13 KB |
-| Index            |    756.5 μs |     2.13 μs |     1.78 μs |   746.52 KB |
-| IndexShared_x100 | 83,329.2 μs | 1,591.60 μs | 1,488.78 μs | 29098.78 KB |
-| IndexShared      |    714.0 μs |     2.12 μs |     1.88 μs |   608.25 KB |
+| Index_x100       | 89,356.2 μs | 1,751.31 μs | 2,511.68 μs | 29553.44 KB |
+| Index            |    764.0 μs |     3.02 μs |     2.83 μs |   633.47 KB |
+| IndexShared_x100 | 80,788.8 μs | 1,607.75 μs | 1,720.27 μs | 28272.82 KB |
+| IndexShared      |    728.5 μs |     2.83 μs |     2.65 μs |   520.66 KB |
 
 ### Querying Benchmarks
 
 | Method            | Mean       | Error     | StdDev    | Allocated |
 |------------------ |-----------:|----------:|----------:|----------:|
-| QueryComplex_x100 | 440.043 μs | 3.7470 μs | 3.3217 μs |    1080 B |
-| QueryComplex      |  11.657 μs | 0.0181 μs | 0.0170 μs |    1080 B |
-| QuerySearch       |   6.591 μs | 0.0313 μs | 0.0293 μs |     528 B |
-| QueryFilter       |   1.147 μs | 0.0035 μs | 0.0033 μs |     432 B |
-| QueryFacet        |   9.931 μs | 0.0306 μs | 0.0286 μs |     632 B |
-| QuerySort         |   3.584 μs | 0.0499 μs | 0.0467 μs |     400 B |
-| Query             |   1.443 μs | 0.0096 μs | 0.0090 μs |     304 B |
+| QueryComplex_x100 | 447.994 μs | 3.6728 μs | 3.4355 μs |     960 B |
+| QueryComplex      |  11.250 μs | 0.0638 μs | 0.0566 μs |     960 B |
+| QuerySearch       |   6.258 μs | 0.0207 μs | 0.0194 μs |     408 B |
+| QueryFilter       |   1.121 μs | 0.0057 μs | 0.0051 μs |     432 B |
+| QueryFacet        |  10.292 μs | 0.0721 μs | 0.0674 μs |     632 B |
+| QuerySort         |   3.435 μs | 0.0137 μs | 0.0128 μs |     400 B |
+| Query             |   1.435 μs | 0.0040 μs | 0.0038 μs |     304 B |
 
 ### Memory Allocations
 

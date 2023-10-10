@@ -2,24 +2,26 @@
 {
     public sealed partial class SynonymMap
     {
-        private readonly struct SynonymResult
+        private readonly struct SynonymSearchTermResult
         {
-            public SynonymResult(string token)
+            public SynonymSearchTermResult(int ordinal, string token)
             {
+                this.Ordinal = ordinal;
                 this.Token = token;
-                this.Node = null;
             }
 
-            public SynonymResult(TokenNode node)
+            public SynonymSearchTermResult(int ordinal, TokenNode node)
             {
                 if (node is null)
                 {
                     throw new ArgumentNullException(nameof(node));
                 }
 
-                this.Token = null;
+                this.Ordinal = ordinal;
                 this.Node = node;
             }
+
+            public int Ordinal { get; }
 
             public string? Token { get; }
 

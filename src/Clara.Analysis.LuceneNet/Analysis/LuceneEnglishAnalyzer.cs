@@ -5,17 +5,20 @@ using Lucene.Net.Util;
 
 namespace Clara.Analysis
 {
-    public class LuceneEnglishAnalyzer : IAnalyzer
+    public sealed class LuceneEnglishAnalyzer : IAnalyzer
     {
-        private readonly IEnumerable<Token> emptyEnumerable;
+        private readonly IEnumerable<AnalyzerTerm> emptyEnumerable = new TokenEnumerable(string.Empty);
 
-        public LuceneEnglishAnalyzer()
+        public ITokenizer Tokenizer
         {
-            this.emptyEnumerable = new TokenEnumerable(string.Empty);
+            get
+            {
+                return LuceneStandardTokenizer.Instance;
+            }
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "By design")]
-        public TokenEnumerable GetTokens(string text)
+        public TokenEnumerable GetTerms(string text)
         {
             if (text is null)
             {
@@ -25,7 +28,7 @@ namespace Clara.Analysis
             return new TokenEnumerable(text);
         }
 
-        IEnumerable<Token> IAnalyzer.GetTokens(string text)
+        IEnumerable<AnalyzerTerm> IAnalyzer.GetTerms(string text)
         {
             if (text is null)
             {
@@ -41,7 +44,7 @@ namespace Clara.Analysis
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "By design")]
-        public readonly record struct TokenEnumerable : IEnumerable<Token>
+        public readonly record struct TokenEnumerable : IEnumerable<AnalyzerTerm>
         {
             private static readonly ObjectPool<Enumerator> Pool = new(() => new());
 
@@ -52,7 +55,7 @@ namespace Clara.Analysis
                 this.text = text;
             }
 
-            public IEnumerator<Token> GetEnumerator()
+            public IEnumerator<AnalyzerTerm> GetEnumerator()
             {
                 var lease = Pool.Lease();
 
@@ -61,7 +64,7 @@ namespace Clara.Analysis
                 return lease.Instance;
             }
 
-            IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
+            IEnumerator<AnalyzerTerm> IEnumerable<AnalyzerTerm>.GetEnumerator()
             {
                 return this.GetEnumerator();
             }
@@ -71,7 +74,7 @@ namespace Clara.Analysis
                 return this.GetEnumerator();
             }
 
-            private sealed class Enumerator : IEnumerator<Token>
+            private sealed class Enumerator : IEnumerator<AnalyzerTerm>
             {
 #pragma warning disable CA2213 // Disposable fields should be disposed
                 private readonly ReusableStringReader reader;
@@ -80,8 +83,8 @@ namespace Clara.Analysis
                 private readonly char[] chars;
                 private ObjectPoolLease<Enumerator>? lease;
                 private bool isEmpty;
-                private Token current;
-                private TokenStreamEnumerable.Enumerator enumerator;
+                private AnalyzerTerm current;
+                private AnalyzerTermStreamEnumerable.Enumerator enumerator;
                 private bool isEnumeratorSet;
 
                 public Enumerator()
@@ -91,7 +94,7 @@ namespace Clara.Analysis
                     this.chars = new char[Token.MaximumLength];
                 }
 
-                public Token Current
+                public AnalyzerTerm Current
                 {
                     get
                     {
@@ -129,20 +132,15 @@ namespace Clara.Analysis
 
                     if (!this.isEnumeratorSet)
                     {
-                        this.enumerator = new TokenStreamEnumerable(this.analyzer.GetTokenStream(string.Empty, this.reader), this.chars).GetEnumerator();
+                        this.enumerator = new AnalyzerTermStreamEnumerable(this.analyzer.GetTokenStream(string.Empty, this.reader), this.chars).GetEnumerator();
                         this.isEnumeratorSet = true;
                     }
 
                     while (this.enumerator.MoveNext())
                     {
-                        var token = this.enumerator.Current;
+                        this.current = this.enumerator.Current;
 
-                        if (!token.IsEmpty)
-                        {
-                            this.current = token;
-
-                            return true;
-                        }
+                        return true;
                     }
 
                     this.current = default;

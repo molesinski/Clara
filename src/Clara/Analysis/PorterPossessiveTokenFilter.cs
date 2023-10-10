@@ -2,7 +2,7 @@
 {
     public sealed class PorterPossessiveTokenFilter : ITokenFilter
     {
-        public void Process(in Token token, TokenFilterDelegate next)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             if (next is null)
             {
@@ -23,7 +23,7 @@
                 }
             }
 
-            next(in token);
+            return next(token);
         }
     }
 }

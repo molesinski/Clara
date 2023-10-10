@@ -30,7 +30,7 @@ namespace Clara.Analysis
             }
         }
 
-        public void Process(in Token token, TokenFilterDelegate next)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             if (next is null)
             {
@@ -41,11 +41,11 @@ namespace Clara.Analysis
             {
                 if (this.keywords.Contains(token))
                 {
-                    return;
+                    return token;
                 }
             }
 
-            next(in token);
+            return next(token);
         }
     }
 }

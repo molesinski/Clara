@@ -46,14 +46,14 @@ namespace Clara.Benchmarks
             return item;
         }
 
-        private static IEnumerable<TextWeight> GetText(Product product)
+        private static IEnumerable<string?> GetText(Product product)
         {
-            yield return new(product.Id.ToString(CultureInfo.InvariantCulture));
-            yield return new(product.Title, weight: 4);
-            yield return new(product.Description);
-            yield return new(product.Brand, weight: 4);
-            yield return new(product.Category);
-            yield return new(CommonTextPhrase);
+            yield return product.Id.ToString(CultureInfo.InvariantCulture);
+            yield return product.Title;
+            yield return product.Description;
+            yield return product.Brand;
+            yield return product.Category;
+            yield return CommonTextPhrase;
         }
     }
 }

@@ -6,20 +6,20 @@ namespace Clara.Analysis.Synonyms
     public sealed partial class SynonymMap
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "By design")]
-        public readonly record struct TokenEnumerable : IEnumerable<Token>
+        public readonly record struct AnalyzerTermEnumerable : IEnumerable<AnalyzerTerm>
         {
             private static readonly ObjectPool<Enumerator> Pool = new(() => new());
 
             private readonly SynonymMap synonymMap;
             private readonly string text;
 
-            internal TokenEnumerable(SynonymMap synonymMap, string text)
+            internal AnalyzerTermEnumerable(SynonymMap synonymMap, string text)
             {
                 this.synonymMap = synonymMap;
                 this.text = text;
             }
 
-            public IEnumerator<Token> GetEnumerator()
+            public IEnumerator<AnalyzerTerm> GetEnumerator()
             {
                 var lease = Pool.Lease();
 
@@ -28,7 +28,7 @@ namespace Clara.Analysis.Synonyms
                 return lease.Instance;
             }
 
-            IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
+            IEnumerator<AnalyzerTerm> IEnumerable<AnalyzerTerm>.GetEnumerator()
             {
                 return this.GetEnumerator();
             }
@@ -38,19 +38,19 @@ namespace Clara.Analysis.Synonyms
                 return this.GetEnumerator();
             }
 
-            private sealed class Enumerator : IEnumerator<Token>
+            private sealed class Enumerator : IEnumerator<AnalyzerTerm>
             {
                 private ObjectPoolLease<Enumerator>? lease;
                 private SynonymMap synonymMap = default!;
                 private IAnalyzer analyzer = default!;
                 private string text = default!;
                 private bool isEmpty;
-                private SynonymTokenEnumerable.Enumerator synonymResultEnumerator;
+                private SynonymAnalyzerTermEnumerable.Enumerator synonymResultEnumerator;
                 private ListSlim<string>.Enumerator replacementTokenEnumerator;
-                private Token current;
+                private AnalyzerTerm current;
                 private int state;
 
-                public Token Current
+                public AnalyzerTerm Current
                 {
                     get
                     {
@@ -90,7 +90,7 @@ namespace Clara.Analysis.Synonyms
 
                     if (this.state == 0)
                     {
-                        this.synonymResultEnumerator = new SynonymTokenEnumerable(this.synonymMap, new PrimitiveEnumerable<Token>(this.analyzer.GetTokens(this.text))).GetEnumerator();
+                        this.synonymResultEnumerator = new SynonymAnalyzerTermEnumerable(this.synonymMap, new PrimitiveEnumerable<AnalyzerTerm>(this.analyzer.GetTerms(this.text))).GetEnumerator();
                         this.state = 1;
                     }
 
@@ -98,7 +98,7 @@ namespace Clara.Analysis.Synonyms
                     {
                         if (this.replacementTokenEnumerator.MoveNext())
                         {
-                            this.current = new Token(this.replacementTokenEnumerator.Current);
+                            this.current = new AnalyzerTerm(this.synonymResultEnumerator.Current.Ordinal, new Token(this.replacementTokenEnumerator.Current));
 
                             return true;
                         }
@@ -117,7 +117,7 @@ namespace Clara.Analysis.Synonyms
 
                             if (this.replacementTokenEnumerator.MoveNext())
                             {
-                                this.current = new Token(this.replacementTokenEnumerator.Current);
+                                this.current = new AnalyzerTerm(this.synonymResultEnumerator.Current.Ordinal, new Token(this.replacementTokenEnumerator.Current));
 
                                 return true;
                             }
@@ -128,7 +128,7 @@ namespace Clara.Analysis.Synonyms
                         }
                         else if (this.synonymResultEnumerator.Current.Token is Token token)
                         {
-                            this.current = token;
+                            this.current = new AnalyzerTerm(this.synonymResultEnumerator.Current.Ordinal, token);
 
                             return true;
                         }

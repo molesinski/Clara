@@ -2,9 +2,9 @@
 
 namespace Clara.Analysis
 {
-    public sealed class LuceneEnglishStopTokenFilter : StopTokenFilter
+    public sealed class LucenePorterStopTokenFilter : StopTokenFilter
     {
-        public LuceneEnglishStopTokenFilter()
+        public LucenePorterStopTokenFilter()
             : base(DefaultStopwords)
         {
         }

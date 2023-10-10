@@ -2,7 +2,7 @@
 {
     public sealed class LowerInvariantTokenFilter : ITokenFilter
     {
-        public void Process(in Token token, TokenFilterDelegate next)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             if (next is null)
             {
@@ -17,7 +17,7 @@
                 span[i] = char.ToLowerInvariant(span[i]);
             }
 
-            next(in token);
+            return next(token);
         }
     }
 }

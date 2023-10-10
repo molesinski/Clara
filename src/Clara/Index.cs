@@ -121,18 +121,17 @@ namespace Clara
             {
                 using var facetFields = SharedObjectPools.FieldSets.Lease();
 
-                if (query.Facets.Count > 0)
+                for (var i = 0; i < query.Facets.Count; i++)
                 {
-                    foreach (var facet in (ListSlim<FacetExpression>)query.Facets)
-                    {
-                        facetFields.Instance.Add(facet.Field);
-                    }
+                    facetFields.Instance.Add(query.Facets[i].Field);
                 }
 
                 using var filterExpressions = SharedObjectPools.FilterExpressions.Lease();
 
-                foreach (var filterExpression in (ListSlim<FilterExpression>)query.Filters)
+                for (var i = 0; i < query.Filters.Count; i++)
                 {
+                    var filterExpression = query.Filters[i];
+
                     if (!filterExpression.IsEmpty)
                     {
                         filterExpressions.Instance.Add(filterExpression);
@@ -191,28 +190,28 @@ namespace Clara
 
             var facetResults = SharedObjectPools.FacetResults.Lease();
 
-            if (query.Facets.Count > 0)
+            for (var i = 0; i < query.Facets.Count; i++)
             {
-                foreach (var facetExpression in (ListSlim<FacetExpression>)query.Facets)
-                {
-                    var field = facetExpression.Field;
-                    var store = this.fieldStores[field];
-                    var fieldFilterExpression = default(FilterExpression);
+                var facetExpression = query.Facets[i];
+                var field = facetExpression.Field;
+                var store = this.fieldStores[field];
+                var fieldFilterExpression = default(FilterExpression);
 
-                    foreach (var filterExpression in (ListSlim<FilterExpression>)query.Filters)
+                for (var j = 0; j < query.Filters.Count; j++)
+                {
+                    var filterExpression = query.Filters[j];
+
+                    if (!filterExpression.IsEmpty)
                     {
-                        if (!filterExpression.IsEmpty)
+                        if (filterExpression.Field == field)
                         {
-                            if (filterExpression.Field == field)
-                            {
-                                fieldFilterExpression = filterExpression;
-                                break;
-                            }
+                            fieldFilterExpression = filterExpression;
+                            break;
                         }
                     }
-
-                    facetResults.Instance.Add(store.Facet(facetExpression, fieldFilterExpression, ref documentResultBuilder));
                 }
+
+                facetResults.Instance.Add(store.Facet(facetExpression, fieldFilterExpression, ref documentResultBuilder));
             }
 
             if (documentResultBuilder.Documents.Count > 0)

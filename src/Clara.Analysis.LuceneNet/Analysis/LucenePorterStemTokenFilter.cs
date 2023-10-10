@@ -4,11 +4,11 @@ using Lucene.Net.Analysis.En;
 
 namespace Clara.Analysis
 {
-    public class LuceneEnglishPorterStemTokenFilter : ITokenFilter
+    public sealed class LucenePorterStemTokenFilter : ITokenFilter
     {
         private static readonly ObjectPool<OperationContext> Pool = new(() => new());
 
-        public void Process(in Token token, TokenFilterDelegate next)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             using var context = Pool.Lease();
 
@@ -21,6 +21,8 @@ namespace Clara.Analysis
 
                 break;
             }
+
+            return token;
         }
 
         private sealed class OperationContext : IDisposable

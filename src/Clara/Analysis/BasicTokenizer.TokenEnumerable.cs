@@ -41,7 +41,7 @@ namespace Clara.Analysis
             private sealed class Enumerator : IEnumerator<Token>
             {
                 public static readonly IEnumerable<char> DefaultAdditionalWordCharacters = new[] { '_' };
-                public static readonly IEnumerable<char> DefaultWordConnectingCharacters = new[] { '-', '\'', '\u2019', '\uFF07' };
+                public static readonly IEnumerable<char> DefaultWordConnectingCharacters = new[] { '\'', '\u2019', '\uFF07' };
                 public static readonly IEnumerable<char> DefaultNumberConnectingCharacters = new[] { '.', ',' };
 
                 private ObjectPoolLease<Enumerator>? lease;
@@ -243,7 +243,6 @@ namespace Clara.Analysis
                         return
                             c switch
                             {
-                                '-' => true,
                                 '\'' => true,
                                 '\u2019' => true,
                                 '\uFF07' => true,

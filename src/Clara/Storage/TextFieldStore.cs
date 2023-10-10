@@ -1,5 +1,4 @@
 ﻿using Clara.Analysis;
-using Clara.Analysis.MatchExpressions;
 using Clara.Analysis.Synonyms;
 using Clara.Querying;
 
@@ -7,8 +6,6 @@ namespace Clara.Storage
 {
     internal sealed class TextFieldStore : FieldStore
     {
-        private static readonly string InvalidToken = string.Concat("__INVALID__", Guid.NewGuid().ToString());
-
         private readonly TokenEncoder tokenEncoder;
         private readonly IAnalyzer analyzer;
         private readonly ISynonymMap? synonymMap;
@@ -51,41 +48,41 @@ namespace Clara.Storage
 
         public override DocumentScoring Search(SearchExpression searchExpression, ref DocumentResultBuilder documentResultBuilder)
         {
-            var matchExpression = Match.Empty;
+            using var terms = SharedObjectPools.SearchTerms.Lease();
+            var hasInvalid = false;
 
-            try
+            foreach (var term in this.analyzer.GetTerms(searchExpression.Text))
             {
-                using (var tokens = SharedObjectPools.MatchTokens.Lease())
+                var readOnlyToken = this.tokenEncoder.ToReadOnly(term.Token) ?? this.synonymMap?.ToReadOnly(term.Token);
+
+                if (readOnlyToken is null)
                 {
-                    foreach (var token in this.analyzer.GetTokens(searchExpression.Text))
-                    {
-                        var value = this.tokenEncoder.ToReadOnly(token)
-                                 ?? this.synonymMap?.ToReadOnly(token)
-                                 ?? InvalidToken;
-
-                        tokens.Instance.Add(value);
-                    }
-
-                    matchExpression =
-                        searchExpression.SearchMode == SearchMode.All
-                            ? Match.All(ScoreAggregation.Sum, tokens.Instance)
-                            : Match.Any(ScoreAggregation.Sum, tokens.Instance);
+                    hasInvalid = true;
+                    continue;
                 }
 
-                if (this.synonymMap is not null)
-                {
-                    if (matchExpression is not EmptyMatchExpression)
-                    {
-                        matchExpression = this.synonymMap.Process(matchExpression);
-                    }
-                }
+                terms.Instance.Add(new SearchTerm(term.Ordinal, readOnlyToken));
+            }
 
-                return this.textDocumentStore.Search(matchExpression, ref documentResultBuilder);
-            }
-            finally
+            if (hasInvalid)
             {
-                matchExpression.Dispose();
+                if (searchExpression.SearchMode == SearchMode.All || terms.Instance.Count == 0)
+                {
+                    documentResultBuilder.Clear();
+
+                    return default;
+                }
             }
+
+            if (this.synonymMap is not null)
+            {
+                if (terms.Instance.Count > 0)
+                {
+                    this.synonymMap.Process(searchExpression.SearchMode, terms.Instance);
+                }
+            }
+
+            return this.textDocumentStore.Search(searchExpression.SearchMode, terms.Instance, ref documentResultBuilder);
         }
     }
 }

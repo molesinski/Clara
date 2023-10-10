@@ -6,20 +6,20 @@ namespace Clara.Analysis
     public sealed partial class Analyzer
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "By design")]
-        public readonly record struct TokenEnumerable : IEnumerable<Token>
+        public readonly record struct AnalyzerTermEnumerable : IEnumerable<AnalyzerTerm>
         {
             private static readonly ObjectPool<Enumerator> Pool = new(() => new());
 
             private readonly Analyzer analyzer;
             private readonly string text;
 
-            internal TokenEnumerable(Analyzer analyzer, string text)
+            internal AnalyzerTermEnumerable(Analyzer analyzer, string text)
             {
                 this.analyzer = analyzer;
                 this.text = text;
             }
 
-            public IEnumerator<Token> GetEnumerator()
+            public IEnumerator<AnalyzerTerm> GetEnumerator()
             {
                 var lease = Pool.Lease();
 
@@ -28,7 +28,7 @@ namespace Clara.Analysis
                 return lease.Instance;
             }
 
-            IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
+            IEnumerator<AnalyzerTerm> IEnumerable<AnalyzerTerm>.GetEnumerator()
             {
                 return this.GetEnumerator();
             }
@@ -38,17 +38,18 @@ namespace Clara.Analysis
                 return this.GetEnumerator();
             }
 
-            private sealed class Enumerator : IEnumerator<Token>
+            private sealed class Enumerator : IEnumerator<AnalyzerTerm>
             {
                 private ObjectPoolLease<Enumerator>? lease;
                 private ITokenizer tokenizer = default!;
                 private TokenFilterDelegate pipeline = default!;
                 private string text = default!;
                 private bool isEmpty;
-                private Token current;
+                private int ordinal;
+                private AnalyzerTerm current;
                 private IEnumerator<Token>? enumerator;
 
-                public Token Current
+                public AnalyzerTerm Current
                 {
                     get
                     {
@@ -71,8 +72,9 @@ namespace Clara.Analysis
                     this.pipeline = analyzer.pipeline;
                     this.text = text;
                     this.isEmpty = string.IsNullOrWhiteSpace(text);
+                    this.ordinal = default;
                     this.current = default!;
-                    this.enumerator = null;
+                    this.enumerator = default;
                 }
 
                 public bool MoveNext()
@@ -88,13 +90,14 @@ namespace Clara.Analysis
 
                     while (this.enumerator.MoveNext())
                     {
+                        var ordinal = ++this.ordinal;
                         var token = this.enumerator.Current;
 
-                        this.pipeline(in token);
+                        token = this.pipeline(token);
 
                         if (!token.IsEmpty)
                         {
-                            this.current = token;
+                            this.current = new AnalyzerTerm(ordinal, token);
 
                             return true;
                         }
@@ -108,7 +111,8 @@ namespace Clara.Analysis
                 public void Reset()
                 {
                     this.enumerator?.Dispose();
-                    this.enumerator = null;
+                    this.enumerator = default;
+                    this.ordinal = default;
                     this.current = default!;
                 }
 

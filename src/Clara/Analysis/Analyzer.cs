@@ -2,7 +2,7 @@
 {
     public sealed partial class Analyzer : IAnalyzer
     {
-        private readonly IEnumerable<Token> emptyEnumerable;
+        private readonly IEnumerable<AnalyzerTerm> emptyEnumerable;
         private readonly ITokenizer tokenizer;
         private readonly TokenFilterDelegate pipeline;
 
@@ -28,22 +28,30 @@
                 throw new ArgumentNullException(nameof(filters));
             }
 
-            this.emptyEnumerable = new TokenEnumerable(this, string.Empty);
+            this.emptyEnumerable = new AnalyzerTermEnumerable(this, string.Empty);
             this.tokenizer = tokenizer;
             this.pipeline = CreatePipeline(filters);
         }
 
-        public TokenEnumerable GetTokens(string text)
+        public ITokenizer Tokenizer
+        {
+            get
+            {
+                return this.tokenizer;
+            }
+        }
+
+        public AnalyzerTermEnumerable GetTerms(string text)
         {
             if (text is null)
             {
                 throw new ArgumentNullException(nameof(text));
             }
 
-            return new TokenEnumerable(this, text);
+            return new AnalyzerTermEnumerable(this, text);
         }
 
-        IEnumerable<Token> IAnalyzer.GetTokens(string text)
+        IEnumerable<AnalyzerTerm> IAnalyzer.GetTerms(string text)
         {
             if (text is null)
             {
@@ -55,14 +63,15 @@
                 return this.emptyEnumerable;
             }
 
-            return new TokenEnumerable(this, text);
+            return new AnalyzerTermEnumerable(this, text);
         }
 
         private static TokenFilterDelegate CreatePipeline(IEnumerable<ITokenFilter> filters)
         {
             TokenFilterDelegate pipeline =
-                (in Token token) =>
+                token =>
                 {
+                    return token;
                 };
 
             foreach (var filter in filters.Reverse())
@@ -72,9 +81,9 @@
                     var next = pipeline;
 
                     pipeline =
-                        (in Token token) =>
+                        token =>
                         {
-                            filter.Process(in token, next);
+                            return filter.Process(token, next);
                         };
                 }
             }

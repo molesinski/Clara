@@ -1,4 +1,5 @@
 ﻿using Clara.Analysis.MatchExpressions;
+using Clara.Querying;
 using Clara.Utils;
 
 namespace Clara.Analysis.Synonyms
@@ -9,7 +10,7 @@ namespace Clara.Analysis.Synonyms
 
         private readonly HashSet<Synonym> synonyms = new();
         private readonly StringPoolSlim stringPool = new();
-        private readonly IEnumerable<Token> emptyEnumerable;
+        private readonly IEnumerable<AnalyzerTerm> emptyEnumerable;
         private readonly IAnalyzer analyzer;
         private readonly TokenNode root;
 
@@ -40,7 +41,7 @@ namespace Clara.Analysis.Synonyms
                 this.synonyms.Add(synonym);
             }
 
-            this.emptyEnumerable = new TokenEnumerable(this, string.Empty);
+            this.emptyEnumerable = new AnalyzerTermEnumerable(this, string.Empty);
             this.analyzer = analyzer;
             this.root = TokenNode.Build(analyzer, this.synonyms, permutatedTokenCountThreshold, this.stringPool);
         }
@@ -61,25 +62,17 @@ namespace Clara.Analysis.Synonyms
             }
         }
 
-        private bool IsEmpty
-        {
-            get
-            {
-                return this.root.Children.Count == 0;
-            }
-        }
-
-        public TokenEnumerable GetTokens(string text)
+        public AnalyzerTermEnumerable GetTerms(string text)
         {
             if (text is null)
             {
                 throw new ArgumentNullException(nameof(text));
             }
 
-            return new TokenEnumerable(this, text);
+            return new AnalyzerTermEnumerable(this, text);
         }
 
-        IEnumerable<Token> IAnalyzer.GetTokens(string text)
+        IEnumerable<AnalyzerTerm> ISynonymMap.GetTerms(string text)
         {
             if (text is null)
             {
@@ -91,114 +84,45 @@ namespace Clara.Analysis.Synonyms
                 return this.emptyEnumerable;
             }
 
-            return new TokenEnumerable(this, text);
+            return new AnalyzerTermEnumerable(this, text);
         }
 
-        public MatchExpression Process(MatchExpression matchExpression)
+        public void Process(SearchMode mode, IList<SearchTerm> terms)
         {
-            if (matchExpression is null)
+            if (terms is null)
             {
-                throw new ArgumentNullException(nameof(matchExpression));
+                throw new ArgumentNullException(nameof(terms));
             }
 
-            if (this.IsEmpty)
+            if (this.root.Children.Count == 0)
             {
-                return matchExpression;
+                return;
             }
 
-            if (matchExpression is AllMatchExpression allMatchExpression)
+            using var tempTerms = SharedObjectPools.SearchTerms.Lease();
+            var hasMatchExpressions = false;
+
+            foreach (var item in new SynonymSearchTermEnumerable(this, new PrimitiveEnumerable<SearchTerm>(terms)))
             {
-                using var tokens = SharedObjectPools.MatchTokens.Lease();
-                using var expressions = SharedObjectPools.MatchExpressions.Lease();
-
-                foreach (var synonymResult in new SynonymEnumerable(this, new StringEnumerable(allMatchExpression.Tokens)))
+                if (item.Node is TokenNode node)
                 {
-                    if (synonymResult.Node is TokenNode node)
-                    {
-                        expressions.Instance.Add(node.MatchExpression);
-                    }
-                    else if (synonymResult.Token is string token)
-                    {
-                        tokens.Instance.Add(token);
-                    }
+                    tempTerms.Instance.Add(new SearchTerm(item.Ordinal, node.MatchExpression));
+                    hasMatchExpressions = true;
                 }
-
-                if (expressions.Instance.Count == 0)
+                else if (item.Token is string token)
                 {
-                    return allMatchExpression;
-                }
-
-                try
-                {
-                    if (tokens.Instance.Count > 0)
-                    {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                        expressions.Instance.Insert(0, Match.All(allMatchExpression.ScoreAggregation, tokens.Instance));
-#pragma warning restore CA2000 // Dispose objects before losing scope
-                    }
-
-                    if (expressions.Instance.Count == 1)
-                    {
-                        return expressions.Instance[0];
-                    }
-                    else
-                    {
-                        return Match.And(allMatchExpression.ScoreAggregation, expressions.Instance);
-                    }
-                }
-                finally
-                {
-                    allMatchExpression.Dispose();
+                    tempTerms.Instance.Add(new SearchTerm(item.Ordinal, token));
                 }
             }
-            else if (matchExpression is AnyMatchExpression anyMatchExpression)
+
+            if (hasMatchExpressions)
             {
-                using var tokens = SharedObjectPools.MatchTokens.Lease();
-                using var expressions = SharedObjectPools.MatchExpressions.Lease();
+                terms.Clear();
 
-                foreach (var synonymResult in new SynonymEnumerable(this, new StringEnumerable(anyMatchExpression.Tokens)))
+                foreach (var token in tempTerms.Instance)
                 {
-                    if (synonymResult.Node is TokenNode node)
-                    {
-                        expressions.Instance.Add(node.MatchExpression);
-                    }
-                    else if (synonymResult.Token is string token)
-                    {
-                        tokens.Instance.Add(token);
-                    }
+                    terms.Add(token);
                 }
-
-                if (expressions.Instance.Count == 0)
-                {
-                    return anyMatchExpression;
-                }
-
-                try
-                {
-                    if (tokens.Instance.Count > 0)
-                    {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                        expressions.Instance.Insert(0, Match.Any(anyMatchExpression.ScoreAggregation, tokens.Instance));
-#pragma warning restore CA2000 // Dispose objects before losing scope
-                    }
-
-                    if (expressions.Instance.Count == 1)
-                    {
-                        return expressions.Instance[0];
-                    }
-                    else
-                    {
-                        return Match.Or(anyMatchExpression.ScoreAggregation, expressions.Instance);
-                    }
-                }
-                finally
-                {
-                    anyMatchExpression.Dispose();
-                }
-            }
-            else
-            {
-                return matchExpression;
             }
         }
 

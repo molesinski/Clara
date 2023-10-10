@@ -1,6 +1,4 @@
-﻿using Clara.Analysis;
-using Clara.Analysis.MatchExpressions;
-using Clara.Mapping;
+﻿using Clara.Mapping;
 using Clara.Querying;
 using Clara.Storage;
 using Clara.Utils;
@@ -9,23 +7,23 @@ namespace Clara
 {
     internal static class SharedObjectPools
     {
+        private const int MaxFilterFacetCount = 10;
+
+        public static ObjectPool<HashSet<Field>> FieldSets { get; } = new(() => new(), x => x.Clear());
+
+        public static ObjectPool<Stack<int>> BacktrackingOrdinals { get; } = new(() => new(), x => x.Clear());
+
         public static ObjectPool<DictionarySlim<int, int>> TokenCounts { get; } = new(() => new());
 
         public static ObjectPool<DictionarySlim<int, float>> DocumentScores { get; } = new(() => new(), sizeFactor: 3);
 
-        public static ObjectPool<HashSetSlim<int>> DocumentSets { get; } = new(() => new(), sizeFactor: 12);
-
-        public static ObjectPool<HashSet<Field>> FieldSets { get; } = new(() => new(), x => x.Clear());
+        public static ObjectPool<HashSetSlim<int>> DocumentSets { get; } = new(() => new(), sizeFactor: 3 + MaxFilterFacetCount);
 
         public static ObjectPool<HashSetSlim<int>> FilteredTokens { get; } = new(() => new());
 
-        public static ObjectPool<HashSetSlim<string>> FilterValues { get; } = new(() => new(), sizeFactor: 11);
+        public static ObjectPool<HashSetSlim<string>> FilterValues { get; } = new(() => new(), sizeFactor: 1 + MaxFilterFacetCount);
 
-        public static ObjectPool<Queue<MatchExpression>> MatchExpressionQueues { get; } = new(() => new());
-
-        public static ObjectPool<ListSlim<MatchExpression>> MatchExpressions { get; } = new(() => new(), sizeFactor: 2);
-
-        public static ObjectPool<ListSlim<string>> MatchTokens { get; } = new(() => new(), sizeFactor: 3);
+        public static ObjectPool<ListSlim<SearchTerm>> SearchTerms { get; } = new(() => new(), sizeFactor: 2);
 
         public static ObjectPool<ListSlim<int>> Documents { get; } = new(() => new());
 
@@ -37,11 +35,11 @@ namespace Clara
 
         public static ObjectPool<ListSlim<FacetResult>> FacetResults { get; } = new(() => new());
 
-        public static ObjectPool<ListSlim<HierarchyFacetValue>> HierarchyFacetValues { get; } = new(() => new(), sizeFactor: 3);
+        public static ObjectPool<ListSlim<HierarchyFacetValue>> HierarchyFacetValues { get; } = new(() => new());
 
-        public static ObjectPool<ListSlim<KeywordFacetValue>> KeywordFacetValues { get; } = new(() => new(), sizeFactor: 12);
+        public static ObjectPool<ListSlim<KeywordFacetValue>> KeywordFacetValues { get; } = new(() => new(), sizeFactor: MaxFilterFacetCount);
 
-        public static ObjectPool<ListSlim<DocumentResultBuilderFacet>> QueryResultBuilderFacets { get; } = new(() => new(), sizeFactor: 12);
+        public static ObjectPool<ListSlim<DocumentResultBuilderFacet>> QueryResultBuilderFacets { get; } = new(() => new(), sizeFactor: MaxFilterFacetCount);
 
         public static ObjectPool<FilterExpressionComparer> FilterExpressionComparers { get; } = new(() => new());
     }

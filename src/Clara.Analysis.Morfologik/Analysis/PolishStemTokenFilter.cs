@@ -9,7 +9,7 @@ namespace Clara.Analysis
     {
         private static readonly ObjectPool<StemmerContext> Pool = new(() => new());
 
-        public void Process(in Token token, TokenFilterDelegate next)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             using var stemmerContext = Pool.Lease();
 
@@ -39,6 +39,8 @@ namespace Clara.Analysis
 
                 break;
             }
+
+            return token;
         }
 
         private sealed class StemmerContext

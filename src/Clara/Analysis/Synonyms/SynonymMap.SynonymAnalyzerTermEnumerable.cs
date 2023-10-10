@@ -5,12 +5,12 @@ namespace Clara.Analysis.Synonyms
 {
     public sealed partial class SynonymMap
     {
-        private readonly struct SynonymTokenEnumerable : IEnumerable<SynonymTokenResult>
+        private readonly struct SynonymAnalyzerTermEnumerable : IEnumerable<SynonymAnalyzerTermResult>
         {
             private readonly SynonymMap synonymMap;
-            private readonly PrimitiveEnumerable<Token> tokens;
+            private readonly PrimitiveEnumerable<AnalyzerTerm> tokens;
 
-            public SynonymTokenEnumerable(SynonymMap synonymMap, PrimitiveEnumerable<Token> tokens)
+            public SynonymAnalyzerTermEnumerable(SynonymMap synonymMap, PrimitiveEnumerable<AnalyzerTerm> tokens)
             {
                 if (synonymMap is null)
                 {
@@ -26,7 +26,7 @@ namespace Clara.Analysis.Synonyms
                 return new Enumerator(this);
             }
 
-            readonly IEnumerator<SynonymTokenResult> IEnumerable<SynonymTokenResult>.GetEnumerator()
+            readonly IEnumerator<SynonymAnalyzerTermResult> IEnumerable<SynonymAnalyzerTermResult>.GetEnumerator()
             {
                 return this.GetEnumerator();
             }
@@ -36,34 +36,36 @@ namespace Clara.Analysis.Synonyms
                 return this.GetEnumerator();
             }
 
-            public struct Enumerator : IEnumerator<SynonymTokenResult>
+            public struct Enumerator : IEnumerator<SynonymAnalyzerTermResult>
             {
                 private readonly StringPoolSlim stringPool;
                 private readonly TokenNode root;
-                private readonly PrimitiveEnumerable<Token> tokens;
-                private PrimitiveEnumerable<Token>.Enumerator enumerator;
+                private readonly PrimitiveEnumerable<AnalyzerTerm> tokens;
+                private PrimitiveEnumerable<AnalyzerTerm>.Enumerator enumerator;
                 private bool isEnumeratorSet;
                 private bool isEnumerated;
-                private TokenNode? previousNode;
-                private Token? previousToken;
+                private AnalyzerTerm? peekedTerm;
+                private TokenNode? backtrackingNode;
                 private TokenNode currentNode;
-                private SynonymTokenResult current;
+                private SynonymAnalyzerTermResult current;
+                private ObjectPoolLease<Stack<int>>? backtrackingOrdinals;
 
-                public Enumerator(SynonymTokenEnumerable source)
+                public Enumerator(SynonymAnalyzerTermEnumerable source)
                 {
                     this.stringPool = source.synonymMap.stringPool;
                     this.root = source.synonymMap.root;
                     this.tokens = source.tokens;
                     this.enumerator = default;
-                    this.isEnumeratorSet = false;
-                    this.isEnumerated = false;
-                    this.previousToken = null;
-                    this.previousNode = null;
+                    this.isEnumeratorSet = default;
+                    this.isEnumerated = default;
+                    this.peekedTerm = default;
+                    this.backtrackingNode = default;
                     this.currentNode = this.root;
                     this.current = default;
+                    this.backtrackingOrdinals = default;
                 }
 
-                public readonly SynonymTokenResult Current
+                public readonly SynonymAnalyzerTermResult Current
                 {
                     get
                     {
@@ -81,67 +83,67 @@ namespace Clara.Analysis.Synonyms
 
                 public bool MoveNext()
                 {
-                    if (this.isEnumerated)
-                    {
-                        return false;
-                    }
-
                     if (!this.isEnumeratorSet)
                     {
                         this.enumerator = this.tokens.GetEnumerator();
                         this.isEnumeratorSet = true;
                     }
 
-                    while (this.previousNode is not null || !this.isEnumerated)
+                    while (this.backtrackingNode is not null || !this.isEnumerated)
                     {
-                        while (this.previousNode is not null)
+                        while (this.backtrackingNode is not null)
                         {
-                            if (this.previousNode.IsRoot)
+                            if (this.backtrackingNode.IsRoot)
                             {
-                                this.previousNode = null;
+                                this.backtrackingNode = null;
 
                                 break;
                             }
 
-                            if (this.previousNode.HasSynonyms)
+                            if (this.backtrackingNode.HasSynonyms)
                             {
-                                this.current = new SynonymTokenResult(this.previousNode);
-                                this.previousNode = null;
+                                this.current = new SynonymAnalyzerTermResult(this.backtrackingOrdinals!.Value.Instance.Pop(), this.backtrackingNode);
+                                this.backtrackingNode = null;
+                                this.backtrackingOrdinals!.Value.Instance.Clear();
 
                                 return true;
                             }
 
-                            this.current = new SynonymTokenResult(new Token(this.previousNode.Token));
-                            this.previousNode = this.previousNode.Parent;
+                            this.current = new SynonymAnalyzerTermResult(this.backtrackingOrdinals!.Value.Instance.Pop(), new Token(this.backtrackingNode.Token));
+                            this.backtrackingNode = this.backtrackingNode.Parent;
 
                             return true;
                         }
 
-                        if (this.previousToken is not null || (!this.isEnumerated && this.enumerator.MoveNext()))
+                        if (this.peekedTerm is not null || (!this.isEnumerated && this.enumerator.MoveNext()))
                         {
-                            var currentToken = this.previousToken ?? this.enumerator.Current;
+                            var currentTerm = this.peekedTerm ?? this.enumerator.Current;
 
-                            this.previousToken = null;
+                            this.peekedTerm = null;
 
-                            if (this.stringPool.TryGet(currentToken, out var value))
+                            if (this.stringPool.TryGet(currentTerm.Token, out var value))
                             {
                                 if (this.currentNode.Children.TryGetValue(value, out var node))
                                 {
+                                    this.backtrackingOrdinals ??= SharedObjectPools.BacktrackingOrdinals.Lease();
+                                    this.backtrackingOrdinals.Value.Instance.Push(currentTerm.Ordinal);
+
                                     this.currentNode = node;
+
                                     continue;
                                 }
                             }
 
                             if (!this.currentNode.IsRoot)
                             {
-                                this.previousToken = currentToken;
-                                this.previousNode = this.currentNode;
+                                this.peekedTerm = currentTerm;
+                                this.backtrackingNode = this.currentNode;
                                 this.currentNode = this.root;
 
                                 continue;
                             }
 
-                            this.current = new SynonymTokenResult(currentToken);
+                            this.current = new SynonymAnalyzerTermResult(currentTerm.Ordinal, currentTerm.Token);
 
                             return true;
                         }
@@ -153,8 +155,8 @@ namespace Clara.Analysis.Synonyms
 
                                 if (!this.currentNode.IsRoot)
                                 {
-                                    this.previousToken = null;
-                                    this.previousNode = this.currentNode;
+                                    this.peekedTerm = null;
+                                    this.backtrackingNode = this.currentNode;
                                     this.currentNode = this.root;
 
                                     continue;
@@ -163,7 +165,6 @@ namespace Clara.Analysis.Synonyms
                         }
                     }
 
-                    this.isEnumerated = true;
                     this.current = default;
 
                     return false;
@@ -171,8 +172,8 @@ namespace Clara.Analysis.Synonyms
 
                 public void Reset()
                 {
-                    this.previousToken = null;
-                    this.previousNode = null;
+                    this.peekedTerm = default;
+                    this.backtrackingNode = default;
                     this.currentNode = this.root;
 
                     if (this.isEnumeratorSet)
@@ -181,13 +182,16 @@ namespace Clara.Analysis.Synonyms
                         this.enumerator = default;
                     }
 
-                    this.isEnumerated = false;
+                    this.isEnumerated = default;
                     this.current = default;
                 }
 
                 public void Dispose()
                 {
                     this.Reset();
+
+                    this.backtrackingOrdinals?.Dispose();
+                    this.backtrackingOrdinals = default;
                 }
             }
         }

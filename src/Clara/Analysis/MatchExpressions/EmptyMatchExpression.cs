@@ -8,12 +8,15 @@ namespace Clara.Analysis.MatchExpressions
         {
         }
 
-        internal static MatchExpression Instance { get; } = new EmptyMatchExpression();
-
-        public override MatchExpression ToPersistent()
+        public override ScoreAggregation ScoreAggregation
         {
-            return this;
+            get
+            {
+                throw new InvalidOperationException("Unable to retrieve scoring aggregation value for empty match expression.");
+            }
         }
+
+        internal static MatchExpression Instance { get; } = new EmptyMatchExpression();
 
         public override bool IsMatching(IReadOnlyCollection<string> tokens)
         {

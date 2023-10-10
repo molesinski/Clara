@@ -39,19 +39,17 @@ namespace Clara.Storage
                 throw new InvalidOperationException("Current instance is already built.");
             }
 
-            var analyzer = this.synonymMap ?? this.field.Analyzer;
-
             foreach (var value in this.field.ValueMapper(item))
             {
-                if (!string.IsNullOrWhiteSpace(value.Text))
+                if (!string.IsNullOrWhiteSpace(value))
                 {
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    foreach (var token in analyzer.GetTokens(value.Text))
+                    foreach (var term in this.synonymMap?.GetTerms(value) ?? this.field.Analyzer.GetTerms(value))
 #else
-                    foreach (var token in analyzer.GetTokens(value.Text!))
+                    foreach (var term in this.synonymMap?.GetTerms(value!) ?? this.field.Analyzer.GetTerms(value!))
 #endif
                     {
-                        var tokenId = this.tokenEncoderBuilder.Encode(token);
+                        var tokenId = this.tokenEncoderBuilder.Encode(term.Token);
 
                         ref var documents = ref this.tokenDocumentScores.GetValueRefOrAddDefault(tokenId, out _);
 
@@ -59,11 +57,11 @@ namespace Clara.Storage
 
                         ref var score = ref documents.GetValueRefOrAddDefault(documentId, out _);
 
-                        score += value.Weight;
+                        score += 1;
 
                         ref var length = ref this.documentLengths.GetValueRefOrAddDefault(documentId, out _);
 
-                        length += value.Weight;
+                        length += 1;
                     }
                 }
             }

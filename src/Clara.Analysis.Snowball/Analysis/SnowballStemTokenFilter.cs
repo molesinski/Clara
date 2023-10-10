@@ -11,7 +11,7 @@ namespace Clara.Analysis
         private static readonly Action<TStemmer, Token> SetBufferContents = CreateBufferContentsSetter();
         private static readonly ObjectPool<TStemmer> Pool = new(() => new());
 
-        public void Process(in Token token, TokenFilterDelegate next)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             using var stemmer = Pool.Lease();
 
@@ -25,6 +25,8 @@ namespace Clara.Analysis
             {
                 token.Set(buffer);
             }
+
+            return token;
         }
 
         private static Action<TStemmer, Token> CreateBufferContentsSetter()

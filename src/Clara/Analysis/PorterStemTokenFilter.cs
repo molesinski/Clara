@@ -2,20 +2,22 @@
 {
     public sealed class PorterStemTokenFilter : ITokenFilter
     {
-        public void Process(in Token token, TokenFilterDelegate next)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             if (token.Length > 2)
             {
-                Step1(in token);
-                Step2(in token);
-                Step3(in token);
-                Step4(in token);
-                Step5(in token);
-                Step6(in token);
+                Step1(ref token);
+                Step2(ref token);
+                Step3(ref token);
+                Step4(ref token);
+                Step5(ref token);
+                Step6(ref token);
             }
+
+            return token;
         }
 
-        private static void Step1(in Token token)
+        private static void Step1(ref Token token)
         {
             if (token[token.Length - 1] == 's')
             {
@@ -64,7 +66,7 @@
             }
         }
 
-        private static void Step2(in Token token)
+        private static void Step2(ref Token token)
         {
             if (EndsWith(token, "y", out var j) && ContainsVowel(token, j))
             {
@@ -72,7 +74,7 @@
             }
         }
 
-        private static void Step3(in Token token)
+        private static void Step3(ref Token token)
         {
             if (token.Length < 2)
             {
@@ -82,98 +84,98 @@
             switch (token[token.Length - 2])
             {
                 case 'a':
-                    if (ChangeSuffix(in token, "ational", "ate"))
+                    if (ChangeSuffix(ref token, "ational", "ate"))
                     {
                         break;
                     }
 
-                    ChangeSuffix(in token, "tional", "tion");
+                    ChangeSuffix(ref token, "tional", "tion");
                     break;
 
                 case 'c':
-                    if (ChangeSuffix(in token, "enci", "ence"))
+                    if (ChangeSuffix(ref token, "enci", "ence"))
                     {
                         break;
                     }
 
-                    ChangeSuffix(in token, "anci", "ance");
+                    ChangeSuffix(ref token, "anci", "ance");
                     break;
 
                 case 'e':
-                    ChangeSuffix(in token, "izer", "ize");
+                    ChangeSuffix(ref token, "izer", "ize");
                     break;
 
                 case 'l':
-                    if (ChangeSuffix(in token, "bli", "ble"))
+                    if (ChangeSuffix(ref token, "bli", "ble"))
                     {
                         break;
                     }
-                    else if (ChangeSuffix(in token, "alli", "al"))
+                    else if (ChangeSuffix(ref token, "alli", "al"))
                     {
                         break;
                     }
-                    else if (ChangeSuffix(in token, "entli", "ent"))
+                    else if (ChangeSuffix(ref token, "entli", "ent"))
                     {
                         break;
                     }
-                    else if (ChangeSuffix(in token, "eli", "e"))
+                    else if (ChangeSuffix(ref token, "eli", "e"))
                     {
                         break;
                     }
 
-                    ChangeSuffix(in token, "ousli", "ous");
+                    ChangeSuffix(ref token, "ousli", "ous");
                     break;
 
                 case 'o':
-                    if (ChangeSuffix(in token, "ization", "ize"))
+                    if (ChangeSuffix(ref token, "ization", "ize"))
                     {
                         break;
                     }
-                    else if (ChangeSuffix(in token, "ation", "ate"))
+                    else if (ChangeSuffix(ref token, "ation", "ate"))
                     {
                         break;
                     }
 
-                    ChangeSuffix(in token, "ator", "ate");
+                    ChangeSuffix(ref token, "ator", "ate");
                     break;
 
                 case 's':
-                    if (ChangeSuffix(in token, "alism", "al"))
+                    if (ChangeSuffix(ref token, "alism", "al"))
                     {
                         break;
                     }
-                    else if (ChangeSuffix(in token, "iveness", "ive"))
+                    else if (ChangeSuffix(ref token, "iveness", "ive"))
                     {
                         break;
                     }
-                    else if (ChangeSuffix(in token, "fulness", "ful"))
+                    else if (ChangeSuffix(ref token, "fulness", "ful"))
                     {
                         break;
                     }
 
-                    ChangeSuffix(in token, "ousness", "ous");
+                    ChangeSuffix(ref token, "ousness", "ous");
                     break;
 
                 case 't':
-                    if (ChangeSuffix(in token, "aliti", "al"))
+                    if (ChangeSuffix(ref token, "aliti", "al"))
                     {
                         break;
                     }
-                    else if (ChangeSuffix(in token, "iviti", "ive"))
+                    else if (ChangeSuffix(ref token, "iviti", "ive"))
                     {
                         break;
                     }
 
-                    ChangeSuffix(in token, "biliti", "ble");
+                    ChangeSuffix(ref token, "biliti", "ble");
                     break;
 
                 case 'g':
-                    ChangeSuffix(in token, "logi", "log");
+                    ChangeSuffix(ref token, "logi", "log");
                     break;
             }
         }
 
-        private static void Step4(in Token token)
+        private static void Step4(ref Token token)
         {
             if (token.Length < 1)
             {
@@ -183,38 +185,38 @@
             switch (token[token.Length - 1])
             {
                 case 'e':
-                    if (ChangeSuffix(in token, "icate", "ic"))
+                    if (ChangeSuffix(ref token, "icate", "ic"))
                     {
                         break;
                     }
-                    else if (RemoveSuffix(in token, "ative"))
+                    else if (RemoveSuffix(ref token, "ative"))
                     {
                         break;
                     }
 
-                    ChangeSuffix(in token, "alize", "al");
+                    ChangeSuffix(ref token, "alize", "al");
                     break;
 
                 case 'i':
-                    ChangeSuffix(in token, "iciti", "ic");
+                    ChangeSuffix(ref token, "iciti", "ic");
                     break;
 
                 case 'l':
-                    if (ChangeSuffix(in token, "ical", "ic"))
+                    if (ChangeSuffix(ref token, "ical", "ic"))
                     {
                         break;
                     }
 
-                    RemoveSuffix(in token, "ful");
+                    RemoveSuffix(ref token, "ful");
                     break;
 
                 case 's':
-                    RemoveSuffix(in token, "ness");
+                    RemoveSuffix(ref token, "ness");
                     break;
             }
         }
 
-        private static void Step5(in Token token)
+        private static void Step5(ref Token token)
         {
             if (token.Length < 2)
             {
@@ -359,7 +361,7 @@
             }
         }
 
-        private static void Step6(in Token token)
+        private static void Step6(ref Token token)
         {
             if (token.Length < 1)
             {
@@ -385,7 +387,7 @@
             }
         }
 
-        private static bool ChangeSuffix(in Token token, string suffix, string replacement)
+        private static bool ChangeSuffix(ref Token token, string suffix, string replacement)
         {
             if (!EndsWith(token, suffix, out var j))
             {
@@ -401,7 +403,7 @@
             return true;
         }
 
-        private static bool RemoveSuffix(in Token token, string suffix)
+        private static bool RemoveSuffix(ref Token token, string suffix)
         {
             if (!EndsWith(token, suffix, out var j))
             {

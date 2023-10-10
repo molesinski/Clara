@@ -1,4 +1,5 @@
-﻿using Clara.Utils;
+﻿using Clara.Querying;
+using Clara.Utils;
 
 namespace Clara.Analysis.MatchExpressions
 {
@@ -12,19 +13,9 @@ namespace Clara.Analysis.MatchExpressions
             }
         }
 
-        public static MatchExpression All(ScoreAggregation scoreAggregation, string? token)
-        {
-            return All(scoreAggregation, new StringEnumerable(token));
-        }
-
         public static MatchExpression All(ScoreAggregation scoreAggregation, IEnumerable<string>? tokens)
         {
             return All(scoreAggregation, new StringEnumerable(tokens));
-        }
-
-        public static MatchExpression Any(ScoreAggregation scoreAggregation, string? token)
-        {
-            return Any(scoreAggregation, new StringEnumerable(token));
         }
 
         public static MatchExpression Any(ScoreAggregation scoreAggregation, IEnumerable<string>? tokens)
@@ -42,19 +33,81 @@ namespace Clara.Analysis.MatchExpressions
             return Or(scoreAggregation, new ObjectEnumerable<MatchExpression>(expressions));
         }
 
+        public static MatchExpression Search(SearchMode mode, IEnumerable<SearchTerm> terms)
+        {
+            if (terms is null)
+            {
+                throw new ArgumentNullException(nameof(terms));
+            }
+
+            var tokens = default(ListSlim<string>?);
+            var expressions = default(ListSlim<MatchExpression>?);
+
+            foreach (var term in new PrimitiveEnumerable<SearchTerm>(terms))
+            {
+                if (term.Token is string token)
+                {
+                    tokens ??= new();
+                    tokens.Add(token);
+                }
+                else if (term.Expression is MatchExpression expression)
+                {
+                    expressions ??= new();
+                    expressions.Add(expression);
+                }
+            }
+
+            if (tokens is not null)
+            {
+                MatchExpression tokenExpression =
+                    mode == SearchMode.All
+                        ? new AllMatchExpression(ScoreAggregation.Sum, tokens)
+                        : new AnyMatchExpression(ScoreAggregation.Sum, tokens);
+
+                if (expressions is null)
+                {
+                    return tokenExpression;
+                }
+                else
+                {
+                    expressions.Insert(0, tokenExpression);
+                }
+            }
+
+            if (expressions is null)
+            {
+                return EmptyMatchExpression.Instance;
+            }
+            else if (expressions.Count == 1)
+            {
+                return expressions[0];
+            }
+            else
+            {
+                if (mode == SearchMode.All)
+                {
+                    return new AndMatchExpression(ScoreAggregation.Sum, expressions);
+                }
+                else
+                {
+                    return new OrMatchExpression(ScoreAggregation.Sum, expressions);
+                }
+            }
+        }
+
         private static MatchExpression All(ScoreAggregation scoreAggregation, StringEnumerable tokens)
         {
-            var result = default(ObjectPoolLease<ListSlim<string>>?);
+            var result = default(ListSlim<string>?);
 
             foreach (var token in tokens)
             {
-                result ??= SharedObjectPools.MatchTokens.Lease();
-                result.Value.Instance.Add(token);
+                result ??= new();
+                result.Add(token);
             }
 
             if (result is not null)
             {
-                return new DisposableAllMatchExpression(scoreAggregation, result.Value);
+                return new AllMatchExpression(scoreAggregation, result);
             }
 
             return EmptyMatchExpression.Instance;
@@ -62,17 +115,17 @@ namespace Clara.Analysis.MatchExpressions
 
         private static MatchExpression Any(ScoreAggregation scoreAggregation, StringEnumerable tokens)
         {
-            var result = default(ObjectPoolLease<ListSlim<string>>?);
+            var result = default(ListSlim<string>?);
 
             foreach (var token in tokens)
             {
-                result ??= SharedObjectPools.MatchTokens.Lease();
-                result.Value.Instance.Add(token);
+                result ??= new();
+                result.Add(token);
             }
 
             if (result is not null)
             {
-                return new DisposableAnyMatchExpression(scoreAggregation, result.Value);
+                return new AnyMatchExpression(scoreAggregation, result);
             }
 
             return EmptyMatchExpression.Instance;
@@ -80,17 +133,17 @@ namespace Clara.Analysis.MatchExpressions
 
         private static MatchExpression And(ScoreAggregation scoreAggregation, ObjectEnumerable<MatchExpression> expressions)
         {
-            using var queue = SharedObjectPools.MatchExpressionQueues.Lease();
-            var result = default(ObjectPoolLease<ListSlim<MatchExpression>>?);
+            var queue = new Queue<MatchExpression>();
+            var result = default(ListSlim<MatchExpression>?);
 
             foreach (var expression in expressions)
             {
-                queue.Instance.Enqueue(expression);
+                queue.Enqueue(expression);
             }
 
-            while (queue.Instance.Count > 0)
+            while (queue.Count > 0)
             {
-                var expression = queue.Instance.Dequeue();
+                var expression = queue.Dequeue();
 
                 if (expression is EmptyMatchExpression)
                 {
@@ -99,35 +152,26 @@ namespace Clara.Analysis.MatchExpressions
 
                 if (expression is AndMatchExpression andMatchExpression && andMatchExpression.ScoreAggregation == scoreAggregation)
                 {
-                    foreach (var expression2 in (ListSlim<MatchExpression>)andMatchExpression.Expressions)
+                    for (var i = 0; i < andMatchExpression.Expressions.Count; i++)
                     {
-                        queue.Instance.Enqueue(expression2);
+                        queue.Enqueue(andMatchExpression.Expressions[i]);
                     }
-
-                    andMatchExpression.Discard();
 
                     continue;
                 }
 
-                result ??= SharedObjectPools.MatchExpressions.Lease();
-                result.Value.Instance.Add(expression);
+                result ??= new();
+                result.Add(expression);
             }
 
             if (result is not null)
             {
-                if (result.Value.Instance.Count == 1)
+                if (result.Count == 1)
                 {
-                    try
-                    {
-                        return result.Value.Instance[0];
-                    }
-                    finally
-                    {
-                        result.Value.Dispose();
-                    }
+                    return result[0];
                 }
 
-                return new DisposableAndMatchExpression(scoreAggregation, result.Value);
+                return new AndMatchExpression(scoreAggregation, result);
             }
 
             return EmptyMatchExpression.Instance;
@@ -135,17 +179,17 @@ namespace Clara.Analysis.MatchExpressions
 
         private static MatchExpression Or(ScoreAggregation scoreAggregation, ObjectEnumerable<MatchExpression> expressions)
         {
-            using var queue = SharedObjectPools.MatchExpressionQueues.Lease();
-            var result = default(ObjectPoolLease<ListSlim<MatchExpression>>?);
+            var queue = new Queue<MatchExpression>();
+            var result = default(ListSlim<MatchExpression>?);
 
             foreach (var expression in expressions)
             {
-                queue.Instance.Enqueue(expression);
+                queue.Enqueue(expression);
             }
 
-            while (queue.Instance.Count > 0)
+            while (queue.Count > 0)
             {
-                var expression = queue.Instance.Dequeue();
+                var expression = queue.Dequeue();
 
                 if (expression is EmptyMatchExpression)
                 {
@@ -154,35 +198,26 @@ namespace Clara.Analysis.MatchExpressions
 
                 if (expression is OrMatchExpression orMatchExpression && orMatchExpression.ScoreAggregation == scoreAggregation)
                 {
-                    foreach (var expression2 in (ListSlim<MatchExpression>)orMatchExpression.Expressions)
+                    for (var i = 0; i < orMatchExpression.Expressions.Count; i++)
                     {
-                        queue.Instance.Enqueue(expression2);
+                        queue.Enqueue(orMatchExpression.Expressions[i]);
                     }
-
-                    orMatchExpression.Discard();
 
                     continue;
                 }
 
-                result ??= SharedObjectPools.MatchExpressions.Lease();
-                result.Value.Instance.Add(expression);
+                result ??= new();
+                result.Add(expression);
             }
 
             if (result is not null)
             {
-                if (result.Value.Instance.Count == 1)
+                if (result.Count == 1)
                 {
-                    try
-                    {
-                        return result.Value.Instance[0];
-                    }
-                    finally
-                    {
-                        result.Value.Dispose();
-                    }
+                    return result[0];
                 }
 
-                return new DisposableOrMatchExpression(scoreAggregation, result.Value);
+                return new OrMatchExpression(scoreAggregation, result);
             }
 
             return EmptyMatchExpression.Instance;

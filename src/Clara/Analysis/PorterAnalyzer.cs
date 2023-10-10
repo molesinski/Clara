@@ -27,9 +27,17 @@
                     new PorterStemTokenFilter());
         }
 
-        public IEnumerable<Token> GetTokens(string text)
+        public ITokenizer Tokenizer
         {
-            return this.analyzer.GetTokens(text);
+            get
+            {
+                return this.analyzer.Tokenizer;
+            }
+        }
+
+        public IEnumerable<AnalyzerTerm> GetTerms(string text)
+        {
+            return this.analyzer.GetTerms(text);
         }
     }
 }
