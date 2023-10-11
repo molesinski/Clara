@@ -8,14 +8,6 @@ namespace Clara.Analysis.MatchExpressions
         {
         }
 
-        public override ScoreAggregation ScoreAggregation
-        {
-            get
-            {
-                throw new InvalidOperationException("Unable to retrieve scoring aggregation value for empty match expression.");
-            }
-        }
-
         internal static MatchExpression Instance { get; } = new EmptyMatchExpression();
 
         public override bool IsMatching(IReadOnlyCollection<string> tokens)

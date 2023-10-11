@@ -44,10 +44,12 @@ namespace Clara.Storage
                 if (!string.IsNullOrWhiteSpace(value))
                 {
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    foreach (var term in this.synonymMap?.GetTerms(value) ?? this.field.Analyzer.GetTerms(value))
+                    var terms = this.synonymMap?.GetTerms(value) ?? this.field.Analyzer.GetTerms(value);
 #else
-                    foreach (var term in this.synonymMap?.GetTerms(value!) ?? this.field.Analyzer.GetTerms(value!))
+                    var terms = this.synonymMap?.GetTerms(value!) ?? this.field.Analyzer.GetTerms(value!);
 #endif
+
+                    foreach (var term in terms)
                     {
                         var tokenId = this.tokenEncoderBuilder.Encode(term.Token);
 
@@ -74,12 +76,14 @@ namespace Clara.Storage
                 throw new InvalidOperationException("Current instance is already built.");
             }
 
+            this.field.Similarity.Process(this.tokenDocumentScores, this.documentLengths);
+
             var store =
                 new TextFieldStore(
                     tokenEncoder,
                     this.field.Analyzer,
                     this.synonymMap,
-                    new TextDocumentStore(tokenEncoder, this.tokenDocumentScores, this.documentLengths, this.field.Similarity));
+                    new TextDocumentStore(tokenEncoder, this.tokenDocumentScores));
 
             this.isBuilt = true;
 

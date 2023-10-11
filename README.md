@@ -108,7 +108,7 @@ public sealed class ProductMapper : IIndexMapper<Product>
 {
     public static IAnalyzer Analyzer { get; } = new PorterAnalyzer();
 
-    public static TextField<Product> Text { get; } = new(GetText, Analyzer, Similarity.TFIDF);
+    public static TextField<Product> Text { get; } = new(GetText, Analyzer);
     public static DecimalField<Product> Price { get; } = new(x => x.Price, isFilterable: true, isFacetable: true, isSortable: true);
     public static DoubleField<Product> DiscountPercentage { get; } = new(x => x.DiscountPercentage, isFilterable: true, isFacetable: true, isSortable: true);
     public static DoubleField<Product> Rating { get; } = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);
@@ -346,32 +346,32 @@ BenchmarkDotNet v0.13.9, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 ### Tokenization Benchmarks
 
-| Method         | Mean       | Error    | StdDev  | Allocated |
-|--------------- |-----------:|---------:|--------:|----------:|
-| BasicTokenizer |   231.6 ns |  0.71 ns | 0.66 ns |      32 B |
-| PorterAnalyzer |   836.5 ns | 10.38 ns | 9.71 ns |      64 B |
-| SynonymMap     | 1,435.6 ns |  5.67 ns | 5.02 ns |      96 B |
+| Method         | Mean       | Error    | StdDev   | Allocated |
+|--------------- |-----------:|---------:|---------:|----------:|
+| BasicTokenizer |   231.0 ns |  0.48 ns |  0.40 ns |      32 B |
+| PorterAnalyzer |   844.7 ns | 10.71 ns | 10.02 ns |      64 B |
+| SynonymMap     | 1,444.2 ns |  3.70 ns |  3.28 ns |      96 B |
 
 ### Indexing Benchmarks
 
 | Method           | Mean        | Error       | StdDev      | Allocated   |
 |----------------- |------------:|------------:|------------:|------------:|
-| Index_x100       | 89,356.2 μs | 1,751.31 μs | 2,511.68 μs | 29553.44 KB |
-| Index            |    764.0 μs |     3.02 μs |     2.83 μs |   633.47 KB |
-| IndexShared_x100 | 80,788.8 μs | 1,607.75 μs | 1,720.27 μs | 28272.82 KB |
-| IndexShared      |    728.5 μs |     2.83 μs |     2.65 μs |   520.66 KB |
+| Index_x100       | 90,192.8 μs | 1,784.58 μs | 2,671.08 μs | 29550.71 KB |
+| Index            |    779.5 μs |    10.15 μs |     9.49 μs |   633.47 KB |
+| IndexShared_x100 | 85,921.5 μs | 1,611.90 μs | 1,507.77 μs | 28270.43 KB |
+| IndexShared      |    706.6 μs |     3.20 μs |     2.84 μs |   520.66 KB |
 
 ### Querying Benchmarks
 
 | Method            | Mean       | Error     | StdDev    | Allocated |
 |------------------ |-----------:|----------:|----------:|----------:|
-| QueryComplex_x100 | 447.994 μs | 3.6728 μs | 3.4355 μs |     960 B |
-| QueryComplex      |  11.250 μs | 0.0638 μs | 0.0566 μs |     960 B |
-| QuerySearch       |   6.258 μs | 0.0207 μs | 0.0194 μs |     408 B |
-| QueryFilter       |   1.121 μs | 0.0057 μs | 0.0051 μs |     432 B |
-| QueryFacet        |  10.292 μs | 0.0721 μs | 0.0674 μs |     632 B |
-| QuerySort         |   3.435 μs | 0.0137 μs | 0.0128 μs |     400 B |
-| Query             |   1.435 μs | 0.0040 μs | 0.0038 μs |     304 B |
+| QueryComplex_x100 | 482.069 μs | 6.8050 μs | 6.3654 μs |     968 B |
+| QueryComplex      |  11.952 μs | 0.0559 μs | 0.0523 μs |     968 B |
+| QuerySearch       |   8.327 μs | 0.0159 μs | 0.0141 μs |     416 B |
+| QueryFilter       |   1.119 μs | 0.0120 μs | 0.0112 μs |     424 B |
+| QueryFacet        |  10.202 μs | 0.0342 μs | 0.0320 μs |     624 B |
+| QuerySort         |   3.377 μs | 0.0080 μs | 0.0075 μs |     392 B |
+| Query             |   1.505 μs | 0.0062 μs | 0.0058 μs |     296 B |
 
 ### Memory Allocations
 

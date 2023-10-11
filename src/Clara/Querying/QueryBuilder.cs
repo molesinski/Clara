@@ -51,6 +51,50 @@ namespace Clara.Querying
             return this;
         }
 
+        public QueryBuilder Search(IEnumerable<TextField> fields, SearchMode searchMode, string? text)
+        {
+            if (this.isDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().FullName);
+            }
+
+            if (fields is null)
+            {
+                throw new ArgumentNullException(nameof(fields));
+            }
+
+            if (this.query.Search is not null)
+            {
+                throw new InvalidOperationException("Search already has been set.");
+            }
+
+            this.query.Search = new SearchExpression(fields, searchMode, text ?? string.Empty);
+
+            return this;
+        }
+
+        public QueryBuilder Search(IEnumerable<SearchField> fields, SearchMode searchMode, string? text)
+        {
+            if (this.isDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().FullName);
+            }
+
+            if (fields is null)
+            {
+                throw new ArgumentNullException(nameof(fields));
+            }
+
+            if (this.query.Search is not null)
+            {
+                throw new InvalidOperationException("Search already has been set.");
+            }
+
+            this.query.Search = new SearchExpression(fields, searchMode, text ?? string.Empty);
+
+            return this;
+        }
+
         public QueryBuilder Filter(KeywordField field, FilterMode filterMode, string? value)
         {
             if (this.isDisposed)

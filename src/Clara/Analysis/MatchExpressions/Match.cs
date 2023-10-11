@@ -61,8 +61,8 @@ namespace Clara.Analysis.MatchExpressions
             {
                 MatchExpression tokenExpression =
                     mode == SearchMode.All
-                        ? new AllMatchExpression(ScoreAggregation.Sum, tokens)
-                        : new AnyMatchExpression(ScoreAggregation.Sum, tokens);
+                        ? new AllTokensMatchExpression(ScoreAggregation.Sum, tokens)
+                        : new AnyTokensMatchExpression(ScoreAggregation.Sum, tokens);
 
                 if (expressions is null)
                 {
@@ -107,7 +107,7 @@ namespace Clara.Analysis.MatchExpressions
 
             if (result is not null)
             {
-                return new AllMatchExpression(scoreAggregation, result);
+                return new AllTokensMatchExpression(scoreAggregation, result);
             }
 
             return EmptyMatchExpression.Instance;
@@ -125,7 +125,7 @@ namespace Clara.Analysis.MatchExpressions
 
             if (result is not null)
             {
-                return new AnyMatchExpression(scoreAggregation, result);
+                return new AnyTokensMatchExpression(scoreAggregation, result);
             }
 
             return EmptyMatchExpression.Instance;

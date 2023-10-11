@@ -47,14 +47,20 @@ namespace Clara.Querying
 
                 if (value is null)
                 {
+                    this.search?.Dispose();
                     this.search = null;
 
                     return;
                 }
 
-                if (!this.index.ContainsField(value.Field))
+                for (var i = 0; i < value.Fields.Count; i++)
                 {
-                    throw new InvalidOperationException("Search expression references field not belonging to current index.");
+                    var field = value.Fields[i];
+
+                    if (!this.index.ContainsField(field.Field))
+                    {
+                        throw new InvalidOperationException("Search expression references field not belonging to current index.");
+                    }
                 }
 
                 this.search = value;
@@ -256,6 +262,7 @@ namespace Clara.Querying
 
                 this.facets.Dispose();
                 this.filters.Dispose();
+                this.search?.Dispose();
 
                 this.isDisposed = true;
             }

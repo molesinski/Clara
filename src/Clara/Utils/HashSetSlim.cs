@@ -341,24 +341,26 @@ namespace Clara.Utils
 
                     return;
                 }
-
-                this.EnsureCapacity(other.count);
-
-                var count = other.count;
-
-                for (var i = 0; count > 0; i++)
+                else
                 {
-                    ref var entry = ref other.entries[i];
+                    this.EnsureCapacity(other.count);
 
-                    if (entry.Next >= -1)
+                    var count = other.count;
+
+                    for (var i = 0; count > 0; i++)
                     {
-                        count--;
+                        ref var entry = ref other.entries[i];
 
-                        this.Add(entry.Item);
+                        if (entry.Next >= -1)
+                        {
+                            count--;
+
+                            this.Add(entry.Item);
+                        }
                     }
-                }
 
-                return;
+                    return;
+                }
             }
 
             if (enumerable is IReadOnlyCollection<TItem> collection)

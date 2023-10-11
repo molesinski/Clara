@@ -3,18 +3,18 @@ using Clara.Utils;
 
 namespace Clara.Analysis.MatchExpressions
 {
-    public sealed class OrMatchExpression : ComplexMatchExpression
+    public sealed class AnyTokensMatchExpression : TokensMatchExpression
     {
-        internal OrMatchExpression(ScoreAggregation scoreAggregation, ListSlim<MatchExpression> expressions)
-            : base(scoreAggregation, expressions)
+        internal AnyTokensMatchExpression(ScoreAggregation scoreAggregation, ListSlim<string> tokens)
+            : base(scoreAggregation, tokens)
         {
         }
 
         public override bool IsMatching(IReadOnlyCollection<string> tokens)
         {
-            for (var i = 0; i < this.Expressions.Count; i++)
+            for (var i = 0; i < this.Tokens.Count; i++)
             {
-                if (this.Expressions[i].IsMatching(tokens))
+                if (tokens.Contains(this.Tokens[i]))
                 {
                     return true;
                 }
@@ -25,18 +25,20 @@ namespace Clara.Analysis.MatchExpressions
 
         internal override void ToString(StringBuilder builder)
         {
-            builder.Append('(');
+            builder.Append("ANY(");
 
             var isFirst = true;
 
-            for (var i = 0; i < this.Expressions.Count; i++)
+            for (var i = 0; i < this.Tokens.Count; i++)
             {
                 if (!isFirst)
                 {
-                    builder.Append(" OR ");
+                    builder.Append(", ");
                 }
 
-                this.Expressions[i].ToString(builder);
+                builder.Append('"');
+                builder.Append(this.Tokens[i]);
+                builder.Append('"');
 
                 isFirst = false;
             }

@@ -8,8 +8,6 @@ namespace Clara.Analysis.MatchExpressions
         {
         }
 
-        public abstract ScoreAggregation ScoreAggregation { get; }
-
         public abstract bool IsMatching(IReadOnlyCollection<string> tokens);
 
         public override string ToString()

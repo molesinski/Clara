@@ -285,7 +285,7 @@ namespace Clara.Utils
             return ref this.AddKey(key, bucketIndex);
         }
 
-        public void IntersectWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, Func<TValue, TValue, TValue> valueCombiner)
+        public void IntersectWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, IValueCombiner<TValue> valueCombiner)
         {
             if (enumerable is null)
             {
@@ -325,7 +325,7 @@ namespace Clara.Utils
 
                         if (other.TryGetValue(key, out var value))
                         {
-                            entry.Value = valueCombiner(entry.Value, value);
+                            entry.Value = valueCombiner.Combine(entry.Value, value);
                         }
                         else
                         {
@@ -369,7 +369,7 @@ namespace Clara.Utils
 
                         ref var entry = ref this.entries[index];
 
-                        entry.Value = valueCombiner(entry.Value, item.Value);
+                        entry.Value = valueCombiner.Combine(entry.Value, item.Value);
                     }
                 }
 
@@ -388,7 +388,7 @@ namespace Clara.Utils
             }
         }
 
-        public void UnionWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, Func<TValue, TValue, TValue> valueCombiner)
+        public void UnionWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, IValueCombiner<TValue> valueCombiner)
         {
             if (enumerable is null)
             {
@@ -435,28 +435,47 @@ namespace Clara.Utils
                     Array.Copy(other.buckets, 0, this.buckets, 0, this.size);
                     Array.Copy(other.entries, 0, this.entries, 0, this.lastIndex);
 
+                    if (!valueCombiner.IsDefaultNeutral)
+                    {
+                        var count = this.count;
+
+                        for (var i = 0; count > 0; i++)
+                        {
+                            ref var entry = ref this.entries[i];
+
+                            if (entry.Next >= -1)
+                            {
+                                count--;
+
+                                entry.Value = valueCombiner.Combine(default!, entry.Value);
+                            }
+                        }
+                    }
+
                     return;
                 }
-
-                this.EnsureCapacity(other.count);
-
-                var count = other.count;
-
-                for (var i = 0; count > 0; i++)
+                else
                 {
-                    ref var entry = ref other.entries[i];
+                    this.EnsureCapacity(other.count);
 
-                    if (entry.Next >= -1)
+                    var count = other.count;
+
+                    for (var i = 0; count > 0; i++)
                     {
-                        count--;
+                        ref var entry = ref other.entries[i];
 
-                        ref var value = ref this.GetValueRefOrAddDefault(entry.Key, out _);
+                        if (entry.Next >= -1)
+                        {
+                            count--;
 
-                        value = valueCombiner(value, entry.Value);
+                            ref var value = ref this.GetValueRefOrAddDefault(entry.Key, out _);
+
+                            value = valueCombiner.Combine(value, entry.Value);
+                        }
                     }
-                }
 
-                return;
+                    return;
+                }
             }
 
             if (enumerable is IReadOnlyCollection<KeyValuePair<TKey, TValue>> collection)
@@ -473,7 +492,7 @@ namespace Clara.Utils
             {
                 ref var value = ref this.GetValueRefOrAddDefault(item.Key, out _);
 
-                value = valueCombiner(value, item.Value);
+                value = valueCombiner.Combine(value, item.Value);
             }
         }
 

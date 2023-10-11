@@ -1,5 +1,4 @@
-﻿using Clara.Analysis.MatchExpressions;
-using Clara.Querying;
+﻿using Clara.Querying;
 using Clara.Utils;
 
 namespace Clara.Analysis.Synonyms
@@ -94,7 +93,7 @@ namespace Clara.Analysis.Synonyms
                 throw new ArgumentNullException(nameof(terms));
             }
 
-            if (this.root.Children.Count == 0)
+            if (terms.Count == 0 || this.root.Children.Count == 0)
             {
                 return;
             }
