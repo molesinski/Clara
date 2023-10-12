@@ -4,7 +4,7 @@ namespace Clara.Storage
 {
     internal readonly record struct SearchFieldStore
     {
-        public SearchFieldStore(SearchField searchField, TextFieldStore store)
+        public SearchFieldStore(SearchField searchField, TextDocumentStore store)
         {
             if (store is null)
             {
@@ -17,6 +17,6 @@ namespace Clara.Storage
 
         public SearchField SearchField { get; }
 
-        public TextFieldStore Store { get; }
+        public TextDocumentStore Store { get; }
     }
 }

@@ -2,6 +2,10 @@
 {
     public sealed partial class BasicTokenizer : ITokenizer
     {
+        public static readonly IEnumerable<char> DefaultAdditionalWordCharacters = new[] { '_' };
+        public static readonly IEnumerable<char> DefaultWordConnectingCharacters = new[] { '\'', '\u2019', '\uFF07' };
+        public static readonly IEnumerable<char> DefaultNumberConnectingCharacters = new[] { '.', ',' };
+
         private readonly IEnumerable<Token> emptyEnumerable;
         private readonly char[]? additionalWordCharacters;
         private readonly char[]? wordConnectingCharacters;

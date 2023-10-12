@@ -108,6 +108,11 @@ namespace Clara.Utils
             }
         }
 
+        public Span<TItem> AsSpan()
+        {
+            return this.entries.AsSpan(0, this.count);
+        }
+
         public bool Contains(TItem item)
         {
             return this.IndexOf(item) >= 0;

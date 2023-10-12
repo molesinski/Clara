@@ -80,10 +80,7 @@ namespace Clara.Storage
 
             var store =
                 new TextFieldStore(
-                    tokenEncoder,
-                    this.field.Analyzer,
-                    this.synonymMap,
-                    new TextDocumentStore(tokenEncoder, this.tokenDocumentScores));
+                    new TextDocumentStore(tokenEncoder, this.field.Analyzer, this.synonymMap, this.tokenDocumentScores));
 
             this.isBuilt = true;
 

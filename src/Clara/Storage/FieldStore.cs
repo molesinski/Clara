@@ -16,6 +16,11 @@ namespace Clara.Storage
             }
         }
 
+        public virtual SearchFieldStore GetSearchFieldStore(SearchField searchField)
+        {
+            throw new InvalidOperationException("Field does not support searching.");
+        }
+
         public virtual void Filter(FilterExpression filterExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             throw new InvalidOperationException("Field does not support filtering.");

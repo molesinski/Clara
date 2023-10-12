@@ -13,18 +13,18 @@ namespace Clara.Storage
             this.source = source;
         }
 
-        public OrdinalEnumerator GetEnumerator()
+        public OrdinalRangeEnumerator GetEnumerator()
         {
-            return new OrdinalEnumerator(this.source);
+            return new OrdinalRangeEnumerator(this.source);
         }
 
-        public readonly record struct OrdinalItem
+        public readonly record struct OrdinalRange
         {
             private readonly ListSlim<SearchTermStoreIndex> source;
             private readonly int offset;
             private readonly int count;
 
-            public OrdinalItem(ListSlim<SearchTermStoreIndex> source, int ordinal, int offset, int count)
+            public OrdinalRange(ListSlim<SearchTermStoreIndex> source, int ordinal, int offset, int count)
             {
                 this.source = source;
                 this.Ordinal = ordinal;
@@ -34,19 +34,19 @@ namespace Clara.Storage
 
             public int Ordinal { get; }
 
-            public StoreIndexEnumerator GetEnumerator()
+            public StoreRangeIndexEnumerator GetEnumerator()
             {
-                return new StoreIndexEnumerator(this.source, this.offset, this.count);
+                return new StoreRangeIndexEnumerator(this.source, this.offset, this.count);
             }
         }
 
-        public readonly record struct StoreIndexItem
+        public readonly record struct StoreRange
         {
             private readonly ListSlim<SearchTermStoreIndex> source;
             private readonly int offset;
             private readonly int count;
 
-            public StoreIndexItem(ListSlim<SearchTermStoreIndex> source, int storeIndex, int offset, int count)
+            public StoreRange(ListSlim<SearchTermStoreIndex> source, int storeIndex, int offset, int count)
             {
                 this.source = source;
                 this.StoreIndex = storeIndex;
@@ -62,21 +62,21 @@ namespace Clara.Storage
             }
         }
 
-        public struct OrdinalEnumerator : IEnumerator<OrdinalItem>
+        public struct OrdinalRangeEnumerator : IEnumerator<OrdinalRange>
         {
             private readonly ListSlim<SearchTermStoreIndex> source;
-            private OrdinalItem current;
+            private OrdinalRange current;
             private int ordinal = -1;
             private int offset;
             private int count;
             private int i;
 
-            internal OrdinalEnumerator(ListSlim<SearchTermStoreIndex> source)
+            internal OrdinalRangeEnumerator(ListSlim<SearchTermStoreIndex> source)
             {
                 this.source = source;
             }
 
-            public readonly OrdinalItem Current
+            public readonly OrdinalRange Current
             {
                 get
                 {
@@ -112,7 +112,7 @@ namespace Clara.Storage
                     }
                     else
                     {
-                        this.current = new OrdinalItem(this.source, this.ordinal, this.offset, this.count);
+                        this.current = new OrdinalRange(this.source, this.ordinal, this.offset, this.count);
                         this.ordinal = -1;
 
                         return true;
@@ -121,7 +121,7 @@ namespace Clara.Storage
 
                 if (this.ordinal != -1)
                 {
-                    this.current = new OrdinalItem(this.source, this.ordinal, this.offset, this.count);
+                    this.current = new OrdinalRange(this.source, this.ordinal, this.offset, this.count);
                     this.ordinal = -1;
 
                     return true;
@@ -146,18 +146,18 @@ namespace Clara.Storage
             }
         }
 
-        public struct StoreIndexEnumerator : IEnumerator<StoreIndexItem>
+        public struct StoreRangeIndexEnumerator : IEnumerator<StoreRange>
         {
             private readonly ListSlim<SearchTermStoreIndex> source;
             private readonly int sourceOffset;
             private readonly int sourceCount;
-            private StoreIndexItem current;
+            private StoreRange current;
             private int storeIndex;
             private int offset;
             private int count;
             private int i;
 
-            internal StoreIndexEnumerator(ListSlim<SearchTermStoreIndex> source, int sourceOffset, int sourceCount)
+            internal StoreRangeIndexEnumerator(ListSlim<SearchTermStoreIndex> source, int sourceOffset, int sourceCount)
             {
                 this.source = source;
                 this.sourceOffset = sourceOffset;
@@ -166,7 +166,7 @@ namespace Clara.Storage
                 this.i = sourceOffset;
             }
 
-            public readonly StoreIndexItem Current
+            public readonly StoreRange Current
             {
                 get
                 {
@@ -202,7 +202,7 @@ namespace Clara.Storage
                     }
                     else
                     {
-                        this.current = new StoreIndexItem(this.source, this.storeIndex, this.offset, this.count);
+                        this.current = new StoreRange(this.source, this.storeIndex, this.offset, this.count);
                         this.storeIndex = -1;
 
                         return true;
@@ -211,7 +211,7 @@ namespace Clara.Storage
 
                 if (this.storeIndex != -1)
                 {
-                    this.current = new StoreIndexItem(this.source, this.storeIndex, this.offset, this.count);
+                    this.current = new StoreRange(this.source, this.storeIndex, this.offset, this.count);
                     this.storeIndex = -1;
 
                     return true;

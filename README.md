@@ -365,13 +365,13 @@ BenchmarkDotNet v0.13.9, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 | Method            | Mean       | Error     | StdDev    | Allocated |
 |------------------ |-----------:|----------:|----------:|----------:|
-| QueryComplex_x100 | 482.069 μs | 6.8050 μs | 6.3654 μs |     968 B |
-| QueryComplex      |  11.952 μs | 0.0559 μs | 0.0523 μs |     968 B |
-| QuerySearch       |   8.327 μs | 0.0159 μs | 0.0141 μs |     416 B |
-| QueryFilter       |   1.119 μs | 0.0120 μs | 0.0112 μs |     424 B |
-| QueryFacet        |  10.202 μs | 0.0342 μs | 0.0320 μs |     624 B |
-| QuerySort         |   3.377 μs | 0.0080 μs | 0.0075 μs |     392 B |
-| Query             |   1.505 μs | 0.0062 μs | 0.0058 μs |     296 B |
+| QueryComplex_x100 | 492.893 μs | 2.9345 μs | 2.7449 μs |     969 B |
+| QueryComplex      |  12.079 μs | 0.0319 μs | 0.0299 μs |     968 B |
+| QuerySearch       |   8.319 μs | 0.0504 μs | 0.0471 μs |     416 B |
+| QueryFilter       |   1.128 μs | 0.0037 μs | 0.0034 μs |     424 B |
+| QueryFacet        |  10.155 μs | 0.0399 μs | 0.0373 μs |     624 B |
+| QuerySort         |   3.674 μs | 0.0098 μs | 0.0087 μs |     392 B |
+| Query             |   1.417 μs | 0.0043 μs | 0.0038 μs |     296 B |
 
 ### Memory Allocations
 
