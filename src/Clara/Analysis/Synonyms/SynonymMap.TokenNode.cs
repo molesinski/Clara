@@ -117,6 +117,10 @@ namespace Clara.Analysis.Synonyms
                                 synonymTokens.Add(node.aggregate.SynonymToken);
                             }
                         }
+                        else
+                        {
+                            expressions.Add(Match.All(ScoreAggregation.Sum, this.tokenPath));
+                        }
 
                         if (synonymTokens.Count > 0)
                         {

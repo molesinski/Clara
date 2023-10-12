@@ -10,9 +10,8 @@
             }
 
             var span = token.AsSpan();
-            var length = span.Length;
 
-            for (var i = 0; i < length; i++)
+            for (var i = 0; i < span.Length; i++)
             {
                 span[i] = char.ToLowerInvariant(span[i]);
             }

@@ -8,8 +8,8 @@ namespace Clara.Analysis
     public abstract class SnowballStemTokenFilter<TStemmer> : ITokenFilter
         where TStemmer : Stemmer, new()
     {
-        private static readonly Action<TStemmer, Token> SetBufferContents = CreateBufferContentsSetter();
         private static readonly ObjectPool<TStemmer> Pool = new(() => new());
+        private static readonly Action<TStemmer, Token> SetBufferContents = CreateBufferContentsSetter();
 
         public Token Process(Token token, TokenFilterDelegate next)
         {

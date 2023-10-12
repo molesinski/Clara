@@ -41,11 +41,7 @@ namespace Clara.Analysis
             private sealed class Enumerator : IEnumerator<Token>
             {
                 private ObjectPoolLease<Enumerator>? lease;
-                private char[]? additionalWordCharacters;
-                private char[]? wordConnectingCharacters;
-                private char[]? numberConnectingCharacters;
                 private string text = default!;
-                private bool isEmpty;
                 private Token current = new(new char[Token.MaximumLength], 0);
                 private int startIndex;
                 private int index;
@@ -69,95 +65,107 @@ namespace Clara.Analysis
                 public void Initialize(ObjectPoolLease<Enumerator> lease, BasicTokenizer tokenizer, string text)
                 {
                     this.lease = lease;
-                    this.additionalWordCharacters = tokenizer.additionalWordCharacters;
-                    this.wordConnectingCharacters = tokenizer.wordConnectingCharacters;
-                    this.numberConnectingCharacters = tokenizer.numberConnectingCharacters;
                     this.text = text;
-                    this.isEmpty = string.IsNullOrWhiteSpace(text);
                     this.startIndex = -1;
                     this.index = 0;
                 }
 
                 public bool MoveNext()
                 {
-                    if (this.isEmpty)
-                    {
-                        this.current.Clear();
+                    var hasCurrent = false;
 
-                        return false;
-                    }
-
-                    while (this.index < this.text.Length)
+                    if (this.index < this.text.Length)
                     {
-                        var previousChar = ' ';
-                        var currentChar = this.text[this.index];
-                        var nextChar = ' ';
-                        var hasToken = false;
+                        var pp = ' ';
+                        var p = ' ';
+                        var c = this.text[this.index];
+                        var n = ' ';
+                        var nn = ' ';
 
                         if (this.index - 1 >= 0)
                         {
-                            previousChar = this.text[this.index - 1];
+                            p = this.text[this.index - 1];
+
+                            if (this.index - 2 >= 0)
+                            {
+                                pp = this.text[this.index - 2];
+                            }
                         }
 
                         if (this.index + 1 < this.text.Length)
                         {
-                            nextChar = this.text[this.index + 1];
+                            n = this.text[this.index + 1];
+
+                            if (this.index + 2 < this.text.Length)
+                            {
+                                nn = this.text[this.index + 2];
+                            }
                         }
 
-                        if (this.startIndex == -1)
+                        while (this.index < this.text.Length)
                         {
-                            if (this.IsWordOrNumber(currentChar))
+                            if (this.startIndex == -1)
                             {
-                                this.startIndex = this.index;
-                            }
-                        }
-                        else
-                        {
-                            if (this.IsWordOrNumber(currentChar))
-                            {
-                            }
-                            else if (this.IsWordConnectingCharacter(currentChar) && this.IsWord(previousChar) && this.IsWord(nextChar))
-                            {
-                            }
-                            else if (this.IsNumberDecimalSeparator(currentChar) && IsNumber(previousChar) && IsNumber(nextChar))
-                            {
+                                if (char.IsLetterOrDigit(c) || c == '_')
+                                {
+                                    this.startIndex = this.index;
+                                }
                             }
                             else
                             {
-                                var count = this.index - this.startIndex;
-
-                                if (count <= Token.MaximumLength)
+                                if (char.IsLetterOrDigit(c) || c == '_')
                                 {
-                                    this.current.Set(this.text.AsSpan(this.startIndex, count));
-                                    hasToken = true;
                                 }
+                                else if (IsConnector(pp, p, c, n, nn))
+                                {
+                                }
+                                else
+                                {
+                                    var count = this.index - this.startIndex;
 
-                                this.startIndex = -1;
+                                    if (count <= Token.MaximumLength && !IsUnderscores(this.text, this.startIndex, count))
+                                    {
+                                        this.current.Set(this.text.AsSpan(this.startIndex, count));
+                                        hasCurrent = true;
+                                    }
+
+                                    this.startIndex = -1;
+                                }
                             }
-                        }
 
-                        this.index++;
+                            this.index++;
 
-                        if (hasToken)
-                        {
-                            return true;
+                            if (hasCurrent)
+                            {
+                                return true;
+                            }
+
+                            pp = p;
+                            p = c;
+                            c = n;
+                            n = nn;
+                            nn = ' ';
+
+                            if (this.index + 2 < this.text.Length)
+                            {
+                                nn = this.text[this.index + 2];
+                            }
                         }
                     }
 
                     if (this.startIndex != -1)
                     {
-                        var hasToken = false;
                         var count = this.text.Length - this.startIndex;
 
-                        if (count <= Token.MaximumLength)
+                        if (count <= Token.MaximumLength && !IsUnderscores(this.text, this.startIndex, count))
                         {
                             this.current.Set(this.text.AsSpan(this.startIndex, count));
-                            hasToken = true;
+                            hasCurrent = true;
                         }
 
                         this.startIndex = -1;
 
-                        if (hasToken)
+                        if (hasCurrent)
                         {
                             return true;
                         }
@@ -178,65 +186,20 @@ namespace Clara.Analysis
                 {
                     this.Reset();
 
-                    this.additionalWordCharacters = default;
-                    this.wordConnectingCharacters = default;
-                    this.numberConnectingCharacters = default;
                     this.text = default!;
-                    this.isEmpty = default;
 
                     var lease = this.lease;
                     this.lease = null;
                     lease?.Dispose();
                 }
 
-                private static bool IsNumber(char c)
+                private static bool IsConnector(char pp, char p, char c, char n, char nn)
                 {
-                    return char.IsDigit(c);
-                }
+                    var result = false;
 
-                private bool IsWordOrNumber(char c)
-                {
-                    return this.IsWord(c) || IsNumber(c);
-                }
-
-                private bool IsWord(char c)
-                {
-                    if (char.IsLetter(c))
+                    if (char.IsLetter(p) && char.IsLetter(n))
                     {
-                        return true;
-                    }
-
-                    if (this.additionalWordCharacters is null)
-                    {
-                        return
-                            c switch
-                            {
-                                '_' => true,
-                                _ => false,
-                            };
-                    }
-                    else
-                    {
-                        var chars = this.additionalWordCharacters;
-                        var length = chars.Length;
-
-                        for (var i = 0; i < length; i++)
-                        {
-                            if (c == chars[i])
-                            {
-                                return true;
-                            }
-                        }
-
-                        return false;
-                    }
-                }
-
-                private bool IsWordConnectingCharacter(char c)
-                {
-                    if (this.wordConnectingCharacters is null)
-                    {
-                        return
+                        result =
                             c switch
                             {
                                 '\'' => true,
@@ -244,29 +207,18 @@ namespace Clara.Analysis
                                 '\uFF07' => true,
                                 _ => false,
                             };
-                    }
-                    else
-                    {
-                        var chars = this.wordConnectingCharacters;
-                        var length = chars.Length;
 
-                        for (var i = 0; i < length; i++)
+                        if (!result)
                         {
-                            if (c == chars[i])
+                            if (c == '.' && ((pp == '.' && (nn == '.' || !char.IsLetterOrDigit(nn))) || (nn == '.' && (pp == '.' || !char.IsLetterOrDigit(pp)))))
                             {
-                                return true;
+                                result = true;
                             }
                         }
-
-                        return false;
                     }
-                }
-
-                private bool IsNumberDecimalSeparator(char c)
-                {
-                    if (this.numberConnectingCharacters is null)
+                    else if (char.IsDigit(p) && char.IsDigit(n))
                     {
-                        return
+                        result =
                             c switch
                             {
                                 '.' => true,
@@ -274,21 +226,21 @@ namespace Clara.Analysis
                                 _ => false,
                             };
                     }
-                    else
+
+                    return result;
+                }
+
+                private static bool IsUnderscores(string text, int index, int count)
+                {
+                    for (var i = index; i < index + count; i++)
                     {
-                        var chars = this.numberConnectingCharacters;
-                        var length = chars.Length;
-
-                        for (var i = 0; i < length; i++)
+                        if (text[i] != '_')
                         {
-                            if (c == chars[i])
-                            {
-                                return true;
-                            }
+                            return false;
                         }
-
-                        return false;
                     }
+
+                    return true;
                 }
             }
         }

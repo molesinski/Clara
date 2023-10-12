@@ -1,6 +1,8 @@
-﻿#pragma warning disable SA1516 // Elements should be separated by blank line
+﻿#pragma warning disable CA1062 // Validate arguments of public methods
+#pragma warning disable CA1305 // Specify IFormatProvider
+#pragma warning disable SA1516 // Elements should be separated by blank line
+#pragma warning disable IDE0022 // Use block body for method
 
-using System.Globalization;
 using Clara.Analysis;
 using Clara.Mapping;
 
@@ -8,9 +10,7 @@ namespace Clara.Tests
 {
     public class ProductMapper : IIndexMapper<Product>
     {
-        public static IAnalyzer Analyzer { get; } = new PorterAnalyzer();
-
-        public static TextField<Product> Text { get; } = new(GetText, Analyzer);
+        public static TextField<Product> Text { get; } = new(GetText, new PorterAnalyzer());
         public static DecimalField<Product> Price { get; } = new(x => x.Price, isFilterable: true, isFacetable: true, isSortable: true);
         public static DoubleField<Product> DiscountPercentage { get; } = new(x => x.DiscountPercentage, isFilterable: true, isFacetable: true, isSortable: true);
         public static DoubleField<Product> Rating { get; } = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);
@@ -31,24 +31,13 @@ namespace Clara.Tests
             yield return Category;
         }
 
-        public string GetDocumentKey(Product item)
-        {
-            if (item is null)
-            {
-                throw new ArgumentNullException(nameof(item));
-            }
+        public string GetDocumentKey(Product item) => item!.Id.ToString();
 
-            return item.Id.ToString(CultureInfo.InvariantCulture);
-        }
-
-        public Product GetDocument(Product item)
-        {
-            return item;
-        }
+        public Product GetDocument(Product item) => item;
 
         private static IEnumerable<string?> GetText(Product product)
         {
-            yield return product.Id.ToString(CultureInfo.InvariantCulture);
+            yield return product.Id.ToString();
             yield return product.Title;
             yield return product.Description;
             yield return product.Brand;

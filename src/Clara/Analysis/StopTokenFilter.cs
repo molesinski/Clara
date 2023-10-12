@@ -22,11 +22,11 @@ namespace Clara.Analysis
             }
         }
 
-        public IReadOnlyCollection<Token> Stopwords
+        public IEnumerable<string> Stopwords
         {
             get
             {
-                return this.stopwords;
+                return this.stopwords.Select(x => x.ToString());
             }
         }
 

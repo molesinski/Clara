@@ -2,18 +2,17 @@
 
 namespace Clara.Analysis
 {
-    public sealed class PorterAnalyzer : IAnalyzer
+    public sealed class PolishAnalyzer : IAnalyzer
     {
         private readonly IAnalyzer analyzer;
 
-        public PorterAnalyzer(
+        public PolishAnalyzer(
             IEnumerable<string>? stopwords = null,
             IEnumerable<string>? keywords = null)
         {
             var filters = new ListSlim<ITokenFilter>();
 
             filters.Add(new LowerInvariantTokenFilter());
-            filters.Add(new EnglishPossessiveTokenFilter());
 
             if (stopwords is not null)
             {
@@ -21,7 +20,7 @@ namespace Clara.Analysis
             }
             else
             {
-                filters.Add(new PorterStopTokenFilter());
+                filters.Add(new PolishStopTokenFilter());
             }
 
             if (keywords is not null)
@@ -29,7 +28,7 @@ namespace Clara.Analysis
                 filters.Add(new KeywordTokenFilter(keywords));
             }
 
-            filters.Add(new PorterStemTokenFilter());
+            filters.Add(new PolishStemTokenFilter());
 
             this.analyzer = new Analyzer(new BasicTokenizer(), filters);
         }

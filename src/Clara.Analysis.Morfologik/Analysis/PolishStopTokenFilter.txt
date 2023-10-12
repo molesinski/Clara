@@ -5,19 +5,19 @@
 # Also see http://www.opensource.org/licenses/bsd-license.html
 # From trunk/core/carrot2-util-text/src-resources/stopwords.pl
 
-# vol
-# o.o.
-# mgr
-# godz
-# zł
-# www
-# pl
-# ul
-# tel
-# hab
-# prof
-# inż
-# dr
+vol
+o.o
+mgr
+godz
+zł
+www
+pl
+ul
+tel
+hab
+prof
+inż
+dr
 i
 u
 aby
@@ -26,7 +26,7 @@ ale
 ani
 aż
 bardzo
-# bez
+bez
 bo
 bowiem
 by
@@ -175,15 +175,15 @@ zaś
 ze
 że
 żeby
-# ii
-# iii
-# iv
-# vi
-# vii
-# viii
-# ix
-# xi
-# xii
-# xiii
-# xiv
-# xv
+ii
+iii
+iv
+vi
+vii
+viii
+ix
+xi
+xii
+xiii
+xiv
+xv

@@ -16,7 +16,7 @@ namespace Clara.Tests
         public SynonymMapTests(ITestOutputHelper output)
         {
             this.output = output;
-            this.analyzer = new PorterAnalyzer();
+            this.analyzer = new BasicAnalyzer();
         }
 
         [Theory]

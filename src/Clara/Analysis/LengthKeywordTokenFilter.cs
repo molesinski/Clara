@@ -33,9 +33,7 @@
                 throw new ArgumentNullException(nameof(next));
             }
 
-            var length = token.Length;
-
-            if (length < this.minimumLength || length > this.maximumLength)
+            if (token.Length < this.minimumLength || token.Length > this.maximumLength)
             {
                 return token;
             }

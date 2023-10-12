@@ -6,33 +6,44 @@ namespace Clara.Tests
     public class AnalysisTests
     {
         [Fact]
-        public void EnglishAnalysis()
+        public void BasicTokenization()
         {
-            var porterAnalyzer =
-                new Analyzer(
-                    new BasicTokenizer(),
-                    new LowerInvariantTokenFilter(),
-                    new PorterPossessiveTokenFilter(),
-                    new PorterStopTokenFilter(),
-                    new PorterStemTokenFilter());
+            var phrase = "Ben&Jerry's SETI@home o.b. __ __'s __1__2 __a__b 3/4 56-78 cd-ef 1.234 1,234 1.234,45 -1";
 
-            var englishAnalyzer =
-                new Analyzer(
-                    new BasicTokenizer(),
-                    new LowerInvariantTokenFilter(),
-                    new PorterStopTokenFilter(),
-                    new EnglishStemTokenFilter());
+            var actual = string.Join(" | ", new BasicTokenizer().GetTokens(phrase));
+            var expected = string.Join(" | ", new LuceneStandardTokenizer().GetTokens(phrase));
 
-            var luceneEnglishAnalyzer =
-                new LuceneEnglishAnalyzer();
+            Assert.Equal(expected, actual);
+        }
 
-            var lucenePorterAnalyzer =
-                new Analyzer(
-                    new LuceneStandardTokenizer(),
-                    new LowerInvariantTokenFilter(),
-                    new PorterPossessiveTokenFilter(),
-                    new LucenePorterStopTokenFilter(),
-                    new LucenePorterStemTokenFilter());
+        [Fact]
+        public void BasicAnalysis()
+        {
+            var phrase = "Ben&Jerry's SETI@home o.b. __ __'s __1__2 __a__b 3/4 56-78 cd-ef 1.234 1,234 1.234,45 -1";
+
+            var actual = string.Join(" | ", new BasicAnalyzer().GetTerms(phrase).Select(x => x.Token));
+            var expected = string.Join(" | ", new LuceneStandardAnalyzer().GetTerms(phrase).Select(x => x.Token));
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void BasicEnglishAnalysis()
+        {
+            var phrase = "Ben&Jerry's SETI@home o.b. __ __'s __1__2 __a__b 3/4 56-78 cd-ef 1.234 1,234 1.234,45 -1";
+
+            var actual = string.Join(" | ", new PorterAnalyzer().GetTerms(phrase).Select(x => x.Token));
+            var expected = string.Join(" | ", new LuceneEnglishAnalyzer().GetTerms(phrase).Select(x => x.Token));
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void AdvancedEnglishAnalysis()
+        {
+            var porterAnalyzer = new PorterAnalyzer();
+            var englishAnalyzer = new EnglishAnalyzer(stopwords: new PorterStopTokenFilter().Stopwords);
+            var luceneAnalyzer = new LuceneEnglishAnalyzer();
 
             var phrases =
                 new[]
@@ -52,24 +63,13 @@ namespace Clara.Tests
 
             foreach (var phrase in phrases)
             {
-                var porterTokens = porterAnalyzer.GetTerms(phrase).Select(x => x.Token.ToReadOnly()).ToArray();
-                var englishTokens = englishAnalyzer.GetTerms(phrase).Select(x => x.Token.ToReadOnly()).ToArray();
-                var luceneEnglishTokens = luceneEnglishAnalyzer.GetTerms(phrase).Select(x => x.Token.ToReadOnly()).ToArray();
-                var lucenePorterTokens = lucenePorterAnalyzer.GetTerms(phrase).Select(x => x.Token.ToReadOnly()).ToArray();
+                var porterTokens = string.Join(" | ", porterAnalyzer.GetTerms(phrase).Select(x => x.Token));
+                var englishTokens = string.Join(" | ", englishAnalyzer.GetTerms(phrase).Select(x => x.Token));
+                var luceneTokens = string.Join(" | ", luceneAnalyzer.GetTerms(phrase).Select(x => x.Token));
 
-                Assert.True(porterTokens.Length > 0);
-                Assert.Equal(porterTokens.Length, englishTokens.Length);
-                Assert.Equal(porterTokens.Length, luceneEnglishTokens.Length);
-                Assert.Equal(porterTokens.Length, lucenePorterTokens.Length);
-
-                var length = porterTokens.Length;
-
-                for (var i = 0; i < length; i++)
-                {
-                    Assert.Equal(porterTokens[i], englishTokens[i]);
-                    Assert.Equal(porterTokens[i], luceneEnglishTokens[i]);
-                    Assert.Equal(porterTokens[i], lucenePorterTokens[i]);
-                }
+                Assert.NotEqual(string.Empty, porterTokens);
+                Assert.Equal(porterTokens, englishTokens);
+                Assert.Equal(porterTokens, luceneTokens);
             }
         }
     }

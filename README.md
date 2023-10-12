@@ -106,9 +106,7 @@ type instead and return proper document type in `GetDocument` method implementat
 ```csharp
 public sealed class ProductMapper : IIndexMapper<Product>
 {
-    public static IAnalyzer Analyzer { get; } = new PorterAnalyzer();
-
-    public static TextField<Product> Text { get; } = new(GetText, Analyzer);
+    public static TextField<Product> Text { get; } = new(GetText, new PorterAnalyzer());
     public static DecimalField<Product> Price { get; } = new(x => x.Price, isFilterable: true, isFacetable: true, isSortable: true);
     public static DoubleField<Product> DiscountPercentage { get; } = new(x => x.DiscountPercentage, isFilterable: true, isFacetable: true, isSortable: true);
     public static DoubleField<Product> Rating { get; } = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);
@@ -133,7 +131,7 @@ public sealed class ProductMapper : IIndexMapper<Product>
 
     private static IEnumerable<string?> GetText(Product product)
     {
-        yield return product.Id.ToString(CultureInfo.InvariantCulture);
+        yield return product.Id.ToString();
         yield return product.Title;
         yield return product.Description;
         yield return product.Brand;
@@ -309,23 +307,7 @@ Internally only `PorterAnalyzer` is provided for English language stemming. For 
 [Clara.Analysis.Morfologik](https://www.nuget.org/packages/Clara.Analysis.Morfologik) packages can
 be used. Those packages provide stem and stop token filters for all supported languages.
 
-Below is shown example analyzer definition `PolishAnalyzer` using Morfologik.
-
-```csharp
-public static IAnalyzer PolishAnalyzer { get; } =
-    new Analyzer(
-        new BasicTokenizer(),             // Splits text into tokens
-        new LowerInvariantTokenFilter(),  // Transforms into lower case
-        new PolishStopTokenFilter(),      // Language specific stop words default exclusion set
-        new DigitsKeywordTokenFilter(),   // Exclude from stemming tokens containing digits
-        new PolishStemTokenFilter());     // Language specific token stemming
-```
-
-It can be used for index mapper field definition as follows.
-
-```csharp
-public static TextField<Product> TextPolish = new(x => GetTextPolish(x), PolishAnalyzer);
-```
+TODO
 
 ### Synonym Maps
 
@@ -346,32 +328,32 @@ BenchmarkDotNet v0.13.9, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 ### Tokenization Benchmarks
 
-| Method         | Mean       | Error    | StdDev   | Allocated |
-|--------------- |-----------:|---------:|---------:|----------:|
-| BasicTokenizer |   231.0 ns |  0.48 ns |  0.40 ns |      32 B |
-| PorterAnalyzer |   844.7 ns | 10.71 ns | 10.02 ns |      64 B |
-| SynonymMap     | 1,444.2 ns |  3.70 ns |  3.28 ns |      96 B |
+| Method         | Mean       | Error   | StdDev  | Allocated |
+|--------------- |-----------:|--------:|--------:|----------:|
+| BasicTokenizer |   177.6 ns | 0.54 ns | 0.48 ns |      32 B |
+| PorterAnalyzer |   754.6 ns | 1.94 ns | 1.62 ns |      64 B |
+| SynonymMap     | 1,385.3 ns | 4.88 ns | 4.32 ns |      96 B |
 
 ### Indexing Benchmarks
 
 | Method           | Mean        | Error       | StdDev      | Allocated   |
 |----------------- |------------:|------------:|------------:|------------:|
-| Index_x100       | 90,192.8 μs | 1,784.58 μs | 2,671.08 μs | 29550.71 KB |
-| Index            |    779.5 μs |    10.15 μs |     9.49 μs |   633.47 KB |
-| IndexShared_x100 | 85,921.5 μs | 1,611.90 μs | 1,507.77 μs | 28270.43 KB |
-| IndexShared      |    706.6 μs |     3.20 μs |     2.84 μs |   520.66 KB |
+| Index_x100       | 83,501.6 μs | 1,516.26 μs | 1,344.12 μs | 29552.76 KB |
+| Index            |    731.9 μs |     2.73 μs |     2.28 μs |   633.46 KB |
+| IndexShared_x100 | 78,452.6 μs | 1,433.03 μs | 1,340.46 μs | 28270.69 KB |
+| IndexShared      |    694.5 μs |     2.33 μs |     1.94 μs |   520.65 KB |
 
 ### Querying Benchmarks
 
 | Method            | Mean       | Error     | StdDev    | Allocated |
 |------------------ |-----------:|----------:|----------:|----------:|
-| QueryComplex_x100 | 492.893 μs | 2.9345 μs | 2.7449 μs |     969 B |
-| QueryComplex      |  12.079 μs | 0.0319 μs | 0.0299 μs |     968 B |
-| QuerySearch       |   8.319 μs | 0.0504 μs | 0.0471 μs |     416 B |
-| QueryFilter       |   1.128 μs | 0.0037 μs | 0.0034 μs |     424 B |
-| QueryFacet        |  10.155 μs | 0.0399 μs | 0.0373 μs |     624 B |
-| QuerySort         |   3.674 μs | 0.0098 μs | 0.0087 μs |     392 B |
-| Query             |   1.417 μs | 0.0043 μs | 0.0038 μs |     296 B |
+| QueryComplex_x100 | 541.959 μs | 2.5785 μs | 2.2858 μs |     969 B |
+| QueryComplex      |  12.491 μs | 0.0464 μs | 0.0388 μs |     968 B |
+| QuerySearch       |   8.948 μs | 0.0302 μs | 0.0268 μs |     416 B |
+| QueryFilter       |   1.102 μs | 0.0034 μs | 0.0028 μs |     424 B |
+| QueryFacet        |  10.171 μs | 0.0525 μs | 0.0465 μs |     624 B |
+| QuerySort         |   3.476 μs | 0.0393 μs | 0.0328 μs |     392 B |
+| Query             |   1.521 μs | 0.0153 μs | 0.0128 μs |     296 B |
 
 ### Memory Allocations
 

@@ -1,19 +1,22 @@
 ﻿using Clara.Utils;
+using Snowball;
 
 namespace Clara.Analysis
 {
-    public sealed class PorterAnalyzer : IAnalyzer
+    public abstract class SnowballAnalyzer<TStemFilter, TStopFilter, TStemmer> : IAnalyzer
+        where TStemFilter : SnowballStemTokenFilter<TStemmer>, new()
+        where TStopFilter : StopTokenFilter, new()
+        where TStemmer : Stemmer, new()
     {
         private readonly IAnalyzer analyzer;
 
-        public PorterAnalyzer(
+        protected SnowballAnalyzer(
             IEnumerable<string>? stopwords = null,
             IEnumerable<string>? keywords = null)
         {
             var filters = new ListSlim<ITokenFilter>();
 
             filters.Add(new LowerInvariantTokenFilter());
-            filters.Add(new EnglishPossessiveTokenFilter());
 
             if (stopwords is not null)
             {
@@ -21,7 +24,7 @@ namespace Clara.Analysis
             }
             else
             {
-                filters.Add(new PorterStopTokenFilter());
+                filters.Add(new TStopFilter());
             }
 
             if (keywords is not null)
@@ -29,7 +32,7 @@ namespace Clara.Analysis
                 filters.Add(new KeywordTokenFilter(keywords));
             }
 
-            filters.Add(new PorterStemTokenFilter());
+            filters.Add(new TStemFilter());
 
             this.analyzer = new Analyzer(new BasicTokenizer(), filters);
         }

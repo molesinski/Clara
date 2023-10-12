@@ -2,24 +2,11 @@
 {
     public sealed partial class BasicTokenizer : ITokenizer
     {
-        public static readonly IEnumerable<char> DefaultAdditionalWordCharacters = new[] { '_' };
-        public static readonly IEnumerable<char> DefaultWordConnectingCharacters = new[] { '\'', '\u2019', '\uFF07' };
-        public static readonly IEnumerable<char> DefaultNumberConnectingCharacters = new[] { '.', ',' };
-
         private readonly IEnumerable<Token> emptyEnumerable;
-        private readonly char[]? additionalWordCharacters;
-        private readonly char[]? wordConnectingCharacters;
-        private readonly char[]? numberConnectingCharacters;
 
-        public BasicTokenizer(
-            IEnumerable<char>? additionalWordCharacters = null,
-            IEnumerable<char>? wordConnectingCharacters = null,
-            IEnumerable<char>? numberConnectingCharacters = null)
+        public BasicTokenizer()
         {
             this.emptyEnumerable = new TokenEnumerable(this, string.Empty);
-            this.additionalWordCharacters = additionalWordCharacters?.Distinct().OrderBy(x => x).ToArray();
-            this.wordConnectingCharacters = wordConnectingCharacters?.Distinct().OrderBy(x => x).ToArray();
-            this.numberConnectingCharacters = numberConnectingCharacters?.Distinct().OrderBy(x => x).ToArray();
         }
 
         public TokenEnumerable GetTokens(string text)
@@ -49,25 +36,7 @@
 
         public bool Equals(ITokenizer? other)
         {
-            return other is BasicTokenizer tokenizer
-                && SequenceEqual(this.additionalWordCharacters, tokenizer.additionalWordCharacters)
-                && SequenceEqual(this.wordConnectingCharacters, tokenizer.wordConnectingCharacters)
-                && SequenceEqual(this.numberConnectingCharacters, tokenizer.numberConnectingCharacters);
-
-            static bool SequenceEqual(char[]? a, char[]? b)
-            {
-                if (a == b)
-                {
-                    return true;
-                }
-
-                if (a is not null && b is not null)
-                {
-                    return a.AsSpan().SequenceEqual(b.AsSpan());
-                }
-
-                return false;
-            }
+            return other is BasicTokenizer;
         }
     }
 }

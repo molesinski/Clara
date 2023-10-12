@@ -36,7 +36,7 @@ namespace Clara.Benchmarks
                 {
                     new SynonymMapBinding(
                         new SynonymMap(
-                            ProductMapper.Analyzer,
+                            ProductMapper.Text.Analyzer,
                             new Synonym[]
                             {
                                 new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, AllTextPhrase }),

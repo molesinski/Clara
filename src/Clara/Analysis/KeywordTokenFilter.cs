@@ -22,11 +22,11 @@ namespace Clara.Analysis
             }
         }
 
-        public IReadOnlyCollection<Token> Keywords
+        public IEnumerable<string> Keywords
         {
             get
             {
-                return this.keywords;
+                return this.keywords.Select(x => x.ToString());
             }
         }
 

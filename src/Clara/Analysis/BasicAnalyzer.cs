@@ -2,34 +2,20 @@
 
 namespace Clara.Analysis
 {
-    public sealed class PorterAnalyzer : IAnalyzer
+    public sealed class BasicAnalyzer : IAnalyzer
     {
         private readonly IAnalyzer analyzer;
 
-        public PorterAnalyzer(
-            IEnumerable<string>? stopwords = null,
-            IEnumerable<string>? keywords = null)
+        public BasicAnalyzer(IEnumerable<string>? stopwords = null)
         {
             var filters = new ListSlim<ITokenFilter>();
 
             filters.Add(new LowerInvariantTokenFilter());
-            filters.Add(new EnglishPossessiveTokenFilter());
 
             if (stopwords is not null)
             {
                 filters.Add(new StopTokenFilter(stopwords));
             }
-            else
-            {
-                filters.Add(new PorterStopTokenFilter());
-            }
-
-            if (keywords is not null)
-            {
-                filters.Add(new KeywordTokenFilter(keywords));
-            }
-
-            filters.Add(new PorterStemTokenFilter());
 
             this.analyzer = new Analyzer(new BasicTokenizer(), filters);
         }
