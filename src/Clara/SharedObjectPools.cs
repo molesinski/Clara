@@ -1,4 +1,5 @@
-﻿using Clara.Mapping;
+﻿using Clara.Analysis;
+using Clara.Mapping;
 using Clara.Querying;
 using Clara.Storage;
 using Clara.Utils;
@@ -11,7 +12,7 @@ namespace Clara
 
         public static ObjectPool<HashSet<Field>> FieldSets { get; } = new(() => new(), x => x.Clear());
 
-        public static ObjectPool<Stack<int>> BacktrackingOrdinals { get; } = new(() => new(), x => x.Clear());
+        public static ObjectPool<Stack<int>> BacktrackingPositions { get; } = new(() => new(), x => x.Clear());
 
         public static ObjectPool<DictionarySlim<int, int>> TokenCounts { get; } = new(() => new());
 

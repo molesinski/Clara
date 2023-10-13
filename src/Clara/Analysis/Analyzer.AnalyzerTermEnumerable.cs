@@ -45,7 +45,7 @@ namespace Clara.Analysis
                 private TokenFilterDelegate pipeline = default!;
                 private string text = default!;
                 private bool isEmpty;
-                private int ordinal;
+                private int position;
                 private AnalyzerTerm current;
                 private IEnumerator<Token>? enumerator;
 
@@ -72,7 +72,7 @@ namespace Clara.Analysis
                     this.pipeline = analyzer.pipeline;
                     this.text = text;
                     this.isEmpty = string.IsNullOrWhiteSpace(text);
-                    this.ordinal = default;
+                    this.position = default;
                     this.current = default!;
                     this.enumerator = default;
                 }
@@ -90,14 +90,14 @@ namespace Clara.Analysis
 
                     while (this.enumerator.MoveNext())
                     {
-                        var ordinal = ++this.ordinal;
+                        var position = ++this.position;
                         var token = this.enumerator.Current;
 
                         token = this.pipeline(token);
 
                         if (!token.IsEmpty)
                         {
-                            this.current = new AnalyzerTerm(ordinal, token);
+                            this.current = new AnalyzerTerm(position, token);
 
                             return true;
                         }
@@ -112,7 +112,7 @@ namespace Clara.Analysis
                 {
                     this.enumerator?.Dispose();
                     this.enumerator = default;
-                    this.ordinal = default;
+                    this.position = default;
                     this.current = default!;
                 }
 

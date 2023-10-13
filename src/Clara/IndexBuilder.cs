@@ -1,5 +1,4 @@
-﻿using Clara.Analysis.Synonyms;
-using Clara.Mapping;
+﻿using Clara.Mapping;
 using Clara.Storage;
 using Clara.Utils;
 
@@ -15,30 +14,13 @@ namespace Clara
             IEnumerable<TSource> source,
             IIndexMapper<TSource, TDocument> indexMapper)
         {
-            return Build(source, indexMapper, Array.Empty<SynonymMapBinding>());
-        }
-
-        public static Index<TDocument> Build<TSource, TDocument>(
-            IEnumerable<TSource> source,
-            IIndexMapper<TSource, TDocument> indexMapper,
-            IEnumerable<SynonymMapBinding> synonymMapBindings)
-        {
-            return Build(source, indexMapper, new InstanceTokenEncoderStore(), synonymMapBindings);
+            return Build(source, indexMapper, SharedTokenEncoderStore.Default);
         }
 
         public static Index<TDocument> Build<TSource, TDocument>(
             IEnumerable<TSource> source,
             IIndexMapper<TSource, TDocument> indexMapper,
             TokenEncoderStore tokenEncoderStore)
-        {
-            return Build(source, indexMapper, tokenEncoderStore, Array.Empty<SynonymMapBinding>());
-        }
-
-        public static Index<TDocument> Build<TSource, TDocument>(
-            IEnumerable<TSource> source,
-            IIndexMapper<TSource, TDocument> indexMapper,
-            TokenEncoderStore tokenEncoderStore,
-            IEnumerable<SynonymMapBinding> synonymMapBindings)
         {
             if (source is null)
             {
@@ -55,14 +37,9 @@ namespace Clara
                 throw new ArgumentNullException(nameof(tokenEncoderStore));
             }
 
-            if (synonymMapBindings is null)
-            {
-                throw new ArgumentNullException(nameof(synonymMapBindings));
-            }
-
             lock (tokenEncoderStore.SyncRoot)
             {
-                var builder = new IndexBuilder<TSource, TDocument>(indexMapper, tokenEncoderStore, synonymMapBindings);
+                var builder = new IndexBuilder<TSource, TDocument>(indexMapper, tokenEncoderStore);
 
                 foreach (var item in source)
                 {
@@ -84,8 +61,7 @@ namespace Clara
 
         public IndexBuilder(
             IIndexMapper<TSource, TDocument> indexMapper,
-            TokenEncoderStore tokenEncoderStore,
-            IEnumerable<SynonymMapBinding> synonymMapBindings)
+            TokenEncoderStore tokenEncoderStore)
         {
             if (indexMapper is null)
             {
@@ -97,51 +73,26 @@ namespace Clara
                 throw new ArgumentNullException(nameof(tokenEncoderStore));
             }
 
-            if (synonymMapBindings is null)
-            {
-                throw new ArgumentNullException(nameof(synonymMapBindings));
-            }
-
             this.indexMapper = indexMapper;
             this.documentMap = new DictionarySlim<int, TDocument>();
             this.tokenEncoderBuilder = tokenEncoderStore.CreateBuilder();
             this.fieldBuilders = new Dictionary<Field, FieldStoreBuilder<TSource>>();
 
             var fields = new HashSet<Field>();
-            var fieldSynonymMaps = new Dictionary<Field, ISynonymMap>();
 
             foreach (var field in indexMapper.GetFields())
             {
-                if (fields.Contains(field))
+                if (!fields.Add(field))
                 {
-                    throw new InvalidOperationException("Duplicated fields detected in index mapper field specification.");
+                    throw new InvalidOperationException("Duplicate index mapper field detected.");
                 }
-
-                fields.Add(field);
-            }
-
-            foreach (var synonymMapBinding in synonymMapBindings)
-            {
-                if (!fields.Contains(synonymMapBinding.Field))
-                {
-                    throw new InvalidOperationException("Synonym map references field not belonging to current index mapper fields.");
-                }
-
-                if (fieldSynonymMaps.ContainsKey(synonymMapBinding.Field))
-                {
-                    throw new InvalidOperationException("Synonym map field assignment must be unique.");
-                }
-
-                fieldSynonymMaps.Add(synonymMapBinding.Field, synonymMapBinding.SynonymMap);
             }
 
             foreach (var field in fields)
             {
-                fieldSynonymMaps.TryGetValue(field, out var synonymMap);
-
-                if (field.CreateFieldStoreBuilder(this.tokenEncoderBuilder, synonymMap) is not FieldStoreBuilder<TSource> fieldBuilder)
+                if (field.CreateFieldStoreBuilder(this.tokenEncoderBuilder) is not FieldStoreBuilder<TSource> fieldBuilder)
                 {
-                    throw new InvalidOperationException("One of the field value mappers is based on different source type than current index mapper.");
+                    throw new InvalidOperationException($"Index mapper fields must be based off \"{typeof(TSource).FullName}\" type.");
                 }
 
                 this.fieldBuilders.Add(field, fieldBuilder);
@@ -167,7 +118,7 @@ namespace Clara
 
             if (exists)
             {
-                throw new InvalidOperationException("Attempt to index document with duplicate key.");
+                throw new InvalidOperationException($"Duplicate source document key \"{documentKey}\" detected.");
             }
 
             document = this.indexMapper.GetDocument(item);

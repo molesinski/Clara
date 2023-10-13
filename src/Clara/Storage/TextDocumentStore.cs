@@ -118,11 +118,11 @@ namespace Clara.Storage
 
                 var isFirst = true;
 
-                foreach (var ordinalRange in new SearchTermStoreIndexEnumerable(termIndexes.Instance))
+                foreach (var positionRange in new SearchTermStoreIndexEnumerable(termIndexes.Instance))
                 {
                     tempScores.Instance.Clear();
 
-                    foreach (var storeRange in ordinalRange)
+                    foreach (var storeRange in positionRange)
                     {
                         terms.Instance.Clear();
                         tempScores2.Instance.Clear();
@@ -409,7 +409,7 @@ namespace Clara.Storage
                          ?? this.synonymMap?.ToReadOnly(term.Token)
                          ?? InvalidToken;
 
-                terms.Add(new SearchTerm(term.Ordinal, token));
+                terms.Add(new SearchTerm(term.Position, token));
             }
 
             this.synonymMap?.Process(searchMode, terms);

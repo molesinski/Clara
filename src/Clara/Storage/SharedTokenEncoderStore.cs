@@ -6,6 +6,8 @@ namespace Clara.Storage
     {
         private readonly SharedTokenEncoderBuilder builder = new();
 
+        public static SharedTokenEncoderStore Default { get; } = new SharedTokenEncoderStore();
+
         internal override TokenEncoderBuilder CreateBuilder()
         {
             return this.builder;

@@ -9,35 +9,28 @@ namespace Clara.Benchmarks
     [MemoryDiagnoser(false)]
     public class IndexingBenchmarks
     {
-        private readonly SharedTokenEncoderStore sharedTokenEncoderStore;
-
-        public IndexingBenchmarks()
+        [Benchmark]
+        public void IndexInstance_x100()
         {
-            this.sharedTokenEncoderStore = new SharedTokenEncoderStore();
+            IndexBuilder.Build(Product.Items_x100, new ProductMapper(), new InstanceTokenEncoderStore());
         }
 
         [Benchmark]
-        public void Index_x100()
+        public void IndexInstance()
         {
-            IndexBuilder.Build(Product.Items_x100, new ProductMapper());
-        }
-
-        [Benchmark]
-        public void Index()
-        {
-            IndexBuilder.Build(Product.Items, new ProductMapper());
+            IndexBuilder.Build(Product.Items, new ProductMapper(), new InstanceTokenEncoderStore());
         }
 
         [Benchmark]
         public void IndexShared_x100()
         {
-            IndexBuilder.Build(Product.Items_x100, new ProductMapper(), this.sharedTokenEncoderStore);
+            IndexBuilder.Build(Product.Items_x100, new ProductMapper(), SharedTokenEncoderStore.Default);
         }
 
         [Benchmark]
         public void IndexShared()
         {
-            IndexBuilder.Build(Product.Items, new ProductMapper(), this.sharedTokenEncoderStore);
+            IndexBuilder.Build(Product.Items, new ProductMapper(), SharedTokenEncoderStore.Default);
         }
     }
 }

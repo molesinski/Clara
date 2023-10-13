@@ -98,7 +98,7 @@ namespace Clara.Analysis.Synonyms
                     {
                         if (this.replacementTokenEnumerator.MoveNext())
                         {
-                            this.current = new AnalyzerTerm(this.synonymResultEnumerator.Current.Ordinal, new Token(this.replacementTokenEnumerator.Current));
+                            this.current = new AnalyzerTerm(this.synonymResultEnumerator.Current.Position, new Token(this.replacementTokenEnumerator.Current));
 
                             return true;
                         }
@@ -117,7 +117,7 @@ namespace Clara.Analysis.Synonyms
 
                             if (this.replacementTokenEnumerator.MoveNext())
                             {
-                                this.current = new AnalyzerTerm(this.synonymResultEnumerator.Current.Ordinal, new Token(this.replacementTokenEnumerator.Current));
+                                this.current = new AnalyzerTerm(this.synonymResultEnumerator.Current.Position, new Token(this.replacementTokenEnumerator.Current));
 
                                 return true;
                             }
@@ -128,7 +128,7 @@ namespace Clara.Analysis.Synonyms
                         }
                         else if (this.synonymResultEnumerator.Current.Token is Token token)
                         {
-                            this.current = new AnalyzerTerm(this.synonymResultEnumerator.Current.Ordinal, token);
+                            this.current = new AnalyzerTerm(this.synonymResultEnumerator.Current.Position, token);
 
                             return true;
                         }

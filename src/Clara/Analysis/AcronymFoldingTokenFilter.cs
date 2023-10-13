@@ -9,7 +9,7 @@
                 throw new ArgumentNullException(nameof(next));
             }
 
-            if (token.Length % 2 == 1)
+            if (token.Length >= 3 && token.Length % 2 == 1)
             {
                 var span = token.AsReadOnlySpan();
                 var length = span.Length;

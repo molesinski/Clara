@@ -1,5 +1,4 @@
-﻿using Clara.Analysis.Synonyms;
-using Clara.Storage;
+﻿using Clara.Storage;
 using Clara.Utils;
 
 namespace Clara.Mapping
@@ -100,9 +99,7 @@ namespace Clara.Mapping
 
         internal Func<TSource, StringEnumerable> ValueMapper { get; }
 
-        internal override FieldStoreBuilder CreateFieldStoreBuilder(
-            TokenEncoderBuilder tokenEncoderBuilder,
-            ISynonymMap? synonymMap)
+        internal override FieldStoreBuilder CreateFieldStoreBuilder(TokenEncoderBuilder tokenEncoderBuilder)
         {
             return new HierarchyFieldStoreBuilder<TSource>(this, tokenEncoderBuilder);
         }

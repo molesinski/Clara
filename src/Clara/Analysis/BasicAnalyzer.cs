@@ -6,7 +6,8 @@ namespace Clara.Analysis
     {
         private readonly IAnalyzer analyzer;
 
-        public BasicAnalyzer(IEnumerable<string>? stopwords = null)
+        public BasicAnalyzer(
+            IEnumerable<string>? stopwords = null)
         {
             var filters = new ListSlim<ITokenFilter>();
 

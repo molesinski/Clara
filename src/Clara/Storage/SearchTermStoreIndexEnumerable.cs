@@ -1,5 +1,5 @@
 ﻿using System.Collections;
-using Clara.Querying;
+using Clara.Analysis;
 using Clara.Utils;
 
 namespace Clara.Storage
@@ -13,26 +13,26 @@ namespace Clara.Storage
             this.source = source;
         }
 
-        public OrdinalRangeEnumerator GetEnumerator()
+        public PositionRangeEnumerator GetEnumerator()
         {
-            return new OrdinalRangeEnumerator(this.source);
+            return new PositionRangeEnumerator(this.source);
         }
 
-        public readonly record struct OrdinalRange
+        public readonly record struct PositionRange
         {
             private readonly ListSlim<SearchTermStoreIndex> source;
             private readonly int offset;
             private readonly int count;
 
-            public OrdinalRange(ListSlim<SearchTermStoreIndex> source, int ordinal, int offset, int count)
+            public PositionRange(ListSlim<SearchTermStoreIndex> source, int position, int offset, int count)
             {
                 this.source = source;
-                this.Ordinal = ordinal;
+                this.Position = position;
                 this.offset = offset;
                 this.count = count;
             }
 
-            public int Ordinal { get; }
+            public int Position { get; }
 
             public StoreRangeIndexEnumerator GetEnumerator()
             {
@@ -62,21 +62,21 @@ namespace Clara.Storage
             }
         }
 
-        public struct OrdinalRangeEnumerator : IEnumerator<OrdinalRange>
+        public struct PositionRangeEnumerator : IEnumerator<PositionRange>
         {
             private readonly ListSlim<SearchTermStoreIndex> source;
-            private OrdinalRange current;
-            private int ordinal = -1;
+            private PositionRange current;
+            private int position = -1;
             private int offset;
             private int count;
             private int i;
 
-            internal OrdinalRangeEnumerator(ListSlim<SearchTermStoreIndex> source)
+            internal PositionRangeEnumerator(ListSlim<SearchTermStoreIndex> source)
             {
                 this.source = source;
             }
 
-            public readonly OrdinalRange Current
+            public readonly PositionRange Current
             {
                 get
                 {
@@ -96,33 +96,33 @@ namespace Clara.Storage
             {
                 while (this.i < this.source.Count)
                 {
-                    var ordinal = this.source[this.i].SearchTerm.Ordinal;
+                    var position = this.source[this.i].SearchTerm.Position;
 
-                    if (this.ordinal == -1)
+                    if (this.position == -1)
                     {
-                        this.ordinal = ordinal;
+                        this.position = position;
                         this.offset = this.i;
                         this.count = 1;
                         this.i++;
                     }
-                    else if (this.ordinal == ordinal)
+                    else if (this.position == position)
                     {
                         this.count++;
                         this.i++;
                     }
                     else
                     {
-                        this.current = new OrdinalRange(this.source, this.ordinal, this.offset, this.count);
-                        this.ordinal = -1;
+                        this.current = new PositionRange(this.source, this.position, this.offset, this.count);
+                        this.position = -1;
 
                         return true;
                     }
                 }
 
-                if (this.ordinal != -1)
+                if (this.position != -1)
                 {
-                    this.current = new OrdinalRange(this.source, this.ordinal, this.offset, this.count);
-                    this.ordinal = -1;
+                    this.current = new PositionRange(this.source, this.position, this.offset, this.count);
+                    this.position = -1;
 
                     return true;
                 }
@@ -135,7 +135,7 @@ namespace Clara.Storage
             public void Reset()
             {
                 this.current = default;
-                this.ordinal = -1;
+                this.position = -1;
                 this.offset = default;
                 this.count = default;
                 this.i = default;

@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Clara.Utils;
 
 namespace Clara.Analysis
 {
@@ -30,24 +29,7 @@ namespace Clara.Analysis
 
             using var reader = new StreamReader(stream, encoding);
 
-            var stopwords = new HashSetSlim<string>();
-
-            while (reader.ReadLine() is string line)
-            {
-                if (string.IsNullOrWhiteSpace(line) || line[0] == '#')
-                {
-                    continue;
-                }
-
-                var word = line.Trim();
-
-                if (!string.IsNullOrWhiteSpace(word))
-                {
-                    stopwords.Add(word);
-                }
-            }
-
-            return stopwords;
+            return Parse(reader);
         }
     }
 }

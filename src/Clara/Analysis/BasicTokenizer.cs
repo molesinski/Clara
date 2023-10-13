@@ -6,9 +6,10 @@
 
         public BasicTokenizer()
         {
-            this.emptyEnumerable = new TokenEnumerable(this, string.Empty);
+            this.emptyEnumerable = new TokenEnumerable(string.Empty);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "By design")]
         public TokenEnumerable GetTokens(string text)
         {
             if (text is null)
@@ -16,7 +17,7 @@
                 throw new ArgumentNullException(nameof(text));
             }
 
-            return new TokenEnumerable(this, text);
+            return new TokenEnumerable(text);
         }
 
         IEnumerable<Token> ITokenizer.GetTokens(string text)
@@ -31,7 +32,7 @@
                 return this.emptyEnumerable;
             }
 
-            return new TokenEnumerable(this, text);
+            return new TokenEnumerable(text);
         }
 
         public bool Equals(ITokenizer? other)

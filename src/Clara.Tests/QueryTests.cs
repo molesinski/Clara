@@ -12,6 +12,7 @@ namespace Clara.Tests
 
         private readonly string?[] topBrands;
         private readonly decimal? maxPrice;
+        private readonly ProductMapper mapper;
         private readonly Index<Product> index;
 
         public QueryTests()
@@ -27,20 +28,14 @@ namespace Clara.Tests
             this.maxPrice = Product.Items
                 .Max(x => x.Price);
 
-            var synonymMapBindings =
-                new[]
+            var synonyms =
+                new Synonym[]
                 {
-                    new SynonymMapBinding(
-                        new SynonymMap(
-                            ProductMapper.Text.Analyzer,
-                            new Synonym[]
-                            {
-                                new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, AllTextPhrase }),
-                            }),
-                        ProductMapper.Text),
+                    new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, AllTextPhrase }),
                 };
 
-            this.index = IndexBuilder.Build(Product.Items, new ProductMapper(), synonymMapBindings);
+            this.mapper = new ProductMapper(synonyms: synonyms);
+            this.index = IndexBuilder.Build(Product.Items, this.mapper);
         }
 
         [Fact]
@@ -48,13 +43,13 @@ namespace Clara.Tests
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Search(ProductMapper.Text, SearchMode.Any, AllNoneTextPhrase)
-                    .Filter(ProductMapper.Brand, FilterMode.Any, this.topBrands[0])
-                    .Filter(ProductMapper.Price, from: 1, to: this.maxPrice - 1)
-                    .Facet(ProductMapper.Brand)
-                    .Facet(ProductMapper.Category)
-                    .Facet(ProductMapper.Price)
-                    .Sort(ProductMapper.Price, SortDirection.Descending));
+                    .Search(this.mapper.Text, SearchMode.Any, AllNoneTextPhrase)
+                    .Filter(this.mapper.Brand, FilterMode.Any, this.topBrands[0])
+                    .Filter(this.mapper.Price, from: 1, to: this.maxPrice - 1)
+                    .Facet(this.mapper.Brand)
+                    .Facet(this.mapper.Category)
+                    .Facet(this.mapper.Price)
+                    .Sort(this.mapper.Price, SortDirection.Descending));
 
             var input = new HashSet<Product>(
                 Product.Items
@@ -72,13 +67,13 @@ namespace Clara.Tests
 
             Assert.True(inputSorted.SequenceEqual(outputSorted));
 
-            var brandFacet = result.Facets.Field(ProductMapper.Brand);
+            var brandFacet = result.Facets.Field(this.mapper.Brand);
 
             Assert.True(brandFacet.Values.Count > 1);
             Assert.True(brandFacet.Values.Count(x => x.IsSelected) == 1);
             Assert.True(brandFacet.Values.Single(x => x.IsSelected).Value == this.topBrands[0]);
 
-            var priceFacet = result.Facets.Field(ProductMapper.Price);
+            var priceFacet = result.Facets.Field(this.mapper.Price);
 
             var minBrandPrice = input
                 .Where(x => x.Brand == this.topBrands[0])
@@ -111,7 +106,7 @@ namespace Clara.Tests
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Search(ProductMapper.Text, mode, text));
+                    .Search(this.mapper.Text, mode, text));
 
             Assert.Equal(expectedCount, result.Documents.Count);
         }
@@ -140,7 +135,7 @@ namespace Clara.Tests
 
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Filter(ProductMapper.Brand, mode, values));
+                    .Filter(this.mapper.Brand, mode, values));
 
             if (expectedCount < 0)
             {

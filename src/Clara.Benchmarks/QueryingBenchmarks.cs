@@ -15,6 +15,7 @@ namespace Clara.Benchmarks
 
         private readonly string? topBrand;
         private readonly decimal? maxPrice;
+        private readonly ProductMapper mapper;
         private readonly Index<Product> index;
         private readonly Index<Product> index_x100;
 
@@ -31,22 +32,15 @@ namespace Clara.Benchmarks
             this.maxPrice = Product.Items
                 .Max(x => x.Price);
 
-            var synonymMapBindings =
-                new[]
+            var synonyms =
+                new Synonym[]
                 {
-                    new SynonymMapBinding(
-                        new SynonymMap(
-                            ProductMapper.Text.Analyzer,
-                            new Synonym[]
-                            {
-                                new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, AllTextPhrase }),
-                            }),
-                        ProductMapper.Text),
+                    new EquivalencySynonym(new[] { ProductMapper.CommonTextPhrase, AllTextPhrase }),
                 };
 
-            this.index = IndexBuilder.Build(Product.Items, new ProductMapper(), synonymMapBindings);
-
-            this.index_x100 = IndexBuilder.Build(Product.Items_x100, new ProductMapper(), synonymMapBindings);
+            this.mapper = new ProductMapper(synonyms: synonyms);
+            this.index = IndexBuilder.Build(Product.Items, this.mapper);
+            this.index_x100 = IndexBuilder.Build(Product.Items_x100, this.mapper);
         }
 
         [Benchmark]
@@ -54,13 +48,13 @@ namespace Clara.Benchmarks
         {
             using var result = this.index_x100.Query(
                 this.index_x100.QueryBuilder()
-                    .Search(ProductMapper.Text, SearchMode.Any, AllNoneTextPhrase)
-                    .Filter(ProductMapper.Brand, FilterMode.Any, this.topBrand)
-                    .Filter(ProductMapper.Price, from: 1, to: this.maxPrice - 1)
-                    .Facet(ProductMapper.Brand)
-                    .Facet(ProductMapper.Category)
-                    .Facet(ProductMapper.Price)
-                    .Sort(ProductMapper.Rating, SortDirection.Descending));
+                    .Search(this.mapper.Text, SearchMode.Any, AllNoneTextPhrase)
+                    .Filter(this.mapper.Brand, FilterMode.Any, this.topBrand)
+                    .Filter(this.mapper.Price, from: 1, to: this.maxPrice - 1)
+                    .Facet(this.mapper.Brand)
+                    .Facet(this.mapper.Category)
+                    .Facet(this.mapper.Price)
+                    .Sort(this.mapper.Rating, SortDirection.Descending));
 
             ConsumeResult(result);
         }
@@ -70,13 +64,13 @@ namespace Clara.Benchmarks
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Search(ProductMapper.Text, SearchMode.Any, AllNoneTextPhrase)
-                    .Filter(ProductMapper.Brand, FilterMode.Any, this.topBrand)
-                    .Filter(ProductMapper.Price, from: 1, to: this.maxPrice - 1)
-                    .Facet(ProductMapper.Brand)
-                    .Facet(ProductMapper.Category)
-                    .Facet(ProductMapper.Price)
-                    .Sort(ProductMapper.Rating, SortDirection.Descending));
+                    .Search(this.mapper.Text, SearchMode.Any, AllNoneTextPhrase)
+                    .Filter(this.mapper.Brand, FilterMode.Any, this.topBrand)
+                    .Filter(this.mapper.Price, from: 1, to: this.maxPrice - 1)
+                    .Facet(this.mapper.Brand)
+                    .Facet(this.mapper.Category)
+                    .Facet(this.mapper.Price)
+                    .Sort(this.mapper.Rating, SortDirection.Descending));
 
             ConsumeResult(result);
         }
@@ -86,7 +80,7 @@ namespace Clara.Benchmarks
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Search(ProductMapper.Text, SearchMode.Any, AllNoneTextPhrase));
+                    .Search(this.mapper.Text, SearchMode.Any, AllNoneTextPhrase));
 
             ConsumeResult(result);
         }
@@ -96,8 +90,8 @@ namespace Clara.Benchmarks
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Filter(ProductMapper.Brand, FilterMode.Any, this.topBrand)
-                    .Filter(ProductMapper.Price, from: 1, to: this.maxPrice - 1));
+                    .Filter(this.mapper.Brand, FilterMode.Any, this.topBrand)
+                    .Filter(this.mapper.Price, from: 1, to: this.maxPrice - 1));
 
             ConsumeResult(result);
         }
@@ -107,9 +101,9 @@ namespace Clara.Benchmarks
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Facet(ProductMapper.Brand)
-                    .Facet(ProductMapper.Category)
-                    .Facet(ProductMapper.Price));
+                    .Facet(this.mapper.Brand)
+                    .Facet(this.mapper.Category)
+                    .Facet(this.mapper.Price));
 
             ConsumeResult(result);
         }
@@ -119,7 +113,7 @@ namespace Clara.Benchmarks
         {
             using var result = this.index.Query(
                 this.index.QueryBuilder()
-                    .Sort(ProductMapper.Rating, SortDirection.Descending));
+                    .Sort(this.mapper.Rating, SortDirection.Descending));
 
             ConsumeResult(result);
         }

@@ -10,13 +10,10 @@ namespace Clara.Tests
     public class SynonymMapTests
     {
         private readonly ITestOutputHelper output;
-        private readonly IAnalyzer analyzer;
-        private SynonymMap? standardSynonymMap;
 
         public SynonymMapTests(ITestOutputHelper output)
         {
             this.output = output;
-            this.analyzer = new BasicAnalyzer();
         }
 
         [Theory]
@@ -112,17 +109,17 @@ namespace Clara.Tests
         [InlineData("pod", SearchMode.Any, "ipod", true /* false for Equivalency */)]
         public void StandardMatches(string search, SearchMode mode, string document, bool expected)
         {
-            this.standardSynonymMap ??=
+            var synonymMap =
                 new SynonymMap(
-                    this.analyzer,
+                    new BasicAnalyzer(),
                     new Synonym[]
                     {
                         new EquivalencySynonym(new[] { "i pad", "i-pad", "ipad" }),
-                        new ExplicitMappingSynonym(new[] { "i phone", "i-phone" }, new[] { "iphone" }),
-                        new ExplicitMappingSynonym(new[] { "i pod", "i-pod", "ipod" }, new[] { "i pod", "i-pod", "ipod" }),
+                        new MappingSynonym(new[] { "i phone", "i-phone" }, new[] { "iphone" }),
+                        new MappingSynonym(new[] { "i pod", "i-pod", "ipod" }, new[] { "i pod", "i-pod", "ipod" }),
                     });
 
-            Assert.Equal(expected, IsMatching(this.standardSynonymMap, search, mode, document, this.output));
+            Assert.Equal(expected, IsMatching(synonymMap, search, mode, document, this.output));
         }
 
         [Fact]
@@ -130,20 +127,20 @@ namespace Clara.Tests
         {
             var synonymMap =
                 new SynonymMap(
-                    this.analyzer,
+                    new BasicAnalyzer(),
                     new Synonym[]
                     {
                         new EquivalencySynonym(new[] { "aaa", "bbb" }),
                         new EquivalencySynonym(new[] { "bbb", "ccc" }),
-                        new ExplicitMappingSynonym(new[] { "ccc" }, new[] { "ddd" }),
+                        new MappingSynonym(new[] { "ccc" }, new[] { "ddd" }),
                         new EquivalencySynonym(new[] { "ddd", "eee" }),
-                        new ExplicitMappingSynonym(new[] { "eee" }, new[] { "fff" }),
-                        new ExplicitMappingSynonym(new[] { "fff" }, new[] { "ggg" }),
+                        new MappingSynonym(new[] { "eee" }, new[] { "fff" }),
+                        new MappingSynonym(new[] { "fff" }, new[] { "ggg" }),
                     });
 
             var phrases = Array.Empty<string>()
                 .Concat(synonymMap.Synonyms.SelectMany(x => x.Phrases))
-                .Concat(synonymMap.Synonyms.OfType<ExplicitMappingSynonym>().SelectMany(x => x.MappedPhrases))
+                .Concat(synonymMap.Synonyms.OfType<MappingSynonym>().SelectMany(x => x.MappedPhrases))
                 .Distinct()
                 .ToList();
 
@@ -177,7 +174,7 @@ namespace Clara.Tests
         {
             var synonymMap =
                 new SynonymMap(
-                    this.analyzer,
+                    new BasicAnalyzer(),
                     new Synonym[]
                     {
                         new EquivalencySynonym(new[] { "aaa bbb", "xxx" }),
@@ -189,11 +186,11 @@ namespace Clara.Tests
         }
 
         [Fact]
-        public void BacktrackingOrdinal()
+        public void BacktrackingPosition()
         {
             var synonymMap =
                 new SynonymMap(
-                    this.analyzer,
+                    new BasicAnalyzer(),
                     new Synonym[]
                     {
                         new EquivalencySynonym(new[] { "bbb", "ccc" }),
@@ -202,21 +199,47 @@ namespace Clara.Tests
 
             var phrase = "aaa a a bbb a a mmm nnn a a mmm nnn";
 
-            var input = synonymMap.Analyzer.GetTerms(phrase).Select(x => new SearchTerm(x.Ordinal, x.Token.ToString())).ToList();
+            var input = synonymMap.Analyzer.GetTerms(phrase).Select(x => new SearchTerm(x.Position, x.Token.ToString())).ToList();
             var output = input.ToList();
 
             synonymMap.Process(SearchMode.All, output);
 
-            var expected = string.Join(", ", input.Select(x => x.Ordinal).Distinct().OrderBy(x => x));
-            var actual = string.Join(", ", output.Select(x => x.Ordinal).Distinct().OrderBy(x => x));
+            var expected = string.Join(", ", input.Select(x => x.Position).Distinct().OrderBy(x => x));
+            var actual = string.Join(", ", output.Select(x => x.Position).Distinct().OrderBy(x => x));
 
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void TextParsing()
+        {
+            var synonyms =
+                new Synonym[]
+                {
+                    new EquivalencySynonym(new[] { "i pad", "i-pad", "ipad" }),
+                    new MappingSynonym(new[] { "i phone", "i-phone" }, new[] { "iphone" }),
+                    new MappingSynonym(new[] { "i pod", "i-pod", "ipod" }, new[] { "i pod", "i-pod", "ipod" }),
+                };
+
+            var synonymsText = string.Join(Environment.NewLine, synonyms.Select(x => x.ToString()));
+
+            Assert.Equal(
+                """
+                i pad, i-pad, ipad
+                i phone, i-phone => iphone
+                i pod, i-pod, ipod => i pod, i-pod, ipod
+                """,
+                synonymsText);
+
+            var parsed = Synonym.Parse(synonymsText);
+
+            Assert.True(synonyms.Select(x => x.ToString()).SequenceEqual(parsed.Select(x => x.ToString())));
         }
 
         private static bool IsMatching(ISynonymMap synonymMap, string search, SearchMode mode, string document, ITestOutputHelper? output)
         {
             var documentTokens = synonymMap.GetTerms(document).Select(x => x.Token.ToString()).ToList();
-            var searchTerms = synonymMap.Analyzer.GetTerms(search).Select(x => new SearchTerm(x.Ordinal, x.Token.ToString())).ToList();
+            var searchTerms = synonymMap.Analyzer.GetTerms(search).Select(x => new SearchTerm(x.Position, x.Token.ToString())).ToList();
 
             synonymMap.Process(mode, searchTerms);
 

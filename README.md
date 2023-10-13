@@ -106,13 +106,13 @@ type instead and return proper document type in `GetDocument` method implementat
 ```csharp
 public sealed class ProductMapper : IIndexMapper<Product>
 {
-    public static TextField<Product> Text { get; } = new(GetText, new PorterAnalyzer());
-    public static DecimalField<Product> Price { get; } = new(x => x.Price, isFilterable: true, isFacetable: true, isSortable: true);
-    public static DoubleField<Product> DiscountPercentage { get; } = new(x => x.DiscountPercentage, isFilterable: true, isFacetable: true, isSortable: true);
-    public static DoubleField<Product> Rating { get; } = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);
-    public static Int32Field<Product> Stock { get; } = new(x => x.Stock, isFilterable: true, isFacetable: true, isSortable: true);
-    public static KeywordField<Product> Brand { get; } = new(x => x.Brand, isFilterable: true, isFacetable: true);
-    public static HierarchyField<Product> Category { get; } = new(x => x.Category, separator: "-", root: "all", HierarchyValueHandling.Path, isFilterable: true, isFacetable: true);
+    public TextField<Product> Text { get; } = new(GetText, new PorterAnalyzer());
+    public DecimalField<Product> Price { get; } = new(x => x.Price, isFilterable: true, isFacetable: true, isSortable: true);
+    public DoubleField<Product> DiscountPercentage { get; } = new(x => x.DiscountPercentage, isFilterable: true, isFacetable: true, isSortable: true);
+    public DoubleField<Product> Rating { get; } = new(x => x.Rating, isFilterable: true, isFacetable: true, isSortable: true);
+    public Int32Field<Product> Stock { get; } = new(x => x.Stock, isFilterable: true, isFacetable: true, isSortable: true);
+    public KeywordField<Product> Brand { get; } = new(x => x.Brand, isFilterable: true, isFacetable: true);
+    public HierarchyField<Product> Category { get; } = new(x => x.Category, separator: "-", root: "all", HierarchyValueHandling.Path, isFilterable: true, isFacetable: true);
 
     public IEnumerable<Field> GetFields()
     {
@@ -136,7 +136,6 @@ public sealed class ProductMapper : IIndexMapper<Product>
         yield return product.Description;
         yield return product.Brand;
         yield return product.Category;
-        yield return CommonTextPhrase;
     }
 }
 ```
@@ -144,10 +143,8 @@ public sealed class ProductMapper : IIndexMapper<Product>
 Then we build our index.
 
 ```csharp
-// When rebuilding index, this reference should be reused
-var sharedTokenEncoderStore = new SharedTokenEncoderStore();
-
-var index = IndexBuilder.Build(Product.Items, new ProductMapper(), sharedTokenEncoderStore);
+var mapper = new ProductMapper();
+var index = IndexBuilder.Build(products, mapper);
 ```
 
 With index built, we can run queries against it. Result documents can be accessed with `Documents` property and
@@ -159,14 +156,14 @@ is needed, it can be added by simple `Skip`/`Take` logic on top `Documents` coll
 // Query result must always be disposed in order to return pooled buffers for reuse
 using var result = index.Query(
     index.QueryBuilder()
-        .Search(ProductMapper.Text, SearchMode.Any, "watch ring leather bag")
-        .Filter(ProductMapper.Brand, FilterMode.Any, "Eastern Watches", "Bracelet", "Copenhagen Luxe")
-        .Filter(ProductMapper.Category, FilterMode.Any, "womens")
-        .Filter(ProductMapper.Price, from: 10, to: 90)
-        .Facet(ProductMapper.Brand)
-        .Facet(ProductMapper.Category)
-        .Facet(ProductMapper.Price)
-        .Sort(ProductMapper.Price, SortDirection.Descending));
+        .Search(mapper.Text, SearchMode.Any, "watch ring leather bag")
+        .Filter(mapper.Brand, FilterMode.Any, "Eastern Watches", "Bracelet", "Copenhagen Luxe")
+        .Filter(mapper.Category, FilterMode.Any, "womens")
+        .Filter(mapper.Price, from: 10, to: 90)
+        .Facet(mapper.Brand)
+        .Facet(mapper.Category)
+        .Facet(mapper.Price)
+        .Sort(mapper.Price, SortDirection.Descending));
 
 Console.WriteLine("Documents:");
 
@@ -177,14 +174,14 @@ foreach (var document in result.Documents.Take(10))
 
 Console.WriteLine("Brands:");
 
-foreach (var value in result.Facets.Field(ProductMapper.Brand).Values.Take(5))
+foreach (var value in result.Facets.Field(mapper.Brand).Values.Take(5))
 {
     Console.WriteLine($"  {(value.IsSelected ? "(x)" : "( )")} [{value.Value}] => {value.Count}");
 }
 
 Console.WriteLine("Categories:");
 
-foreach (var value in result.Facets.Field(ProductMapper.Category).Values.Take(5))
+foreach (var value in result.Facets.Field(mapper.Category).Values.Take(5))
 {
     Console.WriteLine($"  (x) [{value.Value}] => {value.Count}");
 
@@ -194,7 +191,7 @@ foreach (var value in result.Facets.Field(ProductMapper.Category).Values.Take(5)
     }
 }
 
-var priceFacet = result.Facets.Field(ProductMapper.Price);
+var priceFacet = result.Facets.Field(mapper.Price);
 
 Console.WriteLine("Price:");
 Console.WriteLine($"  [Min] => {priceFacet.Min}");
@@ -330,30 +327,30 @@ BenchmarkDotNet v0.13.9, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 | Method         | Mean       | Error   | StdDev  | Allocated |
 |--------------- |-----------:|--------:|--------:|----------:|
-| BasicTokenizer |   177.6 ns | 0.54 ns | 0.48 ns |      32 B |
-| PorterAnalyzer |   754.6 ns | 1.94 ns | 1.62 ns |      64 B |
-| SynonymMap     | 1,385.3 ns | 4.88 ns | 4.32 ns |      96 B |
+| BasicTokenizer |   184.9 ns | 0.89 ns | 0.83 ns |      24 B |
+| PorterAnalyzer |   767.0 ns | 6.27 ns | 5.86 ns |      56 B |
+| SynonymMap     | 1,379.7 ns | 6.23 ns | 5.83 ns |      88 B |
 
 ### Indexing Benchmarks
 
-| Method           | Mean        | Error       | StdDev      | Allocated   |
-|----------------- |------------:|------------:|------------:|------------:|
-| Index_x100       | 83,501.6 μs | 1,516.26 μs | 1,344.12 μs | 29552.76 KB |
-| Index            |    731.9 μs |     2.73 μs |     2.28 μs |   633.46 KB |
-| IndexShared_x100 | 78,452.6 μs | 1,433.03 μs | 1,340.46 μs | 28270.69 KB |
-| IndexShared      |    694.5 μs |     2.33 μs |     1.94 μs |   520.65 KB |
+| Method             | Mean        | Error       | StdDev      | Allocated   |
+|------------------- |------------:|------------:|------------:|------------:|
+| IndexInstance_x100 | 82,517.7 μs | 1,591.43 μs | 1,563.00 μs | 29091.20 KB |
+| IndexInstance      |    719.9 μs |     3.33 μs |     3.12 μs |   635.16 KB |
+| IndexShared_x100   | 76,944.0 μs | 1,388.68 μs | 1,298.97 μs | 27807.35 KB |
+| IndexShared        |    702.3 μs |     5.68 μs |     5.32 μs |   522.34 KB |
 
 ### Querying Benchmarks
 
 | Method            | Mean       | Error     | StdDev    | Allocated |
 |------------------ |-----------:|----------:|----------:|----------:|
-| QueryComplex_x100 | 541.959 μs | 2.5785 μs | 2.2858 μs |     969 B |
-| QueryComplex      |  12.491 μs | 0.0464 μs | 0.0388 μs |     968 B |
-| QuerySearch       |   8.948 μs | 0.0302 μs | 0.0268 μs |     416 B |
-| QueryFilter       |   1.102 μs | 0.0034 μs | 0.0028 μs |     424 B |
-| QueryFacet        |  10.171 μs | 0.0525 μs | 0.0465 μs |     624 B |
-| QuerySort         |   3.476 μs | 0.0393 μs | 0.0328 μs |     392 B |
-| Query             |   1.521 μs | 0.0153 μs | 0.0128 μs |     296 B |
+| QueryComplex_x100 | 513.716 μs | 3.9937 μs | 3.1180 μs |     961 B |
+| QueryComplex      |  12.325 μs | 0.0623 μs | 0.0583 μs |     960 B |
+| QuerySearch       |   8.853 μs | 0.0431 μs | 0.0403 μs |     408 B |
+| QueryFilter       |   1.138 μs | 0.0110 μs | 0.0102 μs |     424 B |
+| QueryFacet        |  10.281 μs | 0.0197 μs | 0.0164 μs |     624 B |
+| QuerySort         |   3.684 μs | 0.0090 μs | 0.0080 μs |     392 B |
+| Query             |   1.454 μs | 0.0098 μs | 0.0087 μs |     296 B |
 
 ### Memory Allocations
 

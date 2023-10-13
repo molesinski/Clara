@@ -10,12 +10,10 @@ namespace Clara.Analysis
         {
             private static readonly ObjectPool<Enumerator> Pool = new(() => new());
 
-            private readonly BasicTokenizer tokenizer;
             private readonly string text;
 
-            internal TokenEnumerable(BasicTokenizer tokenizer, string text)
+            internal TokenEnumerable(string text)
             {
-                this.tokenizer = tokenizer;
                 this.text = text;
             }
 
@@ -23,7 +21,7 @@ namespace Clara.Analysis
             {
                 var lease = Pool.Lease();
 
-                lease.Instance.Initialize(lease, this.tokenizer, this.text);
+                lease.Instance.Initialize(lease, this.text);
 
                 return lease.Instance;
             }
@@ -43,8 +41,7 @@ namespace Clara.Analysis
                 private ObjectPoolLease<Enumerator>? lease;
                 private string text = default!;
                 private Token current = new(new char[Token.MaximumLength], 0);
-                private int startIndex;
-                private int index;
+                private int lastIndex;
 
                 public Token Current
                 {
@@ -62,53 +59,54 @@ namespace Clara.Analysis
                     }
                 }
 
-                public void Initialize(ObjectPoolLease<Enumerator> lease, BasicTokenizer tokenizer, string text)
+                public void Initialize(ObjectPoolLease<Enumerator> lease, string text)
                 {
                     this.lease = lease;
                     this.text = text;
-                    this.startIndex = -1;
-                    this.index = 0;
+                    this.lastIndex = 0;
                 }
 
                 public bool MoveNext()
                 {
                     var hasCurrent = false;
+                    var start = -1;
+                    var i = this.lastIndex;
 
-                    if (this.index < this.text.Length)
+                    if (i < this.text.Length)
                     {
                         var pp = ' ';
                         var p = ' ';
-                        var c = this.text[this.index];
+                        var c = this.text[i];
                         var n = ' ';
                         var nn = ' ';
 
-                        if (this.index - 1 >= 0)
+                        if (i - 2 >= 0)
                         {
-                            p = this.text[this.index - 1];
-
-                            if (this.index - 2 >= 0)
-                            {
-                                pp = this.text[this.index - 2];
-                            }
+                            pp = this.text[i - 2];
+                            p = this.text[i - 1];
+                        }
+                        else if (i - 1 >= 0)
+                        {
+                            p = this.text[i - 1];
                         }
 
-                        if (this.index + 1 < this.text.Length)
+                        if (i + 2 < this.text.Length)
                         {
-                            n = this.text[this.index + 1];
-
-                            if (this.index + 2 < this.text.Length)
-                            {
-                                nn = this.text[this.index + 2];
-                            }
+                            nn = this.text[i + 2];
+                            n = this.text[i + 1];
+                        }
+                        else if (i + 1 < this.text.Length)
+                        {
+                            n = this.text[i + 1];
                         }
 
-                        while (this.index < this.text.Length)
+                        while (i < this.text.Length)
                         {
-                            if (this.startIndex == -1)
+                            if (start == -1)
                             {
                                 if (char.IsLetterOrDigit(c) || c == '_')
                                 {
-                                    this.startIndex = this.index;
+                                    start = i;
                                 }
                             }
                             else
@@ -116,27 +114,30 @@ namespace Clara.Analysis
                                 if (char.IsLetterOrDigit(c) || c == '_')
                                 {
                                 }
-                                else if (IsConnector(pp, p, c, n, nn))
+                                else if (IsConnected(pp, p, c, n, nn))
                                 {
                                 }
                                 else
                                 {
-                                    var count = this.index - this.startIndex;
+                                    var span = this.text.AsSpan(start, i - start);
 
-                                    if (count <= Token.MaximumLength && !IsUnderscores(this.text, this.startIndex, count))
+                                    if (span.Length <= Token.MaximumLength && !IsUnderscores(span))
                                     {
-                                        this.current.Set(this.text.AsSpan(this.startIndex, count));
+                                        this.current.Set(span);
+
                                         hasCurrent = true;
                                     }
 
-                                    this.startIndex = -1;
+                                    start = -1;
                                 }
                             }
 
-                            this.index++;
+                            i++;
 
                             if (hasCurrent)
                             {
+                                this.lastIndex = i;
+
                                 return true;
                             }
 
@@ -146,27 +147,22 @@ namespace Clara.Analysis
                             n = nn;
                             nn = ' ';
 
-                            if (this.index + 2 < this.text.Length)
+                            if (i + 2 < this.text.Length)
                             {
-                                nn = this.text[this.index + 2];
+                                nn = this.text[i + 2];
                             }
                         }
                     }
 
-                    if (this.startIndex != -1)
+                    if (start != -1)
                     {
-                        var count = this.text.Length - this.startIndex;
+                        var span = this.text.AsSpan(start, this.text.Length - start);
 
-                        if (count <= Token.MaximumLength && !IsUnderscores(this.text, this.startIndex, count))
+                        if (span.Length <= Token.MaximumLength && !IsUnderscores(span))
                         {
-                            this.current.Set(this.text.AsSpan(this.startIndex, count));
-                            hasCurrent = true;
-                        }
+                            this.current.Set(span);
+                            this.lastIndex = i;
 
-                        this.startIndex = -1;
-
-                        if (hasCurrent)
-                        {
                             return true;
                         }
                     }
@@ -178,8 +174,7 @@ namespace Clara.Analysis
                 public void Reset()
                 {
                     this.current.Clear();
-                    this.startIndex = -1;
-                    this.index = 0;
+                    this.lastIndex = 0;
                 }
 
                 public void Dispose()
@@ -193,7 +188,7 @@ namespace Clara.Analysis
                     lease?.Dispose();
                 }
 
-                private static bool IsConnector(char pp, char p, char c, char n, char nn)
+                private static bool IsConnected(char pp, char p, char c, char n, char nn)
                 {
                     var result = false;
 
@@ -230,11 +225,11 @@ namespace Clara.Analysis
                     return result;
                 }
 
-                private static bool IsUnderscores(string text, int index, int count)
+                private static bool IsUnderscores(ReadOnlySpan<char> span)
                 {
-                    for (var i = index; i < index + count; i++)
+                    for (var i = 0; i < span.Length; i++)
                     {
-                        if (text[i] != '_')
+                        if (span[i] != '_')
                         {
                             return false;
                         }

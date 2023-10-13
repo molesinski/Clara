@@ -4,24 +4,24 @@
     {
         private readonly struct SynonymSearchTermResult
         {
-            public SynonymSearchTermResult(int ordinal, string token)
+            public SynonymSearchTermResult(int position, string token)
             {
-                this.Ordinal = ordinal;
+                this.Position = position;
                 this.Token = token;
             }
 
-            public SynonymSearchTermResult(int ordinal, TokenNode node)
+            public SynonymSearchTermResult(int position, TokenNode node)
             {
                 if (node is null)
                 {
                     throw new ArgumentNullException(nameof(node));
                 }
 
-                this.Ordinal = ordinal;
+                this.Position = position;
                 this.Node = node;
             }
 
-            public int Ordinal { get; }
+            public int Position { get; }
 
             public string? Token { get; }
 

@@ -1,5 +1,4 @@
-﻿using Clara.Analysis.Synonyms;
-using Clara.Storage;
+﻿using Clara.Storage;
 
 namespace Clara.Mapping
 {
@@ -18,8 +17,6 @@ namespace Clara.Mapping
 
         public bool IsSortable { get; }
 
-        internal abstract FieldStoreBuilder CreateFieldStoreBuilder(
-            TokenEncoderBuilder tokenEncoderBuilder,
-            ISynonymMap? synonymMap);
+        internal abstract FieldStoreBuilder CreateFieldStoreBuilder(TokenEncoderBuilder tokenEncoderBuilder);
     }
 }

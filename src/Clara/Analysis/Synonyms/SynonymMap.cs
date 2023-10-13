@@ -105,12 +105,12 @@ namespace Clara.Analysis.Synonyms
             {
                 if (item.Node is TokenNode node)
                 {
-                    tempTerms.Instance.Add(new SearchTerm(item.Ordinal, node.MatchExpression));
+                    tempTerms.Instance.Add(new SearchTerm(item.Position, node.MatchExpression));
                     hasMatchExpressions = true;
                 }
                 else if (item.Token is string token)
                 {
-                    tempTerms.Instance.Add(new SearchTerm(item.Ordinal, token));
+                    tempTerms.Instance.Add(new SearchTerm(item.Position, token));
                 }
             }
 

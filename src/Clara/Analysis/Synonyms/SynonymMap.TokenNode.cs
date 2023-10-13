@@ -216,9 +216,9 @@ namespace Clara.Analysis.Synonyms
                         node.aggregate = aggregate;
                     }
 
-                    if (synonym is ExplicitMappingSynonym explicitMappingSynonym)
+                    if (synonym is MappingSynonym mappingSynonym)
                     {
-                        foreach (var tokens in GetTokenPermutations((HashSetSlim<string>)explicitMappingSynonym.MappedPhrases, stringPool))
+                        foreach (var tokens in GetTokenPermutations((HashSetSlim<string>)mappingSynonym.MappedPhrases, stringPool))
                         {
                             var node = root;
 

@@ -1,5 +1,4 @@
-﻿using Clara.Analysis.Synonyms;
-using Clara.Mapping;
+﻿using Clara.Mapping;
 using Clara.Utils;
 
 namespace Clara.Storage
@@ -8,12 +7,11 @@ namespace Clara.Storage
     {
         private readonly TextField<TSource> field;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
-        private readonly ISynonymMap? synonymMap;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
         private readonly DictionarySlim<int, float> documentLengths;
         private bool isBuilt;
 
-        public TextFieldStoreBuilder(TextField<TSource> field, TokenEncoderBuilder tokenEncoderBuilder, ISynonymMap? synonymMap)
+        public TextFieldStoreBuilder(TextField<TSource> field, TokenEncoderBuilder tokenEncoderBuilder)
         {
             if (field is null)
             {
@@ -27,7 +25,6 @@ namespace Clara.Storage
 
             this.field = field;
             this.tokenEncoderBuilder = tokenEncoderBuilder;
-            this.synonymMap = synonymMap;
             this.tokenDocumentScores = new();
             this.documentLengths = new();
         }
@@ -44,9 +41,9 @@ namespace Clara.Storage
                 if (!string.IsNullOrWhiteSpace(value))
                 {
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    var terms = this.synonymMap?.GetTerms(value) ?? this.field.Analyzer.GetTerms(value);
+                    var terms = this.field.SynonymMap?.GetTerms(value) ?? this.field.Analyzer.GetTerms(value);
 #else
-                    var terms = this.synonymMap?.GetTerms(value!) ?? this.field.Analyzer.GetTerms(value!);
+                    var terms = this.field.SynonymMap?.GetTerms(value!) ?? this.field.Analyzer.GetTerms(value!);
 #endif
 
                     foreach (var term in terms)
@@ -76,11 +73,11 @@ namespace Clara.Storage
                 throw new InvalidOperationException("Current instance is already built.");
             }
 
-            this.field.Similarity.Process(this.tokenDocumentScores, this.documentLengths);
+            (this.field.Similarity ?? Similarity.Default).Process(this.tokenDocumentScores, this.documentLengths);
 
             var store =
                 new TextFieldStore(
-                    new TextDocumentStore(tokenEncoder, this.field.Analyzer, this.synonymMap, this.tokenDocumentScores));
+                    new TextDocumentStore(tokenEncoder, this.field.Analyzer, this.field.SynonymMap, this.tokenDocumentScores));
 
             this.isBuilt = true;
 

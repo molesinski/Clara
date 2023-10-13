@@ -1,4 +1,4 @@
-﻿using Clara.Querying;
+﻿using Clara.Analysis;
 
 namespace Clara.Storage
 {

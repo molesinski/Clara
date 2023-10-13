@@ -8,7 +8,6 @@ namespace Clara.Tests
     public sealed class Product
     {
         public static IReadOnlyCollection<Product> Items { get; } = LoadResource(times: 1);
-
         public static IReadOnlyCollection<Product> Items_x100 { get; } = LoadResource(times: 100);
 
         public int Id { get; set; }

@@ -74,12 +74,11 @@ namespace Clara.Analysis
                 return this.GetEnumerator();
             }
 
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "Dispose returns object to pool for reuse")]
             private sealed class Enumerator : IEnumerator<AnalyzerTerm>
             {
-#pragma warning disable CA2213 // Disposable fields should be disposed
                 private readonly ReusableStringReader reader;
                 private readonly Lucene.Net.Analysis.Analyzer analyzer;
-#pragma warning restore CA2213 // Disposable fields should be disposed
                 private readonly char[] chars;
                 private ObjectPoolLease<Enumerator>? lease;
                 private bool isEmpty;

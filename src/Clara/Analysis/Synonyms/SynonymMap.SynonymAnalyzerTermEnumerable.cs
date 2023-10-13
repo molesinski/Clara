@@ -48,7 +48,7 @@ namespace Clara.Analysis.Synonyms
                 private TokenNode? backtrackingNode;
                 private TokenNode currentNode;
                 private SynonymAnalyzerTermResult current;
-                private ObjectPoolLease<Stack<int>>? backtrackingOrdinals;
+                private ObjectPoolLease<Stack<int>>? backtrackingPositions;
 
                 public Enumerator(SynonymAnalyzerTermEnumerable source)
                 {
@@ -62,7 +62,7 @@ namespace Clara.Analysis.Synonyms
                     this.backtrackingNode = default;
                     this.currentNode = this.root;
                     this.current = default;
-                    this.backtrackingOrdinals = default;
+                    this.backtrackingPositions = default;
                 }
 
                 public readonly SynonymAnalyzerTermResult Current
@@ -102,14 +102,14 @@ namespace Clara.Analysis.Synonyms
 
                             if (this.backtrackingNode.HasSynonyms)
                             {
-                                this.current = new SynonymAnalyzerTermResult(this.backtrackingOrdinals!.Value.Instance.Pop(), this.backtrackingNode);
+                                this.current = new SynonymAnalyzerTermResult(this.backtrackingPositions!.Value.Instance.Pop(), this.backtrackingNode);
                                 this.backtrackingNode = null;
-                                this.backtrackingOrdinals!.Value.Instance.Clear();
+                                this.backtrackingPositions!.Value.Instance.Clear();
 
                                 return true;
                             }
 
-                            this.current = new SynonymAnalyzerTermResult(this.backtrackingOrdinals!.Value.Instance.Pop(), new Token(this.backtrackingNode.Token));
+                            this.current = new SynonymAnalyzerTermResult(this.backtrackingPositions!.Value.Instance.Pop(), new Token(this.backtrackingNode.Token));
                             this.backtrackingNode = this.backtrackingNode.Parent;
 
                             return true;
@@ -125,8 +125,8 @@ namespace Clara.Analysis.Synonyms
                             {
                                 if (this.currentNode.Children.TryGetValue(value, out var node))
                                 {
-                                    this.backtrackingOrdinals ??= SharedObjectPools.BacktrackingOrdinals.Lease();
-                                    this.backtrackingOrdinals.Value.Instance.Push(currentTerm.Ordinal);
+                                    this.backtrackingPositions ??= SharedObjectPools.BacktrackingPositions.Lease();
+                                    this.backtrackingPositions.Value.Instance.Push(currentTerm.Position);
 
                                     this.currentNode = node;
 
@@ -143,7 +143,7 @@ namespace Clara.Analysis.Synonyms
                                 continue;
                             }
 
-                            this.current = new SynonymAnalyzerTermResult(currentTerm.Ordinal, currentTerm.Token);
+                            this.current = new SynonymAnalyzerTermResult(currentTerm.Position, currentTerm.Token);
 
                             return true;
                         }
@@ -190,8 +190,8 @@ namespace Clara.Analysis.Synonyms
                 {
                     this.Reset();
 
-                    this.backtrackingOrdinals?.Dispose();
-                    this.backtrackingOrdinals = default;
+                    this.backtrackingPositions?.Dispose();
+                    this.backtrackingPositions = default;
                 }
             }
         }

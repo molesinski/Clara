@@ -47,7 +47,7 @@ namespace Clara.Analysis
             private readonly ICharTermAttribute charTermAttribute;
             private readonly IPositionIncrementAttribute positionIncrementAttribute;
             private Token token;
-            private int ordinal;
+            private int position;
             private AnalyzerTerm current;
             private bool isStarted;
 
@@ -57,7 +57,7 @@ namespace Clara.Analysis
                 this.charTermAttribute = source.tokenStream.GetAttribute<ICharTermAttribute>();
                 this.positionIncrementAttribute = source.tokenStream.GetAttribute<IPositionIncrementAttribute>();
                 this.token = new Token(source.chars, 0);
-                this.ordinal = default;
+                this.position = default;
                 this.current = default;
                 this.isStarted = false;
             }
@@ -88,9 +88,9 @@ namespace Clara.Analysis
 
                 if (this.tokenStream.IncrementToken())
                 {
-                    this.ordinal += this.positionIncrementAttribute.PositionIncrement;
+                    this.position += this.positionIncrementAttribute.PositionIncrement;
                     this.token.Set(this.charTermAttribute.Buffer.AsSpan(0, this.charTermAttribute.Length));
-                    this.current = new AnalyzerTerm(this.ordinal, this.token);
+                    this.current = new AnalyzerTerm(this.position, this.token);
 
                     return true;
                 }
