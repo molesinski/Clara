@@ -294,6 +294,11 @@ namespace Clara.Storage
                         if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                         {
                             documentScores.UnionWith(documents, ScoreCombiner.For(anyTokensMatchExpression.ScoreAggregation));
+
+                            if (anyTokensMatchExpression.IsLazy)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
@@ -345,6 +350,14 @@ namespace Clara.Storage
                     this.Search(orMatchExpression.Expressions[i], tempScores.Instance);
 
                     documentScores.UnionWith(tempScores.Instance, ScoreCombiner.For(orMatchExpression.ScoreAggregation));
+
+                    if (orMatchExpression.IsLazy)
+                    {
+                        if (tempScores.Instance.Count > 0)
+                        {
+                            break;
+                        }
+                    }
                 }
             }
             else if (matchExpression is AndMatchExpression andMatchExpression)

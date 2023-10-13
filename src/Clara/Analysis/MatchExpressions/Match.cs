@@ -18,9 +18,9 @@ namespace Clara.Analysis.MatchExpressions
             return All(scoreAggregation, new StringEnumerable(tokens));
         }
 
-        public static MatchExpression Any(ScoreAggregation scoreAggregation, IEnumerable<string>? tokens)
+        public static MatchExpression Any(ScoreAggregation scoreAggregation, IEnumerable<string>? tokens, bool isLazy)
         {
-            return Any(scoreAggregation, new StringEnumerable(tokens));
+            return Any(scoreAggregation, new StringEnumerable(tokens), isLazy);
         }
 
         public static MatchExpression And(ScoreAggregation scoreAggregation, IEnumerable<MatchExpression?>? expressions)
@@ -28,9 +28,9 @@ namespace Clara.Analysis.MatchExpressions
             return And(scoreAggregation, new ObjectEnumerable<MatchExpression>(expressions));
         }
 
-        public static MatchExpression Or(ScoreAggregation scoreAggregation, IEnumerable<MatchExpression?>? expressions)
+        public static MatchExpression Or(ScoreAggregation scoreAggregation, IEnumerable<MatchExpression?>? expressions, bool isLazy)
         {
-            return Or(scoreAggregation, new ObjectEnumerable<MatchExpression>(expressions));
+            return Or(scoreAggregation, new ObjectEnumerable<MatchExpression>(expressions), isLazy);
         }
 
         public static MatchExpression Search(SearchMode mode, IEnumerable<SearchTerm> terms)
@@ -62,7 +62,7 @@ namespace Clara.Analysis.MatchExpressions
                 MatchExpression tokenExpression =
                     mode == SearchMode.All
                         ? new AllTokensMatchExpression(ScoreAggregation.Sum, tokens)
-                        : new AnyTokensMatchExpression(ScoreAggregation.Sum, tokens);
+                        : new AnyTokensMatchExpression(ScoreAggregation.Sum, tokens, isLazy: false);
 
                 if (expressions is null)
                 {
@@ -90,7 +90,7 @@ namespace Clara.Analysis.MatchExpressions
                 }
                 else
                 {
-                    return new OrMatchExpression(ScoreAggregation.Sum, expressions);
+                    return new OrMatchExpression(ScoreAggregation.Sum, expressions, isLazy: false);
                 }
             }
         }
@@ -113,7 +113,7 @@ namespace Clara.Analysis.MatchExpressions
             return EmptyMatchExpression.Instance;
         }
 
-        private static MatchExpression Any(ScoreAggregation scoreAggregation, StringEnumerable tokens)
+        private static MatchExpression Any(ScoreAggregation scoreAggregation, StringEnumerable tokens, bool isLazy)
         {
             var result = default(ListSlim<string>?);
 
@@ -125,7 +125,7 @@ namespace Clara.Analysis.MatchExpressions
 
             if (result is not null)
             {
-                return new AnyTokensMatchExpression(scoreAggregation, result);
+                return new AnyTokensMatchExpression(scoreAggregation, result, isLazy);
             }
 
             return EmptyMatchExpression.Instance;
@@ -177,7 +177,7 @@ namespace Clara.Analysis.MatchExpressions
             return EmptyMatchExpression.Instance;
         }
 
-        private static MatchExpression Or(ScoreAggregation scoreAggregation, ObjectEnumerable<MatchExpression> expressions)
+        private static MatchExpression Or(ScoreAggregation scoreAggregation, ObjectEnumerable<MatchExpression> expressions, bool isLazy)
         {
             var queue = new Queue<MatchExpression>();
             var result = default(ListSlim<MatchExpression>?);
@@ -217,7 +217,7 @@ namespace Clara.Analysis.MatchExpressions
                     return result[0];
                 }
 
-                return new OrMatchExpression(scoreAggregation, result);
+                return new OrMatchExpression(scoreAggregation, result, isLazy);
             }
 
             return EmptyMatchExpression.Instance;

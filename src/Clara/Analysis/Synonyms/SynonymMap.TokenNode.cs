@@ -124,7 +124,7 @@ namespace Clara.Analysis.Synonyms
 
                         if (synonymTokens.Count > 0)
                         {
-                            expressions.Add(Match.Any(ScoreAggregation.Max, synonymTokens));
+                            expressions.Insert(0, Match.Any(ScoreAggregation.Max, synonymTokens, isLazy: false));
                         }
 
                         if (expressions.Count == 1)
@@ -133,7 +133,7 @@ namespace Clara.Analysis.Synonyms
                         }
                         else
                         {
-                            this.matchExpression = Match.Or(ScoreAggregation.Max, expressions);
+                            this.matchExpression = Match.Or(ScoreAggregation.Max, expressions, isLazy: true);
                         }
                     }
 
