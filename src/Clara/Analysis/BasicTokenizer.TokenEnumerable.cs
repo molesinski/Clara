@@ -5,8 +5,7 @@ namespace Clara.Analysis
 {
     public sealed partial class BasicTokenizer
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "By design")]
-        public readonly record struct TokenEnumerable : IEnumerable<Token>
+        internal readonly struct TokenEnumerable : IEnumerable<Token>
         {
             private static readonly ObjectPool<Enumerator> Pool = new(() => new());
 

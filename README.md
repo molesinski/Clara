@@ -325,32 +325,34 @@ BenchmarkDotNet v0.13.9, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 ### Tokenization Benchmarks
 
-| Method         | Mean       | Error   | StdDev  | Allocated |
-|--------------- |-----------:|--------:|--------:|----------:|
-| BasicTokenizer |   184.9 ns | 0.89 ns | 0.83 ns |      24 B |
-| PorterAnalyzer |   767.0 ns | 6.27 ns | 5.86 ns |      56 B |
-| SynonymMap     | 1,379.7 ns | 6.23 ns | 5.83 ns |      88 B |
+| Method          | Mean       | Error    | StdDev   | Allocated |
+|---------------- |-----------:|---------:|---------:|----------:|
+| BasicTokenizer  |   172.8 ns |  0.53 ns |  0.50 ns |      24 B |
+| PorterAnalyzer  |   749.6 ns |  1.73 ns |  1.62 ns |      56 B |
+| SynonymMap      | 1,332.0 ns |  4.91 ns |  4.60 ns |      88 B |
+| EnglishAnalyzer | 2,894.3 ns |  8.38 ns |  7.84 ns |    1656 B |
+| PolishAnalyzer  | 9,958.0 ns | 61.70 ns | 57.72 ns |    1000 B |
 
 ### Indexing Benchmarks
 
 | Method             | Mean        | Error       | StdDev      | Allocated   |
 |------------------- |------------:|------------:|------------:|------------:|
-| IndexInstance_x100 | 82,517.7 μs | 1,591.43 μs | 1,563.00 μs | 29091.20 KB |
-| IndexInstance      |    719.9 μs |     3.33 μs |     3.12 μs |   635.16 KB |
-| IndexShared_x100   | 76,944.0 μs | 1,388.68 μs | 1,298.97 μs | 27807.35 KB |
-| IndexShared        |    702.3 μs |     5.68 μs |     5.32 μs |   522.34 KB |
+| IndexInstance_x100 | 82,897.0 μs | 1,657.91 μs | 1,842.76 μs | 29089.83 KB |
+| IndexInstance      |    725.5 μs |     3.00 μs |     2.81 μs |   635.13 KB |
+| IndexShared_x100   | 76,234.9 μs |   270.06 μs |   210.84 μs | 27808.68 KB |
+| IndexShared        |    695.2 μs |     2.36 μs |     2.21 μs |   522.32 KB |
 
 ### Querying Benchmarks
 
 | Method            | Mean       | Error     | StdDev    | Allocated |
 |------------------ |-----------:|----------:|----------:|----------:|
-| QueryComplex_x100 | 513.716 μs | 3.9937 μs | 3.1180 μs |     961 B |
-| QueryComplex      |  12.325 μs | 0.0623 μs | 0.0583 μs |     960 B |
-| QuerySearch       |   8.853 μs | 0.0431 μs | 0.0403 μs |     408 B |
-| QueryFilter       |   1.138 μs | 0.0110 μs | 0.0102 μs |     424 B |
-| QueryFacet        |  10.281 μs | 0.0197 μs | 0.0164 μs |     624 B |
-| QuerySort         |   3.684 μs | 0.0090 μs | 0.0080 μs |     392 B |
-| Query             |   1.454 μs | 0.0098 μs | 0.0087 μs |     296 B |
+| QueryComplex_x100 | 542.678 μs | 4.0015 μs | 3.3415 μs |     961 B |
+| QueryComplex      |  12.725 μs | 0.0243 μs | 0.0228 μs |     960 B |
+| QuerySearch       |   9.034 μs | 0.0375 μs | 0.0351 μs |     408 B |
+| QueryFilter       |   1.130 μs | 0.0033 μs | 0.0029 μs |     424 B |
+| QueryFacet        |  10.315 μs | 0.0315 μs | 0.0295 μs |     624 B |
+| QuerySort         |   3.574 μs | 0.0188 μs | 0.0176 μs |     392 B |
+| Query             |   1.476 μs | 0.0185 μs | 0.0173 μs |     296 B |
 
 ### Memory Allocations
 
@@ -361,4 +363,6 @@ allocations to provide ease of use and proper disposal of internal buffers.
 
 ## License
 
-Released under the MIT License
+- Clara, [MIT license](LICENSE)
+- [libstemmer.net](https://github.com/guoyu-wang/libstemmer.net), [MIT license](https://github.com/guoyu-wang/libstemmer.net/blob/main/LICENSE)
+- [Morfologik.Stemming](https://github.com/NightOwl888/Morfologik.Stemming), [Apache License 2.0](https://github.com/NightOwl888/Morfologik.Stemming/blob/main/LICENSE.txt)

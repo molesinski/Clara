@@ -1,25 +1,39 @@
-﻿using System.Text;
-using Clara.Utils;
+﻿using System.Reflection;
+using System.Text;
 
 namespace Clara.Analysis
 {
-    public abstract class ResourceKeywordTokenFilter<TFilter> : KeywordTokenFilter
-        where TFilter : ResourceKeywordTokenFilter<TFilter>
+    public abstract class ResourceKeywordTokenFilter : KeywordTokenFilter
     {
-        protected ResourceKeywordTokenFilter()
-            : base(DefaultKeywords)
+        protected ResourceKeywordTokenFilter(IEnumerable<string> keywords)
+            : base(keywords)
         {
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1000:Do not declare static members on generic types", Justification = "Intended access via non-generic subclass")]
-        public static IReadOnlyCollection<string> DefaultKeywords { get; } = LoadResource();
-
-        private static IReadOnlyCollection<string> LoadResource()
+        protected static IReadOnlyCollection<string> LoadResource(Type type, Encoding? encoding = null)
         {
-            var type = typeof(TFilter);
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             var assembly = type.Assembly;
             var resourceName = $"{type.FullName}.txt";
-            var encoding = Encoding.UTF8;
+
+            return LoadResource(assembly, resourceName, encoding);
+        }
+
+        protected static IReadOnlyCollection<string> LoadResource(Assembly assembly, string resourceName, Encoding? encoding = null)
+        {
+            if (assembly is null)
+            {
+                throw new ArgumentNullException(nameof(assembly));
+            }
+
+            if (resourceName is null)
+            {
+                throw new ArgumentNullException(nameof(resourceName));
+            }
 
             using var stream = assembly.GetManifestResourceStream(resourceName);
 
@@ -28,26 +42,9 @@ namespace Clara.Analysis
                 throw new InvalidOperationException($"Unable to find stopwords resource '{resourceName}' in assembly '{assembly.FullName}'.");
             }
 
-            using var reader = new StreamReader(stream, encoding);
+            using var reader = new StreamReader(stream, encoding ?? Encoding.UTF8);
 
-            var stopwords = new HashSetSlim<string>();
-
-            while (reader.ReadLine() is string line)
-            {
-                if (string.IsNullOrWhiteSpace(line) || line[0] == '#')
-                {
-                    continue;
-                }
-
-                var word = line.Trim();
-
-                if (!string.IsNullOrWhiteSpace(word))
-                {
-                    stopwords.Add(word);
-                }
-            }
-
-            return stopwords;
+            return Parse(reader);
         }
     }
 }

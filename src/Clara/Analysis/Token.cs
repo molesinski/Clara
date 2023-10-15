@@ -102,7 +102,7 @@ namespace Clara.Analysis
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2225:Operator overloads have named alternates", Justification = "AsReadOnlySpan is defined")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2225:Operator overloads have named alternates", Justification = "By design")]
         public static implicit operator ReadOnlySpan<char>(Token token)
         {
             return token.AsReadOnlySpan();

@@ -5,8 +5,7 @@ namespace Clara.Analysis.Synonyms
 {
     public sealed partial class SynonymMap
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "By design")]
-        public readonly record struct AnalyzerTermEnumerable : IEnumerable<AnalyzerTerm>
+        internal readonly struct AnalyzerTermEnumerable : IEnumerable<AnalyzerTerm>
         {
             private static readonly ObjectPool<Enumerator> Pool = new(() => new());
 

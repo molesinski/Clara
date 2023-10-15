@@ -9,7 +9,7 @@ namespace Clara.Analysis.Synonyms
 
         private readonly HashSet<Synonym> synonyms = new();
         private readonly StringPoolSlim stringPool = new();
-        private readonly IEnumerable<AnalyzerTerm> emptyEnumerable;
+        private readonly IEnumerable<AnalyzerTerm> empty;
         private readonly IAnalyzer analyzer;
         private readonly TokenNode root;
 
@@ -40,7 +40,7 @@ namespace Clara.Analysis.Synonyms
                 this.synonyms.Add(synonym);
             }
 
-            this.emptyEnumerable = new AnalyzerTermEnumerable(this, string.Empty);
+            this.empty = new AnalyzerTermEnumerable(this, string.Empty);
             this.analyzer = analyzer;
             this.root = TokenNode.Build(analyzer, this.synonyms, permutatedTokenCountThreshold, this.stringPool);
         }
@@ -61,17 +61,7 @@ namespace Clara.Analysis.Synonyms
             }
         }
 
-        public AnalyzerTermEnumerable GetTerms(string text)
-        {
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            return new AnalyzerTermEnumerable(this, text);
-        }
-
-        IEnumerable<AnalyzerTerm> ISynonymMap.GetTerms(string text)
+        public IEnumerable<AnalyzerTerm> GetTerms(string text)
         {
             if (text is null)
             {
@@ -80,7 +70,7 @@ namespace Clara.Analysis.Synonyms
 
             if (string.IsNullOrWhiteSpace(text))
             {
-                return this.emptyEnumerable;
+                return this.empty;
             }
 
             return new AnalyzerTermEnumerable(this, text);

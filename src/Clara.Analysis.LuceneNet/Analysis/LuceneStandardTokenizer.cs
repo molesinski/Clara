@@ -8,22 +8,11 @@ namespace Clara.Analysis
 {
     public sealed class LuceneStandardTokenizer : ITokenizer
     {
-        private readonly IEnumerable<Token> emptyEnumerable = new TokenEnumerable(string.Empty);
+        private static readonly IEnumerable<Token> Empty = new TokenEnumerable(string.Empty);
 
         internal static LuceneStandardTokenizer Instance { get; } = new();
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "By design")]
-        public TokenEnumerable GetTokens(string text)
-        {
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            return new TokenEnumerable(text);
-        }
-
-        IEnumerable<Token> ITokenizer.GetTokens(string text)
+        public IEnumerable<Token> GetTokens(string text)
         {
             if (text is null)
             {
@@ -32,7 +21,7 @@ namespace Clara.Analysis
 
             if (string.IsNullOrWhiteSpace(text))
             {
-                return this.emptyEnumerable;
+                return Empty;
             }
 
             return new TokenEnumerable(text);
@@ -43,8 +32,7 @@ namespace Clara.Analysis
             return other is LuceneStandardTokenizer;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "By design")]
-        public readonly record struct TokenEnumerable : IEnumerable<Token>
+        internal readonly struct TokenEnumerable : IEnumerable<Token>
         {
             private static readonly ObjectPool<Enumerator> Pool = new(() => new());
 

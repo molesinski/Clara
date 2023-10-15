@@ -2,7 +2,7 @@
 {
     public sealed partial class Analyzer : IAnalyzer
     {
-        private readonly IEnumerable<AnalyzerTerm> emptyEnumerable;
+        private readonly IEnumerable<AnalyzerTerm> empty;
         private readonly ITokenizer tokenizer;
         private readonly TokenFilterDelegate pipeline;
 
@@ -28,7 +28,7 @@
                 throw new ArgumentNullException(nameof(filters));
             }
 
-            this.emptyEnumerable = new AnalyzerTermEnumerable(this, string.Empty);
+            this.empty = new AnalyzerTermEnumerable(this, string.Empty);
             this.tokenizer = tokenizer;
             this.pipeline = CreatePipeline(filters);
         }
@@ -41,17 +41,7 @@
             }
         }
 
-        public AnalyzerTermEnumerable GetTerms(string text)
-        {
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            return new AnalyzerTermEnumerable(this, text);
-        }
-
-        IEnumerable<AnalyzerTerm> IAnalyzer.GetTerms(string text)
+        public IEnumerable<AnalyzerTerm> GetTerms(string text)
         {
             if (text is null)
             {
@@ -60,7 +50,7 @@
 
             if (string.IsNullOrWhiteSpace(text))
             {
-                return this.emptyEnumerable;
+                return this.empty;
             }
 
             return new AnalyzerTermEnumerable(this, text);
@@ -69,9 +59,8 @@
         private static TokenFilterDelegate CreatePipeline(IEnumerable<ITokenFilter> filters)
         {
             TokenFilterDelegate pipeline =
-                token =>
+                (ref Token token) =>
                 {
-                    return token;
                 };
 
             foreach (var filter in filters.Reverse())
@@ -81,9 +70,9 @@
                     var next = pipeline;
 
                     pipeline =
-                        token =>
+                        (ref Token token) =>
                         {
-                            return filter.Process(token, next);
+                            filter.Process(ref token, next);
                         };
                 }
             }

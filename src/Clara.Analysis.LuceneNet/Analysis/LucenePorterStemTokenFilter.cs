@@ -8,7 +8,7 @@ namespace Clara.Analysis
     {
         private static readonly ObjectPool<OperationContext> Pool = new(() => new());
 
-        public Token Process(Token token, TokenFilterDelegate next)
+        public void Process(ref Token token, TokenFilterDelegate next)
         {
             using var context = Pool.Lease();
 
@@ -21,8 +21,6 @@ namespace Clara.Analysis
 
                 break;
             }
-
-            return token;
         }
 
         private sealed class OperationContext : IDisposable

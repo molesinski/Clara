@@ -1,24 +1,39 @@
-﻿using System.Text;
+﻿using System.Reflection;
+using System.Text;
 
 namespace Clara.Analysis
 {
-    public abstract partial class SnowballResourceStopTokenFilter<TFilter> : SnowballStopTokenFilter
-        where TFilter : SnowballResourceStopTokenFilter<TFilter>
+    public abstract class SnowballResourceStopTokenFilter : SnowballStopTokenFilter
     {
-        protected SnowballResourceStopTokenFilter()
-            : base(DefaultStopwords)
+        protected SnowballResourceStopTokenFilter(IEnumerable<string> stopwords)
+            : base(stopwords)
         {
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1000:Do not declare static members on generic types", Justification = "Intended access via non-generic subclass")]
-        public static IReadOnlyCollection<string> DefaultStopwords { get; } = LoadResource();
-
-        protected static IReadOnlyCollection<string> LoadResource()
+        protected static IReadOnlyCollection<string> LoadResource(Type type, Encoding? encoding = null)
         {
-            var type = typeof(TFilter);
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             var assembly = type.Assembly;
             var resourceName = $"{type.FullName}.txt";
-            var encoding = Encoding.UTF8;
+
+            return LoadResource(assembly, resourceName, encoding);
+        }
+
+        protected static IReadOnlyCollection<string> LoadResource(Assembly assembly, string resourceName, Encoding? encoding = null)
+        {
+            if (assembly is null)
+            {
+                throw new ArgumentNullException(nameof(assembly));
+            }
+
+            if (resourceName is null)
+            {
+                throw new ArgumentNullException(nameof(resourceName));
+            }
 
             using var stream = assembly.GetManifestResourceStream(resourceName);
 
@@ -27,7 +42,7 @@ namespace Clara.Analysis
                 throw new InvalidOperationException("Unable to find stopwords resource file in assembly.");
             }
 
-            using var textReader = new StreamReader(stream, encoding);
+            using var textReader = new StreamReader(stream, encoding ?? Encoding.UTF8);
 
             return ParseSnowball(textReader);
         }

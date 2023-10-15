@@ -87,9 +87,12 @@
 
         public override string ReadToEnd()
         {
-            var result = (this.position != 0)
-                ? this.text.Substring(this.position, this.text.Length - this.position)
-                    : this.text;
+            var result = this.text;
+
+            if (this.position != 0)
+            {
+                result = this.text.Substring(this.position, this.text.Length - this.position);
+            }
 
             this.position = this.text.Length;
 
@@ -129,66 +132,6 @@
             }
 
             return null;
-        }
-
-        public override Task<string?> ReadLineAsync()
-        {
-            return Task.FromResult(this.ReadLine());
-        }
-
-        public override Task<string> ReadToEndAsync()
-        {
-            return Task.FromResult(this.ReadToEnd());
-        }
-
-        public override Task<int> ReadBlockAsync(char[] buffer, int index, int count)
-        {
-            if (buffer is null)
-            {
-                throw new ArgumentNullException(nameof(buffer));
-            }
-
-            if (index < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-
-            if (count < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(count));
-            }
-
-            if (buffer.Length - index < count)
-            {
-                throw new ArgumentException("Read character count would exceed provided buffer length.");
-            }
-
-            return Task.FromResult(this.ReadBlock(buffer, index, count));
-        }
-
-        public override Task<int> ReadAsync(char[] buffer, int index, int count)
-        {
-            if (buffer is null)
-            {
-                throw new ArgumentNullException(nameof(buffer));
-            }
-
-            if (index < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-
-            if (count < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(count));
-            }
-
-            if (buffer.Length - index < count)
-            {
-                throw new ArgumentException("Read character count would exceed provided buffer length.");
-            }
-
-            return Task.FromResult(this.Read(buffer, index, count));
         }
 
         protected override void Dispose(bool disposing)

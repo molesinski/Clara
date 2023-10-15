@@ -2,25 +2,9 @@
 {
     public sealed partial class BasicTokenizer : ITokenizer
     {
-        private readonly IEnumerable<Token> emptyEnumerable;
+        private static readonly IEnumerable<Token> Empty = new TokenEnumerable(string.Empty);
 
-        public BasicTokenizer()
-        {
-            this.emptyEnumerable = new TokenEnumerable(string.Empty);
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "By design")]
-        public TokenEnumerable GetTokens(string text)
-        {
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            return new TokenEnumerable(text);
-        }
-
-        IEnumerable<Token> ITokenizer.GetTokens(string text)
+        public IEnumerable<Token> GetTokens(string text)
         {
             if (text is null)
             {
@@ -29,7 +13,7 @@
 
             if (string.IsNullOrWhiteSpace(text))
             {
-                return this.emptyEnumerable;
+                return Empty;
             }
 
             return new TokenEnumerable(text);
