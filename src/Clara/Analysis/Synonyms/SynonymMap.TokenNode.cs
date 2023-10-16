@@ -183,6 +183,7 @@ namespace Clara.Analysis.Synonyms
 
             public static TokenNode Build(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, int permutatedTokenCountThreshold, StringPoolSlim stringPool)
             {
+                var tokenTermSource = analyzer.CreateTokenTermSource();
                 var root = new TokenNode();
 
                 foreach (var synonym in synonyms)
@@ -245,7 +246,7 @@ namespace Clara.Analysis.Synonyms
                     {
                         var tokens = new ListSlim<string>();
 
-                        foreach (var term in analyzer.GetTerms(phrase))
+                        foreach (var term in tokenTermSource.GetTerms(phrase))
                         {
                             tokens.Add(stringPool.GetOrAdd(term.Token));
                         }

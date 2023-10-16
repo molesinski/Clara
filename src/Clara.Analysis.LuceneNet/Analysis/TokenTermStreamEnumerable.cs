@@ -5,12 +5,12 @@ using Lucene.Net.Analysis.TokenAttributes;
 namespace Clara.Analysis
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Value type used for performance optimization")]
-    public readonly struct TokenStreamEnumerable : IEnumerable<Token>
+    public readonly struct TokenTermStreamEnumerable : IEnumerable<TokenTerm>
     {
         private readonly TokenStream tokenStream;
         private readonly char[] chars;
 
-        public TokenStreamEnumerable(TokenStream tokenStream, char[] chars)
+        public TokenTermStreamEnumerable(TokenStream tokenStream, char[] chars)
         {
             if (tokenStream is null)
             {
@@ -31,7 +31,7 @@ namespace Clara.Analysis
             return new Enumerator(this);
         }
 
-        readonly IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
+        readonly IEnumerator<TokenTerm> IEnumerable<TokenTerm>.GetEnumerator()
         {
             return this.GetEnumerator();
         }
@@ -41,22 +41,28 @@ namespace Clara.Analysis
             return this.GetEnumerator();
         }
 
-        public struct Enumerator : IEnumerator<Token>
+        public struct Enumerator : IEnumerator<TokenTerm>
         {
             private readonly TokenStream tokenStream;
             private readonly ICharTermAttribute charTermAttribute;
-            private Token current;
+            private readonly IPositionIncrementAttribute positionIncrementAttribute;
+            private TokenTerm current;
+            private Token token;
+            private int position;
             private bool isStarted;
 
-            internal Enumerator(TokenStreamEnumerable source)
+            internal Enumerator(TokenTermStreamEnumerable source)
             {
                 this.tokenStream = source.tokenStream;
                 this.charTermAttribute = source.tokenStream.GetAttribute<ICharTermAttribute>();
-                this.current = new(source.chars, 0);
+                this.positionIncrementAttribute = source.tokenStream.GetAttribute<IPositionIncrementAttribute>();
+                this.current = default;
+                this.token = new Token(source.chars, 0);
+                this.position = default;
                 this.isStarted = false;
             }
 
-            public readonly Token Current
+            public readonly TokenTerm Current
             {
                 get
                 {
@@ -82,12 +88,14 @@ namespace Clara.Analysis
 
                 if (this.tokenStream.IncrementToken())
                 {
-                    this.current.Set(this.charTermAttribute.Buffer.AsSpan(0, this.charTermAttribute.Length));
+                    this.position += this.positionIncrementAttribute.PositionIncrement;
+                    this.token.Set(this.charTermAttribute.Buffer.AsSpan(0, this.charTermAttribute.Length));
+                    this.current = new TokenTerm(this.token, this.position);
 
                     return true;
                 }
 
-                this.current.Clear();
+                this.current = default;
 
                 return false;
             }
@@ -100,7 +108,7 @@ namespace Clara.Analysis
                 }
 
                 this.isStarted = false;
-                this.current.Clear();
+                this.current = default;
             }
 
             public void Dispose()

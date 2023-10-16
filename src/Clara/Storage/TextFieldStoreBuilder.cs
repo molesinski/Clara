@@ -1,4 +1,5 @@
-﻿using Clara.Mapping;
+﻿using Clara.Analysis;
+using Clara.Mapping;
 using Clara.Utils;
 
 namespace Clara.Storage
@@ -6,6 +7,7 @@ namespace Clara.Storage
     internal sealed class TextFieldStoreBuilder<TSource> : FieldStoreBuilder<TSource>
     {
         private readonly TextField<TSource> field;
+        private readonly ITokenTermSource tokenTermSource;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
         private readonly DictionarySlim<int, float> documentLengths;
@@ -24,6 +26,7 @@ namespace Clara.Storage
             }
 
             this.field = field;
+            this.tokenTermSource = field.SynonymMap?.CreateTokenTermSource() ?? field.Analyzer.CreateTokenTermSource();
             this.tokenEncoderBuilder = tokenEncoderBuilder;
             this.tokenDocumentScores = new();
             this.documentLengths = new();
@@ -41,9 +44,9 @@ namespace Clara.Storage
                 if (!string.IsNullOrWhiteSpace(value))
                 {
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    var terms = this.field.SynonymMap?.GetTerms(value) ?? this.field.Analyzer.GetTerms(value);
+                    var terms = this.tokenTermSource.GetTerms(value);
 #else
-                    var terms = this.field.SynonymMap?.GetTerms(value!) ?? this.field.Analyzer.GetTerms(value!);
+                    var terms = this.tokenTermSource.GetTerms(value!);
 #endif
 
                     foreach (var term in terms)

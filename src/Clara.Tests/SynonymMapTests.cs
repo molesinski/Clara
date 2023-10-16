@@ -199,7 +199,7 @@ namespace Clara.Tests
 
             var phrase = "aaa a a bbb a a mmm nnn a a mmm nnn";
 
-            var input = synonymMap.Analyzer.GetTerms(phrase).Select(x => new SearchTerm(x.Position, x.Token.ToString())).ToList();
+            var input = synonymMap.Analyzer.CreateTokenTermSource().GetTerms(phrase).Select(x => new SearchTerm(x.Token.ToString(), x.Position)).ToList();
             var output = input.ToList();
 
             synonymMap.Process(SearchMode.All, output);
@@ -238,8 +238,8 @@ namespace Clara.Tests
 
         private static bool IsMatching(ISynonymMap synonymMap, string search, SearchMode mode, string document, ITestOutputHelper? output)
         {
-            var documentTokens = synonymMap.GetTerms(document).Select(x => x.Token.ToString()).ToList();
-            var searchTerms = synonymMap.Analyzer.GetTerms(search).Select(x => new SearchTerm(x.Position, x.Token.ToString())).ToList();
+            var documentTokens = synonymMap.CreateTokenTermSource().GetTerms(document).Select(x => x.Token.ToString()).ToList();
+            var searchTerms = synonymMap.Analyzer.CreateTokenTermSource().GetTerms(search).Select(x => new SearchTerm(x.Token.ToString(), x.Position)).ToList();
 
             synonymMap.Process(mode, searchTerms);
 

@@ -12,8 +12,6 @@ namespace Clara
 
         public static ObjectPool<HashSet<Field>> FieldSets { get; } = new(() => new(), x => x.Clear());
 
-        public static ObjectPool<Stack<int>> BacktrackingPositions { get; } = new(() => new(), x => x.Clear());
-
         public static ObjectPool<DictionarySlim<int, int>> TokenCounts { get; } = new(() => new());
 
         public static ObjectPool<DictionarySlim<int, float>> DocumentScores { get; } = new(() => new(), sizeFactor: 5);

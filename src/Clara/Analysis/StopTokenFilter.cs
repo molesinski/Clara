@@ -69,7 +69,7 @@ namespace Clara.Analysis
             return result;
         }
 
-        public void Process(ref Token token, TokenFilterDelegate next)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             if (next is null)
             {
@@ -80,13 +80,11 @@ namespace Clara.Analysis
             {
                 if (this.stopwords.Contains(token))
                 {
-                    token.Clear();
-
-                    return;
+                    return default;
                 }
             }
 
-            next(ref token);
+            return next(token);
         }
     }
 }

@@ -9,9 +9,9 @@ namespace Clara.Analysis.Synonyms
 
         private readonly HashSet<Synonym> synonyms = new();
         private readonly StringPoolSlim stringPool = new();
-        private readonly IEnumerable<AnalyzerTerm> empty;
         private readonly IAnalyzer analyzer;
         private readonly TokenNode root;
+        private readonly ObjectPool<SearchTermEnumerable> searchTermEnumerablePool;
 
         public SynonymMap(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, int permutatedTokenCountThreshold = 1)
         {
@@ -40,9 +40,9 @@ namespace Clara.Analysis.Synonyms
                 this.synonyms.Add(synonym);
             }
 
-            this.empty = new AnalyzerTermEnumerable(this, string.Empty);
             this.analyzer = analyzer;
             this.root = TokenNode.Build(analyzer, this.synonyms, permutatedTokenCountThreshold, this.stringPool);
+            this.searchTermEnumerablePool = new(() => new(this));
         }
 
         public IAnalyzer Analyzer
@@ -61,21 +61,12 @@ namespace Clara.Analysis.Synonyms
             }
         }
 
-        public IEnumerable<AnalyzerTerm> GetTerms(string text)
+        public ITokenTermSource CreateTokenTermSource()
         {
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return this.empty;
-            }
-
-            return new AnalyzerTermEnumerable(this, text);
+            return new TokenTermSource(this);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "By design")]
         public void Process(SearchMode mode, IList<SearchTerm> terms)
         {
             if (terms is null)
@@ -89,29 +80,15 @@ namespace Clara.Analysis.Synonyms
             }
 
             using var tempTerms = SharedObjectPools.SearchTerms.Lease();
-            var hasMatchExpressions = false;
+            using var searchTermEnumerable = this.searchTermEnumerablePool.Lease();
 
-            foreach (var item in new SynonymSearchTermEnumerable(this, new PrimitiveEnumerable<SearchTerm>(terms)))
+            tempTerms.Instance.AddRange(searchTermEnumerable.Instance.GetTerms(terms));
+
+            terms.Clear();
+
+            foreach (var token in tempTerms.Instance)
             {
-                if (item.Node is TokenNode node)
-                {
-                    tempTerms.Instance.Add(new SearchTerm(item.Position, node.MatchExpression));
-                    hasMatchExpressions = true;
-                }
-                else if (item.Token is string token)
-                {
-                    tempTerms.Instance.Add(new SearchTerm(item.Position, token));
-                }
-            }
-
-            if (hasMatchExpressions)
-            {
-                terms.Clear();
-
-                foreach (var token in tempTerms.Instance)
-                {
-                    terms.Add(token);
-                }
+                terms.Add(token);
             }
         }
 

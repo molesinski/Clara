@@ -14,6 +14,7 @@ namespace Clara.Storage
         private readonly IAnalyzer analyzer;
         private readonly ISynonymMap? synonymMap;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
+        private readonly ObjectPool<ITokenTermSource> tokenTermSourcePool;
 
         public TextDocumentStore(
             TokenEncoder tokenEncoder,
@@ -40,6 +41,7 @@ namespace Clara.Storage
             this.analyzer = analyzer;
             this.synonymMap = synonymMap;
             this.tokenDocumentScores = tokenDocumentScores;
+            this.tokenTermSourcePool = new ObjectPool<ITokenTermSource>(this.analyzer.CreateTokenTermSource);
         }
 
         public static DocumentScoring Search(ListSlim<SearchFieldStore> searchFieldStores, SearchMode searchMode, string text, ref DocumentResultBuilder documentResultBuilder)
@@ -403,13 +405,15 @@ namespace Clara.Storage
 
         private void GetSearchTerms(SearchMode searchMode, string text, ListSlim<SearchTerm> terms)
         {
-            foreach (var term in this.analyzer.GetTerms(text))
+            using var tokenTermSource = this.tokenTermSourcePool.Lease();
+
+            foreach (var term in tokenTermSource.Instance.GetTerms(text))
             {
                 var token = this.tokenEncoder.ToReadOnly(term.Token)
                          ?? this.synonymMap?.ToReadOnly(term.Token)
                          ?? InvalidToken;
 
-                terms.Add(new SearchTerm(term.Position, token));
+                terms.Add(new SearchTerm(token, term.Position));
             }
 
             this.synonymMap?.Process(searchMode, terms);

@@ -8,11 +8,11 @@ namespace Clara.Analysis
     {
         private static readonly ObjectPool<OperationContext> Pool = new(() => new());
 
-        public void Process(ref Token token, TokenFilterDelegate next)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             using var context = Pool.Lease();
 
-            foreach (var stem in new ReadOnlyTokenStreamEnumerable(context.Instance.GetTokenStream(token)))
+            foreach (var stem in new ReadOnlyTokenTermSourceEnumerable(context.Instance.GetTokenStream(token)))
             {
                 if (!stem.IsEmpty)
                 {
@@ -21,22 +21,24 @@ namespace Clara.Analysis
 
                 break;
             }
+
+            return token;
         }
 
         private sealed class OperationContext : IDisposable
         {
-            private readonly SingleTokenStream tokenStream;
+            private readonly SingleTokenStream tokenTermSource;
             private readonly PorterStemFilter stemmer;
 
             public OperationContext()
             {
-                this.tokenStream = new SingleTokenStream();
-                this.stemmer = new PorterStemFilter(this.tokenStream);
+                this.tokenTermSource = new SingleTokenStream();
+                this.stemmer = new PorterStemFilter(this.tokenTermSource);
             }
 
             public TokenStream GetTokenStream(Token token)
             {
-                this.tokenStream.SetToken(token);
+                this.tokenTermSource.SetToken(token);
 
                 return this.stemmer;
             }
@@ -44,7 +46,7 @@ namespace Clara.Analysis
             public void Dispose()
             {
                 this.stemmer.Dispose();
-                this.tokenStream.Dispose();
+                this.tokenTermSource.Dispose();
             }
         }
     }

@@ -10,32 +10,34 @@ namespace Clara.Benchmarks
         private const string EnglishPhrase = "The quick brown fox jumps over the lazy dog";
         private const string PolishPhrase = "Szybki brązowy lis skacze nad leniwym psem";
 
-        private readonly ITokenizer basicTokenizer;
-        private readonly IAnalyzer porterAnalyzer;
-        private readonly IAnalyzer englishAnalyzer;
-        private readonly IAnalyzer polishAnalyzer;
-        private readonly ISynonymMap synonymMap;
+        private readonly ITokenTermSource basicTokenizer;
+        private readonly ITokenTermSource porterAnalyzer;
+        private readonly ITokenTermSource englishAnalyzer;
+        private readonly ITokenTermSource polishAnalyzer;
+        private readonly ITokenTermSource synonymMap;
 
         public TokenizationBenchmarks()
         {
-            this.basicTokenizer = new BasicTokenizer();
-            this.porterAnalyzer = new PorterAnalyzer();
-            this.englishAnalyzer = new EnglishAnalyzer();
-            this.polishAnalyzer = new PolishAnalyzer();
+            this.basicTokenizer = new BasicTokenizer().CreateTokenTermSource();
+            this.porterAnalyzer = new PorterAnalyzer().CreateTokenTermSource();
+            this.englishAnalyzer = new EnglishAnalyzer().CreateTokenTermSource();
+            this.polishAnalyzer = new PolishAnalyzer().CreateTokenTermSource();
 
-            this.synonymMap =
+            var synonymMap =
                 new SynonymMap(
                     new PorterAnalyzer(),
                     new Synonym[]
                     {
                         new EquivalencySynonym(new[] { "dog", "fox" }),
                     });
+
+            this.synonymMap = synonymMap.CreateTokenTermSource();
         }
 
         [Benchmark]
         public void BasicTokenizer()
         {
-            foreach (var term in this.basicTokenizer.GetTokens(EnglishPhrase))
+            foreach (var term in this.basicTokenizer.GetTerms(EnglishPhrase))
             {
                 _ = term;
             }

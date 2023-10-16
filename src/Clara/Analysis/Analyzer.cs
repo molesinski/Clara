@@ -1,8 +1,9 @@
-﻿namespace Clara.Analysis
+﻿using System.Collections;
+
+namespace Clara.Analysis
 {
     public sealed partial class Analyzer : IAnalyzer
     {
-        private readonly IEnumerable<AnalyzerTerm> empty;
         private readonly ITokenizer tokenizer;
         private readonly TokenFilterDelegate pipeline;
 
@@ -28,7 +29,6 @@
                 throw new ArgumentNullException(nameof(filters));
             }
 
-            this.empty = new AnalyzerTermEnumerable(this, string.Empty);
             this.tokenizer = tokenizer;
             this.pipeline = CreatePipeline(filters);
         }
@@ -41,26 +41,17 @@
             }
         }
 
-        public IEnumerable<AnalyzerTerm> GetTerms(string text)
+        public ITokenTermSource CreateTokenTermSource()
         {
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return this.empty;
-            }
-
-            return new AnalyzerTermEnumerable(this, text);
+            return new TokenTermSource(this);
         }
 
         private static TokenFilterDelegate CreatePipeline(IEnumerable<ITokenFilter> filters)
         {
             TokenFilterDelegate pipeline =
-                (ref Token token) =>
+                token =>
                 {
+                    return token;
                 };
 
             foreach (var filter in filters.Reverse())
@@ -70,14 +61,103 @@
                     var next = pipeline;
 
                     pipeline =
-                        (ref Token token) =>
+                        token =>
                         {
-                            filter.Process(ref token, next);
+                            return filter.Process(token, next);
                         };
                 }
             }
 
             return pipeline;
+        }
+
+        private sealed class TokenTermSource : ITokenTermSource, IEnumerable<TokenTerm>, IEnumerator<TokenTerm>
+        {
+            private readonly ITokenTermSource tokenTermSource;
+            private readonly TokenFilterDelegate pipeline;
+            private string text = string.Empty;
+            private TokenTerm current;
+            private IEnumerator<TokenTerm>? enumerator;
+
+            internal TokenTermSource(Analyzer analyzer)
+            {
+                this.tokenTermSource = analyzer.Tokenizer.CreateTokenTermSource();
+                this.pipeline = analyzer.pipeline;
+            }
+
+            TokenTerm IEnumerator<TokenTerm>.Current
+            {
+                get
+                {
+                    return this.current;
+                }
+            }
+
+            object IEnumerator.Current
+            {
+                get
+                {
+                    return this.current;
+                }
+            }
+
+            public IEnumerable<TokenTerm> GetTerms(string text)
+            {
+                if (text is null)
+                {
+                    throw new ArgumentNullException(nameof(text));
+                }
+
+                this.text = text;
+
+                ((IEnumerator)this).Reset();
+
+                return this;
+            }
+
+            IEnumerator<TokenTerm> IEnumerable<TokenTerm>.GetEnumerator()
+            {
+                return this;
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this;
+            }
+
+            bool IEnumerator.MoveNext()
+            {
+                this.enumerator ??= this.tokenTermSource.GetTerms(this.text).GetEnumerator();
+
+                while (this.enumerator.MoveNext())
+                {
+                    var position = this.enumerator.Current.Position;
+                    var token = this.pipeline(this.enumerator.Current.Token);
+
+                    if (!token.IsEmpty)
+                    {
+                        this.current = new TokenTerm(token, position);
+                        return true;
+                    }
+                }
+
+                this.current = default;
+                return false;
+            }
+
+            void IEnumerator.Reset()
+            {
+                this.current = default;
+                this.enumerator?.Dispose();
+                this.enumerator = default;
+            }
+
+            void IDisposable.Dispose()
+            {
+                ((IEnumerator)this).Reset();
+
+                this.text = string.Empty;
+            }
         }
     }
 }

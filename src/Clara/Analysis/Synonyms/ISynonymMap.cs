@@ -6,7 +6,7 @@ namespace Clara.Analysis.Synonyms
     {
         IAnalyzer Analyzer { get; }
 
-        IEnumerable<AnalyzerTerm> GetTerms(string text);
+        ITokenTermSource CreateTokenTermSource();
 
         void Process(SearchMode mode, IList<SearchTerm> terms);
 

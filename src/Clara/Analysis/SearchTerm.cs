@@ -4,32 +4,32 @@ namespace Clara.Analysis
 {
     public readonly record struct SearchTerm
     {
-        public SearchTerm(int position, string token)
+        public SearchTerm(string token, int position)
         {
             if (token is null)
             {
                 throw new ArgumentNullException(nameof(token));
             }
 
-            this.Position = position;
             this.Token = token;
+            this.Position = position;
         }
 
-        public SearchTerm(int position, MatchExpression expression)
+        public SearchTerm(MatchExpression expression, int position)
         {
             if (expression is null)
             {
                 throw new ArgumentNullException(nameof(expression));
             }
 
-            this.Position = position;
             this.Expression = expression;
+            this.Position = position;
         }
-
-        public int Position { get; }
 
         public string? Token { get; }
 
         public MatchExpression? Expression { get; }
+
+        public int Position { get; }
     }
 }

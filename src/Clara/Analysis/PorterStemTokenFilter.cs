@@ -2,7 +2,7 @@
 {
     public sealed class PorterStemTokenFilter : ITokenFilter
     {
-        public void Process(ref Token token, TokenFilterDelegate next)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             if (token.Length > 2)
             {
@@ -13,6 +13,8 @@
                 Step5(ref token);
                 Step6(ref token);
             }
+
+            return token;
         }
 
         private static void Step1(ref Token token)

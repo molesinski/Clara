@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using Clara.Utils;
 using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Util;
@@ -8,23 +7,11 @@ namespace Clara.Analysis
 {
     public sealed class LuceneStandardTokenizer : ITokenizer
     {
-        private static readonly IEnumerable<Token> Empty = new TokenEnumerable(string.Empty);
-
         internal static LuceneStandardTokenizer Instance { get; } = new();
 
-        public IEnumerable<Token> GetTokens(string text)
+        public ITokenTermSource CreateTokenTermSource()
         {
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return Empty;
-            }
-
-            return new TokenEnumerable(text);
+            return new TokenTermSource();
         }
 
         public bool Equals(ITokenizer? other)
@@ -32,137 +19,99 @@ namespace Clara.Analysis
             return other is LuceneStandardTokenizer;
         }
 
-        internal readonly struct TokenEnumerable : IEnumerable<Token>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "By design")]
+        private sealed class TokenTermSource : ITokenTermSource, IEnumerable<TokenTerm>, IEnumerator<TokenTerm>
         {
-            private static readonly ObjectPool<Enumerator> Pool = new(() => new());
+            private readonly ReusableStringReader reader;
+            private readonly Tokenizer tokenizer;
+            private readonly char[] chars;
+            private TokenTerm current;
+            private TokenTermStreamEnumerable.Enumerator enumerator;
+            private bool isEnumeratorSet;
 
-            private readonly string text;
-
-            internal TokenEnumerable(string text)
+            public TokenTermSource()
             {
-                this.text = text;
+                this.reader = new ReusableStringReader();
+                this.tokenizer = new StandardTokenizer(LuceneVersion.LUCENE_48, this.reader);
+                this.chars = new char[Token.MaximumLength];
             }
 
-            public IEnumerator<Token> GetEnumerator()
+            TokenTerm IEnumerator<TokenTerm>.Current
             {
-                var lease = Pool.Lease();
-
-                lease.Instance.Initialize(lease, this.text);
-
-                return lease.Instance;
+                get
+                {
+                    return this.current;
+                }
             }
 
-            IEnumerator<Token> IEnumerable<Token>.GetEnumerator()
+            object IEnumerator.Current
             {
-                return this.GetEnumerator();
+                get
+                {
+                    return this.current;
+                }
+            }
+
+            public IEnumerable<TokenTerm> GetTerms(string text)
+            {
+                if (text is null)
+                {
+                    throw new ArgumentNullException(nameof(text));
+                }
+
+                this.reader.SetText(text);
+                this.tokenizer.SetReader(this.reader);
+
+                ((IEnumerator)this).Reset();
+
+                return this;
+            }
+
+            IEnumerator<TokenTerm> IEnumerable<TokenTerm>.GetEnumerator()
+            {
+                return this;
             }
 
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return this.GetEnumerator();
+                return this;
             }
 
-            [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "Dispose returns object to pool for reuse")]
-            private sealed class Enumerator : IEnumerator<Token>
+            bool IEnumerator.MoveNext()
             {
-                private readonly ReusableStringReader reader;
-                private readonly Tokenizer tokenizer;
-                private readonly char[] chars;
-                private ObjectPoolLease<Enumerator>? lease;
-                private bool isEmpty;
-                private Token current;
-                private TokenStreamEnumerable.Enumerator enumerator;
-                private bool isEnumeratorSet;
-
-                public Enumerator()
+                if (!this.isEnumeratorSet)
                 {
-                    this.reader = new ReusableStringReader();
-                    this.tokenizer = new StandardTokenizer(LuceneVersion.LUCENE_48, this.reader);
-                    this.chars = new char[Token.MaximumLength];
+                    this.enumerator = new TokenTermStreamEnumerable(this.tokenizer, this.chars).GetEnumerator();
+                    this.isEnumeratorSet = true;
                 }
 
-                public Token Current
+                if (this.enumerator.MoveNext())
                 {
-                    get
-                    {
-                        return this.current;
-                    }
+                    this.current = this.enumerator.Current;
+
+                    return true;
                 }
 
-                object IEnumerator.Current
-                {
-                    get
-                    {
-                        return this.current;
-                    }
-                }
+                this.current = default;
 
-                public void Initialize(ObjectPoolLease<Enumerator> lease, string text)
+                return false;
+            }
+
+            void IEnumerator.Reset()
+            {
+                this.current = default;
+
+                if (this.isEnumeratorSet)
                 {
-                    this.lease = lease;
-                    this.isEmpty = string.IsNullOrWhiteSpace(text);
-                    this.current = default!;
+                    this.enumerator.Dispose();
                     this.enumerator = default;
-                    this.isEnumeratorSet = false;
-
-                    this.reader.SetText(text);
-                    this.tokenizer.SetReader(this.reader);
+                    this.isEnumeratorSet = default;
                 }
+            }
 
-                public bool MoveNext()
-                {
-                    if (this.isEmpty)
-                    {
-                        this.current = default;
-
-                        return false;
-                    }
-
-                    if (!this.isEnumeratorSet)
-                    {
-                        this.enumerator = new TokenStreamEnumerable(this.tokenizer, this.chars).GetEnumerator();
-                        this.isEnumeratorSet = true;
-                    }
-
-                    while (this.enumerator.MoveNext())
-                    {
-                        var token = this.enumerator.Current;
-
-                        if (!token.IsEmpty)
-                        {
-                            this.current = token;
-
-                            return true;
-                        }
-                    }
-
-                    this.current = default;
-
-                    return false;
-                }
-
-                public void Reset()
-                {
-                    if (this.isEnumeratorSet)
-                    {
-                        this.enumerator.Dispose();
-                        this.enumerator = default;
-                    }
-
-                    this.isEnumeratorSet = false;
-                    this.current = default!;
-                }
-
-                public void Dispose()
-                {
-                    this.Reset();
-
-                    this.isEmpty = default;
-
-                    var lease = this.lease;
-                    this.lease = null;
-                    lease?.Dispose();
-                }
+            void IDisposable.Dispose()
+            {
+                ((IEnumerator)this).Reset();
             }
         }
     }

@@ -2,29 +2,26 @@
 {
     public class AcronymFoldingTokenFilter : ITokenFilter
     {
-        public void Process(ref Token token, TokenFilterDelegate next)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             if (next is null)
             {
                 throw new ArgumentNullException(nameof(next));
             }
 
-            if (token.Length >= 3 && token.Length % 2 == 1)
+            if (token.Length >= 2)
             {
                 var span = token.AsReadOnlySpan();
                 var length = span.Length;
 
-                var isAcronym = char.IsLetter(span[0]);
+                var isAcronym = true;
 
-                if (isAcronym)
+                for (var i = 0; i < length; i += 2)
                 {
-                    for (var i = 0; i < length / 2; i++)
+                    if (!(char.IsLetter(span[i]) && (i + 1 == length || span[i + 1] == '.')))
                     {
-                        if (!(span[(i * 2) + 1] == '.' && char.IsLetter(span[(i * 2) + 2])))
-                        {
-                            isAcronym = false;
-                            break;
-                        }
+                        isAcronym = false;
+                        break;
                     }
                 }
 
@@ -37,7 +34,7 @@
                 }
             }
 
-            next(ref token);
+            return next(token);
         }
     }
 }

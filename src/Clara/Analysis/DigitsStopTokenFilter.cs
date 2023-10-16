@@ -2,7 +2,7 @@
 {
     public sealed class DigitsStopTokenFilter : ITokenFilter
     {
-        public void Process(ref Token token, TokenFilterDelegate next)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             if (next is null)
             {
@@ -15,13 +15,11 @@
             {
                 if (char.IsDigit(span[i]))
                 {
-                    token.Clear();
-
-                    return;
+                    return default;
                 }
             }
 
-            next(ref token);
+            return next(token);
         }
     }
 }

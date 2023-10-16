@@ -29,9 +29,9 @@ namespace Clara.Analysis
             }
         }
 
-        public IEnumerable<AnalyzerTerm> GetTerms(string text)
+        public ITokenTermSource CreateTokenTermSource()
         {
-            return this.analyzer.GetTerms(text);
+            return this.analyzer.CreateTokenTermSource();
         }
     }
 }

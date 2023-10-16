@@ -5,11 +5,11 @@ using Lucene.Net.Analysis.TokenAttributes;
 namespace Clara.Analysis
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Value type used for performance optimization")]
-    public readonly struct ReadOnlyTokenStreamEnumerable : IEnumerable<Token>
+    public readonly struct ReadOnlyTokenTermSourceEnumerable : IEnumerable<Token>
     {
         private readonly TokenStream tokenStream;
 
-        public ReadOnlyTokenStreamEnumerable(TokenStream tokenStream)
+        public ReadOnlyTokenTermSourceEnumerable(TokenStream tokenStream)
         {
             if (tokenStream is null)
             {
@@ -36,14 +36,14 @@ namespace Clara.Analysis
 
         public struct Enumerator : IEnumerator<Token>
         {
-            private readonly TokenStream tokenStream;
+            private readonly TokenStream tokenTermSource;
             private readonly ICharTermAttribute charTermAttribute;
             private bool isStarted;
             private Token current;
 
-            internal Enumerator(ReadOnlyTokenStreamEnumerable source)
+            internal Enumerator(ReadOnlyTokenTermSourceEnumerable source)
             {
-                this.tokenStream = source.tokenStream;
+                this.tokenTermSource = source.tokenStream;
                 this.charTermAttribute = source.tokenStream.GetAttribute<ICharTermAttribute>();
                 this.isStarted = false;
                 this.current = default;
@@ -69,11 +69,11 @@ namespace Clara.Analysis
             {
                 if (!this.isStarted)
                 {
-                    this.tokenStream.Reset();
+                    this.tokenTermSource.Reset();
                     this.isStarted = true;
                 }
 
-                if (this.tokenStream.IncrementToken())
+                if (this.tokenTermSource.IncrementToken())
                 {
                     if (this.charTermAttribute.Length == 0)
                     {
@@ -98,7 +98,7 @@ namespace Clara.Analysis
             {
                 if (this.isStarted)
                 {
-                    this.tokenStream.End();
+                    this.tokenTermSource.End();
                 }
 
                 this.isStarted = false;

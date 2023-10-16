@@ -4,6 +4,6 @@
     {
         ITokenizer Tokenizer { get; }
 
-        IEnumerable<AnalyzerTerm> GetTerms(string text);
+        ITokenTermSource CreateTokenTermSource();
     }
 }

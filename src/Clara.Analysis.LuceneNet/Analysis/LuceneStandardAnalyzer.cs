@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using Clara.Utils;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Util;
 
@@ -7,8 +6,6 @@ namespace Clara.Analysis
 {
     public sealed class LuceneStandardAnalyzer : IAnalyzer
     {
-        private static readonly IEnumerable<AnalyzerTerm> Empty = new TokenEnumerable(string.Empty);
-
         public ITokenizer Tokenizer
         {
             get
@@ -17,146 +14,103 @@ namespace Clara.Analysis
             }
         }
 
-        public IEnumerable<AnalyzerTerm> GetTerms(string text)
+        public ITokenTermSource CreateTokenTermSource()
         {
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return Empty;
-            }
-
-            return new TokenEnumerable(text);
+            return new TokenTermSource();
         }
 
-        internal readonly struct TokenEnumerable : IEnumerable<AnalyzerTerm>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "By design")]
+        private sealed class TokenTermSource : ITokenTermSource, IEnumerable<TokenTerm>, IEnumerator<TokenTerm>
         {
-            private static readonly ObjectPool<Enumerator> Pool = new(() => new());
+            private readonly ReusableStringReader reader;
+            private readonly Lucene.Net.Analysis.Analyzer analyzer;
+            private readonly char[] chars;
+            private TokenTerm current;
+            private TokenTermStreamEnumerable.Enumerator enumerator;
+            private bool isEnumeratorSet;
 
-            private readonly string text;
-
-            internal TokenEnumerable(string text)
+            public TokenTermSource()
             {
-                this.text = text;
+                this.reader = new ReusableStringReader();
+                this.analyzer = new StandardAnalyzer(LuceneVersion.LUCENE_48);
+                this.chars = new char[Token.MaximumLength];
             }
 
-            public IEnumerator<AnalyzerTerm> GetEnumerator()
+            TokenTerm IEnumerator<TokenTerm>.Current
             {
-                var lease = Pool.Lease();
-
-                lease.Instance.Initialize(lease, this.text);
-
-                return lease.Instance;
+                get
+                {
+                    return this.current;
+                }
             }
 
-            IEnumerator<AnalyzerTerm> IEnumerable<AnalyzerTerm>.GetEnumerator()
+            object IEnumerator.Current
             {
-                return this.GetEnumerator();
+                get
+                {
+                    return this.current;
+                }
+            }
+
+            public IEnumerable<TokenTerm> GetTerms(string text)
+            {
+                if (text is null)
+                {
+                    throw new ArgumentNullException(nameof(text));
+                }
+
+                this.reader.SetText(text);
+
+                ((IEnumerator)this).Reset();
+
+                return this;
+            }
+
+            IEnumerator<TokenTerm> IEnumerable<TokenTerm>.GetEnumerator()
+            {
+                return this;
             }
 
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return this.GetEnumerator();
+                return this;
             }
 
-            [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "Dispose returns object to pool for reuse")]
-            private sealed class Enumerator : IEnumerator<AnalyzerTerm>
+            bool IEnumerator.MoveNext()
             {
-                private readonly ReusableStringReader reader;
-                private readonly Lucene.Net.Analysis.Analyzer analyzer;
-                private readonly char[] chars;
-                private ObjectPoolLease<Enumerator>? lease;
-                private bool isEmpty;
-                private AnalyzerTerm current;
-                private AnalyzerTermStreamEnumerable.Enumerator enumerator;
-                private bool isEnumeratorSet;
-
-                public Enumerator()
+                if (!this.isEnumeratorSet)
                 {
-                    this.reader = new ReusableStringReader();
-                    this.analyzer = new StandardAnalyzer(LuceneVersion.LUCENE_48);
-                    this.chars = new char[Token.MaximumLength];
+                    this.enumerator = new TokenTermStreamEnumerable(this.analyzer.GetTokenStream(string.Empty, this.reader), this.chars).GetEnumerator();
+                    this.isEnumeratorSet = true;
                 }
 
-                public AnalyzerTerm Current
+                if (this.enumerator.MoveNext())
                 {
-                    get
-                    {
-                        return this.current;
-                    }
+                    this.current = this.enumerator.Current;
+
+                    return true;
                 }
 
-                object IEnumerator.Current
-                {
-                    get
-                    {
-                        return this.current;
-                    }
-                }
+                this.current = default;
 
-                public void Initialize(ObjectPoolLease<Enumerator> lease, string text)
+                return false;
+            }
+
+            void IEnumerator.Reset()
+            {
+                this.current = default;
+
+                if (this.isEnumeratorSet)
                 {
-                    this.lease = lease;
-                    this.isEmpty = string.IsNullOrWhiteSpace(text);
-                    this.current = default;
+                    this.enumerator.Dispose();
                     this.enumerator = default;
-                    this.isEnumeratorSet = false;
-
-                    this.reader.SetText(text);
+                    this.isEnumeratorSet = default;
                 }
+            }
 
-                public bool MoveNext()
-                {
-                    if (this.isEmpty)
-                    {
-                        this.current = default;
-
-                        return false;
-                    }
-
-                    if (!this.isEnumeratorSet)
-                    {
-                        this.enumerator = new AnalyzerTermStreamEnumerable(this.analyzer.GetTokenStream(string.Empty, this.reader), this.chars).GetEnumerator();
-                        this.isEnumeratorSet = true;
-                    }
-
-                    while (this.enumerator.MoveNext())
-                    {
-                        this.current = this.enumerator.Current;
-
-                        return true;
-                    }
-
-                    this.current = default;
-
-                    return false;
-                }
-
-                public void Reset()
-                {
-                    if (this.isEnumeratorSet)
-                    {
-                        this.enumerator.Dispose();
-                        this.enumerator = default;
-                    }
-
-                    this.isEnumeratorSet = false;
-                    this.current = default;
-                }
-
-                public void Dispose()
-                {
-                    this.Reset();
-
-                    this.isEmpty = default;
-
-                    var lease = this.lease;
-                    this.lease = null;
-                    lease?.Dispose();
-                }
+            void IDisposable.Dispose()
+            {
+                ((IEnumerator)this).Reset();
             }
         }
     }

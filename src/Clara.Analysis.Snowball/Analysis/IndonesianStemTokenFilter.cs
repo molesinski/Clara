@@ -7,7 +7,7 @@ namespace Clara.Analysis
     {
         private static readonly ObjectPool<IndonesianStemmer> Pool = new(() => new());
 
-        public void Process(ref Token token, TokenFilterDelegate next)
+        public Token Process(Token token, TokenFilterDelegate next)
         {
             using var stemmer = Pool.Lease();
 
@@ -21,6 +21,8 @@ namespace Clara.Analysis
             {
                 token.Set(buffer);
             }
+
+            return token;
         }
     }
 }
