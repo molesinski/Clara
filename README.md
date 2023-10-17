@@ -327,11 +327,11 @@ BenchmarkDotNet v0.13.9, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 | Method          | Mean       | Error    | StdDev   | Allocated |
 |---------------- |-----------:|---------:|---------:|----------:|
-| BasicTokenizer  |   204.1 ns |  0.64 ns |  0.57 ns |         - |
-| PorterAnalyzer  |   757.3 ns |  3.19 ns |  2.98 ns |         - |
-| SynonymMap      | 1,027.1 ns |  4.32 ns |  4.04 ns |         - |
-| EnglishAnalyzer | 2,854.8 ns |  8.76 ns |  7.32 ns |    1600 B |
-| PolishAnalyzer  | 9,359.2 ns | 86.89 ns | 81.28 ns |     944 B |
+| BasicTokenizer  |   244.3 ns |  1.00 ns |  0.83 ns |         - |
+| PorterAnalyzer  |   790.5 ns |  2.20 ns |  2.06 ns |         - |
+| SynonymMap      | 1,019.8 ns |  5.22 ns |  4.88 ns |         - |
+| EnglishAnalyzer | 1,773.4 ns |  5.72 ns |  5.07 ns |         - |
+| PolishAnalyzer  | 9,818.0 ns | 32.13 ns | 28.48 ns |     944 B |
 
 ### Indexing Benchmarks
 
@@ -363,6 +363,6 @@ allocations to provide ease of use and proper disposal of internal buffers.
 
 ## License
 
-- Clara, [MIT license](LICENSE)
-- [libstemmer.net](https://github.com/guoyu-wang/libstemmer.net), [MIT license](https://github.com/guoyu-wang/libstemmer.net/blob/main/LICENSE)
+- Clara, [MIT License](LICENSE)
+- [snowball](https://github.com/snowballstem/snowball), [BSD 3-Clause License](https://github.com/snowballstem/snowball/blob/master/COPYING)
 - [Morfologik.Stemming](https://github.com/NightOwl888/Morfologik.Stemming), [Apache License 2.0](https://github.com/NightOwl888/Morfologik.Stemming/blob/main/LICENSE.txt)

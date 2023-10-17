@@ -75,8 +75,4 @@
     <ProjectReference Include="..\Clara\Clara.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="libstemmer.net" Version="2.2.3" />
-  </ItemGroup>
-
 </Project>
