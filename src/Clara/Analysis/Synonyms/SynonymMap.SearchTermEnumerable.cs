@@ -14,7 +14,7 @@ namespace Clara.Analysis.Synonyms
             private bool isEnumerated;
             private SearchTerm? peekedTerm;
             private TokenNode? backtrackingNode;
-            private readonly Stack<int> backtrackingPositions = new();
+            private readonly Stack<Offset> backtrackingOffsets = new();
             private TokenNode currentNode = default!;
 
             public SearchTermEnumerable(SynonymMap synonymMap)
@@ -81,15 +81,15 @@ namespace Clara.Analysis.Synonyms
                         {
                             if (this.backtrackingNode.HasSynonyms)
                             {
-                                this.current = new SearchTerm(this.backtrackingNode.MatchExpression, this.backtrackingPositions.Peek());
+                                this.current = new SearchTerm(this.backtrackingNode.MatchExpression, this.backtrackingOffsets.Peek());
                                 this.backtrackingNode = null;
-                                this.backtrackingPositions.Clear();
+                                this.backtrackingOffsets.Clear();
 
                                 return true;
                             }
                             else
                             {
-                                this.current = new SearchTerm(this.backtrackingNode.Token, this.backtrackingPositions.Pop());
+                                this.current = new SearchTerm(this.backtrackingNode.Token, this.backtrackingOffsets.Pop());
                                 this.backtrackingNode = this.backtrackingNode.Parent;
 
                                 return true;
@@ -105,7 +105,7 @@ namespace Clara.Analysis.Synonyms
 
                         if (this.currentNode.Children.TryGetValue(currentTerm.Token!, out var node))
                         {
-                            this.backtrackingPositions.Push(currentTerm.Position);
+                            this.backtrackingOffsets.Push(currentTerm.Offset);
 
                             this.currentNode = node;
 
@@ -121,7 +121,7 @@ namespace Clara.Analysis.Synonyms
                             continue;
                         }
 
-                        this.current = new SearchTerm(currentTerm.Token!, currentTerm.Position);
+                        this.current = new SearchTerm(currentTerm.Token!, currentTerm.Offset);
 
                         return true;
                     }
@@ -155,7 +155,7 @@ namespace Clara.Analysis.Synonyms
                 this.isEnumerated = default;
                 this.peekedTerm = default;
                 this.backtrackingNode = default;
-                this.backtrackingPositions.Clear();
+                this.backtrackingOffsets.Clear();
                 this.currentNode = this.root;
             }
 

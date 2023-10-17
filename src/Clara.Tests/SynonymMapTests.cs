@@ -199,13 +199,13 @@ namespace Clara.Tests
 
             var phrase = "aaa a a bbb a a mmm nnn a a mmm nnn";
 
-            var input = synonymMap.Analyzer.CreateTokenTermSource().GetTerms(phrase).Select(x => new SearchTerm(x.Token.ToString(), x.Position)).ToList();
+            var input = synonymMap.Analyzer.CreateTokenTermSource().GetTerms(phrase).Select(x => new SearchTerm(x.Token.ToString(), x.Offset)).ToList();
             var output = input.ToList();
 
             synonymMap.Process(SearchMode.All, output);
 
-            var expected = string.Join(", ", input.Select(x => x.Position).Distinct().OrderBy(x => x));
-            var actual = string.Join(", ", output.Select(x => x.Position).Distinct().OrderBy(x => x));
+            var expected = string.Join(", ", input.Select(x => x.Offset).Distinct().OrderBy(x => x));
+            var actual = string.Join(", ", output.Select(x => x.Offset).Distinct().OrderBy(x => x));
 
             Assert.Equal(expected, actual);
         }
@@ -239,7 +239,7 @@ namespace Clara.Tests
         private static bool IsMatching(ISynonymMap synonymMap, string search, SearchMode mode, string document, ITestOutputHelper? output)
         {
             var documentTokens = synonymMap.CreateTokenTermSource().GetTerms(document).Select(x => x.Token.ToString()).ToList();
-            var searchTerms = synonymMap.Analyzer.CreateTokenTermSource().GetTerms(search).Select(x => new SearchTerm(x.Token.ToString(), x.Position)).ToList();
+            var searchTerms = synonymMap.Analyzer.CreateTokenTermSource().GetTerms(search).Select(x => new SearchTerm(x.Token.ToString(), x.Offset)).ToList();
 
             synonymMap.Process(mode, searchTerms);
 

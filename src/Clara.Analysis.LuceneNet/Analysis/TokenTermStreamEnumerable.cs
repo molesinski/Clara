@@ -45,6 +45,7 @@ namespace Clara.Analysis
         {
             private readonly TokenStream tokenStream;
             private readonly ICharTermAttribute charTermAttribute;
+            private readonly IOffsetAttribute offsetAttribute;
             private readonly IPositionIncrementAttribute positionIncrementAttribute;
             private TokenTerm current;
             private Token token;
@@ -55,6 +56,7 @@ namespace Clara.Analysis
             {
                 this.tokenStream = source.tokenStream;
                 this.charTermAttribute = source.tokenStream.GetAttribute<ICharTermAttribute>();
+                this.offsetAttribute = source.tokenStream.GetAttribute<IOffsetAttribute>();
                 this.positionIncrementAttribute = source.tokenStream.GetAttribute<IPositionIncrementAttribute>();
                 this.current = default;
                 this.token = new Token(source.chars, 0);
@@ -88,9 +90,9 @@ namespace Clara.Analysis
 
                 if (this.tokenStream.IncrementToken())
                 {
-                    this.position += this.positionIncrementAttribute.PositionIncrement;
                     this.token.Set(this.charTermAttribute.Buffer.AsSpan(0, this.charTermAttribute.Length));
-                    this.current = new TokenTerm(this.token, this.position);
+                    this.position += this.positionIncrementAttribute.PositionIncrement;
+                    this.current = new TokenTerm(this.token, new Offset(this.offsetAttribute.StartOffset, this.offsetAttribute.EndOffset, this.position));
 
                     return true;
                 }

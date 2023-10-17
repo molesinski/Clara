@@ -2,14 +2,14 @@
 {
     public readonly record struct TokenTerm
     {
-        public TokenTerm(Token token, int position)
+        public TokenTerm(Token token, Offset offset)
         {
             this.Token = token;
-            this.Position = position;
+            this.Offset = offset;
         }
 
         public Token Token { get; }
 
-        public int Position { get; }
+        public Offset Offset { get; }
     }
 }

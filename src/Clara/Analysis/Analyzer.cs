@@ -131,12 +131,14 @@ namespace Clara.Analysis
 
                 while (this.enumerator.MoveNext())
                 {
-                    var position = this.enumerator.Current.Position;
-                    var token = this.pipeline(this.enumerator.Current.Token);
+                    var current = this.enumerator.Current;
+                    var token = current.Token;
+
+                    token = this.pipeline(token);
 
                     if (!token.IsEmpty)
                     {
-                        this.current = new TokenTerm(token, position);
+                        this.current = new TokenTerm(token, current.Offset);
                         return true;
                     }
                 }
