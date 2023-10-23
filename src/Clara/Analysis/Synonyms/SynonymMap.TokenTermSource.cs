@@ -5,7 +5,7 @@ namespace Clara.Analysis.Synonyms
 {
     public sealed partial class SynonymMap
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1214:Readonly fields should appear before non-readonly fields", Justification = "For clarity")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1214:Readonly fields should appear before non-readonly fields", Justification = "By design")]
         private sealed class TokenTermSource : ITokenTermSource, IEnumerable<TokenTerm>, IEnumerator<TokenTerm>
         {
             private readonly ITokenTermSource tokenTermSource;
@@ -17,10 +17,10 @@ namespace Clara.Analysis.Synonyms
             private bool isEnumerated;
             private TokenTerm? peekedTerm;
             private TokenNode? backtrackingNode;
-            private readonly Stack<Offset> backtrackingOffsets = new();
+            private readonly ListSlim<TokenPosition> backtrackingPositions = new();
             private ListSlim<string>? replacementTokens;
             private int replacementIndex;
-            private Offset replacementOffset;
+            private TokenPosition replacementPosition;
             private TokenNode currentNode = default!;
 
             public TokenTermSource(SynonymMap synonymMap)
@@ -91,17 +91,23 @@ namespace Clara.Analysis.Synonyms
                         {
                             if (this.backtrackingNode.HasSynonyms)
                             {
+                                var position = TokenPosition.Combine(this.backtrackingPositions);
+
                                 this.replacementTokens = this.backtrackingNode.ReplacementTokens;
                                 this.replacementIndex = 0;
-                                this.replacementOffset = this.backtrackingOffsets.Peek();
-
+                                this.replacementPosition = position;
                                 this.backtrackingNode = null;
-                                this.backtrackingOffsets.Clear();
+
+                                this.backtrackingPositions.Clear();
                             }
                             else
                             {
-                                this.current = new TokenTerm(new Token(this.backtrackingNode.Token), this.backtrackingOffsets.Pop());
+                                var position = this.backtrackingPositions[this.backtrackingPositions.Count - 1];
+
+                                this.current = new TokenTerm(new Token(this.backtrackingNode.Token), position);
                                 this.backtrackingNode = this.backtrackingNode.Parent;
+
+                                this.backtrackingPositions.RemoveAt(this.backtrackingPositions.Count - 1);
 
                                 return true;
                             }
@@ -110,13 +116,13 @@ namespace Clara.Analysis.Synonyms
 
                     if (this.replacementTokens is not null)
                     {
-                        this.current = new TokenTerm(new Token(this.replacementTokens[this.replacementIndex++]), this.replacementOffset);
+                        this.current = new TokenTerm(new Token(this.replacementTokens[this.replacementIndex++]), this.replacementPosition);
 
                         if (this.replacementIndex == this.replacementTokens.Count)
                         {
                             this.replacementTokens = default;
                             this.replacementIndex = default;
-                            this.replacementOffset = default;
+                            this.replacementPosition = default;
                         }
 
                         return true;
@@ -132,7 +138,7 @@ namespace Clara.Analysis.Synonyms
                         {
                             if (this.currentNode.Children.TryGetValue(value, out var node))
                             {
-                                this.backtrackingOffsets.Push(currentTerm.Offset);
+                                this.backtrackingPositions.Add(currentTerm.Position);
 
                                 this.currentNode = node;
 
@@ -149,7 +155,7 @@ namespace Clara.Analysis.Synonyms
                             continue;
                         }
 
-                        this.current = new TokenTerm(currentTerm.Token, currentTerm.Offset);
+                        this.current = new TokenTerm(currentTerm.Token, currentTerm.Position);
 
                         return true;
                     }
@@ -184,10 +190,10 @@ namespace Clara.Analysis.Synonyms
                 this.isEnumerated = default;
                 this.peekedTerm = default;
                 this.backtrackingNode = default;
-                this.backtrackingOffsets.Clear();
+                this.backtrackingPositions.Clear();
                 this.replacementTokens = default;
                 this.replacementIndex = default;
-                this.replacementOffset = default;
+                this.replacementPosition = default;
                 this.currentNode = this.root;
             }
 

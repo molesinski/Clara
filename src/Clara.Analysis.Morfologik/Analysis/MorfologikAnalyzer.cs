@@ -2,11 +2,11 @@
 
 namespace Clara.Analysis
 {
-    public sealed class PolishAnalyzer : IAnalyzer
+    public sealed class MorfologikAnalyzer : IAnalyzer
     {
         private readonly IAnalyzer analyzer;
 
-        public PolishAnalyzer(
+        public MorfologikAnalyzer(
             IEnumerable<string>? stopwords = null,
             IEnumerable<string>? keywords = null)
         {
@@ -20,7 +20,7 @@ namespace Clara.Analysis
             }
             else
             {
-                filters.Add(new PolishStopTokenFilter());
+                filters.Add(new MorfologikStopTokenFilter());
             }
 
             if (keywords is not null)
@@ -28,9 +28,9 @@ namespace Clara.Analysis
                 filters.Add(new KeywordTokenFilter(keywords));
             }
 
-            filters.Add(new PolishStemTokenFilter());
+            filters.Add(new MorfologikStemTokenFilter());
 
-            this.analyzer = new Analyzer(new BasicTokenizer(), filters);
+            this.analyzer = new Analyzer(new StandardTokenizer(), filters);
         }
 
         public ITokenizer Tokenizer

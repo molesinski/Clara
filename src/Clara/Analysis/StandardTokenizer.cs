@@ -2,7 +2,7 @@
 
 namespace Clara.Analysis
 {
-    public sealed partial class BasicTokenizer : ITokenizer
+    public sealed partial class StandardTokenizer : ITokenizer
     {
         public ITokenTermSource CreateTokenTermSource()
         {
@@ -11,7 +11,7 @@ namespace Clara.Analysis
 
         public bool Equals(ITokenizer? other)
         {
-            return other is BasicTokenizer;
+            return other is StandardTokenizer;
         }
 
         private sealed class TokenTermSource : ITokenTermSource, IEnumerable<TokenTerm>, IEnumerator<TokenTerm>
@@ -121,7 +121,7 @@ namespace Clara.Analysis
                                 if (span.Length <= Token.MaximumLength && !IsUnderscores(span))
                                 {
                                     this.token.Set(span);
-                                    this.current = new TokenTerm(this.token, new Offset(start, i, ++position));
+                                    this.current = new TokenTerm(this.token, new TokenPosition(position++));
 
                                     hasCurrent = true;
                                 }
@@ -160,7 +160,7 @@ namespace Clara.Analysis
                     if (span.Length <= Token.MaximumLength && !IsUnderscores(span))
                     {
                         this.token.Set(span);
-                        this.current = new TokenTerm(this.token, new Offset(start, this.text.Length, ++position));
+                        this.current = new TokenTerm(this.token, new TokenPosition(position++));
 
                         this.lastPosition = position;
                         this.lastIndex = i;

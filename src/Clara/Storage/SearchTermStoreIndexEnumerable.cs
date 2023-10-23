@@ -96,7 +96,7 @@ namespace Clara.Storage
             {
                 while (this.i < this.source.Count)
                 {
-                    var position = this.source[this.i].SearchTerm.Offset.Position;
+                    var position = this.source[this.i].SearchTerm.Position.Start;
 
                     if (this.position == -1)
                     {

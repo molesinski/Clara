@@ -5,11 +5,11 @@ using Lucene.Net.Analysis.TokenAttributes;
 namespace Clara.Analysis
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Value type used for performance optimization")]
-    public readonly struct ReadOnlyTokenTermSourceEnumerable : IEnumerable<Token>
+    public readonly struct TokenStreamEnumerable : IEnumerable<Token>
     {
         private readonly TokenStream tokenStream;
 
-        public ReadOnlyTokenTermSourceEnumerable(TokenStream tokenStream)
+        public TokenStreamEnumerable(TokenStream tokenStream)
         {
             if (tokenStream is null)
             {
@@ -41,7 +41,7 @@ namespace Clara.Analysis
             private bool isStarted;
             private Token current;
 
-            internal Enumerator(ReadOnlyTokenTermSourceEnumerable source)
+            internal Enumerator(TokenStreamEnumerable source)
             {
                 this.tokenTermSource = source.tokenStream;
                 this.charTermAttribute = source.tokenStream.GetAttribute<ICharTermAttribute>();

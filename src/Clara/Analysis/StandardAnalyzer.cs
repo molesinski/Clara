@@ -2,11 +2,11 @@
 
 namespace Clara.Analysis
 {
-    public sealed class BasicAnalyzer : IAnalyzer
+    public sealed class StandardAnalyzer : IAnalyzer
     {
         private readonly IAnalyzer analyzer;
 
-        public BasicAnalyzer(
+        public StandardAnalyzer(
             IEnumerable<string>? stopwords = null)
         {
             var filters = new ListSlim<ITokenFilter>();
@@ -18,7 +18,7 @@ namespace Clara.Analysis
                 filters.Add(new StopTokenFilter(stopwords));
             }
 
-            this.analyzer = new Analyzer(new BasicTokenizer(), filters);
+            this.analyzer = new Analyzer(new StandardTokenizer(), filters);
         }
 
         public ITokenizer Tokenizer

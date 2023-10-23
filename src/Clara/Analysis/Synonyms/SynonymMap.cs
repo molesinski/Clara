@@ -66,7 +66,6 @@ namespace Clara.Analysis.Synonyms
             return new TokenTermSource(this);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "By design")]
         public void Process(SearchMode mode, IList<SearchTerm> terms)
         {
             if (terms is null)
@@ -83,6 +82,7 @@ namespace Clara.Analysis.Synonyms
             using var searchTermEnumerable = this.searchTermEnumerablePool.Lease();
 
             tempTerms.Instance.AddRange(searchTermEnumerable.Instance.GetTerms(terms));
+            tempTerms.Instance.Sort(SearchTermComparer.Instance);
 
             terms.Clear();
 

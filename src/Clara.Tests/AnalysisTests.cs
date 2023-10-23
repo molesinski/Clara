@@ -5,13 +5,15 @@ namespace Clara.Tests
 {
     public class AnalysisTests
     {
+        private static readonly string Separator = Environment.NewLine;
+
         [Fact]
         public void BasicTokenization()
         {
             var phrase = "Ben&Jerry's SETI@home o.b. __ __'s __1__2 __a__b 3/4 56-78 cd-ef 1.234 1,234 1.234,45 -1";
 
-            var actual = string.Join(" | ", new BasicTokenizer().CreateTokenTermSource().GetTerms(phrase));
-            var expected = string.Join(" | ", new LuceneStandardTokenizer().CreateTokenTermSource().GetTerms(phrase));
+            var actual = string.Join(Separator, new StandardTokenizer().CreateTokenTermSource().GetTerms(phrase));
+            var expected = string.Join(Separator, new LuceneStandardTokenizer().CreateTokenTermSource().GetTerms(phrase));
 
             Assert.Equal(expected, actual);
         }
@@ -21,8 +23,8 @@ namespace Clara.Tests
         {
             var phrase = "Ben&Jerry's SETI@home o.b. __ __'s __1__2 __a__b 3/4 56-78 cd-ef 1.234 1,234 1.234,45 -1";
 
-            var actual = string.Join(" | ", new BasicAnalyzer().CreateTokenTermSource().GetTerms(phrase));
-            var expected = string.Join(" | ", new LuceneStandardAnalyzer().CreateTokenTermSource().GetTerms(phrase));
+            var actual = string.Join(Separator, new StandardAnalyzer().CreateTokenTermSource().GetTerms(phrase));
+            var expected = string.Join(Separator, new LuceneStandardAnalyzer().CreateTokenTermSource().GetTerms(phrase));
 
             Assert.Equal(expected, actual);
         }
@@ -32,8 +34,8 @@ namespace Clara.Tests
         {
             var phrase = "Ben&Jerry's SETI@home o.b. __ __'s __1__2 __a__b 3/4 56-78 cd-ef 1.234 1,234 1.234,45 -1";
 
-            var actual = string.Join(" | ", new PorterAnalyzer().CreateTokenTermSource().GetTerms(phrase));
-            var expected = string.Join(" | ", new LuceneEnglishAnalyzer().CreateTokenTermSource().GetTerms(phrase));
+            var actual = string.Join(Separator, new PorterAnalyzer().CreateTokenTermSource().GetTerms(phrase));
+            var expected = string.Join(Separator, new LuceneEnglishAnalyzer().CreateTokenTermSource().GetTerms(phrase));
 
             Assert.Equal(expected, actual);
         }
@@ -63,9 +65,9 @@ namespace Clara.Tests
 
             foreach (var phrase in phrases)
             {
-                var porterTokens = string.Join(" | ", porterAnalyzer.CreateTokenTermSource().GetTerms(phrase));
-                var englishTokens = string.Join(" | ", englishAnalyzer.CreateTokenTermSource().GetTerms(phrase));
-                var luceneTokens = string.Join(" | ", luceneAnalyzer.CreateTokenTermSource().GetTerms(phrase));
+                var porterTokens = string.Join(Separator, porterAnalyzer.CreateTokenTermSource().GetTerms(phrase));
+                var englishTokens = string.Join(Separator, englishAnalyzer.CreateTokenTermSource().GetTerms(phrase));
+                var luceneTokens = string.Join(Separator, luceneAnalyzer.CreateTokenTermSource().GetTerms(phrase));
 
                 Assert.NotEqual(string.Empty, porterTokens);
                 Assert.Equal(porterTokens, englishTokens);

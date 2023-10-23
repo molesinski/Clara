@@ -10,18 +10,20 @@ namespace Clara.Benchmarks
         private const string EnglishPhrase = "The quick brown fox jumps over the lazy dog";
         private const string PolishPhrase = "Szybki brązowy lis skacze nad leniwym psem";
 
-        private readonly ITokenTermSource basicTokenizer;
+        private readonly ITokenTermSource standardTokenizer;
+        private readonly ITokenTermSource standardAnalyzer;
         private readonly ITokenTermSource porterAnalyzer;
-        private readonly ITokenTermSource englishAnalyzer;
-        private readonly ITokenTermSource polishAnalyzer;
         private readonly ITokenTermSource synonymMap;
+        private readonly ITokenTermSource englishAnalyzer;
+        private readonly ITokenTermSource morfologikAnalyzer;
 
         public TokenizationBenchmarks()
         {
-            this.basicTokenizer = new BasicTokenizer().CreateTokenTermSource();
+            this.standardTokenizer = new StandardTokenizer().CreateTokenTermSource();
+            this.standardAnalyzer = new StandardAnalyzer().CreateTokenTermSource();
             this.porterAnalyzer = new PorterAnalyzer().CreateTokenTermSource();
             this.englishAnalyzer = new EnglishAnalyzer().CreateTokenTermSource();
-            this.polishAnalyzer = new PolishAnalyzer().CreateTokenTermSource();
+            this.morfologikAnalyzer = new MorfologikAnalyzer().CreateTokenTermSource();
 
             var synonymMap =
                 new SynonymMap(
@@ -35,9 +37,18 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void BasicTokenizer()
+        public void StandardTokenizer()
         {
-            foreach (var term in this.basicTokenizer.GetTerms(EnglishPhrase))
+            foreach (var term in this.standardTokenizer.GetTerms(EnglishPhrase))
+            {
+                _ = term;
+            }
+        }
+
+        [Benchmark]
+        public void StandardAnalyzer()
+        {
+            foreach (var term in this.standardAnalyzer.GetTerms(EnglishPhrase))
             {
                 _ = term;
             }
@@ -71,9 +82,9 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
-        public void PolishAnalyzer()
+        public void MorfologikAnalyzer()
         {
-            foreach (var term in this.polishAnalyzer.GetTerms(PolishPhrase))
+            foreach (var term in this.morfologikAnalyzer.GetTerms(PolishPhrase))
             {
                 _ = term;
             }

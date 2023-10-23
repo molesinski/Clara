@@ -10,7 +10,7 @@
 
         public int Compare(SearchTermStoreIndex x, SearchTermStoreIndex y)
         {
-            var result = x.SearchTerm.Offset.Position.CompareTo(y.SearchTerm.Offset.Position);
+            var result = x.SearchTerm.Position.Start.CompareTo(y.SearchTerm.Position.Start);
 
             if (result != 0)
             {

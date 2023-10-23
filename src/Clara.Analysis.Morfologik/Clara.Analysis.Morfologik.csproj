@@ -10,11 +10,11 @@
   <Import Project="../../Package.props" />
 
   <ItemGroup>
-    <None Remove="Analysis\PolishStopTokenFilter.txt" />
+    <None Remove="Analysis\MorfologikStopTokenFilter.txt" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Analysis\PolishStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\MorfologikStopTokenFilter.txt" />
   </ItemGroup>
 
   <ItemGroup>

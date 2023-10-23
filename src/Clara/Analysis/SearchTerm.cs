@@ -4,7 +4,7 @@ namespace Clara.Analysis
 {
     public readonly record struct SearchTerm
     {
-        public SearchTerm(string token, Offset offset)
+        public SearchTerm(string token, TokenPosition position)
         {
             if (token is null)
             {
@@ -12,10 +12,10 @@ namespace Clara.Analysis
             }
 
             this.Token = token;
-            this.Offset = offset;
+            this.Position = position;
         }
 
-        public SearchTerm(MatchExpression expression, Offset offset)
+        public SearchTerm(MatchExpression expression, TokenPosition position)
         {
             if (expression is null)
             {
@@ -23,13 +23,13 @@ namespace Clara.Analysis
             }
 
             this.Expression = expression;
-            this.Offset = offset;
+            this.Position = position;
         }
 
         public string? Token { get; }
 
         public MatchExpression? Expression { get; }
 
-        public Offset Offset { get; }
+        public TokenPosition Position { get; }
     }
 }

@@ -413,7 +413,7 @@ namespace Clara.Storage
                          ?? this.synonymMap?.ToReadOnly(term.Token)
                          ?? InvalidToken;
 
-                terms.Add(new SearchTerm(token, term.Offset));
+                terms.Add(new SearchTerm(token, term.Position));
             }
 
             this.synonymMap?.Process(searchMode, terms);

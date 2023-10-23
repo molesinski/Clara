@@ -138,7 +138,7 @@ namespace Clara.Analysis
 
                     if (!token.IsEmpty)
                     {
-                        this.current = new TokenTerm(token, current.Offset);
+                        this.current = new TokenTerm(token, current.Position);
                         return true;
                     }
                 }

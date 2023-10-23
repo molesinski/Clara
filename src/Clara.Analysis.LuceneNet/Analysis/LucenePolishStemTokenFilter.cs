@@ -1,10 +1,11 @@
 ﻿using Clara.Utils;
 using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.En;
+using Lucene.Net.Analysis.Pl;
+using Lucene.Net.Analysis.Stempel;
 
 namespace Clara.Analysis
 {
-    public sealed class LucenePorterStemTokenFilter : ITokenFilter
+    public sealed class LucenePolishStemTokenFilter : ITokenFilter
     {
         private static readonly ObjectPool<OperationContext> Pool = new(() => new());
 
@@ -12,7 +13,7 @@ namespace Clara.Analysis
         {
             using var context = Pool.Lease();
 
-            foreach (var stem in new ReadOnlyTokenTermSourceEnumerable(context.Instance.GetTokenStream(token)))
+            foreach (var stem in new TokenStreamEnumerable(context.Instance.GetTokenStream(token)))
             {
                 if (!stem.IsEmpty)
                 {
@@ -28,12 +29,12 @@ namespace Clara.Analysis
         private sealed class OperationContext : IDisposable
         {
             private readonly SingleTokenStream tokenTermSource;
-            private readonly PorterStemFilter stemmer;
+            private readonly StempelFilter stemmer;
 
             public OperationContext()
             {
                 this.tokenTermSource = new SingleTokenStream();
-                this.stemmer = new PorterStemFilter(this.tokenTermSource);
+                this.stemmer = new StempelFilter(this.tokenTermSource, new StempelStemmer(PolishAnalyzer.DefaultTable));
             }
 
             public TokenStream GetTokenStream(Token token)

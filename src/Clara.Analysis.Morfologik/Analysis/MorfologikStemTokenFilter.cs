@@ -4,7 +4,7 @@ using Morfologik.Stemming.Polish;
 
 namespace Clara.Analysis
 {
-    public sealed class PolishStemTokenFilter : ITokenFilter
+    public sealed class MorfologikStemTokenFilter : ITokenFilter
     {
         private static readonly ObjectPool<StemmerContext> Pool = new(() => new());
 
@@ -37,7 +37,7 @@ namespace Clara.Analysis
 
                 var encoding = stemmer.Dictionary.Metadata.Decoder;
                 var chars = stemmerContext.Instance.Chars;
-                var charCount = encoding.GetChars(buffer.Array, buffer.ArrayOffset, buffer.Limit, chars, 0);
+                var charCount = encoding.GetChars(buffer.Array, buffer.Position, buffer.Limit, chars, 0);
 
                 if (charCount > 0 && charCount <= Token.MaximumLength)
                 {

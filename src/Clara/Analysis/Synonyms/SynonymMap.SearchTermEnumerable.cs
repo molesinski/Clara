@@ -1,10 +1,11 @@
 ﻿using System.Collections;
+using Clara.Utils;
 
 namespace Clara.Analysis.Synonyms
 {
     public sealed partial class SynonymMap
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1214:Readonly fields should appear before non-readonly fields", Justification = "For clarity")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1214:Readonly fields should appear before non-readonly fields", Justification = "By design")]
         private sealed class SearchTermEnumerable : IEnumerable<SearchTerm>, IEnumerator<SearchTerm>
         {
             private readonly TokenNode root;
@@ -14,7 +15,7 @@ namespace Clara.Analysis.Synonyms
             private bool isEnumerated;
             private SearchTerm? peekedTerm;
             private TokenNode? backtrackingNode;
-            private readonly Stack<Offset> backtrackingOffsets = new();
+            private readonly ListSlim<TokenPosition> backtrackingPositions = new();
             private TokenNode currentNode = default!;
 
             public SearchTermEnumerable(SynonymMap synonymMap)
@@ -81,16 +82,23 @@ namespace Clara.Analysis.Synonyms
                         {
                             if (this.backtrackingNode.HasSynonyms)
                             {
-                                this.current = new SearchTerm(this.backtrackingNode.MatchExpression, this.backtrackingOffsets.Peek());
+                                var position = TokenPosition.Combine(this.backtrackingPositions);
+
+                                this.current = new SearchTerm(this.backtrackingNode.MatchExpression, position);
                                 this.backtrackingNode = null;
-                                this.backtrackingOffsets.Clear();
+
+                                this.backtrackingPositions.Clear();
 
                                 return true;
                             }
                             else
                             {
-                                this.current = new SearchTerm(this.backtrackingNode.Token, this.backtrackingOffsets.Pop());
+                                var position = this.backtrackingPositions[this.backtrackingPositions.Count - 1];
+
+                                this.current = new SearchTerm(this.backtrackingNode.Token, position);
                                 this.backtrackingNode = this.backtrackingNode.Parent;
+
+                                this.backtrackingPositions.RemoveAt(this.backtrackingPositions.Count - 1);
 
                                 return true;
                             }
@@ -105,7 +113,7 @@ namespace Clara.Analysis.Synonyms
 
                         if (this.currentNode.Children.TryGetValue(currentTerm.Token!, out var node))
                         {
-                            this.backtrackingOffsets.Push(currentTerm.Offset);
+                            this.backtrackingPositions.Add(currentTerm.Position);
 
                             this.currentNode = node;
 
@@ -121,7 +129,7 @@ namespace Clara.Analysis.Synonyms
                             continue;
                         }
 
-                        this.current = new SearchTerm(currentTerm.Token!, currentTerm.Offset);
+                        this.current = new SearchTerm(currentTerm.Token!, currentTerm.Position);
 
                         return true;
                     }
@@ -155,7 +163,7 @@ namespace Clara.Analysis.Synonyms
                 this.isEnumerated = default;
                 this.peekedTerm = default;
                 this.backtrackingNode = default;
-                this.backtrackingOffsets.Clear();
+                this.backtrackingPositions.Clear();
                 this.currentNode = this.root;
             }
 

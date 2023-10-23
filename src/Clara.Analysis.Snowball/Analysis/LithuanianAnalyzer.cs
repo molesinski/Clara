@@ -30,7 +30,7 @@ namespace Clara.Analysis
 
             filters.Add(new LithuanianStemTokenFilter());
 
-            this.analyzer = new Analyzer(new BasicTokenizer(), filters);
+            this.analyzer = new Analyzer(new StandardTokenizer(), filters);
         }
 
         public ITokenizer Tokenizer

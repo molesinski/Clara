@@ -32,7 +32,7 @@ namespace Clara.Analysis
             public TokenTermSource()
             {
                 this.reader = new ReusableStringReader();
-                this.analyzer = new StandardAnalyzer(LuceneVersion.LUCENE_48);
+                this.analyzer = new Lucene.Net.Analysis.Standard.StandardAnalyzer(LuceneVersion.LUCENE_48);
                 this.chars = new char[Token.MaximumLength];
             }
 

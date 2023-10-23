@@ -1,29 +1,29 @@
 ﻿using System.Collections;
-using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Analysis.Pl;
 using Lucene.Net.Util;
 
 namespace Clara.Analysis
 {
-    public sealed class LuceneStandardTokenizer : ITokenizer
+    public sealed class LucenePolishAnalyzer : IAnalyzer
     {
-        internal static LuceneStandardTokenizer Instance { get; } = new();
+        public ITokenizer Tokenizer
+        {
+            get
+            {
+                return LuceneStandardTokenizer.Instance;
+            }
+        }
 
         public ITokenTermSource CreateTokenTermSource()
         {
             return new TokenTermSource();
         }
 
-        public bool Equals(ITokenizer? other)
-        {
-            return other is LuceneStandardTokenizer;
-        }
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "By design")]
         private sealed class TokenTermSource : ITokenTermSource, IEnumerable<TokenTerm>, IEnumerator<TokenTerm>
         {
             private readonly ReusableStringReader reader;
-            private readonly Tokenizer tokenizer;
+            private readonly Lucene.Net.Analysis.Analyzer analyzer;
             private readonly char[] chars;
             private TokenTerm current;
             private TokenTermStreamEnumerable.Enumerator enumerator;
@@ -32,7 +32,7 @@ namespace Clara.Analysis
             public TokenTermSource()
             {
                 this.reader = new ReusableStringReader();
-                this.tokenizer = new Lucene.Net.Analysis.Standard.StandardTokenizer(LuceneVersion.LUCENE_48, this.reader);
+                this.analyzer = new PolishAnalyzer(LuceneVersion.LUCENE_48);
                 this.chars = new char[Token.MaximumLength];
             }
 
@@ -60,7 +60,6 @@ namespace Clara.Analysis
                 }
 
                 this.reader.SetText(text);
-                this.tokenizer.SetReader(this.reader);
 
                 ((IEnumerator)this).Reset();
 
@@ -81,7 +80,7 @@ namespace Clara.Analysis
             {
                 if (!this.isEnumeratorSet)
                 {
-                    this.enumerator = new TokenTermStreamEnumerable(this.tokenizer, this.chars).GetEnumerator();
+                    this.enumerator = new TokenTermStreamEnumerable(this.analyzer.GetTokenStream(string.Empty, this.reader), this.chars).GetEnumerator();
                     this.isEnumeratorSet = true;
                 }
 
