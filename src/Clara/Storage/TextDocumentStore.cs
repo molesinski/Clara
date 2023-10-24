@@ -44,127 +44,121 @@ namespace Clara.Storage
             this.tokenTermSourcePool = new ObjectPool<ITokenTermSource>(this.analyzer.CreateTokenTermSource);
         }
 
-        public static DocumentScoring Search(ListSlim<SearchFieldStore> searchFieldStores, SearchMode searchMode, string text, ref DocumentResultBuilder documentResultBuilder)
+        public static DocumentScoring Search(ListSlim<SearchFieldStore> stores, SearchMode searchMode, string text, ref DocumentResultBuilder documentResultBuilder)
         {
-            if (searchMode == SearchMode.Any || searchFieldStores.Count == 1)
+            using var terms = SharedObjectPools.SearchTerms.Lease();
+            using var termStores = SharedObjectPools.SearchTermStoreIndexes.Lease();
+            using var positionScores = SharedObjectPools.DocumentScores.Lease();
+            using var positionStoreScores = SharedObjectPools.DocumentScores.Lease();
+            using var scoreCombiner = SharedObjectPools.ScoreCombiners.Lease();
+
+            var documentScores = SharedObjectPools.DocumentScores.Lease();
+            var storeCount = stores.Count;
+            var lastAnalyzedStore = default(TextDocumentStore?);
+
+            SortByEqualAnalysis(stores);
+
+            for (var storeIndex = 0; storeIndex < storeCount; storeIndex++)
             {
-                using var terms = SharedObjectPools.SearchTerms.Lease();
-                using var tempScores = SharedObjectPools.DocumentScores.Lease();
-                using var scoreCombiner = SharedObjectPools.ScoreCombiners.Lease();
+                var store = stores[storeIndex];
 
-                var documentScores = SharedObjectPools.DocumentScores.Lease();
-                var lastAnalyzedStore = default(TextDocumentStore?);
-
-                SortByEqualAnalysis(searchFieldStores);
-
-                foreach (var searchFieldStore in searchFieldStores)
+                if (!store.Store.AnalysisEquals(lastAnalyzedStore))
                 {
-                    tempScores.Instance.Clear();
+                    terms.Instance.Clear();
 
-                    var store = searchFieldStore.Store;
-                    var boost = searchFieldStore.SearchField.Boost;
+                    store.Store.GetSearchTerms(searchMode, text, terms.Instance);
 
-                    if (!store.AnalysisEquals(lastAnalyzedStore))
-                    {
-                        terms.Instance.Clear();
-
-                        store.GetSearchTerms(searchMode, text, terms.Instance);
-
-                        lastAnalyzedStore = store;
-                    }
-
-                    store.Search(searchMode, terms.Instance, tempScores.Instance);
-
-                    scoreCombiner.Instance.Initialize(ScoreAggregation.Sum, boost);
-
-                    documentScores.Instance.UnionWith(tempScores.Instance, scoreCombiner.Instance);
+                    lastAnalyzedStore = store.Store;
                 }
 
-                documentResultBuilder.IntersectWith(documentScores.Instance);
-
-                return new DocumentScoring(documentScores);
+                foreach (var term in terms.Instance)
+                {
+                    termStores.Instance.Add(new SearchTermStoreIndex(term, storeIndex));
+                }
             }
-            else
+
+            var span = termStores.Instance.AsSpan();
+            var start = int.MaxValue;
+            var end = int.MinValue;
+
+            for (var i = 0; i < span.Length; i++)
             {
-                using var terms = SharedObjectPools.SearchTerms.Lease();
-                using var termIndexes = SharedObjectPools.SearchTermStoreIndexes.Lease();
-                using var tempScores = SharedObjectPools.DocumentScores.Lease();
-                using var tempScores2 = SharedObjectPools.DocumentScores.Lease();
-                using var scoreCombiner = SharedObjectPools.ScoreCombiners.Lease();
+                ref var term = ref span[i];
 
-                var documentScores = SharedObjectPools.DocumentScores.Lease();
-                var lastAnalyzedStore = default(TextDocumentStore?);
+                start = start < term.SearchTerm.Position.Start ? start : term.SearchTerm.Position.Start;
+                end = end > term.SearchTerm.Position.End ? end : term.SearchTerm.Position.End;
+            }
 
-                SortByEqualAnalysis(searchFieldStores);
+            var isFirst = true;
 
-                for (var i = 0; i < searchFieldStores.Count; i++)
+            for (var position = start; position <= end; position++)
+            {
+                positionScores.Instance.Clear();
+
+                var coveredCount = 0;
+
+                for (var storeIndex = 0; storeIndex < storeCount; storeIndex++)
                 {
-                    var store = searchFieldStores[i].Store;
+                    positionStoreScores.Instance.Clear();
 
-                    if (!store.AnalysisEquals(lastAnalyzedStore))
+                    var isCovered = false;
+
+                    for (var i = 0; i < span.Length; i++)
                     {
-                        terms.Instance.Clear();
+                        ref var termStore = ref span[i];
 
-                        store.GetSearchTerms(searchMode, text, terms.Instance);
+                        if (termStore.StoreIndex == storeIndex && termStore.SearchTerm.Position.Overlaps(position))
+                        {
+                            var store = stores[storeIndex];
 
-                        lastAnalyzedStore = store;
+                            scoreCombiner.Instance.Initialize(ScoreAggregation.Sum, store.SearchField.Boost);
+
+                            store.Store.Search(termStore.SearchTerm, positionStoreScores.Instance, scoreCombiner.Instance);
+
+                            if (!isCovered)
+                            {
+                                coveredCount++;
+                                isCovered = true;
+                            }
+                        }
                     }
 
-                    foreach (var term in terms.Instance)
-                    {
-                        termIndexes.Instance.Add(new SearchTermStoreIndex(term, i));
-                    }
+                    positionScores.Instance.UnionWith(positionStoreScores.Instance, ScoreCombiner.Sum);
                 }
 
-                termIndexes.Instance.Sort(SearchTermStoreIndexComparer.Instance);
-
-                var isFirst = true;
-
-                foreach (var positionRange in new SearchTermStoreIndexEnumerable(termIndexes.Instance))
+                if (searchMode == SearchMode.All)
                 {
-                    tempScores.Instance.Clear();
-
-                    foreach (var storeRange in positionRange)
+                    if (coveredCount == storeCount)
                     {
-                        terms.Instance.Clear();
-                        tempScores2.Instance.Clear();
-
-                        foreach (var term in storeRange)
+                        if (isFirst)
                         {
-                            terms.Instance.Add(term);
+                            documentScores.Instance.UnionWith(positionScores.Instance, ScoreCombiner.Sum);
+                            isFirst = false;
+                        }
+                        else
+                        {
+                            documentScores.Instance.IntersectWith(positionScores.Instance, ScoreCombiner.Sum);
                         }
 
-                        var searchFieldStore = searchFieldStores[storeRange.StoreIndex];
-                        var store = searchFieldStore.Store;
-                        var boost = searchFieldStore.SearchField.Boost;
-
-                        store.Search(searchMode, terms.Instance, tempScores2.Instance);
-
-                        scoreCombiner.Instance.Initialize(ScoreAggregation.Sum, boost);
-
-                        tempScores.Instance.UnionWith(tempScores2.Instance, scoreCombiner.Instance);
-                    }
-
-                    if (isFirst)
-                    {
-                        documentScores.Instance.UnionWith(tempScores.Instance, ScoreCombiner.Sum);
-                        isFirst = false;
+                        if (documentScores.Instance.Count == 0)
+                        {
+                            break;
+                        }
                     }
                     else
                     {
-                        documentScores.Instance.IntersectWith(tempScores.Instance, ScoreCombiner.Sum);
-                    }
-
-                    if (documentScores.Instance.Count == 0)
-                    {
-                        break;
+                        documentScores.Instance.UnionWith(positionScores.Instance, ScoreCombiner.Sum);
                     }
                 }
-
-                documentResultBuilder.IntersectWith(documentScores.Instance);
-
-                return new DocumentScoring(documentScores);
+                else
+                {
+                    documentScores.Instance.UnionWith(positionScores.Instance, ScoreCombiner.Sum);
+                }
             }
+
+            documentResultBuilder.IntersectWith(documentScores.Instance);
+
+            return new DocumentScoring(documentScores);
 
             static void SortByEqualAnalysis(ListSlim<SearchFieldStore> searchFieldStores)
             {
@@ -183,7 +177,7 @@ namespace Clara.Storage
                         {
                             if (j != i + 1)
                             {
-                                var tmp = span[j];
+                                var tmp = b;
                                 span[j] = span[i + 1];
                                 span[i + 1] = tmp;
                             }
@@ -195,93 +189,25 @@ namespace Clara.Storage
             }
         }
 
-        private void Search(SearchMode mode, ListSlim<SearchTerm> terms, DictionarySlim<int, float> documentScores)
+        private void Search(SearchTerm term, DictionarySlim<int, float> documentScores, ScoreCombiner scoreCombiner)
         {
-            if (mode == SearchMode.Any)
+            if (term.Token is string token)
             {
-                foreach (var term in terms)
+                if (this.tokenEncoder.TryEncode(token, out var tokenId))
                 {
-                    if (term.Token is string token)
+                    if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                     {
-                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
-                        {
-                            if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
-                            {
-                                documentScores.UnionWith(documents, ScoreCombiner.Sum);
-                            }
-                        }
-                    }
-                    else if (term.Expression is MatchExpression expression)
-                    {
-                        using var tempScores = SharedObjectPools.DocumentScores.Lease();
-
-                        this.Search(expression, tempScores.Instance);
-
-                        documentScores.UnionWith(tempScores.Instance, ScoreCombiner.Sum);
+                        documentScores.UnionWith(documents, scoreCombiner);
                     }
                 }
             }
-            else
+            else if (term.Expression is MatchExpression expression)
             {
-                var isFirst = true;
+                using var tempScores = SharedObjectPools.DocumentScores.Lease();
 
-                foreach (var term in terms)
-                {
-                    if (term.Token is string token)
-                    {
-                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
-                        {
-                            if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
-                            {
-                                if (isFirst)
-                                {
-                                    documentScores.UnionWith(documents, ScoreCombiner.Sum);
-                                    isFirst = false;
-                                }
-                                else
-                                {
-                                    documentScores.IntersectWith(documents, ScoreCombiner.Sum);
-                                }
-                            }
-                            else
-                            {
-                                documentScores.Clear();
-                            }
-                        }
-                        else
-                        {
-                            documentScores.Clear();
-                        }
-                    }
-                    else if (term.Expression is MatchExpression expression)
-                    {
-                        using var tempScores = SharedObjectPools.DocumentScores.Lease();
+                this.Search(expression, tempScores.Instance);
 
-                        this.Search(expression, tempScores.Instance);
-
-                        if (tempScores.Instance.Count > 0)
-                        {
-                            if (isFirst)
-                            {
-                                documentScores.UnionWith(tempScores.Instance, ScoreCombiner.Sum);
-                                isFirst = false;
-                            }
-                            else
-                            {
-                                documentScores.IntersectWith(tempScores.Instance, ScoreCombiner.Sum);
-                            }
-                        }
-                        else
-                        {
-                            documentScores.Clear();
-                        }
-                    }
-
-                    if (documentScores.Count == 0)
-                    {
-                        break;
-                    }
-                }
+                documentScores.UnionWith(tempScores.Instance, scoreCombiner);
             }
         }
 

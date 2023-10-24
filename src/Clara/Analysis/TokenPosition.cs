@@ -78,6 +78,11 @@
             return new TokenPosition(start, end);
         }
 
+        public bool Overlaps(int position)
+        {
+            return this.Start <= position && position <= this.End;
+        }
+
         public int CompareTo(TokenPosition other)
         {
             var result = this.Start.CompareTo(other.Start);

@@ -202,11 +202,11 @@ Running this query against sample data results in following output.
 
 ```
 Documents:
-  [Fashion Magnetic Wrist Watch] $60 => 6,591674
-  [Leather Hand Bag] $57 => 11,618473
-  [Fancy hand clutch] $44 => 8,573952
-  [Steel Analog Couple Watches] $35 => 6,591674
-  [Stainless Steel Women] $35 => 8,788898
+  [Fashion Magnetic Wrist Watch] $60 => 3,31469
+  [Leather Hand Bag] $57 => 6,3701906
+  [Fancy hand clutch] $44 => 6,559135
+  [Steel Analog Couple Watches] $35 => 3,4505985
+  [Stainless Steel Women] $35 => 3,4802377
 Brands:
   (x) [Eastern Watches] => 2
   (x) [Bracelet] => 2
@@ -347,13 +347,13 @@ BenchmarkDotNet v0.13.9, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 | Method            | Mean       | Error     | StdDev    | Allocated |
 |------------------ |-----------:|----------:|----------:|----------:|
-| QueryComplex_x100 | 534.445 μs | 3.8497 μs | 3.4127 μs |     905 B |
-| QueryComplex      |  12.432 μs | 0.0271 μs | 0.0253 μs |     904 B |
-| QuerySearch       |   8.890 μs | 0.0410 μs | 0.0384 μs |     352 B |
-| QueryFilter       |   1.137 μs | 0.0061 μs | 0.0057 μs |     424 B |
-| QueryFacet        |  10.220 μs | 0.0192 μs | 0.0160 μs |     624 B |
-| QuerySort         |   3.614 μs | 0.0218 μs | 0.0203 μs |     392 B |
-| Query             |   1.418 μs | 0.0046 μs | 0.0043 μs |     296 B |
+| QueryComplex_x100 | 568.411 μs | 3.4109 μs | 3.0237 μs |     905 B |
+| QueryComplex      |  12.735 μs | 0.1264 μs | 0.1182 μs |     904 B |
+| QuerySearch       |   9.329 μs | 0.0191 μs | 0.0159 μs |     352 B |
+| QueryFilter       |   1.103 μs | 0.0017 μs | 0.0014 μs |     424 B |
+| QueryFacet        |  10.295 μs | 0.0316 μs | 0.0296 μs |     624 B |
+| QuerySort         |   3.452 μs | 0.0099 μs | 0.0088 μs |     392 B |
+| Query             |   1.459 μs | 0.0052 μs | 0.0049 μs |     296 B |
 
 ### Memory Allocations
 
