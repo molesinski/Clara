@@ -8,7 +8,7 @@ namespace Clara.Analysis.MatchExpressions
         {
         }
 
-        public abstract bool IsMatching(IReadOnlyCollection<string> tokens);
+        public abstract bool Matches(IReadOnlyCollection<string> tokens);
 
         public override string ToString()
         {

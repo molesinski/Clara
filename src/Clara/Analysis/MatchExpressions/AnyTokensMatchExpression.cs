@@ -5,15 +5,12 @@ namespace Clara.Analysis.MatchExpressions
 {
     public sealed class AnyTokensMatchExpression : TokensMatchExpression
     {
-        internal AnyTokensMatchExpression(ScoreAggregation scoreAggregation, ListSlim<string> tokens, bool isLazy)
-            : base(scoreAggregation, tokens)
+        internal AnyTokensMatchExpression(ListSlim<string> tokens)
+            : base(tokens)
         {
-            this.IsLazy = isLazy;
         }
 
-        public bool IsLazy { get; }
-
-        public override bool IsMatching(IReadOnlyCollection<string> tokens)
+        public override bool Matches(IReadOnlyCollection<string> tokens)
         {
             for (var i = 0; i < this.Tokens.Count; i++)
             {

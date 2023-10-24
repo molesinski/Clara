@@ -1,6 +1,4 @@
-﻿using Clara.Analysis.MatchExpressions;
-
-namespace Clara.Analysis
+﻿namespace Clara.Analysis
 {
     public readonly record struct SearchTerm
     {
@@ -15,20 +13,7 @@ namespace Clara.Analysis
             this.Position = position;
         }
 
-        public SearchTerm(MatchExpression expression, TokenPosition position)
-        {
-            if (expression is null)
-            {
-                throw new ArgumentNullException(nameof(expression));
-            }
-
-            this.Expression = expression;
-            this.Position = position;
-        }
-
-        public string? Token { get; }
-
-        public MatchExpression? Expression { get; }
+        public string Token { get; }
 
         public TokenPosition Position { get; }
     }

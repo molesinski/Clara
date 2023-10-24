@@ -1,5 +1,4 @@
 ﻿using Clara.Analysis;
-using Clara.Analysis.MatchExpressions;
 using Clara.Analysis.Synonyms;
 using Clara.Querying;
 using Clara.Utils;
@@ -95,13 +94,9 @@ namespace Clara.Storage
             {
                 positionScores.Instance.Clear();
 
-                var coveredCount = 0;
-
                 for (var storeIndex = 0; storeIndex < storeCount; storeIndex++)
                 {
                     positionStoreScores.Instance.Clear();
-
-                    var isCovered = false;
 
                     for (var i = 0; i < span.Length; i++)
                     {
@@ -114,12 +109,6 @@ namespace Clara.Storage
                             scoreCombiner.Instance.Initialize(ScoreAggregation.Sum, store.SearchField.Boost);
 
                             store.Store.Search(termStore.SearchTerm, positionStoreScores.Instance, scoreCombiner.Instance);
-
-                            if (!isCovered)
-                            {
-                                coveredCount++;
-                                isCovered = true;
-                            }
                         }
                     }
 
@@ -128,26 +117,19 @@ namespace Clara.Storage
 
                 if (searchMode == SearchMode.All)
                 {
-                    if (coveredCount == storeCount)
+                    if (isFirst)
                     {
-                        if (isFirst)
-                        {
-                            documentScores.Instance.UnionWith(positionScores.Instance, ScoreCombiner.Sum);
-                            isFirst = false;
-                        }
-                        else
-                        {
-                            documentScores.Instance.IntersectWith(positionScores.Instance, ScoreCombiner.Sum);
-                        }
-
-                        if (documentScores.Instance.Count == 0)
-                        {
-                            break;
-                        }
+                        documentScores.Instance.UnionWith(positionScores.Instance, ScoreCombiner.Sum);
+                        isFirst = false;
                     }
                     else
                     {
-                        documentScores.Instance.UnionWith(positionScores.Instance, ScoreCombiner.Sum);
+                        documentScores.Instance.IntersectWith(positionScores.Instance, ScoreCombiner.Sum);
+                    }
+
+                    if (documentScores.Instance.Count == 0)
+                    {
+                        break;
                     }
                 }
                 else
@@ -191,141 +173,12 @@ namespace Clara.Storage
 
         private void Search(SearchTerm term, DictionarySlim<int, float> documentScores, ScoreCombiner scoreCombiner)
         {
-            if (term.Token is string token)
+            if (this.tokenEncoder.TryEncode(term.Token, out var tokenId))
             {
-                if (this.tokenEncoder.TryEncode(token, out var tokenId))
+                if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                 {
-                    if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
-                    {
-                        documentScores.UnionWith(documents, scoreCombiner);
-                    }
+                    documentScores.UnionWith(documents, scoreCombiner);
                 }
-            }
-            else if (term.Expression is MatchExpression expression)
-            {
-                using var tempScores = SharedObjectPools.DocumentScores.Lease();
-
-                this.Search(expression, tempScores.Instance);
-
-                documentScores.UnionWith(tempScores.Instance, scoreCombiner);
-            }
-        }
-
-        private void Search(MatchExpression matchExpression, DictionarySlim<int, float> documentScores)
-        {
-            if (matchExpression is AnyTokensMatchExpression anyTokensMatchExpression)
-            {
-                for (var i = 0; i < anyTokensMatchExpression.Tokens.Count; i++)
-                {
-                    if (this.tokenEncoder.TryEncode(anyTokensMatchExpression.Tokens[i], out var tokenId))
-                    {
-                        if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
-                        {
-                            documentScores.UnionWith(documents, ScoreCombiner.For(anyTokensMatchExpression.ScoreAggregation));
-
-                            if (anyTokensMatchExpression.IsLazy)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            else if (matchExpression is AllTokensMatchExpression allTokensMatchExpression)
-            {
-                var isFirst = true;
-
-                for (var i = 0; i < allTokensMatchExpression.Tokens.Count; i++)
-                {
-                    if (this.tokenEncoder.TryEncode(allTokensMatchExpression.Tokens[i], out var tokenId))
-                    {
-                        if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
-                        {
-                            if (isFirst)
-                            {
-                                documentScores.UnionWith(documents, ScoreCombiner.For(allTokensMatchExpression.ScoreAggregation));
-                                isFirst = false;
-                            }
-                            else
-                            {
-                                documentScores.IntersectWith(documents, ScoreCombiner.For(allTokensMatchExpression.ScoreAggregation));
-                            }
-                        }
-                        else
-                        {
-                            documentScores.Clear();
-                        }
-                    }
-                    else
-                    {
-                        documentScores.Clear();
-                    }
-
-                    if (documentScores.Count == 0)
-                    {
-                        break;
-                    }
-                }
-            }
-            else if (matchExpression is OrMatchExpression orMatchExpression)
-            {
-                using var tempScores = SharedObjectPools.DocumentScores.Lease();
-
-                for (var i = 0; i < orMatchExpression.Expressions.Count; i++)
-                {
-                    tempScores.Instance.Clear();
-
-                    this.Search(orMatchExpression.Expressions[i], tempScores.Instance);
-
-                    documentScores.UnionWith(tempScores.Instance, ScoreCombiner.For(orMatchExpression.ScoreAggregation));
-
-                    if (orMatchExpression.IsLazy)
-                    {
-                        if (tempScores.Instance.Count > 0)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-            else if (matchExpression is AndMatchExpression andMatchExpression)
-            {
-                var isFirst = true;
-
-                using var tempScores = SharedObjectPools.DocumentScores.Lease();
-
-                for (var i = 0; i < andMatchExpression.Expressions.Count; i++)
-                {
-                    tempScores.Instance.Clear();
-
-                    this.Search(andMatchExpression.Expressions[i], tempScores.Instance);
-
-                    if (tempScores.Instance.Count > 0)
-                    {
-                        if (isFirst)
-                        {
-                            documentScores.UnionWith(tempScores.Instance, ScoreCombiner.For(andMatchExpression.ScoreAggregation));
-                            isFirst = false;
-                        }
-                        else
-                        {
-                            documentScores.IntersectWith(tempScores.Instance, ScoreCombiner.For(andMatchExpression.ScoreAggregation));
-                        }
-                    }
-                    else
-                    {
-                        documentScores.Clear();
-                    }
-
-                    if (documentScores.Count == 0)
-                    {
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException("Unsupported match expression type encountered.");
             }
         }
 

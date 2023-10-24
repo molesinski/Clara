@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Util;
 
 namespace Clara.Analysis

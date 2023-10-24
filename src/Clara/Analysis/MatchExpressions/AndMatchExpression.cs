@@ -5,16 +5,16 @@ namespace Clara.Analysis.MatchExpressions
 {
     public sealed class AndMatchExpression : ComplexMatchExpression
     {
-        internal AndMatchExpression(ScoreAggregation scoreAggregation, ListSlim<MatchExpression> expressions)
-            : base(scoreAggregation, expressions)
+        internal AndMatchExpression(ListSlim<MatchExpression> expressions)
+            : base(expressions)
         {
         }
 
-        public override bool IsMatching(IReadOnlyCollection<string> tokens)
+        public override bool Matches(IReadOnlyCollection<string> tokens)
         {
             for (var i = 0; i < this.Expressions.Count; i++)
             {
-                if (!this.Expressions[i].IsMatching(tokens))
+                if (!this.Expressions[i].Matches(tokens))
                 {
                     return false;
                 }

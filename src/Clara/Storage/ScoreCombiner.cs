@@ -1,5 +1,4 @@
-﻿using Clara.Analysis.MatchExpressions;
-using Clara.Querying;
+﻿using Clara.Querying;
 using Clara.Utils;
 
 namespace Clara.Storage

@@ -16,6 +16,7 @@ namespace Clara.Analysis.Synonyms
             private SearchTerm? peekedTerm;
             private TokenNode? backtrackingNode;
             private readonly ListSlim<TokenPosition> backtrackingPositions = new();
+            private bool backtrackingSynonymEmitted;
             private TokenNode currentNode = default!;
 
             public SearchTermEnumerable(SynonymMap synonymMap)
@@ -80,14 +81,12 @@ namespace Clara.Analysis.Synonyms
                         }
                         else
                         {
-                            if (this.backtrackingNode.HasSynonyms)
+                            if (!this.backtrackingSynonymEmitted && this.backtrackingNode.SynonymToken is string synonymToken)
                             {
                                 var position = TokenPosition.Combine(this.backtrackingPositions);
 
-                                this.current = new SearchTerm(this.backtrackingNode.MatchExpression, position);
-                                this.backtrackingNode = null;
-
-                                this.backtrackingPositions.Clear();
+                                this.current = new SearchTerm(synonymToken, position);
+                                this.backtrackingSynonymEmitted = true;
 
                                 return true;
                             }
@@ -97,8 +96,8 @@ namespace Clara.Analysis.Synonyms
 
                                 this.current = new SearchTerm(this.backtrackingNode.Token, position);
                                 this.backtrackingNode = this.backtrackingNode.Parent;
-
                                 this.backtrackingPositions.RemoveAt(this.backtrackingPositions.Count - 1);
+                                this.backtrackingSynonymEmitted = false;
 
                                 return true;
                             }
@@ -164,6 +163,7 @@ namespace Clara.Analysis.Synonyms
                 this.peekedTerm = default;
                 this.backtrackingNode = default;
                 this.backtrackingPositions.Clear();
+                this.backtrackingSynonymEmitted = default;
                 this.currentNode = this.root;
             }
 

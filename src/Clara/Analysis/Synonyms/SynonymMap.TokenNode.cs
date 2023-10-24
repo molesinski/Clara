@@ -1,5 +1,4 @@
-﻿using Clara.Analysis.MatchExpressions;
-using Clara.Utils;
+﻿using Clara.Utils;
 
 namespace Clara.Analysis.Synonyms
 {
@@ -7,14 +6,11 @@ namespace Clara.Analysis.Synonyms
     {
         private sealed partial class TokenNode
         {
-            private static readonly ListSlim<string> EmptyTokenPath = new();
-
-            private readonly Dictionary<string, TokenNode> children = new();
-            private readonly TokenNode? parent;
+            private readonly string synonymToken = string.Concat("__SYNONYM__", Guid.NewGuid().ToString("N"));
             private readonly string? token;
-            private readonly ListSlim<string> tokenPath = EmptyTokenPath;
+            private readonly TokenNode? parent;
+            private readonly Dictionary<string, TokenNode> children = new();
             private TokenAggregate aggregate;
-            private MatchExpression? matchExpression;
             private ListSlim<string>? replacementTokens;
 
             private TokenNode()
@@ -22,26 +18,34 @@ namespace Clara.Analysis.Synonyms
                 this.aggregate = new(this);
             }
 
-            private TokenNode(TokenNode parent, string token)
+            private TokenNode(string token, TokenNode parent)
             {
-                if (parent is null)
-                {
-                    throw new ArgumentNullException(nameof(parent));
-                }
-
                 if (token is null)
                 {
                     throw new ArgumentNullException(nameof(token));
                 }
 
-                var tokenPath = new ListSlim<string>(parent.tokenPath);
+                if (parent is null)
+                {
+                    throw new ArgumentNullException(nameof(parent));
+                }
 
-                tokenPath.Add(token);
-
-                this.parent = parent;
                 this.token = token;
-                this.tokenPath = tokenPath;
+                this.parent = parent;
                 this.aggregate = new(this);
+            }
+
+            public string Token
+            {
+                get
+                {
+                    if (this.token is null)
+                    {
+                        throw new InvalidOperationException("Unable to retrieve token value for root token node.");
+                    }
+
+                    return this.token;
+                }
             }
 
             public IReadOnlyDictionary<string, TokenNode> Children
@@ -65,19 +69,6 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public string Token
-            {
-                get
-                {
-                    if (this.token is null)
-                    {
-                        throw new InvalidOperationException("Unable to retrieve token value for root token node.");
-                    }
-
-                    return this.token;
-                }
-            }
-
             public bool IsRoot
             {
                 get
@@ -86,58 +77,19 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public bool HasSynonyms
+            public string? SynonymToken
             {
                 get
                 {
-                    return this.aggregate.Nodes.Count > 1
-                        || this.aggregate.MappedTo.Count > 0
-                        || this.aggregate.MappedFrom.Count > 0;
-                }
-            }
-
-            public MatchExpression MatchExpression
-            {
-                get
-                {
-                    if (this.matchExpression is null)
+                    if (this.parent?.parent is not null)
                     {
-                        var expressions = new ListSlim<MatchExpression>();
-                        var synonymTokens = new HashSetSlim<string>();
-
-                        if (this.aggregate.MappedFrom.Count > 0 || this.aggregate.Nodes.Count > 1)
+                        if (this.aggregate.Nodes.Count > 1 || this.aggregate.MappedFrom.Count > 0 || this.aggregate.MappedTo.Count > 0)
                         {
-                            synonymTokens.Add(this.aggregate.SynonymToken);
-                        }
-
-                        if (this.aggregate.MappedTo.Count > 0)
-                        {
-                            foreach (var node in this.aggregate.MappedTo)
-                            {
-                                synonymTokens.Add(node.aggregate.SynonymToken);
-                            }
-                        }
-                        else
-                        {
-                            expressions.Add(Match.All(ScoreAggregation.Sum, this.tokenPath));
-                        }
-
-                        if (synonymTokens.Count > 0)
-                        {
-                            expressions.Insert(0, Match.Any(ScoreAggregation.Max, synonymTokens, isLazy: false));
-                        }
-
-                        if (expressions.Count == 1)
-                        {
-                            this.matchExpression = expressions[0];
-                        }
-                        else
-                        {
-                            this.matchExpression = Match.Or(ScoreAggregation.Max, expressions, isLazy: true);
+                            return this.synonymToken;
                         }
                     }
 
-                    return this.matchExpression;
+                    return null;
                 }
             }
 
@@ -148,30 +100,30 @@ namespace Clara.Analysis.Synonyms
                     if (this.replacementTokens is null)
                     {
                         var replacementTokens = new ListSlim<string>();
-                        var synonymTokens = new HashSetSlim<string>();
-
-                        if (this.aggregate.MappedFrom.Count > 0 || this.aggregate.Nodes.Count > 1)
-                        {
-                            synonymTokens.Add(this.aggregate.SynonymToken);
-                        }
 
                         if (this.aggregate.MappedTo.Count > 0)
                         {
-                            foreach (var node in this.aggregate.MappedTo)
+                            foreach (var node in this.aggregate.GetRecursiveMappedTo())
                             {
-                                synonymTokens.Add(node.aggregate.SynonymToken);
+                                var token = node.SynonymToken ?? node.Token;
 
-                                replacementTokens.AddRange(node.tokenPath);
+                                if (!replacementTokens.Contains(token))
+                                {
+                                    replacementTokens.Add(token);
+                                }
                             }
                         }
-                        else
+                        else if (this.aggregate.Nodes.Count > 1)
                         {
-                            replacementTokens.AddRange(this.tokenPath);
-                        }
+                            foreach (var node in this.aggregate.Nodes)
+                            {
+                                var token = node.SynonymToken ?? node.Token;
 
-                        if (synonymTokens.Count > 0)
-                        {
-                            replacementTokens.AddRange(synonymTokens);
+                                if (!replacementTokens.Contains(token))
+                                {
+                                    replacementTokens.Add(token);
+                                }
+                            }
                         }
 
                         this.replacementTokens = replacementTokens;
@@ -181,7 +133,7 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public static TokenNode Build(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, int permutatedTokenCountThreshold, StringPoolSlim stringPool)
+            public static TokenNode Build(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, StringPoolSlim stringPool)
             {
                 var tokenTermSource = analyzer.CreateTokenTermSource();
                 var root = new TokenNode();
@@ -190,7 +142,7 @@ namespace Clara.Analysis.Synonyms
                 {
                     var aggregate = new TokenAggregate();
 
-                    foreach (var tokens in GetTokenPermutations((HashSetSlim<string>)synonym.Phrases, stringPool))
+                    foreach (var tokens in GetTokens((HashSetSlim<string>)synonym.Phrases))
                     {
                         var node = root;
 
@@ -198,7 +150,7 @@ namespace Clara.Analysis.Synonyms
                         {
                             if (!node.children.TryGetValue(token, out var child))
                             {
-                                node.children.Add(token, child = new TokenNode(node, token));
+                                node.children.Add(token, child = new TokenNode(token, node));
                             }
 
                             node = child;
@@ -219,7 +171,7 @@ namespace Clara.Analysis.Synonyms
 
                     if (synonym is MappingSynonym mappingSynonym)
                     {
-                        foreach (var tokens in GetTokenPermutations((HashSetSlim<string>)mappingSynonym.MappedPhrases, stringPool))
+                        foreach (var tokens in GetTokens((HashSetSlim<string>)mappingSynonym.MappedPhrases))
                         {
                             var node = root;
 
@@ -227,7 +179,7 @@ namespace Clara.Analysis.Synonyms
                             {
                                 if (!node.children.TryGetValue(token, out var child))
                                 {
-                                    node.children.Add(token, child = new TokenNode(node, token));
+                                    node.children.Add(token, child = new TokenNode(token, node));
                                 }
 
                                 node = child;
@@ -240,7 +192,7 @@ namespace Clara.Analysis.Synonyms
 
                 return root;
 
-                IEnumerable<ListSlim<string>> GetTokenPermutations(HashSetSlim<string> phrases, StringPoolSlim stringPool)
+                IEnumerable<ListSlim<string>> GetTokens(HashSetSlim<string> phrases)
                 {
                     foreach (var phrase in phrases)
                     {
@@ -253,17 +205,7 @@ namespace Clara.Analysis.Synonyms
 
                         if (tokens.Count > 0)
                         {
-                            if (tokens.Count > 1 && tokens.Count <= permutatedTokenCountThreshold)
-                            {
-                                foreach (var tokenPermutation in PermutationHelper.Permutate(tokens))
-                                {
-                                    yield return tokenPermutation;
-                                }
-                            }
-                            else
-                            {
-                                yield return tokens;
-                            }
+                            yield return tokens;
                         }
                     }
                 }

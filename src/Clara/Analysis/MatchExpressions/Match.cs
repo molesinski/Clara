@@ -13,89 +13,78 @@ namespace Clara.Analysis.MatchExpressions
             }
         }
 
-        public static MatchExpression All(ScoreAggregation scoreAggregation, IEnumerable<string>? tokens)
+        public static MatchExpression All(IEnumerable<string>? tokens)
         {
-            return All(scoreAggregation, new StringEnumerable(tokens));
+            return All(new StringEnumerable(tokens));
         }
 
-        public static MatchExpression Any(ScoreAggregation scoreAggregation, IEnumerable<string>? tokens, bool isLazy)
+        public static MatchExpression Any(IEnumerable<string>? tokens)
         {
-            return Any(scoreAggregation, new StringEnumerable(tokens), isLazy);
+            return Any(new StringEnumerable(tokens));
         }
 
-        public static MatchExpression And(ScoreAggregation scoreAggregation, IEnumerable<MatchExpression?>? expressions)
+        public static MatchExpression And(IEnumerable<MatchExpression?>? expressions)
         {
-            return And(scoreAggregation, new ObjectEnumerable<MatchExpression>(expressions));
+            return And(new ObjectEnumerable<MatchExpression>(expressions));
         }
 
-        public static MatchExpression Or(ScoreAggregation scoreAggregation, IEnumerable<MatchExpression?>? expressions, bool isLazy)
+        public static MatchExpression Or(IEnumerable<MatchExpression?>? expressions)
         {
-            return Or(scoreAggregation, new ObjectEnumerable<MatchExpression>(expressions), isLazy);
+            return Or(new ObjectEnumerable<MatchExpression>(expressions));
         }
 
-        public static MatchExpression Search(SearchMode mode, IEnumerable<SearchTerm> terms)
+        public static MatchExpression Search(SearchMode mode, IList<SearchTerm> terms)
         {
             if (terms is null)
             {
                 throw new ArgumentNullException(nameof(terms));
             }
 
-            var tokens = default(ListSlim<string>?);
-            var expressions = default(ListSlim<MatchExpression>?);
+            var expressions = new ListSlim<MatchExpression>();
 
-            foreach (var term in new PrimitiveEnumerable<SearchTerm>(terms))
+            var start = int.MaxValue;
+            var end = int.MinValue;
+
+            for (var i = 0; i < terms.Count; i++)
             {
-                if (term.Token is string token)
+                var term = terms[i];
+
+                start = start < term.Position.Start ? start : term.Position.Start;
+                end = end > term.Position.End ? end : term.Position.End;
+            }
+
+            for (var position = start; position <= end; position++)
+            {
+                var tokens = new ListSlim<string>();
+
+                for (var i = 0; i < terms.Count; i++)
                 {
-                    tokens ??= new();
-                    tokens.Add(token);
+                    var term = terms[i];
+
+                    if (term.Position.Overlaps(position))
+                    {
+                        tokens.Add(term.Token);
+                    }
                 }
-                else if (term.Expression is MatchExpression expression)
+
+                if (tokens.Count > 0)
                 {
-                    expressions ??= new();
-                    expressions.Add(expression);
+                    expressions.Add(new AnyTokensMatchExpression(tokens));
                 }
             }
 
-            if (tokens is not null)
-            {
-                MatchExpression tokenExpression =
-                    mode == SearchMode.All
-                        ? new AllTokensMatchExpression(ScoreAggregation.Sum, tokens)
-                        : new AnyTokensMatchExpression(ScoreAggregation.Sum, tokens, isLazy: false);
-
-                if (expressions is null)
-                {
-                    return tokenExpression;
-                }
-                else
-                {
-                    expressions.Insert(0, tokenExpression);
-                }
-            }
-
-            if (expressions is null)
+            if (expressions.Count == 0)
             {
                 return EmptyMatchExpression.Instance;
             }
-            else if (expressions.Count == 1)
-            {
-                return expressions[0];
-            }
-            else
-            {
-                if (mode == SearchMode.All)
-                {
-                    return new AndMatchExpression(ScoreAggregation.Sum, expressions);
-                }
-                else
-                {
-                    return new OrMatchExpression(ScoreAggregation.Sum, expressions, isLazy: false);
-                }
-            }
+
+            return
+                mode == SearchMode.All
+                    ? new AndMatchExpression(expressions)
+                    : new OrMatchExpression(expressions);
         }
 
-        private static MatchExpression All(ScoreAggregation scoreAggregation, StringEnumerable tokens)
+        private static MatchExpression All(StringEnumerable tokens)
         {
             var result = default(ListSlim<string>?);
 
@@ -107,13 +96,13 @@ namespace Clara.Analysis.MatchExpressions
 
             if (result is not null)
             {
-                return new AllTokensMatchExpression(scoreAggregation, result);
+                return new AllTokensMatchExpression(result);
             }
 
             return EmptyMatchExpression.Instance;
         }
 
-        private static MatchExpression Any(ScoreAggregation scoreAggregation, StringEnumerable tokens, bool isLazy)
+        private static MatchExpression Any(StringEnumerable tokens)
         {
             var result = default(ListSlim<string>?);
 
@@ -125,13 +114,13 @@ namespace Clara.Analysis.MatchExpressions
 
             if (result is not null)
             {
-                return new AnyTokensMatchExpression(scoreAggregation, result, isLazy);
+                return new AnyTokensMatchExpression(result);
             }
 
             return EmptyMatchExpression.Instance;
         }
 
-        private static MatchExpression And(ScoreAggregation scoreAggregation, ObjectEnumerable<MatchExpression> expressions)
+        private static MatchExpression And(ObjectEnumerable<MatchExpression> expressions)
         {
             var queue = new Queue<MatchExpression>();
             var result = default(ListSlim<MatchExpression>?);
@@ -150,7 +139,7 @@ namespace Clara.Analysis.MatchExpressions
                     continue;
                 }
 
-                if (expression is AndMatchExpression andMatchExpression && andMatchExpression.ScoreAggregation == scoreAggregation)
+                if (expression is AndMatchExpression andMatchExpression)
                 {
                     for (var i = 0; i < andMatchExpression.Expressions.Count; i++)
                     {
@@ -171,13 +160,13 @@ namespace Clara.Analysis.MatchExpressions
                     return result[0];
                 }
 
-                return new AndMatchExpression(scoreAggregation, result);
+                return new AndMatchExpression(result);
             }
 
             return EmptyMatchExpression.Instance;
         }
 
-        private static MatchExpression Or(ScoreAggregation scoreAggregation, ObjectEnumerable<MatchExpression> expressions, bool isLazy)
+        private static MatchExpression Or(ObjectEnumerable<MatchExpression> expressions)
         {
             var queue = new Queue<MatchExpression>();
             var result = default(ListSlim<MatchExpression>?);
@@ -196,7 +185,7 @@ namespace Clara.Analysis.MatchExpressions
                     continue;
                 }
 
-                if (expression is OrMatchExpression orMatchExpression && orMatchExpression.ScoreAggregation == scoreAggregation)
+                if (expression is OrMatchExpression orMatchExpression)
                 {
                     for (var i = 0; i < orMatchExpression.Expressions.Count; i++)
                     {
@@ -217,7 +206,7 @@ namespace Clara.Analysis.MatchExpressions
                     return result[0];
                 }
 
-                return new OrMatchExpression(scoreAggregation, result, isLazy);
+                return new OrMatchExpression(result);
             }
 
             return EmptyMatchExpression.Instance;

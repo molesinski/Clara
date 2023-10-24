@@ -1,4 +1,4 @@
-﻿namespace Clara.Analysis.MatchExpressions
+﻿namespace Clara.Storage
 {
     public enum ScoreAggregation
     {

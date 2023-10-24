@@ -5,15 +5,13 @@ namespace Clara.Analysis.Synonyms
 {
     public sealed partial class SynonymMap : ISynonymMap
     {
-        public const int MaximumPermutatedTokenCount = 5;
-
         private readonly HashSet<Synonym> synonyms = new();
         private readonly StringPoolSlim stringPool = new();
         private readonly IAnalyzer analyzer;
         private readonly TokenNode root;
         private readonly ObjectPool<SearchTermEnumerable> searchTermEnumerablePool;
 
-        public SynonymMap(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, int permutatedTokenCountThreshold = 1)
+        public SynonymMap(IAnalyzer analyzer, IEnumerable<Synonym> synonyms)
         {
             if (analyzer is null)
             {
@@ -23,11 +21,6 @@ namespace Clara.Analysis.Synonyms
             if (synonyms is null)
             {
                 throw new ArgumentNullException(nameof(synonyms));
-            }
-
-            if (permutatedTokenCountThreshold < 1 || permutatedTokenCountThreshold > MaximumPermutatedTokenCount)
-            {
-                throw new ArgumentOutOfRangeException(nameof(permutatedTokenCountThreshold));
             }
 
             foreach (var synonym in synonyms)
@@ -41,7 +34,7 @@ namespace Clara.Analysis.Synonyms
             }
 
             this.analyzer = analyzer;
-            this.root = TokenNode.Build(analyzer, this.synonyms, permutatedTokenCountThreshold, this.stringPool);
+            this.root = TokenNode.Build(analyzer, this.synonyms, this.stringPool);
             this.searchTermEnumerablePool = new(() => new(this));
         }
 

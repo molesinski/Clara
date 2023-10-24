@@ -31,26 +31,26 @@ namespace Clara.Tests
         [InlineData("i-pad", SearchMode.Any, "", false)]
         [InlineData("i-pad", SearchMode.All, "xxx", false)]
         [InlineData("i-pad", SearchMode.Any, "xxx", false)]
-        [InlineData("i pad", SearchMode.All, "i pad", true)] // identity
-        [InlineData("i pad", SearchMode.Any, "i pad", true)] // identity
-        [InlineData("i-pad", SearchMode.All, "i pad", true)] // identity
-        [InlineData("i-pad", SearchMode.Any, "i-pad", true)] // identity
-        [InlineData("ipad", SearchMode.All, "ipad", true)] // identity
-        [InlineData("ipad", SearchMode.Any, "ipad", true)] // identity
-        [InlineData("i-pad", SearchMode.All, "ipad", true)] // transitive
-        [InlineData("i-pad", SearchMode.Any, "ipad", true)] // transitive
-        [InlineData("ipad", SearchMode.All, "i pad", true)] // transitive
-        [InlineData("ipad", SearchMode.Any, "i pad", true)] // transitive
-        [InlineData("i pad", SearchMode.All, "i-pad", true)] // transitive
-        [InlineData("i pad", SearchMode.Any, "i-pad", true)] // transitive
+        [InlineData("i pad", SearchMode.All, "i pad", true)]
+        [InlineData("i pad", SearchMode.Any, "i pad", true)]
+        [InlineData("i-pad", SearchMode.All, "i pad", true)]
+        [InlineData("i-pad", SearchMode.Any, "i-pad", true)]
+        [InlineData("ipad", SearchMode.All, "ipad", true)]
+        [InlineData("ipad", SearchMode.Any, "ipad", true)]
+        [InlineData("i-pad", SearchMode.All, "ipad", true)]
+        [InlineData("i-pad", SearchMode.Any, "ipad", true)]
+        [InlineData("ipad", SearchMode.All, "i pad", true)]
+        [InlineData("ipad", SearchMode.Any, "i pad", true)]
+        [InlineData("i pad", SearchMode.All, "i-pad", true)]
+        [InlineData("i pad", SearchMode.Any, "i-pad", true)]
         [InlineData("xxx i pad", SearchMode.All, "ipad", false)]
         [InlineData("xxx i pad", SearchMode.Any, "ipad", true)]
         [InlineData("xxx i-pad", SearchMode.All, "ipad", false)]
         [InlineData("xxx i-pad", SearchMode.Any, "ipad", true)]
         [InlineData("xxx ipad", SearchMode.All, "ipad", false)]
         [InlineData("xxx ipad", SearchMode.Any, "ipad", true)]
-        [InlineData("pad", SearchMode.All, "i pad", true)]
-        [InlineData("pad", SearchMode.Any, "i pad", true)]
+        [InlineData("pad", SearchMode.All, "i pad", false)]
+        [InlineData("pad", SearchMode.Any, "i pad", false)]
         [InlineData("pad", SearchMode.All, "ipad", false)]
         [InlineData("pad", SearchMode.Any, "ipad", false)]
         //// ExplicitMapping : i phone, i-phone => iphone
@@ -58,26 +58,26 @@ namespace Clara.Tests
         [InlineData("i-phone", SearchMode.Any, "", false)]
         [InlineData("i-phone", SearchMode.All, "xxx", false)]
         [InlineData("i-phone", SearchMode.Any, "xxx", false)]
-        [InlineData("i phone", SearchMode.All, "i phone", true)] // identity
-        [InlineData("i phone", SearchMode.Any, "i phone", true)] // identity
-        [InlineData("i-phone", SearchMode.All, "i phone", true)] // identity
-        [InlineData("i-phone", SearchMode.Any, "i-phone", true)] // identity
-        [InlineData("iphone", SearchMode.All, "iphone", true)] // identity
-        [InlineData("iphone", SearchMode.Any, "iphone", true)] // identity
-        [InlineData("i-phone", SearchMode.All, "iphone", true)] // transitive
-        [InlineData("i-phone", SearchMode.Any, "iphone", true)] // transitive
-        [InlineData("iphone", SearchMode.All, "i phone", true)] // transitive
-        [InlineData("iphone", SearchMode.Any, "i phone", true)] // transitive
-        [InlineData("i phone", SearchMode.All, "i-phone", true)] // transitive
-        [InlineData("i phone", SearchMode.Any, "i-phone", true)] // transitive
+        [InlineData("i phone", SearchMode.All, "i phone", false /* true */)]
+        [InlineData("i phone", SearchMode.Any, "i phone", false /* true */)]
+        [InlineData("i-phone", SearchMode.All, "i phone", false /* true */)]
+        [InlineData("i-phone", SearchMode.Any, "i-phone", false /* true */)]
+        [InlineData("iphone", SearchMode.All, "iphone", true)]
+        [InlineData("iphone", SearchMode.Any, "iphone", true)]
+        [InlineData("i-phone", SearchMode.All, "iphone", false /* true */)]
+        [InlineData("i-phone", SearchMode.Any, "iphone", false /* true */)]
+        [InlineData("iphone", SearchMode.All, "i phone", true)]
+        [InlineData("iphone", SearchMode.Any, "i phone", true)]
+        [InlineData("i phone", SearchMode.All, "i-phone", false /* true */)]
+        [InlineData("i phone", SearchMode.Any, "i-phone", false /* true */)]
         [InlineData("xxx i phone", SearchMode.All, "iphone", false)]
-        [InlineData("xxx i phone", SearchMode.Any, "iphone", true)]
+        [InlineData("xxx i phone", SearchMode.Any, "iphone", false /* true */)]
         [InlineData("xxx i-phone", SearchMode.All, "iphone", false)]
-        [InlineData("xxx i-phone", SearchMode.Any, "iphone", true)]
+        [InlineData("xxx i-phone", SearchMode.Any, "iphone", false /* true */)]
         [InlineData("xxx iphone", SearchMode.All, "iphone", false)]
         [InlineData("xxx iphone", SearchMode.Any, "iphone", true)]
-        [InlineData("phone", SearchMode.All, "i phone", false /* true for Equivalency */)]
-        [InlineData("phone", SearchMode.Any, "i phone", false /* true for Equivalency */)]
+        [InlineData("phone", SearchMode.All, "i phone", false)]
+        [InlineData("phone", SearchMode.Any, "i phone", false)]
         [InlineData("phone", SearchMode.All, "iphone", false)]
         [InlineData("phone", SearchMode.Any, "iphone", false)]
         //// ExplicitMapping : i pod, i-pod, ipod => i pod, i-pod, ipod
@@ -85,28 +85,55 @@ namespace Clara.Tests
         [InlineData("i-pod", SearchMode.Any, "", false)]
         [InlineData("i-pod", SearchMode.All, "xxx", false)]
         [InlineData("i-pod", SearchMode.Any, "xxx", false)]
-        [InlineData("i pod", SearchMode.All, "i pod", true)] // identity
-        [InlineData("i pod", SearchMode.Any, "i pod", true)] // identity
-        [InlineData("i-pod", SearchMode.All, "i pod", true)] // identity
-        [InlineData("i-pod", SearchMode.Any, "i-pod", true)] // identity
-        [InlineData("ipod", SearchMode.All, "ipod", true)] // identity
-        [InlineData("ipod", SearchMode.Any, "ipod", true)] // identity
-        [InlineData("i-pod", SearchMode.All, "ipod", true)] // transitive
-        [InlineData("i-pod", SearchMode.Any, "ipod", true)] // transitive
-        [InlineData("ipod", SearchMode.All, "i pod", true)] // transitive
-        [InlineData("ipod", SearchMode.Any, "i pod", true)] // transitive
-        [InlineData("i pod", SearchMode.All, "i-pod", true)] // transitive
-        [InlineData("i pod", SearchMode.Any, "i-pod", true)] // transitive
+        [InlineData("i pod", SearchMode.All, "i pod", true)]
+        [InlineData("i pod", SearchMode.Any, "i pod", true)]
+        [InlineData("i-pod", SearchMode.All, "i pod", true)]
+        [InlineData("i-pod", SearchMode.Any, "i-pod", true)]
+        [InlineData("ipod", SearchMode.All, "ipod", true)]
+        [InlineData("ipod", SearchMode.Any, "ipod", true)]
+        [InlineData("i-pod", SearchMode.All, "ipod", true)]
+        [InlineData("i-pod", SearchMode.Any, "ipod", true)]
+        [InlineData("ipod", SearchMode.All, "i pod", true)]
+        [InlineData("ipod", SearchMode.Any, "i pod", true)]
+        [InlineData("i pod", SearchMode.All, "i-pod", true)]
+        [InlineData("i pod", SearchMode.Any, "i-pod", true)]
         [InlineData("xxx i pod", SearchMode.All, "ipod", false)]
         [InlineData("xxx i pod", SearchMode.Any, "ipod", true)]
         [InlineData("xxx i-pod", SearchMode.All, "ipod", false)]
         [InlineData("xxx i-pod", SearchMode.Any, "ipod", true)]
         [InlineData("xxx ipod", SearchMode.All, "ipod", false)]
         [InlineData("xxx ipod", SearchMode.Any, "ipod", true)]
-        [InlineData("pod", SearchMode.All, "i pod", true)]
-        [InlineData("pod", SearchMode.Any, "i pod", true)]
-        [InlineData("pod", SearchMode.All, "ipod", true /* false for Equivalency */)]
-        [InlineData("pod", SearchMode.Any, "ipod", true /* false for Equivalency */)]
+        [InlineData("pod", SearchMode.All, "i pod", false)]
+        [InlineData("pod", SearchMode.Any, "i pod", false)]
+        [InlineData("pod", SearchMode.All, "ipod", false)]
+        [InlineData("pod", SearchMode.Any, "ipod", false)]
+        //// ExplicitMapping : imac => i mac, i-mac, imac
+        [InlineData("i-mac", SearchMode.All, "", false)]
+        [InlineData("i-mac", SearchMode.Any, "", false)]
+        [InlineData("i-mac", SearchMode.All, "xxx", false)]
+        [InlineData("i-mac", SearchMode.Any, "xxx", false)]
+        [InlineData("i mac", SearchMode.All, "i mac", true)]
+        [InlineData("i mac", SearchMode.Any, "i mac", true)]
+        [InlineData("i-mac", SearchMode.All, "i mac", true)]
+        [InlineData("i-mac", SearchMode.Any, "i-mac", true)]
+        [InlineData("imac", SearchMode.All, "imac", true)]
+        [InlineData("imac", SearchMode.Any, "imac", true)]
+        [InlineData("i-mac", SearchMode.All, "imac", true)]
+        [InlineData("i-mac", SearchMode.Any, "imac", true)]
+        [InlineData("imac", SearchMode.All, "i mac", false /* true */)]
+        [InlineData("imac", SearchMode.Any, "i mac", false /* true */)]
+        [InlineData("i mac", SearchMode.All, "i-mac", true)]
+        [InlineData("i mac", SearchMode.Any, "i-mac", true)]
+        [InlineData("xxx i mac", SearchMode.All, "imac", false)]
+        [InlineData("xxx i mac", SearchMode.Any, "imac", true)]
+        [InlineData("xxx i-mac", SearchMode.All, "imac", false)]
+        [InlineData("xxx i-mac", SearchMode.Any, "imac", true)]
+        [InlineData("xxx imac", SearchMode.All, "imac", false)]
+        [InlineData("xxx imac", SearchMode.Any, "imac", true)]
+        [InlineData("mac", SearchMode.All, "i mac", true /* false */)]
+        [InlineData("mac", SearchMode.Any, "i mac", true /* false */)]
+        [InlineData("mac", SearchMode.All, "imac", false)]
+        [InlineData("mac", SearchMode.Any, "imac", false)]
         public void StandardMatches(string search, SearchMode mode, string document, bool expected)
         {
             var synonymMap =
@@ -117,6 +144,7 @@ namespace Clara.Tests
                         new EquivalencySynonym(new[] { "i pad", "i-pad", "ipad" }),
                         new MappingSynonym(new[] { "i phone", "i-phone" }, new[] { "iphone" }),
                         new MappingSynonym(new[] { "i pod", "i-pod", "ipod" }, new[] { "i pod", "i-pod", "ipod" }),
+                        new MappingSynonym(new[] { "imac" }, new[] { "i mac", "i-mac", "imac" }),
                     });
 
             Assert.Equal(expected, IsMatching(synonymMap, search, mode, document, this.output));
@@ -138,51 +166,30 @@ namespace Clara.Tests
                         new MappingSynonym(new[] { "fff" }, new[] { "ggg" }),
                     });
 
-            var phrases = Array.Empty<string>()
+            var allPhrases = Array.Empty<string>()
                 .Concat(synonymMap.Synonyms.SelectMany(x => x.Phrases))
                 .Concat(synonymMap.Synonyms.OfType<MappingSynonym>().SelectMany(x => x.MappedPhrases))
                 .Distinct()
                 .ToList();
 
-            foreach (var a in phrases)
+            var finalPhrase = Array.Empty<string>()
+                .Concat(synonymMap.Synonyms.OfType<MappingSynonym>().SelectMany(x => x.MappedPhrases))
+                .Last();
+
+            foreach (var phrase in allPhrases)
             {
-                Assert.False(IsMatching(synonymMap, a, SearchMode.All, string.Empty, output: null));
-                Assert.False(IsMatching(synonymMap, a, SearchMode.Any, string.Empty, output: null));
-                Assert.False(IsMatching(synonymMap, string.Empty, SearchMode.All, a, output: null));
-                Assert.False(IsMatching(synonymMap, string.Empty, SearchMode.Any, a, output: null));
-                Assert.False(IsMatching(synonymMap, a, SearchMode.All, "xxx", output: null));
-                Assert.False(IsMatching(synonymMap, a, SearchMode.Any, "xxx", output: null));
-                Assert.False(IsMatching(synonymMap, "xxx", SearchMode.All, a, output: null));
-                Assert.False(IsMatching(synonymMap, "xxx", SearchMode.Any, a, output: null));
+                Assert.False(IsMatching(synonymMap, phrase, SearchMode.All, string.Empty, output: null));
+                Assert.False(IsMatching(synonymMap, phrase, SearchMode.Any, string.Empty, output: null));
+                Assert.False(IsMatching(synonymMap, string.Empty, SearchMode.All, phrase, output: null));
+                Assert.False(IsMatching(synonymMap, string.Empty, SearchMode.Any, phrase, output: null));
+                Assert.False(IsMatching(synonymMap, phrase, SearchMode.All, "xxx", output: null));
+                Assert.False(IsMatching(synonymMap, phrase, SearchMode.Any, "xxx", output: null));
+                Assert.False(IsMatching(synonymMap, "xxx", SearchMode.All, phrase, output: null));
+                Assert.False(IsMatching(synonymMap, "xxx", SearchMode.Any, phrase, output: null));
 
-                foreach (var b in phrases)
-                {
-                    Assert.True(IsMatching(synonymMap, a, SearchMode.All, b, output: null));
-                    Assert.True(IsMatching(synonymMap, a, SearchMode.Any, b, output: null));
-                }
+                Assert.True(IsMatching(synonymMap, finalPhrase, SearchMode.All, phrase, output: null));
+                Assert.True(IsMatching(synonymMap, finalPhrase, SearchMode.Any, phrase, output: null));
             }
-        }
-
-        [Theory]
-        [InlineData("aaa", 1, false)]
-        [InlineData("bbb", 1, false)]
-        [InlineData("xxx", 1, true)]
-        [InlineData("aaa bbb", 2, true)]
-        [InlineData("bbb aaa", 2, true)]
-        [InlineData("xxx", 2, true)]
-        public void PermutationMatches(string search, int permutatedTokenCountThreshold, bool expected)
-        {
-            var synonymMap =
-                new SynonymMap(
-                    new StandardAnalyzer(),
-                    new Synonym[]
-                    {
-                        new EquivalencySynonym(new[] { "aaa bbb", "xxx" }),
-                    },
-                    permutatedTokenCountThreshold);
-
-            Assert.Equal(expected, IsMatching(synonymMap, search, SearchMode.All, "xxx", output: null));
-            Assert.Equal(expected, IsMatching(synonymMap, search, SearchMode.Any, "xxx", output: null));
         }
 
         [Fact]
@@ -219,6 +226,7 @@ namespace Clara.Tests
                     new EquivalencySynonym(new[] { "i pad", "i-pad", "ipad" }),
                     new MappingSynonym(new[] { "i phone", "i-phone" }, new[] { "iphone" }),
                     new MappingSynonym(new[] { "i pod", "i-pod", "ipod" }, new[] { "i pod", "i-pod", "ipod" }),
+                    new MappingSynonym(new[] { "imac" }, new[] { "i mac", "i-mac", "imac" }),
                 };
 
             var synonymsText = string.Join(Environment.NewLine, synonyms.Select(x => x.ToString()));
@@ -228,6 +236,7 @@ namespace Clara.Tests
                 i pad, i-pad, ipad
                 i phone, i-phone => iphone
                 i pod, i-pod, ipod => i pod, i-pod, ipod
+                imac => i mac, i-mac, imac
                 """,
                 synonymsText);
 
@@ -245,7 +254,7 @@ namespace Clara.Tests
 
             var matchExpression = Match.Search(mode, searchTerms);
 
-            var isMatching = matchExpression.IsMatching(documentTokens);
+            var isMatching = matchExpression.Matches(documentTokens);
 
             if (output is not null)
             {

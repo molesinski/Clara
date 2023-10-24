@@ -10,7 +10,7 @@ namespace Clara.Analysis.MatchExpressions
 
         internal static MatchExpression Instance { get; } = new EmptyMatchExpression();
 
-        public override bool IsMatching(IReadOnlyCollection<string> tokens)
+        public override bool Matches(IReadOnlyCollection<string> tokens)
         {
             return false;
         }

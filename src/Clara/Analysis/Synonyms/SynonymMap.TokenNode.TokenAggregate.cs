@@ -6,7 +6,6 @@
         {
             private sealed class TokenAggregate
             {
-                private readonly string synonymToken = string.Concat("__SYNONYM__", Guid.NewGuid().ToString("N"));
                 private readonly HashSet<TokenNode> nodes = new();
                 private readonly HashSet<TokenNode> mappedTo = new();
                 private readonly HashSet<TokenNode> mappedFrom = new();
@@ -25,19 +24,19 @@
                     this.nodes.Add(node);
                 }
 
-                public string SynonymToken
-                {
-                    get
-                    {
-                        return this.synonymToken;
-                    }
-                }
-
                 public HashSet<TokenNode> Nodes
                 {
                     get
                     {
                         return this.nodes;
+                    }
+                }
+
+                public HashSet<TokenNode> MappedFrom
+                {
+                    get
+                    {
+                        return this.mappedFrom;
                     }
                 }
 
@@ -49,12 +48,43 @@
                     }
                 }
 
-                public HashSet<TokenNode> MappedFrom
+                public IReadOnlyCollection<TokenNode> GetRecursiveMappedTo()
                 {
-                    get
+                    if (this.mappedTo.Count == 0)
                     {
-                        return this.mappedFrom;
+                        return Array.Empty<TokenNode>();
                     }
+
+                    var result = new HashSet<TokenNode>();
+                    var seen = new HashSet<TokenNode>(this.mappedTo);
+                    var queue = new Queue<TokenNode>(this.mappedTo);
+
+                    while (queue.Count > 0)
+                    {
+                        var node = queue.Dequeue();
+
+                        if (node.aggregate.mappedTo.Count > 0)
+                        {
+                            foreach (var mappedTo in node.aggregate.mappedTo)
+                            {
+                                if (!seen.Contains(node))
+                                {
+                                    queue.Enqueue(mappedTo);
+                                    seen.Add(mappedTo);
+                                }
+                                else
+                                {
+                                    result.Add(mappedTo);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result.Add(node);
+                        }
+                    }
+
+                    return result;
                 }
 
                 public void MergeWith(TokenAggregate aggregate)

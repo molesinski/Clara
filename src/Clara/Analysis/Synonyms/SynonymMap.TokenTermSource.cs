@@ -89,7 +89,7 @@ namespace Clara.Analysis.Synonyms
                         }
                         else
                         {
-                            if (this.backtrackingNode.HasSynonyms)
+                            if (this.backtrackingNode.ReplacementTokens.Count > 0)
                             {
                                 var position = TokenPosition.Combine(this.backtrackingPositions);
 
@@ -97,7 +97,6 @@ namespace Clara.Analysis.Synonyms
                                 this.replacementIndex = 0;
                                 this.replacementPosition = position;
                                 this.backtrackingNode = null;
-
                                 this.backtrackingPositions.Clear();
                             }
                             else
@@ -106,7 +105,6 @@ namespace Clara.Analysis.Synonyms
 
                                 this.current = new TokenTerm(new Token(this.backtrackingNode.Token), position);
                                 this.backtrackingNode = this.backtrackingNode.Parent;
-
                                 this.backtrackingPositions.RemoveAt(this.backtrackingPositions.Count - 1);
 
                                 return true;
