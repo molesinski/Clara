@@ -1,6 +1,4 @@
-﻿using Clara.Analysis;
-
-namespace Clara.Storage
+﻿namespace Clara.Storage
 {
     internal readonly record struct SearchTermStoreIndex
     {

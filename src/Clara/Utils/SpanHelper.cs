@@ -2,7 +2,9 @@
 {
     internal static class SpanHelper
     {
+#if NET6_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Globalization", "CA1307:Specify StringComparison for clarity", Justification = "By design")]
+#endif
         internal static int GetHashCode(ReadOnlySpan<char> span)
         {
 #if NET6_0_OR_GREATER

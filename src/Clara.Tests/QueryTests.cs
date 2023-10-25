@@ -1,4 +1,4 @@
-﻿using Clara.Analysis.Synonyms;
+﻿using Clara.Analysis;
 using Clara.Querying;
 using Xunit;
 

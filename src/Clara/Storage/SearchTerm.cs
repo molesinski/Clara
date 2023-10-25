@@ -1,4 +1,6 @@
-﻿namespace Clara.Analysis
+﻿using Clara.Analysis;
+
+namespace Clara.Storage
 {
     public readonly record struct SearchTerm
     {

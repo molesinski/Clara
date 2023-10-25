@@ -1,5 +1,4 @@
 ﻿using Clara.Analysis;
-using Clara.Analysis.Synonyms;
 using Clara.Storage;
 using Clara.Utils;
 

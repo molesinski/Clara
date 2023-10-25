@@ -6,7 +6,7 @@ namespace Clara.Analysis.Synonyms
     {
         private sealed partial class TokenNode
         {
-            private readonly string synonymToken = string.Concat("__SYNONYM__", Guid.NewGuid().ToString("N"));
+            private readonly string[] pathTokens;
             private readonly string? token;
             private readonly TokenNode? parent;
             private readonly Dictionary<string, TokenNode> children = new();
@@ -15,7 +15,8 @@ namespace Clara.Analysis.Synonyms
 
             private TokenNode()
             {
-                this.aggregate = new(this);
+                this.pathTokens = Array.Empty<string>();
+                this.aggregate = new TokenAggregate(this);
             }
 
             private TokenNode(string token, TokenNode parent)
@@ -30,9 +31,15 @@ namespace Clara.Analysis.Synonyms
                     throw new ArgumentNullException(nameof(parent));
                 }
 
+                var pathTokens = new string[parent.pathTokens.Length + 1];
+
+                Array.Copy(parent.pathTokens, pathTokens, parent.pathTokens.Length);
+                pathTokens[pathTokens.Length - 1] = token;
+
+                this.pathTokens = pathTokens;
                 this.token = token;
                 this.parent = parent;
-                this.aggregate = new(this);
+                this.aggregate = new TokenAggregate(this);
             }
 
             public string Token
@@ -77,56 +84,33 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public string? SynonymToken
-            {
-                get
-                {
-                    if (this.parent?.parent is not null)
-                    {
-                        if (this.aggregate.Nodes.Count > 1 || this.aggregate.MappedFrom.Count > 0 || this.aggregate.MappedTo.Count > 0)
-                        {
-                            return this.synonymToken;
-                        }
-                    }
-
-                    return null;
-                }
-            }
-
             public ListSlim<string> ReplacementTokens
             {
                 get
                 {
                     if (this.replacementTokens is null)
                     {
-                        var replacementTokens = new ListSlim<string>();
+                        var replacementTokens = new HashSet<string>();
+                        var nodes = Enumerable.Empty<TokenNode>();
 
                         if (this.aggregate.MappedTo.Count > 0)
                         {
-                            foreach (var node in this.aggregate.GetRecursiveMappedTo())
-                            {
-                                var token = node.SynonymToken ?? node.Token;
-
-                                if (!replacementTokens.Contains(token))
-                                {
-                                    replacementTokens.Add(token);
-                                }
-                            }
+                            nodes = this.aggregate.GetRecursiveMappedTo();
                         }
                         else if (this.aggregate.Nodes.Count > 1)
                         {
-                            foreach (var node in this.aggregate.Nodes)
-                            {
-                                var token = node.SynonymToken ?? node.Token;
+                            nodes = this.aggregate.Nodes;
+                        }
 
-                                if (!replacementTokens.Contains(token))
-                                {
-                                    replacementTokens.Add(token);
-                                }
+                        foreach (var node in nodes)
+                        {
+                            foreach (var token in node.pathTokens)
+                            {
+                                replacementTokens.Add(token);
                             }
                         }
 
-                        this.replacementTokens = replacementTokens;
+                        this.replacementTokens = new ListSlim<string>(replacementTokens);
                     }
 
                     return this.replacementTokens;
@@ -207,6 +191,118 @@ namespace Clara.Analysis.Synonyms
                         {
                             yield return tokens;
                         }
+                    }
+                }
+            }
+
+            private sealed class TokenAggregate
+            {
+                private readonly HashSet<TokenNode> nodes = new();
+                private readonly HashSet<TokenNode> mappedTo = new();
+                private readonly HashSet<TokenNode> mappedFrom = new();
+
+                public TokenAggregate()
+                {
+                }
+
+                public TokenAggregate(TokenNode node)
+                {
+                    if (node is null)
+                    {
+                        throw new ArgumentNullException(nameof(node));
+                    }
+
+                    this.nodes.Add(node);
+                }
+
+                public HashSet<TokenNode> Nodes
+                {
+                    get
+                    {
+                        return this.nodes;
+                    }
+                }
+
+                public HashSet<TokenNode> MappedFrom
+                {
+                    get
+                    {
+                        return this.mappedFrom;
+                    }
+                }
+
+                public HashSet<TokenNode> MappedTo
+                {
+                    get
+                    {
+                        return this.mappedTo;
+                    }
+                }
+
+                public IReadOnlyCollection<TokenNode> GetRecursiveMappedTo()
+                {
+                    if (this.mappedTo.Count == 0)
+                    {
+                        return Array.Empty<TokenNode>();
+                    }
+
+                    var result = new HashSet<TokenNode>();
+                    var seen = new HashSet<TokenNode>(this.mappedTo);
+                    var queue = new Queue<TokenNode>(this.mappedTo);
+
+                    while (queue.Count > 0)
+                    {
+                        var node = queue.Dequeue();
+
+                        if (node.aggregate.mappedTo.Count > 0)
+                        {
+                            foreach (var mappedTo in node.aggregate.mappedTo)
+                            {
+                                if (!seen.Contains(node))
+                                {
+                                    queue.Enqueue(mappedTo);
+                                    seen.Add(mappedTo);
+                                }
+                                else
+                                {
+                                    result.Add(mappedTo);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result.Add(node);
+                        }
+                    }
+
+                    return result;
+                }
+
+                public void MergeWith(TokenAggregate aggregate)
+                {
+                    this.nodes.UnionWith(aggregate.nodes);
+                    this.mappedFrom.UnionWith(aggregate.mappedFrom);
+                    this.mappedTo.UnionWith(aggregate.mappedTo);
+                }
+
+                public void MapTo(TokenAggregate aggregate)
+                {
+                    this.mappedTo.UnionWith(aggregate.nodes);
+                    this.mappedTo.UnionWith(aggregate.mappedTo);
+
+                    aggregate.mappedFrom.UnionWith(this.nodes);
+                    aggregate.mappedFrom.UnionWith(this.mappedFrom);
+
+                    foreach (var node in this.mappedFrom)
+                    {
+                        node.aggregate.mappedTo.UnionWith(aggregate.nodes);
+                        node.aggregate.mappedTo.UnionWith(aggregate.mappedTo);
+                    }
+
+                    foreach (var node in aggregate.mappedTo)
+                    {
+                        node.aggregate.mappedFrom.UnionWith(this.nodes);
+                        node.aggregate.mappedFrom.UnionWith(this.mappedFrom);
                     }
                 }
             }

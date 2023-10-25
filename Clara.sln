@@ -17,7 +17,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".Solution", ".Solution", "{
 		Package.props = Package.props
 		README.md = README.md
 		spelling.dic = spelling.dic
-		TODO.md = TODO.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Clara", "src\Clara\Clara.csproj", "{ACB43A6C-A950-40C5-87E3-FCAD92F016B5}"

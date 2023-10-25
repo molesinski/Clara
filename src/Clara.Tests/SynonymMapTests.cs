@@ -1,29 +1,17 @@
 ﻿using Clara.Analysis;
-using Clara.Analysis.MatchExpressions;
 using Clara.Analysis.Synonyms;
+using Clara.Mapping;
 using Clara.Querying;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Clara.Tests
 {
     public class SynonymMapTests
     {
-        private readonly ITestOutputHelper output;
-
-        public SynonymMapTests(ITestOutputHelper output)
-        {
-            this.output = output;
-        }
-
         [Theory]
         //// Baseline
-        [InlineData("", SearchMode.All, "", false)]
-        [InlineData("", SearchMode.Any, "", false)]
         [InlineData("xxx", SearchMode.All, "", false)]
         [InlineData("xxx", SearchMode.Any, "", false)]
-        [InlineData("", SearchMode.All, "xxx", false)]
-        [InlineData("", SearchMode.Any, "xxx", false)]
         [InlineData("xxx", SearchMode.All, "xxx", true)]
         [InlineData("xxx", SearchMode.Any, "xxx", true)]
         //// Equivalency : i pad, i-pad, ipad
@@ -49,31 +37,31 @@ namespace Clara.Tests
         [InlineData("xxx i-pad", SearchMode.Any, "ipad", true)]
         [InlineData("xxx ipad", SearchMode.All, "ipad", false)]
         [InlineData("xxx ipad", SearchMode.Any, "ipad", true)]
-        [InlineData("pad", SearchMode.All, "i pad", false)]
-        [InlineData("pad", SearchMode.Any, "i pad", false)]
-        [InlineData("pad", SearchMode.All, "ipad", false)]
-        [InlineData("pad", SearchMode.Any, "ipad", false)]
+        [InlineData("pad", SearchMode.All, "i pad", true)]
+        [InlineData("pad", SearchMode.Any, "i pad", true)]
+        [InlineData("pad", SearchMode.All, "ipad", true)]
+        [InlineData("pad", SearchMode.Any, "ipad", true)]
         //// ExplicitMapping : i phone, i-phone => iphone
         [InlineData("i-phone", SearchMode.All, "", false)]
         [InlineData("i-phone", SearchMode.Any, "", false)]
         [InlineData("i-phone", SearchMode.All, "xxx", false)]
         [InlineData("i-phone", SearchMode.Any, "xxx", false)]
-        [InlineData("i phone", SearchMode.All, "i phone", false /* true */)]
-        [InlineData("i phone", SearchMode.Any, "i phone", false /* true */)]
-        [InlineData("i-phone", SearchMode.All, "i phone", false /* true */)]
-        [InlineData("i-phone", SearchMode.Any, "i-phone", false /* true */)]
+        [InlineData("i phone", SearchMode.All, "i phone", false)]
+        [InlineData("i phone", SearchMode.Any, "i phone", false)]
+        [InlineData("i-phone", SearchMode.All, "i phone", false)]
+        [InlineData("i-phone", SearchMode.Any, "i-phone", false)]
         [InlineData("iphone", SearchMode.All, "iphone", true)]
         [InlineData("iphone", SearchMode.Any, "iphone", true)]
-        [InlineData("i-phone", SearchMode.All, "iphone", false /* true */)]
-        [InlineData("i-phone", SearchMode.Any, "iphone", false /* true */)]
+        [InlineData("i-phone", SearchMode.All, "iphone", false)]
+        [InlineData("i-phone", SearchMode.Any, "iphone", false)]
         [InlineData("iphone", SearchMode.All, "i phone", true)]
         [InlineData("iphone", SearchMode.Any, "i phone", true)]
-        [InlineData("i phone", SearchMode.All, "i-phone", false /* true */)]
-        [InlineData("i phone", SearchMode.Any, "i-phone", false /* true */)]
+        [InlineData("i phone", SearchMode.All, "i-phone", false)]
+        [InlineData("i phone", SearchMode.Any, "i-phone", false)]
         [InlineData("xxx i phone", SearchMode.All, "iphone", false)]
-        [InlineData("xxx i phone", SearchMode.Any, "iphone", false /* true */)]
+        [InlineData("xxx i phone", SearchMode.Any, "iphone", false)]
         [InlineData("xxx i-phone", SearchMode.All, "iphone", false)]
-        [InlineData("xxx i-phone", SearchMode.Any, "iphone", false /* true */)]
+        [InlineData("xxx i-phone", SearchMode.Any, "iphone", false)]
         [InlineData("xxx iphone", SearchMode.All, "iphone", false)]
         [InlineData("xxx iphone", SearchMode.Any, "iphone", true)]
         [InlineData("phone", SearchMode.All, "i phone", false)]
@@ -103,10 +91,10 @@ namespace Clara.Tests
         [InlineData("xxx i-pod", SearchMode.Any, "ipod", true)]
         [InlineData("xxx ipod", SearchMode.All, "ipod", false)]
         [InlineData("xxx ipod", SearchMode.Any, "ipod", true)]
-        [InlineData("pod", SearchMode.All, "i pod", false)]
-        [InlineData("pod", SearchMode.Any, "i pod", false)]
-        [InlineData("pod", SearchMode.All, "ipod", false)]
-        [InlineData("pod", SearchMode.Any, "ipod", false)]
+        [InlineData("pod", SearchMode.All, "i pod", true)]
+        [InlineData("pod", SearchMode.Any, "i pod", true)]
+        [InlineData("pod", SearchMode.All, "ipod", true)]
+        [InlineData("pod", SearchMode.Any, "ipod", true)]
         //// ExplicitMapping : imac => i mac, i-mac, imac
         [InlineData("i-mac", SearchMode.All, "", false)]
         [InlineData("i-mac", SearchMode.Any, "", false)]
@@ -120,8 +108,8 @@ namespace Clara.Tests
         [InlineData("imac", SearchMode.Any, "imac", true)]
         [InlineData("i-mac", SearchMode.All, "imac", true)]
         [InlineData("i-mac", SearchMode.Any, "imac", true)]
-        [InlineData("imac", SearchMode.All, "i mac", false /* true */)]
-        [InlineData("imac", SearchMode.Any, "i mac", false /* true */)]
+        [InlineData("imac", SearchMode.All, "i mac", false)]
+        [InlineData("imac", SearchMode.Any, "i mac", false)]
         [InlineData("i mac", SearchMode.All, "i-mac", true)]
         [InlineData("i mac", SearchMode.Any, "i-mac", true)]
         [InlineData("xxx i mac", SearchMode.All, "imac", false)]
@@ -130,10 +118,10 @@ namespace Clara.Tests
         [InlineData("xxx i-mac", SearchMode.Any, "imac", true)]
         [InlineData("xxx imac", SearchMode.All, "imac", false)]
         [InlineData("xxx imac", SearchMode.Any, "imac", true)]
-        [InlineData("mac", SearchMode.All, "i mac", true /* false */)]
-        [InlineData("mac", SearchMode.Any, "i mac", true /* false */)]
-        [InlineData("mac", SearchMode.All, "imac", false)]
-        [InlineData("mac", SearchMode.Any, "imac", false)]
+        [InlineData("mac", SearchMode.All, "i mac", true)]
+        [InlineData("mac", SearchMode.Any, "i mac", true)]
+        [InlineData("mac", SearchMode.All, "imac", true)]
+        [InlineData("mac", SearchMode.Any, "imac", true)]
         public void StandardMatches(string search, SearchMode mode, string document, bool expected)
         {
             var synonymMap =
@@ -147,7 +135,7 @@ namespace Clara.Tests
                         new MappingSynonym(new[] { "imac" }, new[] { "i mac", "i-mac", "imac" }),
                     });
 
-            Assert.Equal(expected, IsMatching(synonymMap, search, mode, document, this.output));
+            Assert.Equal(expected, IsMatching(synonymMap, search, mode, document));
         }
 
         [Fact]
@@ -178,17 +166,15 @@ namespace Clara.Tests
 
             foreach (var phrase in allPhrases)
             {
-                Assert.False(IsMatching(synonymMap, phrase, SearchMode.All, string.Empty, output: null));
-                Assert.False(IsMatching(synonymMap, phrase, SearchMode.Any, string.Empty, output: null));
-                Assert.False(IsMatching(synonymMap, string.Empty, SearchMode.All, phrase, output: null));
-                Assert.False(IsMatching(synonymMap, string.Empty, SearchMode.Any, phrase, output: null));
-                Assert.False(IsMatching(synonymMap, phrase, SearchMode.All, "xxx", output: null));
-                Assert.False(IsMatching(synonymMap, phrase, SearchMode.Any, "xxx", output: null));
-                Assert.False(IsMatching(synonymMap, "xxx", SearchMode.All, phrase, output: null));
-                Assert.False(IsMatching(synonymMap, "xxx", SearchMode.Any, phrase, output: null));
+                Assert.False(IsMatching(synonymMap, phrase, SearchMode.All, string.Empty));
+                Assert.False(IsMatching(synonymMap, phrase, SearchMode.Any, string.Empty));
+                Assert.False(IsMatching(synonymMap, phrase, SearchMode.All, "xxx"));
+                Assert.False(IsMatching(synonymMap, phrase, SearchMode.Any, "xxx"));
+                Assert.False(IsMatching(synonymMap, "xxx", SearchMode.All, phrase));
+                Assert.False(IsMatching(synonymMap, "xxx", SearchMode.Any, phrase));
 
-                Assert.True(IsMatching(synonymMap, finalPhrase, SearchMode.All, phrase, output: null));
-                Assert.True(IsMatching(synonymMap, finalPhrase, SearchMode.Any, phrase, output: null));
+                Assert.True(IsMatching(synonymMap, finalPhrase, SearchMode.All, phrase));
+                Assert.True(IsMatching(synonymMap, finalPhrase, SearchMode.Any, phrase));
             }
         }
 
@@ -206,10 +192,8 @@ namespace Clara.Tests
 
             var phrase = "aaa a a bbb a a mmm nnn a a mmm nnn";
 
-            var input = synonymMap.Analyzer.CreateTokenTermSource().GetTerms(phrase).Select(x => new SearchTerm(x.Token.ToString(), x.Position)).ToList();
-            var output = input.ToList();
-
-            synonymMap.Process(SearchMode.All, output);
+            var input = synonymMap.Analyzer.CreateTokenTermSource().GetTerms(phrase).ToList();
+            var output = synonymMap.CreateTokenTermSource().GetTerms(phrase).ToList();
 
             var expected = string.Join(", ", input.Select(x => x.Position).Distinct().OrderBy(x => x));
             var actual = string.Join(", ", output.Select(x => x.Position).Distinct().OrderBy(x => x));
@@ -245,24 +229,71 @@ namespace Clara.Tests
             Assert.True(synonyms.Select(x => x.ToString()).SequenceEqual(parsed.Select(x => x.ToString())));
         }
 
-        private static bool IsMatching(ISynonymMap synonymMap, string search, SearchMode mode, string document, ITestOutputHelper? output)
+        private static bool IsMatching(ISynonymMap synonymMap, string search, SearchMode mode, string document)
         {
-            var documentTokens = synonymMap.CreateTokenTermSource().GetTerms(document).Select(x => x.Token.ToString()).ToList();
-            var searchTerms = synonymMap.Analyzer.CreateTokenTermSource().GetTerms(search).Select(x => new SearchTerm(x.Token.ToString(), x.Position)).ToList();
+            var mapper = new SynonymMapper(synonymMap, document);
+            var index = IndexBuilder.Build(mapper.Documents, mapper);
 
-            synonymMap.Process(mode, searchTerms);
+            using var result = index.Query(
+                index.QueryBuilder()
+                    .Search(mapper.Field, mode, search));
 
-            var matchExpression = Match.Search(mode, searchTerms);
+            return result.Documents.Count == 1;
+        }
 
-            var isMatching = matchExpression.Matches(documentTokens);
+        private sealed class SynonymMapper : IIndexMapper<SynonymMapper.SynonymDocument>
+        {
+            private readonly TextField<SynonymDocument> field;
+            private readonly SynonymDocument document;
 
-            if (output is not null)
+            public SynonymMapper(ISynonymMap synonymMap, string document)
             {
-                output.WriteLine(string.Concat("Document: ", string.Join(", ", documentTokens.Select(x => $"\"{x}\""))));
-                output.WriteLine(string.Concat("Expression: ", matchExpression.ToString()));
+                this.field = new TextField<SynonymDocument>(x => x.Text, synonymMap.Analyzer, synonymMap);
+                this.document = new SynonymDocument(document);
             }
 
-            return isMatching;
+            public TextField<SynonymDocument> Field
+            {
+                get
+                {
+                    return this.field;
+                }
+            }
+
+            public IEnumerable<SynonymDocument> Documents
+            {
+                get
+                {
+                    yield return this.document;
+                }
+            }
+
+            public SynonymDocument GetDocument(SynonymDocument item)
+            {
+                return item;
+            }
+
+            public string GetDocumentKey(SynonymDocument item)
+            {
+                return item.Key;
+            }
+
+            public IEnumerable<Field> GetFields()
+            {
+                yield return this.field;
+            }
+
+            public sealed class SynonymDocument
+            {
+                public SynonymDocument(string text)
+                {
+                    this.Text = text;
+                }
+
+                public string Key { get; } = Guid.NewGuid().ToString();
+
+                public string Text { get; }
+            }
         }
     }
 }

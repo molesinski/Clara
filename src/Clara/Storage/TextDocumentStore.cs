@@ -1,5 +1,4 @@
 ﻿using Clara.Analysis;
-using Clara.Analysis.Synonyms;
 using Clara.Querying;
 using Clara.Utils;
 
@@ -11,14 +10,12 @@ namespace Clara.Storage
 
         private readonly TokenEncoder tokenEncoder;
         private readonly IAnalyzer analyzer;
-        private readonly ISynonymMap? synonymMap;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
         private readonly ObjectPool<ITokenTermSource> tokenTermSourcePool;
 
         public TextDocumentStore(
             TokenEncoder tokenEncoder,
             IAnalyzer analyzer,
-            ISynonymMap? synonymMap,
             DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores)
         {
             if (tokenEncoder is null)
@@ -38,26 +35,35 @@ namespace Clara.Storage
 
             this.tokenEncoder = tokenEncoder;
             this.analyzer = analyzer;
-            this.synonymMap = synonymMap;
             this.tokenDocumentScores = tokenDocumentScores;
             this.tokenTermSourcePool = new ObjectPool<ITokenTermSource>(this.analyzer.CreateTokenTermSource);
         }
 
         public static DocumentScoring Search(ListSlim<SearchFieldStore> stores, SearchMode searchMode, string text, ref DocumentResultBuilder documentResultBuilder)
         {
+            if (searchMode == SearchMode.All)
+            {
+                return SearchAll(stores, text, ref documentResultBuilder);
+            }
+            else
+            {
+                return SearchAny(stores, text, ref documentResultBuilder);
+            }
+        }
+
+        private static DocumentScoring SearchAll(ListSlim<SearchFieldStore> stores, string text, ref DocumentResultBuilder documentResultBuilder)
+        {
             using var terms = SharedObjectPools.SearchTerms.Lease();
             using var termStores = SharedObjectPools.SearchTermStoreIndexes.Lease();
             using var positionScores = SharedObjectPools.DocumentScores.Lease();
-            using var positionStoreScores = SharedObjectPools.DocumentScores.Lease();
             using var scoreCombiner = SharedObjectPools.ScoreCombiners.Lease();
 
             var documentScores = SharedObjectPools.DocumentScores.Lease();
-            var storeCount = stores.Count;
             var lastAnalyzedStore = default(TextDocumentStore?);
 
             SortByEqualAnalysis(stores);
 
-            for (var storeIndex = 0; storeIndex < storeCount; storeIndex++)
+            for (var storeIndex = 0; storeIndex < stores.Count; storeIndex++)
             {
                 var store = stores[storeIndex];
 
@@ -65,7 +71,7 @@ namespace Clara.Storage
                 {
                     terms.Instance.Clear();
 
-                    store.Store.GetSearchTerms(searchMode, text, terms.Instance);
+                    store.Store.GetSearchTerms(text, terms.Instance);
 
                     lastAnalyzedStore = store.Store;
                 }
@@ -94,9 +100,11 @@ namespace Clara.Storage
             {
                 positionScores.Instance.Clear();
 
-                for (var storeIndex = 0; storeIndex < storeCount; storeIndex++)
+                var coveredStores = 0;
+
+                for (var storeIndex = 0; storeIndex < stores.Count; storeIndex++)
                 {
-                    positionStoreScores.Instance.Clear();
+                    var isCovered = false;
 
                     for (var i = 0; i < span.Length; i++)
                     {
@@ -108,14 +116,18 @@ namespace Clara.Storage
 
                             scoreCombiner.Instance.Initialize(ScoreAggregation.Sum, store.SearchField.Boost);
 
-                            store.Store.Search(termStore.SearchTerm, positionStoreScores.Instance, scoreCombiner.Instance);
+                            store.Store.Search(termStore.SearchTerm, positionScores.Instance, scoreCombiner.Instance);
+
+                            if (!isCovered)
+                            {
+                                coveredStores++;
+                                isCovered = true;
+                            }
                         }
                     }
-
-                    positionScores.Instance.UnionWith(positionStoreScores.Instance, ScoreCombiner.Sum);
                 }
 
-                if (searchMode == SearchMode.All)
+                if (coveredStores > 0)
                 {
                     if (isFirst)
                     {
@@ -132,40 +144,70 @@ namespace Clara.Storage
                         break;
                     }
                 }
-                else
+            }
+
+            documentResultBuilder.IntersectWith(documentScores.Instance);
+
+            return new DocumentScoring(documentScores);
+        }
+
+        private static DocumentScoring SearchAny(ListSlim<SearchFieldStore> stores, string text, ref DocumentResultBuilder documentResultBuilder)
+        {
+            using var terms = SharedObjectPools.SearchTerms.Lease();
+            using var scoreCombiner = SharedObjectPools.ScoreCombiners.Lease();
+
+            var documentScores = SharedObjectPools.DocumentScores.Lease();
+            var lastAnalyzedStore = default(TextDocumentStore?);
+
+            SortByEqualAnalysis(stores);
+
+            foreach (var store in stores)
+            {
+                if (!store.Store.AnalysisEquals(lastAnalyzedStore))
                 {
-                    documentScores.Instance.UnionWith(positionScores.Instance, ScoreCombiner.Sum);
+                    terms.Instance.Clear();
+
+                    store.Store.GetSearchTerms(text, terms.Instance);
+
+                    lastAnalyzedStore = store.Store;
+                }
+
+                foreach (var term in terms.Instance)
+                {
+                    scoreCombiner.Instance.Initialize(ScoreAggregation.Sum, store.SearchField.Boost);
+
+                    store.Store.Search(term, documentScores.Instance, scoreCombiner.Instance);
                 }
             }
 
             documentResultBuilder.IntersectWith(documentScores.Instance);
 
             return new DocumentScoring(documentScores);
+        }
 
-            static void SortByEqualAnalysis(ListSlim<SearchFieldStore> searchFieldStores)
+        private static void SortByEqualAnalysis(ListSlim<SearchFieldStore> searchFieldStores)
+        {
+            var span = searchFieldStores.AsSpan();
+            var length = span.Length;
+
+            for (var i = 0; i < length - 1; i++)
             {
-                var span = searchFieldStores.AsSpan();
-                var length = span.Length;
+                ref var a = ref span[i];
 
-                for (var i = 0; i < length - 1; i++)
+                for (var j = i + 1; j < length; j++)
                 {
-                    ref var a = ref span[i];
+                    ref var b = ref span[j];
 
-                    for (var j = i + 1; j < length; j++)
+                    if (a.Store.AnalysisEquals(b.Store))
                     {
-                        ref var b = ref span[j];
-
-                        if (a.Store.AnalysisEquals(b.Store))
+                        if (j != i + 1)
                         {
-                            if (j != i + 1)
-                            {
-                                var tmp = b;
-                                span[j] = span[i + 1];
-                                span[i + 1] = tmp;
-                            }
-
-                            break;
+                            var tmp = b;
+                            span[j] = span[i + 1];
+                            span[i + 1] = tmp;
                         }
+
+                        break;
                     }
                 }
             }
@@ -182,27 +224,22 @@ namespace Clara.Storage
             }
         }
 
-        private void GetSearchTerms(SearchMode searchMode, string text, ListSlim<SearchTerm> terms)
+        private void GetSearchTerms(string text, ListSlim<SearchTerm> terms)
         {
             using var tokenTermSource = this.tokenTermSourcePool.Lease();
 
             foreach (var term in tokenTermSource.Instance.GetTerms(text))
             {
-                var token = this.tokenEncoder.ToReadOnly(term.Token)
-                         ?? this.synonymMap?.ToReadOnly(term.Token)
-                         ?? InvalidToken;
+                var token = this.tokenEncoder.ToReadOnly(term.Token) ?? InvalidToken;
 
                 terms.Add(new SearchTerm(token, term.Position));
             }
-
-            this.synonymMap?.Process(searchMode, terms);
         }
 
         private bool AnalysisEquals(TextDocumentStore? other)
         {
             return other is not null
-                && this.analyzer == other.analyzer
-                && this.synonymMap == other.synonymMap;
+                && this.analyzer == other.analyzer;
         }
     }
 }

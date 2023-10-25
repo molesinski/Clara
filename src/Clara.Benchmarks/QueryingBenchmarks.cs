@@ -2,7 +2,7 @@
 #pragma warning disable SA1310 // Field names should not contain underscore
 
 using BenchmarkDotNet.Attributes;
-using Clara.Analysis.Synonyms;
+using Clara.Analysis;
 using Clara.Querying;
 
 namespace Clara.Benchmarks
