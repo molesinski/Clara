@@ -20,11 +20,11 @@ Main features are:
 * Low memory allocation for search execution
 * Stemming and stop words handling for 30 languages
 * Text, keyword, hierarchy and range fields
-* Synonym maps with multi token synonym support
-* Document scoring using BM25
+* Index time synonym maps with multi token support
+* Cross field searching with BM25 scoring
 * Filtering keyword and hierarchy fields by any or all values and range fields by value subrange
-* Faceting without restricting facet value list by filtered values
-* Result sorting by document score or range field
+* Faceting without restricting facet values by field filters
+* Result sorting by document scoring or range field values
 * Fully configurable and extendable text analysis pipeline
 * Fluent query builder
 
@@ -155,7 +155,7 @@ is needed, it can be added by simple `Skip`/`Take` logic on top `Documents` coll
 ```csharp
 // Query result must always be disposed in order to return pooled buffers for reuse
 using var result = index.Query(
-    index.QueryBuilder()
+    q => q
         .Search(mapper.Text, SearchMode.Any, "watch ring leather bag")
         .Filter(mapper.Brand, FilterMode.Any, "Eastern Watches", "Bracelet", "Copenhagen Luxe")
         .Filter(mapper.Category, FilterMode.Any, "womens")
@@ -295,6 +295,8 @@ public static DateOnlyField DateOfBirth { get; } = new(x => x.DateOfBirth, isFil
 
 ## Text Analysis
 
+TODO
+
 ### Analyzers
 
 TODO
@@ -307,6 +309,10 @@ be used. Those packages provide stem and stop token filters for all supported la
 TODO
 
 ### Synonym Maps
+
+TODO
+
+### Extending Analysis Pipeline
 
 TODO
 
@@ -347,13 +353,13 @@ BenchmarkDotNet v0.13.9, Windows 11 (10.0.22621.2283/22H2/2022Update/SunValley2)
 
 | Method            | Mean       | Error     | StdDev    | Allocated |
 |------------------ |-----------:|----------:|----------:|----------:|
-| QueryComplex_x100 | 401.930 μs | 5.7798 μs | 5.4064 μs |     904 B |
-| QueryComplex      |  10.727 μs | 0.0695 μs | 0.0650 μs |     904 B |
-| QuerySearch       |   7.117 μs | 0.0277 μs | 0.0259 μs |     352 B |
-| QueryFilter       |   1.120 μs | 0.0040 μs | 0.0036 μs |     424 B |
-| QueryFacet        |  10.317 μs | 0.0354 μs | 0.0331 μs |     624 B |
-| QuerySort         |   3.640 μs | 0.0158 μs | 0.0148 μs |     392 B |
-| Query             |   1.429 μs | 0.0041 μs | 0.0034 μs |     296 B |
+| QueryComplex_x100 | 444.659 μs | 3.8472 μs | 3.4105 μs |     904 B |
+| QueryComplex      |  10.918 μs | 0.0300 μs | 0.0280 μs |     904 B |
+| QuerySearch       |   7.612 μs | 0.0206 μs | 0.0183 μs |     352 B |
+| QueryFilter       |   1.107 μs | 0.0037 μs | 0.0033 μs |     424 B |
+| QueryFacet        |   9.963 μs | 0.0268 μs | 0.0237 μs |     624 B |
+| QuerySort         |   3.566 μs | 0.0067 μs | 0.0063 μs |     392 B |
+| Query             |   1.447 μs | 0.0034 μs | 0.0032 μs |     296 B |
 
 ### Memory Allocations
 

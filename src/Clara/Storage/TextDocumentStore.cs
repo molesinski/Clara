@@ -41,18 +41,6 @@ namespace Clara.Storage
 
         public static DocumentScoring Search(ListSlim<SearchFieldStore> stores, SearchMode searchMode, string text, ref DocumentResultBuilder documentResultBuilder)
         {
-            if (searchMode == SearchMode.All)
-            {
-                return SearchAll(stores, text, ref documentResultBuilder);
-            }
-            else
-            {
-                return SearchAny(stores, text, ref documentResultBuilder);
-            }
-        }
-
-        private static DocumentScoring SearchAll(ListSlim<SearchFieldStore> stores, string text, ref DocumentResultBuilder documentResultBuilder)
-        {
             using var terms = SharedObjectPools.SearchTerms.Lease();
             using var termStores = SharedObjectPools.SearchTermStoreIndexes.Lease();
             using var positionScores = SharedObjectPools.DocumentScores.Lease();
@@ -114,7 +102,7 @@ namespace Clara.Storage
                         {
                             var store = stores[storeIndex];
 
-                            scoreCombiner.Instance.Initialize(ScoreAggregation.Sum, store.SearchField.Boost);
+                            scoreCombiner.Instance.Initialize(store.SearchField.Boost);
 
                             store.Store.Search(termStore.SearchTerm, positionScores.Instance, scoreCombiner.Instance);
 
@@ -129,54 +117,27 @@ namespace Clara.Storage
 
                 if (coveredStores > 0)
                 {
-                    if (isFirst)
+                    if (searchMode == SearchMode.All)
                     {
-                        documentScores.Instance.UnionWith(positionScores.Instance, ScoreCombiner.Sum);
-                        isFirst = false;
+                        if (isFirst)
+                        {
+                            documentScores.Instance.UnionWith(positionScores.Instance, ScoreCombiner.Default);
+                            isFirst = false;
+                        }
+                        else
+                        {
+                            documentScores.Instance.IntersectWith(positionScores.Instance, ScoreCombiner.Default);
+                        }
+
+                        if (documentScores.Instance.Count == 0)
+                        {
+                            break;
+                        }
                     }
                     else
                     {
-                        documentScores.Instance.IntersectWith(positionScores.Instance, ScoreCombiner.Sum);
+                        documentScores.Instance.UnionWith(positionScores.Instance, ScoreCombiner.Default);
                     }
-
-                    if (documentScores.Instance.Count == 0)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            documentResultBuilder.IntersectWith(documentScores.Instance);
-
-            return new DocumentScoring(documentScores);
-        }
-
-        private static DocumentScoring SearchAny(ListSlim<SearchFieldStore> stores, string text, ref DocumentResultBuilder documentResultBuilder)
-        {
-            using var terms = SharedObjectPools.SearchTerms.Lease();
-            using var scoreCombiner = SharedObjectPools.ScoreCombiners.Lease();
-
-            var documentScores = SharedObjectPools.DocumentScores.Lease();
-            var lastAnalyzedStore = default(TextDocumentStore?);
-
-            SortByEqualAnalysis(stores);
-
-            foreach (var store in stores)
-            {
-                if (!store.Store.AnalysisEquals(lastAnalyzedStore))
-                {
-                    terms.Instance.Clear();
-
-                    store.Store.GetSearchTerms(text, terms.Instance);
-
-                    lastAnalyzedStore = store.Store;
-                }
-
-                foreach (var term in terms.Instance)
-                {
-                    scoreCombiner.Instance.Initialize(ScoreAggregation.Sum, store.SearchField.Boost);
-
-                    store.Store.Search(term, documentScores.Instance, scoreCombiner.Instance);
                 }
             }
 

@@ -20,7 +20,7 @@ namespace Clara.Tests
             var index = IndexBuilder.Build(Product.Items, mapper);
 
             using var result = index.Query(
-                index.QueryBuilder()
+                q => q
                     .Search(mapper.Text, SearchMode.Any, "watch ring leather bag")
                     .Filter(mapper.Brand, FilterMode.Any, "Eastern Watches", "Bracelet", "Copenhagen Luxe")
                     .Filter(mapper.Category, FilterMode.Any, "womens")

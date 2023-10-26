@@ -69,6 +69,22 @@ namespace Clara
             return this.Query(query);
         }
 
+        public QueryResult<TDocument> Query(Action<QueryBuilder> configuration)
+        {
+            if (configuration is null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
+            using var queryBuilder = this.QueryBuilder();
+
+            configuration(queryBuilder);
+
+            using var query = queryBuilder.ToQuery();
+
+            return this.Query(query);
+        }
+
         public QueryResult<TDocument> Query(Query query)
         {
             if (query is null)
