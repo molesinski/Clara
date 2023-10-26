@@ -3,21 +3,21 @@ using Clara.Utils;
 
 namespace Clara.Storage
 {
-    internal sealed class ScoreCombiner : IValueCombiner<float>
+    internal sealed class ScoreValueCombiner : IValueCombiner<float>
     {
         private float boost;
 
-        public ScoreCombiner()
+        public ScoreValueCombiner()
         {
             this.boost = SearchField.DefaultBoost;
         }
 
-        public ScoreCombiner(float boost)
+        public ScoreValueCombiner(float boost)
         {
             this.boost = boost;
         }
 
-        public static ScoreCombiner Default { get; } = new ScoreCombiner(SearchField.DefaultBoost);
+        public static ScoreValueCombiner Default { get; } = new ScoreValueCombiner(SearchField.DefaultBoost);
 
         public bool IsDefaultNeutral
         {
@@ -34,7 +34,9 @@ namespace Clara.Storage
 
         public float Combine(float a, float b)
         {
-            return a + (b * this.boost);
+            var boosted = b * this.boost;
+
+            return a + boosted;
         }
     }
 }

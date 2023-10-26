@@ -4,6 +4,8 @@
     {
         IAnalyzer Analyzer { get; }
 
-        ITokenTermSource CreateTokenTermSource();
+        ITokenTermSource CreateIndexTokenTermSource();
+
+        ITokenTermSource CreateSearchTokenTermSource();
     }
 }

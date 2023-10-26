@@ -143,16 +143,6 @@ namespace Clara.Analysis
             return ReadOnlySpan<char>.Empty;
         }
 
-        public readonly Token ToReadOnly()
-        {
-            if (this.chars is not null)
-            {
-                return new Token(this.ToString());
-            }
-
-            return this;
-        }
-
         public readonly void CopyTo(StringBuilder builder)
         {
             if (builder is null)

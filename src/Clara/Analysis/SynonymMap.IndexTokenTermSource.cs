@@ -6,11 +6,11 @@ namespace Clara.Analysis.Synonyms
     public sealed partial class SynonymMap
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1214:Readonly fields should appear before non-readonly fields", Justification = "By design")]
-        private sealed class TokenTermSource : ITokenTermSource, IEnumerable<TokenTerm>, IEnumerator<TokenTerm>
+        private sealed class IndexTokenTermSource : ITokenTermSource, IEnumerable<TokenTerm>, IEnumerator<TokenTerm>
         {
             private readonly ITokenTermSource tokenTermSource;
-            private readonly TokenNode root;
             private readonly StringPoolSlim stringPool;
+            private readonly TokenNode root;
             private string text = string.Empty;
             private TokenTerm current;
             private IEnumerator<TokenTerm>? enumerator;
@@ -23,7 +23,7 @@ namespace Clara.Analysis.Synonyms
             private TokenPosition replacementPosition;
             private TokenNode currentNode = default!;
 
-            public TokenTermSource(SynonymMap synonymMap)
+            public IndexTokenTermSource(SynonymMap synonymMap)
             {
                 if (synonymMap is null)
                 {
@@ -31,8 +31,8 @@ namespace Clara.Analysis.Synonyms
                 }
 
                 this.tokenTermSource = synonymMap.Analyzer.CreateTokenTermSource();
-                this.root = synonymMap.root;
                 this.stringPool = synonymMap.stringPool;
+                this.root = synonymMap.root;
             }
 
             TokenTerm IEnumerator<TokenTerm>.Current
@@ -89,11 +89,11 @@ namespace Clara.Analysis.Synonyms
                         }
                         else
                         {
-                            if (this.backtrackingNode.ReplacementTokens.Count > 0)
+                            if (this.backtrackingNode.IndexReplacementTokens.Count > 0)
                             {
                                 var position = TokenPosition.Combine(this.backtrackingPositions);
 
-                                this.replacementTokens = this.backtrackingNode.ReplacementTokens;
+                                this.replacementTokens = this.backtrackingNode.IndexReplacementTokens;
                                 this.replacementIndex = 0;
                                 this.replacementPosition = position;
                                 this.backtrackingNode = null;

@@ -26,7 +26,7 @@ namespace Clara.Storage
             }
 
             this.field = field;
-            this.tokenTermSource = field.SynonymMap?.CreateTokenTermSource() ?? field.Analyzer.CreateTokenTermSource();
+            this.tokenTermSource = field.SynonymMap?.CreateIndexTokenTermSource() ?? field.Analyzer.CreateTokenTermSource();
             this.tokenEncoderBuilder = tokenEncoderBuilder;
             this.tokenDocumentScores = new();
             this.documentLengths = new();
@@ -80,7 +80,7 @@ namespace Clara.Storage
 
             var store =
                 new TextFieldStore(
-                    new TextDocumentStore(tokenEncoder, this.field.Analyzer, this.tokenDocumentScores));
+                    new TextDocumentStore(tokenEncoder, this.field.Analyzer, this.field.SynonymMap, this.tokenDocumentScores));
 
             this.isBuilt = true;
 

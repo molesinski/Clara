@@ -10,12 +10,14 @@ namespace Clara.Storage
 
         private readonly TokenEncoder tokenEncoder;
         private readonly IAnalyzer analyzer;
+        private readonly ISynonymMap? synonymMap;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
         private readonly ObjectPool<ITokenTermSource> tokenTermSourcePool;
 
         public TextDocumentStore(
             TokenEncoder tokenEncoder,
             IAnalyzer analyzer,
+            ISynonymMap? synonymMap,
             DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores)
         {
             if (tokenEncoder is null)
@@ -35,8 +37,9 @@ namespace Clara.Storage
 
             this.tokenEncoder = tokenEncoder;
             this.analyzer = analyzer;
+            this.synonymMap = synonymMap;
             this.tokenDocumentScores = tokenDocumentScores;
-            this.tokenTermSourcePool = new ObjectPool<ITokenTermSource>(this.analyzer.CreateTokenTermSource);
+            this.tokenTermSourcePool = new ObjectPool<ITokenTermSource>(() => this.synonymMap?.CreateSearchTokenTermSource() ?? this.analyzer.CreateTokenTermSource());
         }
 
         public static DocumentScoring Search(ListSlim<SearchFieldStore> stores, SearchMode searchMode, string text, ref DocumentResultBuilder documentResultBuilder)
@@ -44,7 +47,7 @@ namespace Clara.Storage
             using var terms = SharedObjectPools.SearchTerms.Lease();
             using var termStores = SharedObjectPools.SearchTermStoreIndexes.Lease();
             using var positionScores = SharedObjectPools.DocumentScores.Lease();
-            using var scoreCombiner = SharedObjectPools.ScoreCombiners.Lease();
+            using var scoreValueCombiner = SharedObjectPools.ScoreValueCombiners.Lease();
 
             var documentScores = SharedObjectPools.DocumentScores.Lease();
             var lastAnalyzedStore = default(TextDocumentStore?);
@@ -101,10 +104,16 @@ namespace Clara.Storage
                         if (termStore.StoreIndex == storeIndex && termStore.SearchTerm.Position.Overlaps(position))
                         {
                             var store = stores[storeIndex];
+                            var boost = store.SearchField.Boost;
 
-                            scoreCombiner.Instance.Initialize(store.SearchField.Boost);
+                            if (position != termStore.SearchTerm.Position.Start)
+                            {
+                                boost = 0;
+                            }
 
-                            store.Store.Search(termStore.SearchTerm, positionScores.Instance, scoreCombiner.Instance);
+                            scoreValueCombiner.Instance.Initialize(boost);
+
+                            store.Store.Search(termStore.SearchTerm, positionScores.Instance, scoreValueCombiner.Instance);
 
                             if (!isCovered)
                             {
@@ -121,12 +130,12 @@ namespace Clara.Storage
                     {
                         if (isFirst)
                         {
-                            documentScores.Instance.UnionWith(positionScores.Instance, ScoreCombiner.Default);
+                            documentScores.Instance.UnionWith(positionScores.Instance, ScoreValueCombiner.Default);
                             isFirst = false;
                         }
                         else
                         {
-                            documentScores.Instance.IntersectWith(positionScores.Instance, ScoreCombiner.Default);
+                            documentScores.Instance.IntersectWith(positionScores.Instance, ScoreValueCombiner.Default);
                         }
 
                         if (documentScores.Instance.Count == 0)
@@ -136,7 +145,7 @@ namespace Clara.Storage
                     }
                     else
                     {
-                        documentScores.Instance.UnionWith(positionScores.Instance, ScoreCombiner.Default);
+                        documentScores.Instance.UnionWith(positionScores.Instance, ScoreValueCombiner.Default);
                     }
                 }
             }
@@ -174,7 +183,7 @@ namespace Clara.Storage
             }
         }
 
-        private void Search(SearchTerm term, DictionarySlim<int, float> documentScores, ScoreCombiner scoreCombiner)
+        private void Search(SearchTerm term, DictionarySlim<int, float> documentScores, IValueCombiner<float> scoreCombiner)
         {
             if (this.tokenEncoder.TryEncode(term.Token, out var tokenId))
             {
@@ -200,7 +209,8 @@ namespace Clara.Storage
         private bool AnalysisEquals(TextDocumentStore? other)
         {
             return other is not null
-                && this.analyzer == other.analyzer;
+                && this.analyzer == other.analyzer
+                && this.synonymMap == other.synonymMap;
         }
     }
 }

@@ -46,22 +46,22 @@ namespace Clara.Tests
         [InlineData("i-phone", SearchMode.Any, "", false)]
         [InlineData("i-phone", SearchMode.All, "xxx", false)]
         [InlineData("i-phone", SearchMode.Any, "xxx", false)]
-        [InlineData("i phone", SearchMode.All, "i phone", false)]
-        [InlineData("i phone", SearchMode.Any, "i phone", false)]
-        [InlineData("i-phone", SearchMode.All, "i phone", false)]
-        [InlineData("i-phone", SearchMode.Any, "i-phone", false)]
+        [InlineData("i phone", SearchMode.All, "i phone", true)]
+        [InlineData("i phone", SearchMode.Any, "i phone", true)]
+        [InlineData("i-phone", SearchMode.All, "i phone", true)]
+        [InlineData("i-phone", SearchMode.Any, "i-phone", true)]
         [InlineData("iphone", SearchMode.All, "iphone", true)]
         [InlineData("iphone", SearchMode.Any, "iphone", true)]
-        [InlineData("i-phone", SearchMode.All, "iphone", false)]
-        [InlineData("i-phone", SearchMode.Any, "iphone", false)]
+        [InlineData("i-phone", SearchMode.All, "iphone", true)]
+        [InlineData("i-phone", SearchMode.Any, "iphone", true)]
         [InlineData("iphone", SearchMode.All, "i phone", true)]
         [InlineData("iphone", SearchMode.Any, "i phone", true)]
-        [InlineData("i phone", SearchMode.All, "i-phone", false)]
-        [InlineData("i phone", SearchMode.Any, "i-phone", false)]
+        [InlineData("i phone", SearchMode.All, "i-phone", true)]
+        [InlineData("i phone", SearchMode.Any, "i-phone", true)]
         [InlineData("xxx i phone", SearchMode.All, "iphone", false)]
-        [InlineData("xxx i phone", SearchMode.Any, "iphone", false)]
+        [InlineData("xxx i phone", SearchMode.Any, "iphone", true)]
         [InlineData("xxx i-phone", SearchMode.All, "iphone", false)]
-        [InlineData("xxx i-phone", SearchMode.Any, "iphone", false)]
+        [InlineData("xxx i-phone", SearchMode.Any, "iphone", true)]
         [InlineData("xxx iphone", SearchMode.All, "iphone", false)]
         [InlineData("xxx iphone", SearchMode.Any, "iphone", true)]
         [InlineData("phone", SearchMode.All, "i phone", false)]
@@ -108,8 +108,8 @@ namespace Clara.Tests
         [InlineData("imac", SearchMode.Any, "imac", true)]
         [InlineData("i-mac", SearchMode.All, "imac", true)]
         [InlineData("i-mac", SearchMode.Any, "imac", true)]
-        [InlineData("imac", SearchMode.All, "i mac", false)]
-        [InlineData("imac", SearchMode.Any, "i mac", false)]
+        [InlineData("imac", SearchMode.All, "i mac", true)]
+        [InlineData("imac", SearchMode.Any, "i mac", true)]
         [InlineData("i mac", SearchMode.All, "i-mac", true)]
         [InlineData("i mac", SearchMode.Any, "i-mac", true)]
         [InlineData("xxx i mac", SearchMode.All, "imac", false)]
@@ -186,19 +186,23 @@ namespace Clara.Tests
                     new StandardAnalyzer(),
                     new Synonym[]
                     {
-                        new EquivalencySynonym(new[] { "bbb", "ccc" }),
+                        new EquivalencySynonym(new[] { "aaa", "xxx", "yyy", "zzz" }),
+                        new MappingSynonym(new[] { "bbb" }, new[] { "ccc" }),
                         new EquivalencySynonym(new[] { "mmm nnn ooo", "ppp" }),
                     });
 
             var phrase = "aaa a a bbb a a mmm nnn a a mmm nnn";
 
-            var input = synonymMap.Analyzer.CreateTokenTermSource().GetTerms(phrase).ToList();
-            var output = synonymMap.CreateTokenTermSource().GetTerms(phrase).ToList();
+            var input = synonymMap.Analyzer.CreateTokenTermSource().GetTerms(phrase).Select(x => new { Token = x.Token.ToString(), x.Position }).ToList();
+            var indexOutput = synonymMap.CreateIndexTokenTermSource().GetTerms(phrase).Select(x => new { Token = x.Token.ToString(), x.Position }).ToList();
+            var searchOutput = synonymMap.CreateSearchTokenTermSource().GetTerms(phrase).Select(x => new { Token = x.Token.ToString(), x.Position }).ToList();
 
             var expected = string.Join(", ", input.Select(x => x.Position).Distinct().OrderBy(x => x));
-            var actual = string.Join(", ", output.Select(x => x.Position).Distinct().OrderBy(x => x));
+            var indexActual = string.Join(", ", indexOutput.Select(x => x.Position).Distinct().OrderBy(x => x));
+            var searchActual = string.Join(", ", searchOutput.Select(x => x.Position).Distinct().OrderBy(x => x));
 
-            Assert.Equal(expected, actual);
+            Assert.Equal(expected, indexActual);
+            Assert.Equal(expected, searchActual);
         }
 
         [Fact]

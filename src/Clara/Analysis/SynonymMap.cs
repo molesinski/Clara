@@ -7,9 +7,13 @@ namespace Clara.Analysis.Synonyms
         private readonly HashSet<Synonym> synonyms = new();
         private readonly StringPoolSlim stringPool = new();
         private readonly IAnalyzer analyzer;
+        private readonly bool expand;
         private readonly TokenNode root;
 
-        public SynonymMap(IAnalyzer analyzer, IEnumerable<Synonym> synonyms)
+        public SynonymMap(
+            IAnalyzer analyzer,
+            IEnumerable<Synonym> synonyms,
+            bool expand = true)
         {
             if (analyzer is null)
             {
@@ -32,7 +36,8 @@ namespace Clara.Analysis.Synonyms
             }
 
             this.analyzer = analyzer;
-            this.root = TokenNode.Build(analyzer, this.synonyms, this.stringPool);
+            this.expand = expand;
+            this.root = TokenNode.Build(this.analyzer, this.synonyms, this.expand, this.stringPool);
         }
 
         public IAnalyzer Analyzer
@@ -51,9 +56,14 @@ namespace Clara.Analysis.Synonyms
             }
         }
 
-        public ITokenTermSource CreateTokenTermSource()
+        public ITokenTermSource CreateIndexTokenTermSource()
         {
-            return new TokenTermSource(this);
+            return new IndexTokenTermSource(this);
+        }
+
+        public ITokenTermSource CreateSearchTokenTermSource()
+        {
+            return new SearchTokenTermSource(this);
         }
     }
 }
