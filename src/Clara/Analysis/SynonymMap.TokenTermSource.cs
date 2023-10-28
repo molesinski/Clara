@@ -6,7 +6,7 @@ namespace Clara.Analysis.Synonyms
     public sealed partial class SynonymMap
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1214:Readonly fields should appear before non-readonly fields", Justification = "By design")]
-        private sealed class IndexTokenTermSource : ITokenTermSource, IEnumerable<TokenTerm>, IEnumerator<TokenTerm>
+        private abstract class TokenTermSource : ITokenTermSource, IEnumerable<TokenTerm>, IEnumerator<TokenTerm>
         {
             private readonly ITokenTermSource tokenTermSource;
             private readonly StringPoolSlim stringPool;
@@ -16,14 +16,15 @@ namespace Clara.Analysis.Synonyms
             private IEnumerator<TokenTerm>? enumerator;
             private bool isEnumerated;
             private TokenTerm? peekedTerm;
-            private TokenNode? backtrackingNode;
-            private readonly ListSlim<TokenPosition> backtrackingPositions = new();
-            private ListSlim<string>? replacementTokens;
+            private int backtrackingState;
+            private int backtrackingIndex;
+            private readonly ListSlim<BacktrackingEntry> backtrackingEntries = new();
+            private IReadOnlyList<string>? replacementTokens;
             private int replacementIndex;
             private TokenPosition replacementPosition;
-            private TokenNode currentNode = default!;
+            private TokenNode currentNode;
 
-            public IndexTokenTermSource(SynonymMap synonymMap)
+            public TokenTermSource(SynonymMap synonymMap)
             {
                 if (synonymMap is null)
                 {
@@ -33,6 +34,7 @@ namespace Clara.Analysis.Synonyms
                 this.tokenTermSource = synonymMap.Analyzer.CreateTokenTermSource();
                 this.stringPool = synonymMap.stringPool;
                 this.root = synonymMap.root;
+                this.currentNode = this.root;
             }
 
             TokenTerm IEnumerator<TokenTerm>.Current
@@ -79,36 +81,42 @@ namespace Clara.Analysis.Synonyms
             {
                 this.enumerator ??= this.tokenTermSource.GetTerms(this.text).GetEnumerator();
 
-                while (this.backtrackingNode is not null || this.replacementTokens is not null || !this.isEnumerated)
+                while (this.backtrackingState > 0 || this.replacementTokens is not null || !this.isEnumerated)
                 {
-                    if (this.backtrackingNode is not null)
+                    if (this.backtrackingState == 1)
                     {
-                        if (this.backtrackingNode.IsRoot)
+                        var lastIndex = this.backtrackingEntries.Count - 1;
+                        var index = lastIndex;
+
+                        while (index >= 0)
                         {
-                            this.backtrackingNode = null;
+                            var entry = this.backtrackingEntries[index];
+
+                            var replacementTokens = this.GetReplacementTokens(entry.Node);
+
+                            if (replacementTokens.Count > 0)
+                            {
+                                var position = CombinePositions(this.backtrackingEntries, 0, index + 1);
+
+                                this.replacementTokens = replacementTokens;
+                                this.replacementIndex = 0;
+                                this.replacementPosition = position;
+
+                                break;
+                            }
+
+                            index--;
+                        }
+
+                        if (index < lastIndex)
+                        {
+                            this.backtrackingState = 2;
+                            this.backtrackingIndex = index + 1;
                         }
                         else
                         {
-                            if (this.backtrackingNode.IndexReplacementTokens.Count > 0)
-                            {
-                                var position = TokenPosition.Combine(this.backtrackingPositions);
-
-                                this.replacementTokens = this.backtrackingNode.IndexReplacementTokens;
-                                this.replacementIndex = 0;
-                                this.replacementPosition = position;
-                                this.backtrackingNode = null;
-                                this.backtrackingPositions.Clear();
-                            }
-                            else
-                            {
-                                var position = this.backtrackingPositions[this.backtrackingPositions.Count - 1];
-
-                                this.current = new TokenTerm(new Token(this.backtrackingNode.Token), position);
-                                this.backtrackingNode = this.backtrackingNode.Parent;
-                                this.backtrackingPositions.RemoveAt(this.backtrackingPositions.Count - 1);
-
-                                return true;
-                            }
+                            this.backtrackingState = 0;
+                            this.backtrackingEntries.Clear();
                         }
                     }
 
@@ -126,6 +134,21 @@ namespace Clara.Analysis.Synonyms
                         return true;
                     }
 
+                    if (this.backtrackingState == 2)
+                    {
+                        var entry = this.backtrackingEntries[this.backtrackingIndex++];
+
+                        this.current = new TokenTerm(new Token(entry.Node.Token), entry.Position);
+
+                        if (this.backtrackingIndex == this.backtrackingEntries.Count)
+                        {
+                            this.backtrackingState = 0;
+                            this.backtrackingEntries.Clear();
+                        }
+
+                        return true;
+                    }
+
                     if (this.peekedTerm is not null || (!this.isEnumerated && this.enumerator.MoveNext()))
                     {
                         var currentTerm = this.peekedTerm ?? this.enumerator.Current;
@@ -136,7 +159,7 @@ namespace Clara.Analysis.Synonyms
                         {
                             if (this.currentNode.Children.TryGetValue(value, out var node))
                             {
-                                this.backtrackingPositions.Add(currentTerm.Position);
+                                this.backtrackingEntries.Add(new BacktrackingEntry(node, currentTerm.Position));
 
                                 this.currentNode = node;
 
@@ -147,7 +170,7 @@ namespace Clara.Analysis.Synonyms
                         if (!this.currentNode.IsRoot)
                         {
                             this.peekedTerm = currentTerm;
-                            this.backtrackingNode = this.currentNode;
+                            this.backtrackingState = 1;
                             this.currentNode = this.root;
 
                             continue;
@@ -166,7 +189,7 @@ namespace Clara.Analysis.Synonyms
                             if (!this.currentNode.IsRoot)
                             {
                                 this.peekedTerm = null;
-                                this.backtrackingNode = this.currentNode;
+                                this.backtrackingState = 1;
                                 this.currentNode = this.root;
 
                                 continue;
@@ -187,8 +210,9 @@ namespace Clara.Analysis.Synonyms
                 this.enumerator = default;
                 this.isEnumerated = default;
                 this.peekedTerm = default;
-                this.backtrackingNode = default;
-                this.backtrackingPositions.Clear();
+                this.backtrackingState = default;
+                this.backtrackingIndex = default;
+                this.backtrackingEntries.Clear();
                 this.replacementTokens = default;
                 this.replacementIndex = default;
                 this.replacementPosition = default;
@@ -200,6 +224,65 @@ namespace Clara.Analysis.Synonyms
                 ((IEnumerator)this).Reset();
 
                 this.text = string.Empty;
+            }
+
+            protected abstract IReadOnlyList<string> GetReplacementTokens(TokenNode node);
+
+            private static TokenPosition CombinePositions(ListSlim<BacktrackingEntry> entries, int index, int count)
+            {
+                var start = int.MaxValue;
+                var end = int.MinValue;
+
+                for (var i = index; i < index + count; i++)
+                {
+                    var entry = entries[i];
+
+                    start = start < entry.Position.Start ? start : entry.Position.Start;
+                    end = end > entry.Position.End ? end : entry.Position.End;
+                }
+
+                return new TokenPosition(start, end);
+            }
+
+            private readonly struct BacktrackingEntry
+            {
+                public BacktrackingEntry(
+                    TokenNode node,
+                    TokenPosition position)
+                {
+                    this.Node = node;
+                    this.Position = position;
+                }
+
+                public TokenNode Node { get; }
+
+                public TokenPosition Position { get; }
+            }
+        }
+
+        private sealed class IndexTokenTermSource : TokenTermSource
+        {
+            public IndexTokenTermSource(SynonymMap synonymMap)
+                : base(synonymMap)
+            {
+            }
+
+            protected override IReadOnlyList<string> GetReplacementTokens(TokenNode node)
+            {
+                return node.IndexReplacementTokens;
+            }
+        }
+
+        private sealed class SearchTokenTermSource : TokenTermSource
+        {
+            public SearchTokenTermSource(SynonymMap synonymMap)
+                : base(synonymMap)
+            {
+            }
+
+            protected override IReadOnlyList<string> GetReplacementTokens(TokenNode node)
+            {
+                return node.SearchReplacementTokens;
             }
         }
     }

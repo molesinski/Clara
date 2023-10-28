@@ -108,8 +108,8 @@ namespace Clara.Tests
         [InlineData("imac", SearchMode.Any, "imac", true)]
         [InlineData("i-mac", SearchMode.All, "imac", true)]
         [InlineData("i-mac", SearchMode.Any, "imac", true)]
-        [InlineData("imac", SearchMode.All, "i mac", true)]
-        [InlineData("imac", SearchMode.Any, "i mac", true)]
+        [InlineData("imac", SearchMode.All, "i mac", false)]
+        [InlineData("imac", SearchMode.Any, "i mac", false)]
         [InlineData("i mac", SearchMode.All, "i-mac", true)]
         [InlineData("i mac", SearchMode.Any, "i-mac", true)]
         [InlineData("xxx i mac", SearchMode.All, "imac", false)]
@@ -130,52 +130,12 @@ namespace Clara.Tests
                     new Synonym[]
                     {
                         new EquivalencySynonym(new[] { "i pad", "i-pad", "ipad" }),
-                        new MappingSynonym(new[] { "i phone", "i-phone" }, new[] { "iphone" }),
-                        new MappingSynonym(new[] { "i pod", "i-pod", "ipod" }, new[] { "i pod", "i-pod", "ipod" }),
-                        new MappingSynonym(new[] { "imac" }, new[] { "i mac", "i-mac", "imac" }),
+                        new ExplicitMappingSynonym(new[] { "i phone", "i-phone" }, new[] { "iphone" }),
+                        new ExplicitMappingSynonym(new[] { "i pod", "i-pod", "ipod" }, new[] { "i pod", "i-pod", "ipod" }),
+                        new ExplicitMappingSynonym(new[] { "imac" }, new[] { "i mac", "i-mac", "imac" }),
                     });
 
             Assert.Equal(expected, IsMatching(synonymMap, search, mode, document));
-        }
-
-        [Fact]
-        public void CrossMatches()
-        {
-            var synonymMap =
-                new SynonymMap(
-                    new StandardAnalyzer(),
-                    new Synonym[]
-                    {
-                        new EquivalencySynonym(new[] { "aaa", "bbb" }),
-                        new EquivalencySynonym(new[] { "bbb", "ccc" }),
-                        new MappingSynonym(new[] { "ccc" }, new[] { "ddd" }),
-                        new EquivalencySynonym(new[] { "ddd", "eee" }),
-                        new MappingSynonym(new[] { "eee" }, new[] { "fff" }),
-                        new MappingSynonym(new[] { "fff" }, new[] { "ggg" }),
-                    });
-
-            var allPhrases = Array.Empty<string>()
-                .Concat(synonymMap.Synonyms.SelectMany(x => x.Phrases))
-                .Concat(synonymMap.Synonyms.OfType<MappingSynonym>().SelectMany(x => x.MappedPhrases))
-                .Distinct()
-                .ToList();
-
-            var finalPhrase = Array.Empty<string>()
-                .Concat(synonymMap.Synonyms.OfType<MappingSynonym>().SelectMany(x => x.MappedPhrases))
-                .Last();
-
-            foreach (var phrase in allPhrases)
-            {
-                Assert.False(IsMatching(synonymMap, phrase, SearchMode.All, string.Empty));
-                Assert.False(IsMatching(synonymMap, phrase, SearchMode.Any, string.Empty));
-                Assert.False(IsMatching(synonymMap, phrase, SearchMode.All, "xxx"));
-                Assert.False(IsMatching(synonymMap, phrase, SearchMode.Any, "xxx"));
-                Assert.False(IsMatching(synonymMap, "xxx", SearchMode.All, phrase));
-                Assert.False(IsMatching(synonymMap, "xxx", SearchMode.Any, phrase));
-
-                Assert.True(IsMatching(synonymMap, finalPhrase, SearchMode.All, phrase));
-                Assert.True(IsMatching(synonymMap, finalPhrase, SearchMode.Any, phrase));
-            }
         }
 
         [Fact]
@@ -187,7 +147,7 @@ namespace Clara.Tests
                     new Synonym[]
                     {
                         new EquivalencySynonym(new[] { "aaa", "xxx", "yyy", "zzz" }),
-                        new MappingSynonym(new[] { "bbb" }, new[] { "ccc" }),
+                        new ExplicitMappingSynonym(new[] { "bbb" }, new[] { "ccc" }),
                         new EquivalencySynonym(new[] { "mmm nnn ooo", "ppp" }),
                     });
 
@@ -197,9 +157,9 @@ namespace Clara.Tests
             var indexOutput = synonymMap.CreateIndexTokenTermSource().GetTerms(phrase).Select(x => new { Token = x.Token.ToString(), x.Position }).ToList();
             var searchOutput = synonymMap.CreateSearchTokenTermSource().GetTerms(phrase).Select(x => new { Token = x.Token.ToString(), x.Position }).ToList();
 
-            var expected = string.Join(", ", input.Select(x => x.Position).Distinct().OrderBy(x => x));
-            var indexActual = string.Join(", ", indexOutput.Select(x => x.Position).Distinct().OrderBy(x => x));
-            var searchActual = string.Join(", ", searchOutput.Select(x => x.Position).Distinct().OrderBy(x => x));
+            var expected = string.Join(", ", input.Select(x => x.Position).Distinct());
+            var indexActual = string.Join(", ", indexOutput.Select(x => x.Position).Distinct());
+            var searchActual = string.Join(", ", searchOutput.Select(x => x.Position).Distinct());
 
             Assert.Equal(expected, indexActual);
             Assert.Equal(expected, searchActual);
@@ -212,9 +172,9 @@ namespace Clara.Tests
                 new Synonym[]
                 {
                     new EquivalencySynonym(new[] { "i pad", "i-pad", "ipad" }),
-                    new MappingSynonym(new[] { "i phone", "i-phone" }, new[] { "iphone" }),
-                    new MappingSynonym(new[] { "i pod", "i-pod", "ipod" }, new[] { "i pod", "i-pod", "ipod" }),
-                    new MappingSynonym(new[] { "imac" }, new[] { "i mac", "i-mac", "imac" }),
+                    new ExplicitMappingSynonym(new[] { "i phone", "i-phone" }, new[] { "iphone" }),
+                    new ExplicitMappingSynonym(new[] { "i pod", "i-pod", "ipod" }, new[] { "i pod", "i-pod", "ipod" }),
+                    new ExplicitMappingSynonym(new[] { "imac" }, new[] { "i mac", "i-mac", "imac" }),
                 };
 
             var synonymsText = string.Join(Environment.NewLine, synonyms.Select(x => x.ToString()));

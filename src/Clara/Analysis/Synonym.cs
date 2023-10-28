@@ -95,7 +95,7 @@ namespace Clara.Analysis
                     {
                         if (equivalentPhrases.Count >= 1 && mappedPhrases.Count >= 1)
                         {
-                            result.Add(new MappingSynonym(equivalentPhrases, mappedPhrases));
+                            result.Add(new ExplicitMappingSynonym(equivalentPhrases, mappedPhrases));
                         }
                     }
                     else

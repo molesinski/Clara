@@ -3,11 +3,11 @@ using Clara.Utils;
 
 namespace Clara.Analysis
 {
-    public sealed class MappingSynonym : Synonym
+    public sealed class ExplicitMappingSynonym : Synonym
     {
         private readonly HashSetSlim<string> mappedPhrases = new();
 
-        public MappingSynonym(IEnumerable<string> phrases, IEnumerable<string> mappedPhrases)
+        public ExplicitMappingSynonym(IEnumerable<string> phrases, IEnumerable<string> mappedPhrases)
             : base(phrases)
         {
             if (mappedPhrases is null)
