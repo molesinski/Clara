@@ -41,12 +41,12 @@ namespace Clara.Storage
 
             foreach (var value in this.field.ValueMapper(item))
             {
-                if (!string.IsNullOrWhiteSpace(value))
+                if (!string.IsNullOrWhiteSpace(value.Text))
                 {
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    var terms = this.tokenTermSource.GetTerms(value);
+                    var terms = this.tokenTermSource.GetTerms(value.Text);
 #else
-                    var terms = this.tokenTermSource.GetTerms(value!);
+                    var terms = this.tokenTermSource.GetTerms(value.Text!);
 #endif
 
                     foreach (var term in terms)
@@ -59,11 +59,11 @@ namespace Clara.Storage
 
                         ref var score = ref documents.GetValueRefOrAddDefault(documentId, out _);
 
-                        score += 1;
+                        score += value.Weight;
 
                         ref var length = ref this.documentLengths.GetValueRefOrAddDefault(documentId, out _);
 
-                        length += 1;
+                        length += value.Weight;
                     }
                 }
             }

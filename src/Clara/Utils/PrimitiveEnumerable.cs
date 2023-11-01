@@ -12,12 +12,10 @@ namespace Clara.Utils
         public PrimitiveEnumerable(TValue? value)
         {
             this.value = value;
-            this.values = default;
         }
 
         public PrimitiveEnumerable(IEnumerable<TValue>? values)
         {
-            this.value = default;
             this.values = values;
         }
 
