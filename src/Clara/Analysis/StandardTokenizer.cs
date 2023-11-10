@@ -2,7 +2,7 @@
 
 namespace Clara.Analysis
 {
-    public sealed partial class StandardTokenizer : ITokenizer
+    public sealed class StandardTokenizer : ITokenizer
     {
         public ITokenTermSource CreateTokenTermSource()
         {

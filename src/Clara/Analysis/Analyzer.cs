@@ -2,7 +2,7 @@
 
 namespace Clara.Analysis
 {
-    public sealed partial class Analyzer : IAnalyzer
+    public sealed class Analyzer : IAnalyzer
     {
         private readonly ITokenizer tokenizer;
         private readonly TokenFilterDelegate pipeline;

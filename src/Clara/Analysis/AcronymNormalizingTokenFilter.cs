@@ -1,6 +1,6 @@
 ﻿namespace Clara.Analysis
 {
-    public sealed class AcronymFoldingTokenFilter : ITokenFilter
+    public sealed class AcronymNormalizingTokenFilter : ITokenFilter
     {
         public Token Process(Token token, TokenFilterDelegate next)
         {
@@ -9,7 +9,7 @@
                 throw new ArgumentNullException(nameof(next));
             }
 
-            if (token.Length >= 2)
+            if (token.Length > 2 && token.Length < Token.MaximumLength && token.Length % 2 == 1)
             {
                 var span = token.AsReadOnlySpan();
                 var length = span.Length;
@@ -27,10 +27,7 @@
 
                 if (isAcronym)
                 {
-                    for (var i = 0; i < length / 2; i++)
-                    {
-                        token.Delete(i + 1, 1);
-                    }
+                    token.Append(".");
                 }
             }
 
