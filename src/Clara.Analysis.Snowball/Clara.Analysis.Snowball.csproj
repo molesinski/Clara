@@ -17,6 +17,7 @@
     <None Remove="Analysis\DanishStopTokenFilter.txt" />
     <None Remove="Analysis\DutchStopTokenFilter.txt" />
     <None Remove="Analysis\EnglishStopTokenFilter.txt" />
+    <None Remove="Analysis\EstonianStopTokenFilter.txt" />
     <None Remove="Analysis\FinnishStopTokenFilter.txt" />
     <None Remove="Analysis\FrenchStopTokenFilter.txt" />
     <None Remove="Analysis\GermanStopTokenFilter.txt" />
@@ -47,6 +48,7 @@
     <EmbeddedResource Include="Analysis\CatalanStopTokenFilter.txt" />
     <EmbeddedResource Include="Analysis\DanishStopTokenFilter.txt" />
     <EmbeddedResource Include="Analysis\DutchStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\EstonianStopTokenFilter.txt" />
     <EmbeddedResource Include="Analysis\EnglishStopTokenFilter.txt" />
     <EmbeddedResource Include="Analysis\FinnishStopTokenFilter.txt" />
     <EmbeddedResource Include="Analysis\FrenchStopTokenFilter.txt" />

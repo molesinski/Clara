@@ -18,7 +18,7 @@ Main features are:
 * Inspired by well known Lucene design
 * Fast in memory searching
 * Low memory allocation for search execution
-* Stemming and stop words handling for 30 languages
+* Stemming and stop words handling for 31 languages
 * Text, keyword, hierarchy and range fields
 * Index time synonym maps with multi token support
 * Cross field searching with BM25 scoring
@@ -36,8 +36,8 @@ Main features are:
 
 * Using [Clara.Analysis.Snowball](https://www.nuget.org/packages/Clara.Analysis.Snowball) package
 
-  Arabic, Armenian, Basque, Catalan, Danish, Dutch, **English**, Finnish, French, German, Greek, Hindi,
-  Hungarian, Indonesian, Irish, Italian, Lithuanian, Nepali, Norwegian, Portuguese, Romanian, Russian,
+  Arabic, Armenian, Basque, Catalan, Danish, Dutch, **English**, Estonian, Finnish, French, German, Greek,
+  Hindi, Hungarian, Indonesian, Irish, Italian, Lithuanian, Nepali, Norwegian, Portuguese, Romanian, Russian,
   Serbian, Spanish, Swedish, Tamil, Turkish, Yiddish
 
 * Using [Clara.Analysis.Morfologik](https://www.nuget.org/packages/Clara.Analysis.Morfologik) package
