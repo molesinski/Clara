@@ -32,6 +32,7 @@ namespace Snowball
     using System;
     using System.Linq;
     using System.Text;
+    using Clara.Analysis;
 
     /// <summary>
     ///   Class holding current state.
@@ -176,6 +177,18 @@ namespace Snowball
         {
             get { return current.ToString(); }
             set { setBufferContents(value); }
+        }
+
+        public void SetBufferContents(Token token)
+        {
+            current.Clear();
+            token.CopyTo(current);
+
+            cursor = 0;
+            limit = current.Length;
+            limit_backward = 0;
+            bra = cursor;
+            ket = limit;
         }
 
         private void setBufferContents(string value)

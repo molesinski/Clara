@@ -11,8 +11,7 @@ namespace Clara.Analysis
         {
             using var stemmer = Pool.Lease();
 
-            SnowballHelper.SetBufferContents(stemmer.Instance, token);
-
+            stemmer.Instance.SetBufferContents(token);
             stemmer.Instance.Stem();
 
             var buffer = stemmer.Instance.Buffer;
