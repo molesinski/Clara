@@ -64,7 +64,7 @@ namespace Clara.Analysis
         }
 
 #if NET7_0_OR_GREATER
-        private static IEnumerable<string> Split(string text)
+        private static string[] Split(string text)
         {
             return WhitespaceRegex().Split(text);
         }
@@ -72,7 +72,7 @@ namespace Clara.Analysis
         [GeneratedRegex("\\s+", RegexOptions.Compiled)]
         private static partial Regex WhitespaceRegex();
 #else
-        private static IEnumerable<string> Split(string text)
+        private static string[] Split(string text)
         {
             return Regex.Split(text, "\\s+", RegexOptions.Compiled);
         }

@@ -1,5 +1,4 @@
 ﻿using Clara.Utils;
-using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.En;
 
 namespace Clara.Analysis
@@ -36,7 +35,7 @@ namespace Clara.Analysis
                 this.stemmer = new PorterStemFilter(this.tokenTermSource);
             }
 
-            public TokenStream GetTokenStream(Token token)
+            public PorterStemFilter GetTokenStream(Token token)
             {
                 this.tokenTermSource.SetToken(token);
 

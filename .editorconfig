@@ -202,5 +202,10 @@ dotnet_analyzer_diagnostic.category-StyleCop.CSharp.OrderingRules.severity = err
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = error
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpacingRules.severity = error
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.SpecialRules.severity = error
+
+dotnet_diagnostic.CA1510.severity = none
+dotnet_diagnostic.CA1512.severity = none
+dotnet_diagnostic.CA1513.severity = none
+
 dotnet_diagnostic.SA0001.severity = none
 dotnet_diagnostic.SA1402.severity = none

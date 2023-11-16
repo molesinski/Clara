@@ -4,7 +4,7 @@ namespace Clara.Analysis
 {
     public sealed class MorfologikAnalyzer : IAnalyzer
     {
-        private readonly IAnalyzer analyzer;
+        private readonly Analyzer analyzer;
 
         public MorfologikAnalyzer(
             IEnumerable<string>? stopwords = null,

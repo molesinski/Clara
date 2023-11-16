@@ -75,7 +75,7 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public IReadOnlyDictionary<string, TokenNode> Children
+            public Dictionary<string, TokenNode> Children
             {
                 get
                 {
@@ -83,7 +83,7 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public IReadOnlyList<string> IndexReplacementTokens
+            public ListSlim<string> IndexReplacementTokens
             {
                 get
                 {
@@ -91,7 +91,7 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public IReadOnlyList<string> SearchReplacementTokens
+            public ListSlim<string> SearchReplacementTokens
             {
                 get
                 {

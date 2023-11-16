@@ -4,7 +4,7 @@ namespace Clara.Analysis
 {
     public sealed class PorterAnalyzer : IAnalyzer
     {
-        private readonly IAnalyzer analyzer;
+        private readonly Analyzer analyzer;
 
         public PorterAnalyzer(
             IEnumerable<string>? stopwords = null,

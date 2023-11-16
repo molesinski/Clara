@@ -4,7 +4,7 @@ namespace Clara.Analysis
 {
     public sealed class YiddishAnalyzer : IAnalyzer
     {
-        private readonly IAnalyzer analyzer;
+        private readonly Analyzer analyzer;
 
         public YiddishAnalyzer(
             IEnumerable<string>? stopwords = null,

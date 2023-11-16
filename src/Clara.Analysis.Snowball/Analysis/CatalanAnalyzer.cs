@@ -4,7 +4,7 @@ namespace Clara.Analysis
 {
     public sealed class CatalanAnalyzer : IAnalyzer
     {
-        private readonly IAnalyzer analyzer;
+        private readonly Analyzer analyzer;
 
         public CatalanAnalyzer(
             IEnumerable<string>? stopwords = null,

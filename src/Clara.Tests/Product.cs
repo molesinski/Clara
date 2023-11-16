@@ -20,7 +20,7 @@ namespace Clara.Tests
         public string? Brand { get; set; }
         public string? Category { get; set; }
 
-        private static IReadOnlyCollection<Product> LoadResource(int times = 1)
+        private static List<Product> LoadResource(int times = 1)
         {
             var result = new List<Product>();
             var nextId = 1;

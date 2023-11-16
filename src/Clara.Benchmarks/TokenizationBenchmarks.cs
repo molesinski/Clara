@@ -1,4 +1,6 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿#pragma warning disable CA1861 // Avoid constant arrays as arguments
+
+using BenchmarkDotNet.Attributes;
 using Clara.Analysis;
 using Clara.Analysis.Synonyms;
 

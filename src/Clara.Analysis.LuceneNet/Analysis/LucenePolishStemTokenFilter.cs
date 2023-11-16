@@ -1,5 +1,4 @@
 ﻿using Clara.Utils;
-using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Pl;
 using Lucene.Net.Analysis.Stempel;
 
@@ -37,7 +36,7 @@ namespace Clara.Analysis
                 this.stemmer = new StempelFilter(this.tokenTermSource, new StempelStemmer(PolishAnalyzer.DefaultTable));
             }
 
-            public TokenStream GetTokenStream(Token token)
+            public StempelFilter GetTokenStream(Token token)
             {
                 this.tokenTermSource.SetToken(token);
 
