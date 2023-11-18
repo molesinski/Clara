@@ -6,10 +6,11 @@ namespace Clara.Utils
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1710:Identifiers should have correct suffix", Justification = "By design")]
     public sealed class HashSetSlim<TItem> : IReadOnlyCollection<TItem>, IReadOnlyHashCollection<TItem>, IResettable
-        where TItem : notnull, IEquatable<TItem>
+        where TItem : notnull
     {
         private const int MinimumSize = 4;
 
+        private static readonly EqualityComparer<TItem> Comparer = EqualityComparer<TItem>.Default;
         private static readonly Entry[] InitialEntries = new Entry[1];
 
         private int size;
@@ -128,7 +129,7 @@ namespace Clara.Utils
         public bool Add(TItem item)
         {
             var entries = this.entries;
-            var bucketIndex = item.GetHashCode() & this.size - 1;
+            var bucketIndex = Comparer.GetHashCode(item) & this.size - 1;
             var i = this.buckets[bucketIndex] - 1;
             var collisionCount = 0;
 
@@ -136,7 +137,7 @@ namespace Clara.Utils
             {
                 ref var entry = ref entries[i];
 
-                if (item.Equals(entry.Item))
+                if (Comparer.Equals(item, entry.Item))
                 {
                     return false;
                 }
@@ -159,7 +160,7 @@ namespace Clara.Utils
         public bool Remove(TItem item)
         {
             var entries = this.entries;
-            var bucketIndex = item.GetHashCode() & this.size - 1;
+            var bucketIndex = Comparer.GetHashCode(item) & this.size - 1;
             var i = this.buckets[bucketIndex] - 1;
             var last = -1;
             var collisionCount = 0;
@@ -168,7 +169,7 @@ namespace Clara.Utils
             {
                 ref var entry = ref entries[i];
 
-                if (entry.Item.Equals(item))
+                if (Comparer.Equals(entry.Item, item))
                 {
                     if (last != -1)
                     {
@@ -461,7 +462,7 @@ namespace Clara.Utils
                     this.EnsureCapacity(this.count + 1);
 
                     entries = this.entries;
-                    bucketIndex = item.GetHashCode() & this.size - 1;
+                    bucketIndex = Comparer.GetHashCode(item) & this.size - 1;
                 }
 
                 entryIndex = this.count;
@@ -480,14 +481,14 @@ namespace Clara.Utils
         private int FindItem(TItem item)
         {
             var entries = this.entries;
-            var i = this.buckets[item.GetHashCode() & this.size - 1] - 1;
+            var i = this.buckets[Comparer.GetHashCode(item) & this.size - 1] - 1;
             var collisionCount = 0;
 
             while (i >= 0)
             {
                 ref var entry = ref entries[i];
 
-                if (item.Equals(entry.Item))
+                if (Comparer.Equals(item, entry.Item))
                 {
                     return i;
                 }
@@ -526,7 +527,7 @@ namespace Clara.Utils
 
                 if (entry.Next >= -1)
                 {
-                    var bucketIndex = entry.Item.GetHashCode() & newSize - 1;
+                    var bucketIndex = Comparer.GetHashCode(entry.Item) & newSize - 1;
 
                     entry.Next = newBuckets[bucketIndex] - 1;
                     newBuckets[bucketIndex] = lastIndex + 1;
