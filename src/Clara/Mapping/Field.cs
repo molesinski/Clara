@@ -4,12 +4,19 @@ namespace Clara.Mapping
 {
     public abstract class Field
     {
-        internal Field(bool isFilterable, bool isFacetable, bool isSortable)
+        internal Field(
+            bool isSearchable,
+            bool isFilterable,
+            bool isFacetable,
+            bool isSortable)
         {
+            this.IsSearchable = isSearchable;
             this.IsFilterable = isFilterable;
             this.IsFacetable = isFacetable;
             this.IsSortable = isSortable;
         }
+
+        public bool IsSearchable { get; }
 
         public bool IsFilterable { get; }
 

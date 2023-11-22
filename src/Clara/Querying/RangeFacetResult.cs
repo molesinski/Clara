@@ -5,15 +5,15 @@ namespace Clara.Querying
     public sealed class RangeFacetResult<TValue> : FacetResult
         where TValue : struct, IComparable<TValue>
     {
-        internal RangeFacetResult(RangeField<TValue> field, TValue min, TValue max)
+        internal RangeFacetResult(RangeField<TValue> field, TValue minValue, TValue maxValue)
             : base(field)
         {
-            this.Min = min;
-            this.Max = max;
+            this.MinValue = minValue;
+            this.MaxValue = maxValue;
         }
 
-        public TValue Min { get; }
+        public TValue MinValue { get; }
 
-        public TValue Max { get; }
+        public TValue MaxValue { get; }
     }
 }

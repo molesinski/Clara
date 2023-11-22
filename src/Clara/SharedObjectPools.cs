@@ -21,9 +21,9 @@ namespace Clara
 
         public static ObjectPool<HashSetSlim<string>> FilterValues { get; } = new(() => new(), sizeFactor: 1 + DefaultFilterFacetCount);
 
-        public static ObjectPool<ListSlim<SearchField>> SearchFields { get; } = new(() => new());
+        public static ObjectPool<ListSlim<TextSearchField>> TextSearchFields { get; } = new(() => new());
 
-        public static ObjectPool<ListSlim<SearchFieldStore>> SearchFieldStores { get; } = new(() => new());
+        public static ObjectPool<ListSlim<TextSearchFieldStore>> TextSearchFieldStores { get; } = new(() => new());
 
         public static ObjectPool<ListSlim<SearchTerm>> SearchTerms { get; } = new(() => new());
 

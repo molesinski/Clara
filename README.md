@@ -159,7 +159,7 @@ using var result = index.Query(
         .Search(mapper.Text, SearchMode.Any, "watch ring leather bag")
         .Filter(mapper.Brand, FilterMode.Any, "Eastern Watches", "Bracelet", "Copenhagen Luxe")
         .Filter(mapper.Category, FilterMode.Any, "womens")
-        .Filter(mapper.Price, from: 10, to: 90)
+        .Filter(mapper.Price, valueFrom: 10, valueTo: 90)
         .Facet(mapper.Brand)
         .Facet(mapper.Category)
         .Facet(mapper.Price)

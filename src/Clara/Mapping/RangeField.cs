@@ -8,6 +8,7 @@ namespace Clara.Mapping
     {
         internal RangeField(TValue minValue, TValue maxValue, bool isFilterable, bool isFacetable, bool isSortable)
             : base(
+                isSearchable: false,
                 isFilterable: isFilterable,
                 isFacetable: isFacetable,
                 isSortable: isSortable)

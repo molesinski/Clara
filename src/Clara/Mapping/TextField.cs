@@ -1,6 +1,5 @@
 ﻿using Clara.Analysis;
 using Clara.Storage;
-using Clara.Utils;
 
 namespace Clara.Mapping
 {
@@ -8,6 +7,7 @@ namespace Clara.Mapping
     {
         internal TextField(IAnalyzer analyzer, ISynonymMap? synonymMap, Similarity? similarity)
             : base(
+                isSearchable: true,
                 isFilterable: false,
                 isFacetable: false,
                 isSortable: false)
@@ -27,14 +27,14 @@ namespace Clara.Mapping
 
             this.Analyzer = analyzer;
             this.SynonymMap = synonymMap;
-            this.Similarity = similarity;
+            this.Similarity = similarity ?? Similarity.Default;
         }
 
         public IAnalyzer Analyzer { get; }
 
         public ISynonymMap? SynonymMap { get; }
 
-        public Similarity? Similarity { get; }
+        public Similarity Similarity { get; }
     }
 
     public sealed class TextField<TSource> : TextField

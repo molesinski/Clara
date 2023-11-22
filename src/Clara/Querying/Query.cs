@@ -8,7 +8,7 @@ namespace Clara.Querying
         private readonly Index index;
         private readonly ObjectPoolLease<ListSlim<FilterExpression>> filters;
         private readonly ObjectPoolLease<ListSlim<FacetExpression>> facets;
-        private SearchExpression? search;
+        private TextSearchExpression? textSearch;
         private SortExpression? sort;
         private IEnumerable<string?>? includeDocuments;
         private IEnumerable<string?>? excludeDocuments;
@@ -26,7 +26,7 @@ namespace Clara.Querying
             this.facets = SharedObjectPools.FacetExpressions.Lease();
         }
 
-        public SearchExpression? Search
+        public TextSearchExpression? TextSearch
         {
             get
             {
@@ -35,7 +35,7 @@ namespace Clara.Querying
                     throw new ObjectDisposedException(this.GetType().FullName);
                 }
 
-                return this.search;
+                return this.textSearch;
             }
 
             set
@@ -47,8 +47,8 @@ namespace Clara.Querying
 
                 if (value is null)
                 {
-                    this.search?.Dispose();
-                    this.search = null;
+                    this.textSearch?.Dispose();
+                    this.textSearch = null;
 
                     return;
                 }
@@ -59,11 +59,11 @@ namespace Clara.Querying
 
                     if (!this.index.ContainsField(field.Field))
                     {
-                        throw new InvalidOperationException("Search expression references field not belonging to current index.");
+                        throw new InvalidOperationException("Text search expression references field not belonging to current index.");
                     }
                 }
 
-                this.search = value;
+                this.textSearch = value;
             }
         }
 
@@ -262,7 +262,7 @@ namespace Clara.Querying
 
                 this.facets.Dispose();
                 this.filters.Dispose();
-                this.search?.Dispose();
+                this.textSearch?.Dispose();
 
                 this.isDisposed = true;
             }

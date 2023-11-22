@@ -35,9 +35,7 @@ namespace Clara.Storage
                 sumCount += documents.Count;
             }
 
-            var averageItemsPerToken = (double)sumCount / (1 + this.tokenDocuments.Count);
-
-            this.FilterOrder = averageItemsPerToken;
+            this.FilterOrder = (double)sumCount / (1 + this.tokenDocuments.Count);
         }
 
         public double FilterOrder { get; }

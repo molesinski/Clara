@@ -9,7 +9,7 @@ namespace Clara.Storage
 
         public ScoreValueCombiner()
         {
-            this.boost = SearchField.DefaultBoost;
+            this.boost = TextSearchField.DefaultBoost;
         }
 
         public ScoreValueCombiner(float boost)
@@ -17,7 +17,7 @@ namespace Clara.Storage
             this.boost = boost;
         }
 
-        public static ScoreValueCombiner Default { get; } = new ScoreValueCombiner(SearchField.DefaultBoost);
+        public static ScoreValueCombiner Default { get; } = new ScoreValueCombiner(TextSearchField.DefaultBoost);
 
         public bool IsDefaultNeutral
         {

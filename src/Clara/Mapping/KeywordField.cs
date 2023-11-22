@@ -7,6 +7,7 @@ namespace Clara.Mapping
     {
         internal KeywordField(bool isFilterable, bool isFacetable)
             : base(
+                isSearchable: false,
                 isFilterable: isFilterable,
                 isFacetable: isFacetable,
                 isSortable: false)

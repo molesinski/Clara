@@ -41,12 +41,12 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(field));
             }
 
-            if (this.query.Search is not null)
+            if (this.query.TextSearch is not null)
             {
-                throw new InvalidOperationException("Search already has been set.");
+                throw new InvalidOperationException("Text search already has been set.");
             }
 
-            this.query.Search = new SearchExpression(field, searchMode, text ?? string.Empty);
+            this.query.TextSearch = new TextSearchExpression(field, searchMode, text ?? string.Empty);
 
             return this;
         }
@@ -63,17 +63,17 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(fields));
             }
 
-            if (this.query.Search is not null)
+            if (this.query.TextSearch is not null)
             {
-                throw new InvalidOperationException("Search already has been set.");
+                throw new InvalidOperationException("Text search already has been set.");
             }
 
-            this.query.Search = new SearchExpression(fields, searchMode, text ?? string.Empty);
+            this.query.TextSearch = new TextSearchExpression(fields, searchMode, text ?? string.Empty);
 
             return this;
         }
 
-        public QueryBuilder Search(IEnumerable<SearchField> fields, SearchMode searchMode, string? text)
+        public QueryBuilder Search(IEnumerable<TextSearchField> fields, SearchMode searchMode, string? text)
         {
             if (this.isDisposed)
             {
@@ -85,12 +85,12 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(fields));
             }
 
-            if (this.query.Search is not null)
+            if (this.query.TextSearch is not null)
             {
-                throw new InvalidOperationException("Search already has been set.");
+                throw new InvalidOperationException("Text search already has been set.");
             }
 
-            this.query.Search = new SearchExpression(fields, searchMode, text ?? string.Empty);
+            this.query.TextSearch = new TextSearchExpression(fields, searchMode, text ?? string.Empty);
 
             return this;
         }

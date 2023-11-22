@@ -5,46 +5,46 @@ namespace Clara.Querying
     public class RangeFilterExpression<TValue> : FilterExpression
         where TValue : struct, IComparable<TValue>
     {
-        public RangeFilterExpression(RangeField<TValue> field, TValue? from, TValue? to)
+        public RangeFilterExpression(RangeField<TValue> field, TValue? valueFrom, TValue? valueTo)
             : base(field)
         {
-            if (from is not null)
+            if (valueFrom is not null)
             {
-                if (!(field.MinValue.CompareTo(from.Value) <= 0 && from.Value.CompareTo(field.MaxValue) <= 0))
+                if (!(field.MinValue.CompareTo(valueFrom.Value) <= 0 && valueFrom.Value.CompareTo(field.MaxValue) <= 0))
                 {
-                    throw new ArgumentOutOfRangeException(nameof(from));
+                    throw new ArgumentOutOfRangeException(nameof(valueFrom));
                 }
             }
 
-            if (to is not null)
+            if (valueTo is not null)
             {
-                if (!(field.MinValue.CompareTo(to.Value) <= 0 && to.Value.CompareTo(field.MaxValue) <= 0))
+                if (!(field.MinValue.CompareTo(valueTo.Value) <= 0 && valueTo.Value.CompareTo(field.MaxValue) <= 0))
                 {
-                    throw new ArgumentOutOfRangeException(nameof(from));
+                    throw new ArgumentOutOfRangeException(nameof(valueFrom));
                 }
             }
 
-            if (from is not null && to is not null)
+            if (valueFrom is not null && valueTo is not null)
             {
-                if (!(from.Value.CompareTo(to.Value) <= 0))
+                if (valueFrom.Value.CompareTo(valueTo.Value) > 0)
                 {
-                    throw new ArgumentException("From value has to be less or equal to to value.", nameof(from));
+                    throw new ArgumentException("From value has to be less or equal to to value.", nameof(valueFrom));
                 }
             }
 
-            this.From = from;
-            this.To = to;
+            this.ValueFrom = valueFrom;
+            this.ValueTo = valueTo;
         }
 
-        public TValue? From { get; }
+        public TValue? ValueFrom { get; }
 
-        public TValue? To { get; }
+        public TValue? ValueTo { get; }
 
         internal override bool IsEmpty
         {
             get
             {
-                return this.From is null && this.To is null;
+                return this.ValueFrom is null && this.ValueTo is null;
             }
         }
 

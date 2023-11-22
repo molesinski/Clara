@@ -3,12 +3,12 @@ using Clara.Mapping;
 
 namespace Clara.Querying
 {
-    public sealed class SearchExpression : IDisposable
+    public sealed class TextSearchExpression : IDisposable
     {
-        private readonly SearchFields fields;
+        private readonly TextSearchFields fields;
         private bool isDisposed;
 
-        public SearchExpression(TextField field, SearchMode searchMode, string text)
+        public TextSearchExpression(TextField field, SearchMode searchMode, string text)
         {
             if (field is null)
             {
@@ -25,14 +25,14 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(text));
             }
 
-            this.fields = new SearchFields(field);
+            this.fields = new TextSearchFields(field);
             this.SearchMode = searchMode;
             this.Text = text;
 
             this.ValidateFields();
         }
 
-        public SearchExpression(IEnumerable<TextField> fields, SearchMode searchMode, string text)
+        public TextSearchExpression(IEnumerable<TextField> fields, SearchMode searchMode, string text)
         {
             if (fields is null)
             {
@@ -49,14 +49,14 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(text));
             }
 
-            this.fields = new SearchFields(fields);
+            this.fields = new TextSearchFields(fields);
             this.SearchMode = searchMode;
             this.Text = text;
 
             this.ValidateFields();
         }
 
-        public SearchExpression(IEnumerable<SearchField> fields, SearchMode searchMode, string text)
+        public TextSearchExpression(IEnumerable<TextSearchField> fields, SearchMode searchMode, string text)
         {
             if (fields is null)
             {
@@ -73,14 +73,14 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(text));
             }
 
-            this.fields = new SearchFields(fields);
+            this.fields = new TextSearchFields(fields);
             this.SearchMode = searchMode;
             this.Text = text;
 
             this.ValidateFields();
         }
 
-        public IReadOnlyList<SearchField> Fields
+        public IReadOnlyList<TextSearchField> Fields
         {
             get
             {

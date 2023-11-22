@@ -83,8 +83,8 @@ namespace Clara.Tests
                 .Where(x => x.Brand == this.topBrands[0])
                 .Max(x => x.Price);
 
-            Assert.True(priceFacet.Min == minBrandPrice);
-            Assert.True(priceFacet.Max == maxBrandPrice);
+            Assert.True(priceFacet.MinValue == minBrandPrice);
+            Assert.True(priceFacet.MaxValue == maxBrandPrice);
         }
 
         [Theory]

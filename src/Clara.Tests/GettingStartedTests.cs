@@ -59,8 +59,8 @@ namespace Clara.Tests
             var priceFacet = result.Facets.Field(mapper.Price);
 
             this.output.WriteLine("Price:");
-            this.output.WriteLine($"  [Min] => {priceFacet.Min}");
-            this.output.WriteLine($"  [Max] => {priceFacet.Max}");
+            this.output.WriteLine($"  [Min] => {priceFacet.MinValue}");
+            this.output.WriteLine($"  [Max] => {priceFacet.MaxValue}");
         }
     }
 }

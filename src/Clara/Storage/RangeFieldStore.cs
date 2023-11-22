@@ -35,7 +35,12 @@ namespace Clara.Storage
             {
                 if (this.sortedDocumentValueStore is not null)
                 {
-                    this.sortedDocumentValueStore.Filter(rangeFilterExpression.Field, rangeFilterExpression.From, rangeFilterExpression.To, ref documentResultBuilder);
+                    this.sortedDocumentValueStore.Filter(
+                        rangeFilterExpression.Field,
+                        rangeFilterExpression.ValueFrom,
+                        rangeFilterExpression.ValueTo,
+                        ref documentResultBuilder);
+
                     return;
                 }
             }
@@ -49,7 +54,9 @@ namespace Clara.Storage
             {
                 if (this.documentValueMinMaxStore is not null)
                 {
-                    return this.documentValueMinMaxStore.Facet(ref documentResultBuilder);
+                    return
+                        this.documentValueMinMaxStore.Facet(
+                            ref documentResultBuilder);
                 }
             }
 
@@ -62,7 +69,10 @@ namespace Clara.Storage
             {
                 if (this.documentValueMinMaxStore is not null)
                 {
-                    return this.documentValueMinMaxStore.Sort(rangeSortExpression.SortDirection, ref documentResultBuilder);
+                    return
+                        this.documentValueMinMaxStore.Sort(
+                            rangeSortExpression.SortDirection,
+                            ref documentResultBuilder);
                 }
             }
 

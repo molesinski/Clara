@@ -105,10 +105,14 @@ namespace Clara
             {
                 using var includedDocuments = SharedObjectPools.DocumentSets.Lease();
 
+                var hasValues = false;
+
                 foreach (var includedDocument in query.IncludeDocuments)
                 {
                     if (includedDocument is not null)
                     {
+                        hasValues = true;
+
                         if (this.tokenEncoder.TryEncode(includedDocument, out var documentId))
                         {
                             includedDocuments.Instance.Add(documentId);
@@ -116,27 +120,27 @@ namespace Clara
                     }
                 }
 
-                if (includedDocuments.Instance.Count > 0)
+                if (hasValues)
                 {
                     documentResultBuilder.IntersectWith(field: null, includedDocuments.Instance);
                 }
             }
 
-            if (query.Search is SearchExpression searchExpression)
+            if (query.TextSearch is TextSearchExpression textSearchExpression)
             {
-                if (!searchExpression.IsEmpty)
+                if (!textSearchExpression.IsEmpty)
                 {
-                    using var searchFieldStores = SharedObjectPools.SearchFieldStores.Lease();
+                    using var stores = SharedObjectPools.TextSearchFieldStores.Lease();
 
-                    for (var i = 0; i < searchExpression.Fields.Count; i++)
+                    for (var i = 0; i < textSearchExpression.Fields.Count; i++)
                     {
-                        var searchField = searchExpression.Fields[i];
-                        var store = this.fieldStores[searchField.Field];
+                        var textSearchField = textSearchExpression.Fields[i];
+                        var store = this.fieldStores[textSearchField.Field];
 
-                        searchFieldStores.Instance.Add(store.GetSearchFieldStore(searchField));
+                        stores.Instance.Add(store.GetSearchStore(textSearchField));
                     }
 
-                    documentScoring = TextDocumentStore.Search(searchFieldStores.Instance, searchExpression.SearchMode, searchExpression.Text, ref documentResultBuilder);
+                    documentScoring = TextDocumentStore.Search(stores.Instance, textSearchExpression.SearchMode, textSearchExpression.Text, ref documentResultBuilder);
                 }
             }
 

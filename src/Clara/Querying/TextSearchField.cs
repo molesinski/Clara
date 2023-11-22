@@ -2,16 +2,16 @@
 
 namespace Clara.Querying
 {
-    public readonly record struct SearchField
+    public readonly record struct TextSearchField
     {
         public const float DefaultBoost = 1;
 
-        public SearchField(TextField field)
+        public TextSearchField(TextField field)
             : this(field, DefaultBoost)
         {
         }
 
-        public SearchField(TextField field, float boost)
+        public TextSearchField(TextField field, float boost)
         {
             if (field is null)
             {

@@ -42,7 +42,7 @@ namespace Clara.Storage
             this.tokenTermSourcePool = new ObjectPool<ITokenTermSource>(() => this.synonymMap?.CreateSearchTokenTermSource() ?? this.analyzer.CreateTokenTermSource());
         }
 
-        public static DocumentScoring Search(ListSlim<SearchFieldStore> stores, SearchMode searchMode, string text, ref DocumentResultBuilder documentResultBuilder)
+        public static DocumentScoring Search(ListSlim<TextSearchFieldStore> stores, SearchMode searchMode, string text, ref DocumentResultBuilder documentResultBuilder)
         {
             using var terms = SharedObjectPools.SearchTerms.Lease();
             using var termStores = SharedObjectPools.SearchTermStoreIndexes.Lease();
@@ -104,7 +104,7 @@ namespace Clara.Storage
                         if (termStore.StoreIndex == storeIndex && termStore.SearchTerm.Position.Overlaps(position))
                         {
                             var store = stores[storeIndex];
-                            var boost = store.SearchField.Boost;
+                            var boost = store.Boost;
 
                             if (position != termStore.SearchTerm.Position.Start)
                             {
@@ -155,7 +155,7 @@ namespace Clara.Storage
             return new DocumentScoring(documentScores);
         }
 
-        private static void SortByEqualAnalysis(ListSlim<SearchFieldStore> searchFieldStores)
+        private static void SortByEqualAnalysis(ListSlim<TextSearchFieldStore> searchFieldStores)
         {
             var span = searchFieldStores.AsSpan();
             var length = span.Length;

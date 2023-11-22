@@ -35,7 +35,12 @@ namespace Clara.Storage
             {
                 if (this.tokenDocumentStore is not null)
                 {
-                    this.tokenDocumentStore.Filter(hierarchyFilterExpression.Field, hierarchyFilterExpression.FilterMode, (HashSetSlim<string>)hierarchyFilterExpression.Values, ref documentResultBuilder);
+                    this.tokenDocumentStore.Filter(
+                        hierarchyFilterExpression.Field,
+                        hierarchyFilterExpression.FilterMode,
+                        (HashSetSlim<string>)hierarchyFilterExpression.Values,
+                        ref documentResultBuilder);
+
                     return;
                 }
             }
@@ -49,7 +54,10 @@ namespace Clara.Storage
             {
                 if (this.documentTokenStore is not null)
                 {
-                    return this.documentTokenStore.Facet(filterExpression as HierarchyFilterExpression, ref documentResultBuilder);
+                    return
+                        this.documentTokenStore.Facet(
+                            filterExpression as HierarchyFilterExpression,
+                            ref documentResultBuilder);
                 }
             }
 

@@ -19,31 +19,26 @@ namespace Clara.Storage
             documentValues.Sort(DocumentValueComparer<TValue>.Ascending);
 
             this.sortedDocumentValues = documentValues;
+            this.FilterOrder = documentValues.Count;
         }
 
-        public double FilterOrder
-        {
-            get
-            {
-                return this.sortedDocumentValues.Count;
-            }
-        }
+        public double FilterOrder { get; }
 
-        public void Filter(Field field, TValue? from, TValue? to, ref DocumentResultBuilder documentResultBuilder)
+        public void Filter(Field field, TValue? valueFrom, TValue? valueTo, ref DocumentResultBuilder documentResultBuilder)
         {
             var list = this.sortedDocumentValues;
 
             var lo = 0;
             var hi = list.Count - 1;
 
-            if (from is not null)
+            if (valueFrom is not null)
             {
-                lo = BinarySearchLow(list, from.Value);
+                lo = BinarySearchLow(list, valueFrom.Value);
             }
 
-            if (to is not null)
+            if (valueTo is not null)
             {
-                hi = BinarySearchHigh(list, to.Value);
+                hi = BinarySearchHigh(list, valueTo.Value);
             }
 
             using var documents = SharedObjectPools.DocumentSets.Lease();

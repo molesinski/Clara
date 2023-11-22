@@ -68,37 +68,24 @@ namespace Clara.Storage
 
         public DocumentList Sort(SortDirection direction, ref DocumentResultBuilder documentResultBuilder)
         {
-            if (direction == SortDirection.Descending)
-            {
-                return
-                    Sort(
-                        documentResultBuilder.Documents,
-                        this.GetDescendingValue,
-                        DocumentValueComparer<TValue>.Descending);
-            }
-            else
-            {
-                return
-                    Sort(
-                        documentResultBuilder.Documents,
-                        this.GetAscendingValue,
-                        DocumentValueComparer<TValue>.Ascending);
-            }
-        }
-
-        private static DocumentList Sort(
-            HashSetSlim<int> documentSet,
-            Func<int, TValue> valueSelector,
-            IComparer<DocumentValue<TValue>> comparer)
-        {
             using var sortedDocuments = SharedObjectPools<TValue>.SortedDocumentLists.Lease();
 
-            foreach (var documentId in documentSet)
+            Func<int, TValue> valueSelector =
+                direction == SortDirection.Descending
+                    ? this.GetDescendingValue
+                    : this.GetAscendingValue;
+
+            foreach (var documentId in documentResultBuilder.Documents)
             {
                 var value = valueSelector(documentId);
 
                 sortedDocuments.Instance.Add(new DocumentValue<TValue>(documentId, value));
             }
+
+            var comparer =
+                direction == SortDirection.Descending
+                    ? DocumentValueComparer<TValue>.Descending
+                    : DocumentValueComparer<TValue>.Ascending;
 
             sortedDocuments.Instance.Sort(comparer);
 
