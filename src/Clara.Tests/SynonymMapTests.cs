@@ -156,8 +156,8 @@ namespace Clara.Tests
             var phrase = "aaa a a bbb a a mmm nnn a a mmm nnn";
 
             var input = synonymMap.Analyzer.CreateTokenTermSource().GetTerms(phrase).Select(x => new { Token = x.Token.ToString(), x.Position }).ToList();
-            var indexOutput = synonymMap.CreateIndexTokenTermSource().GetTerms(phrase).Select(x => new { Token = x.Token.ToString(), x.Position }).ToList();
-            var searchOutput = synonymMap.CreateSearchTokenTermSource().GetTerms(phrase).Select(x => new { Token = x.Token.ToString(), x.Position }).ToList();
+            var indexOutput = synonymMap.CreateTokenTermSource().GetTerms(phrase).Select(x => new { Token = x.Token.ToString(), x.Position }).ToList();
+            var searchOutput = synonymMap.CreateSynonymTermSource().GetTerms(phrase).Select(x => new { Token = x.Token.ToString(), x.Position }).ToList();
 
             var expected = string.Join(", ", input.Select(x => x.Position).Distinct());
             var indexActual = string.Join(", ", indexOutput.Select(x => x.Position).Distinct());

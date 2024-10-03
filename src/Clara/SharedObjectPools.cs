@@ -13,7 +13,7 @@ namespace Clara
 
         public static ObjectPool<DictionarySlim<int, int>> TokenCounts { get; } = new(() => new());
 
-        public static ObjectPool<DictionarySlim<int, float>> DocumentScores { get; } = new(() => new(), sizeFactor: 2);
+        public static ObjectPool<DictionarySlim<int, float>> DocumentScores { get; } = new(() => new(), sizeFactor: 4);
 
         public static ObjectPool<HashSetSlim<int>> DocumentSets { get; } = new(() => new(), sizeFactor: 3 + DefaultFilterFacetCount);
 
@@ -47,7 +47,7 @@ namespace Clara
 
         public static ObjectPool<FilterExpressionComparer> FilterExpressionComparers { get; } = new(() => new());
 
-        public static ObjectPool<ScoreValueCombiner> ScoreValueCombiners { get; } = new(() => new());
+        public static ObjectPool<BoostedValueCombiner> BoostedValueCombiners { get; } = new(() => new());
     }
 
     internal static class SharedObjectPools<TValue>

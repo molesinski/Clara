@@ -4,8 +4,8 @@
     {
         IAnalyzer Analyzer { get; }
 
-        ITokenTermSource CreateIndexTokenTermSource();
+        ITokenTermSource CreateTokenTermSource();
 
-        ITokenTermSource CreateSearchTokenTermSource();
+        ISynonymTermSource CreateSynonymTermSource();
     }
 }

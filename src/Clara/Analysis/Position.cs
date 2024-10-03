@@ -1,13 +1,13 @@
 ﻿namespace Clara.Analysis
 {
-    public readonly record struct TokenPosition : IComparable<TokenPosition>
+    public readonly record struct Position : IComparable<Position>
     {
-        public TokenPosition(int position)
+        public Position(int position)
             : this(position, position)
         {
         }
 
-        public TokenPosition(int start, int end)
+        public Position(int start, int end)
         {
             if (start < 0)
             {
@@ -32,22 +32,22 @@
 
         public int End { get; }
 
-        public static bool operator <(TokenPosition left, TokenPosition right)
+        public static bool operator <(Position left, Position right)
         {
             return left.CompareTo(right) < 0;
         }
 
-        public static bool operator <=(TokenPosition left, TokenPosition right)
+        public static bool operator <=(Position left, Position right)
         {
             return left.CompareTo(right) <= 0;
         }
 
-        public static bool operator >(TokenPosition left, TokenPosition right)
+        public static bool operator >(Position left, Position right)
         {
             return left.CompareTo(right) > 0;
         }
 
-        public static bool operator >=(TokenPosition left, TokenPosition right)
+        public static bool operator >=(Position left, Position right)
         {
             return left.CompareTo(right) >= 0;
         }
@@ -57,7 +57,7 @@
             return this.Start <= position && position <= this.End;
         }
 
-        public int CompareTo(TokenPosition other)
+        public int CompareTo(Position other)
         {
             var result = this.Start.CompareTo(other.Start);
 

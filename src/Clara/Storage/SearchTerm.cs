@@ -4,7 +4,7 @@ namespace Clara.Storage
 {
     public readonly record struct SearchTerm
     {
-        public SearchTerm(string token, TokenPosition position)
+        public SearchTerm(string token, Position position)
         {
             if (token is null)
             {
@@ -15,8 +15,16 @@ namespace Clara.Storage
             this.Position = position;
         }
 
-        public string Token { get; }
+        public SearchTerm(SynonymPhraseCollection phrases, Position position)
+        {
+            this.Phrases = phrases;
+            this.Position = position;
+        }
 
-        public TokenPosition Position { get; }
+        public string? Token { get; }
+
+        public SynonymPhraseCollection? Phrases { get; }
+
+        public Position Position { get; }
     }
 }

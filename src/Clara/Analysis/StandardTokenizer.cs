@@ -121,7 +121,7 @@ namespace Clara.Analysis
                                 if (span.Length <= Token.MaximumLength && !IsUnderscores(span))
                                 {
                                     this.token.Set(span);
-                                    this.current = new TokenTerm(this.token, new TokenPosition(position++));
+                                    this.current = new TokenTerm(this.token, new Position(position++));
 
                                     hasCurrent = true;
                                 }
@@ -160,7 +160,7 @@ namespace Clara.Analysis
                     if (span.Length <= Token.MaximumLength && !IsUnderscores(span))
                     {
                         this.token.Set(span);
-                        this.current = new TokenTerm(this.token, new TokenPosition(position++));
+                        this.current = new TokenTerm(this.token, new Position(position++));
 
                         this.lastPosition = position;
                         this.lastIndex = i;

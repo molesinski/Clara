@@ -8,7 +8,7 @@ namespace Clara.Analysis.Synonyms
         private readonly StringPoolSlim stringPool = new();
         private readonly IAnalyzer analyzer;
         private readonly bool expand;
-        private readonly TokenNode root;
+        private readonly Node root;
 
         public SynonymMap(
             IAnalyzer analyzer,
@@ -37,7 +37,7 @@ namespace Clara.Analysis.Synonyms
 
             this.analyzer = analyzer;
             this.expand = expand;
-            this.root = TokenNode.Build(this.analyzer, this.synonyms, this.expand, this.stringPool);
+            this.root = Node.BuildTree(this.analyzer, this.synonyms, this.expand, this.stringPool);
         }
 
         public IAnalyzer Analyzer
@@ -56,14 +56,14 @@ namespace Clara.Analysis.Synonyms
             }
         }
 
-        public ITokenTermSource CreateIndexTokenTermSource()
+        public ITokenTermSource CreateTokenTermSource()
         {
-            return new IndexTokenTermSource(this);
+            return new TokenTermSource(this);
         }
 
-        public ITokenTermSource CreateSearchTokenTermSource()
+        public ISynonymTermSource CreateSynonymTermSource()
         {
-            return new SearchTokenTermSource(this);
+            return new SynonymTermSource(this);
         }
     }
 }

@@ -90,7 +90,7 @@ namespace Clara.Analysis
                 {
                     this.token.Set(this.charTermAttribute.Buffer.AsSpan(0, this.charTermAttribute.Length));
                     this.position += this.positionIncrementAttribute.PositionIncrement;
-                    this.current = new TokenTerm(this.token, new TokenPosition(this.position));
+                    this.current = new TokenTerm(this.token, new Position(this.position));
 
                     return true;
                 }

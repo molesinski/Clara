@@ -6,25 +6,24 @@ namespace Clara.Analysis.Synonyms
     public sealed partial class SynonymMap
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1214:Readonly fields should appear before non-readonly fields", Justification = "By design")]
-        private sealed class TokenTermSource : ITokenTermSource, IEnumerable<TokenTerm>, IEnumerator<TokenTerm>
+        private sealed class SynonymTermSource : ISynonymTermSource, IEnumerable<SynonymTerm>, IEnumerator<SynonymTerm>
         {
             private readonly ITokenTermSource tokenTermSource;
             private readonly StringPoolSlim stringPool;
             private readonly Node root;
             private string text = string.Empty;
-            private TokenTerm current;
+            private SynonymTerm current;
             private IEnumerator<TokenTerm>? enumerator;
             private bool isEnumerated;
             private TokenTerm? peekedTerm;
             private int backtrackingState;
             private int backtrackingIndex;
             private readonly ListSlim<BacktrackingEntry> backtrackingEntries = new();
-            private IReadOnlyList<string>? replacementTokens;
-            private int replacementIndex;
+            private SynonymPhraseCollection? replacementTokens;
             private Position replacementPosition;
             private Node currentNode;
 
-            public TokenTermSource(SynonymMap synonymMap)
+            public SynonymTermSource(SynonymMap synonymMap)
             {
                 if (synonymMap is null)
                 {
@@ -37,7 +36,7 @@ namespace Clara.Analysis.Synonyms
                 this.currentNode = this.root;
             }
 
-            TokenTerm IEnumerator<TokenTerm>.Current
+            SynonymTerm IEnumerator<SynonymTerm>.Current
             {
                 get
                 {
@@ -53,7 +52,7 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public IEnumerable<TokenTerm> GetTerms(string text)
+            public IEnumerable<SynonymTerm> GetTerms(string text)
             {
                 if (text is null)
                 {
@@ -67,7 +66,7 @@ namespace Clara.Analysis.Synonyms
                 return this;
             }
 
-            IEnumerator<TokenTerm> IEnumerable<TokenTerm>.GetEnumerator()
+            IEnumerator<SynonymTerm> IEnumerable<SynonymTerm>.GetEnumerator()
             {
                 return this;
             }
@@ -92,14 +91,13 @@ namespace Clara.Analysis.Synonyms
                         {
                             var entry = this.backtrackingEntries[index];
 
-                            var replacementTokens = entry.Node.TokenTermReplacements;
+                            var replacementTokens = entry.Node.SynonymTermReplacements;
 
                             if (replacementTokens.Count > 0)
                             {
                                 var position = CombinePositions(this.backtrackingEntries, 0, index + 1);
 
                                 this.replacementTokens = replacementTokens;
-                                this.replacementIndex = 0;
                                 this.replacementPosition = position;
 
                                 break;
@@ -122,14 +120,10 @@ namespace Clara.Analysis.Synonyms
 
                     if (this.replacementTokens is not null)
                     {
-                        this.current = new TokenTerm(new Token(this.replacementTokens[this.replacementIndex++]), this.replacementPosition);
+                        this.current = new SynonymTerm(this.replacementTokens.Value, this.replacementPosition);
 
-                        if (this.replacementIndex == this.replacementTokens.Count)
-                        {
-                            this.replacementTokens = default;
-                            this.replacementIndex = default;
-                            this.replacementPosition = default;
-                        }
+                        this.replacementTokens = default;
+                        this.replacementPosition = default;
 
                         return true;
                     }
@@ -138,7 +132,7 @@ namespace Clara.Analysis.Synonyms
                     {
                         var entry = this.backtrackingEntries[this.backtrackingIndex++];
 
-                        this.current = new TokenTerm(new Token(entry.Node.Token), entry.Position);
+                        this.current = new SynonymTerm(new Token(entry.Node.Token), entry.Position);
 
                         if (this.backtrackingIndex == this.backtrackingEntries.Count)
                         {
@@ -176,7 +170,7 @@ namespace Clara.Analysis.Synonyms
                             continue;
                         }
 
-                        this.current = new TokenTerm(currentTerm.Token, currentTerm.Position);
+                        this.current = new SynonymTerm(currentTerm.Token, currentTerm.Position);
 
                         return true;
                     }
@@ -214,7 +208,6 @@ namespace Clara.Analysis.Synonyms
                 this.backtrackingIndex = default;
                 this.backtrackingEntries.Clear();
                 this.replacementTokens = default;
-                this.replacementIndex = default;
                 this.replacementPosition = default;
                 this.currentNode = this.root;
             }

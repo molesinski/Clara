@@ -4,22 +4,22 @@ namespace Clara.Analysis.Synonyms
 {
     public sealed partial class SynonymMap
     {
-        private sealed partial class TokenNode
+        private sealed partial class Node
         {
-            private readonly string[] pathTokens;
+            private readonly ListSlim<string> pathTokens;
             private readonly string? token;
-            private readonly TokenNode? parent;
+            private readonly Node? parent;
             private readonly TokenMapping mapping = new();
-            private readonly Dictionary<string, TokenNode> children = new();
-            private readonly ListSlim<string> indexReplacementTokens = new();
-            private readonly ListSlim<string> searchReplacementTokens = new();
+            private readonly Dictionary<string, Node> children = new();
+            private readonly ListSlim<string> tokenTermReplacements = new();
+            private readonly ListSlim<SynonymPhrase> synonymTermReplacements = new();
 
-            private TokenNode()
+            private Node()
             {
-                this.pathTokens = Array.Empty<string>();
+                this.pathTokens = new ListSlim<string>();
             }
 
-            private TokenNode(string token, TokenNode parent)
+            private Node(string token, Node parent)
             {
                 if (token is null)
                 {
@@ -31,10 +31,9 @@ namespace Clara.Analysis.Synonyms
                     throw new ArgumentNullException(nameof(parent));
                 }
 
-                var pathTokens = new string[parent.pathTokens.Length + 1];
+                var pathTokens = new ListSlim<string>(parent.pathTokens);
 
-                Array.Copy(parent.pathTokens, pathTokens, parent.pathTokens.Length);
-                pathTokens[pathTokens.Length - 1] = token;
+                pathTokens.Add(token);
 
                 this.pathTokens = pathTokens;
                 this.token = token;
@@ -54,7 +53,7 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public TokenNode Parent
+            public Node Parent
             {
                 get
                 {
@@ -75,7 +74,7 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public Dictionary<string, TokenNode> Children
+            public Dictionary<string, Node> Children
             {
                 get
                 {
@@ -83,25 +82,25 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public ListSlim<string> IndexReplacementTokens
+            public ListSlim<string> TokenTermReplacements
             {
                 get
                 {
-                    return this.indexReplacementTokens;
+                    return this.tokenTermReplacements;
                 }
             }
 
-            public ListSlim<string> SearchReplacementTokens
+            public SynonymPhraseCollection SynonymTermReplacements
             {
                 get
                 {
-                    return this.searchReplacementTokens;
+                    return new SynonymPhraseCollection(this.synonymTermReplacements);
                 }
             }
 
-            public static TokenNode Build(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, bool expand, StringPoolSlim stringPool)
+            public static Node BuildTree(IAnalyzer analyzer, IEnumerable<Synonym> synonyms, bool expand, StringPoolSlim stringPool)
             {
-                var root = new TokenNode();
+                var root = new Node();
                 var tokenTermSource = analyzer.CreateTokenTermSource();
                 var tempTokens = new ListSlim<string>();
 
@@ -147,14 +146,14 @@ namespace Clara.Analysis.Synonyms
                 {
                     foreach (var mappedNode in node.mapping.MappedNodes)
                     {
-                        node.indexReplacementTokens.AddRange(mappedNode.pathTokens);
+                        node.tokenTermReplacements.AddRange(mappedNode.pathTokens);
                     }
 
                     if (!node.mapping.MappedNodes.Contains(node))
                     {
                         foreach (var mappedNode in node.mapping.MappedNodes)
                         {
-                            node.searchReplacementTokens.AddRange(mappedNode.pathTokens);
+                            node.synonymTermReplacements.Add(new SynonymPhrase(mappedNode.pathTokens));
                         }
                     }
                 }
@@ -180,9 +179,9 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            private static IEnumerable<TokenNode> GetAllNodes(TokenNode root)
+            private static IEnumerable<Node> GetAllNodes(Node root)
             {
-                var queue = new Queue<TokenNode>();
+                var queue = new Queue<Node>();
 
                 queue.Enqueue(root);
 
@@ -199,7 +198,7 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            private static TokenNode GetOrAddNode(TokenNode root, ListSlim<string> tokens)
+            private static Node GetOrAddNode(Node root, ListSlim<string> tokens)
             {
                 var node = root;
 
@@ -207,7 +206,7 @@ namespace Clara.Analysis.Synonyms
                 {
                     if (!node.children.TryGetValue(token, out var child))
                     {
-                        node.children.Add(token, child = new TokenNode(token, node));
+                        node.children.Add(token, child = new Node(token, node));
                     }
 
                     node = child;
@@ -218,9 +217,9 @@ namespace Clara.Analysis.Synonyms
 
             private sealed class TokenMapping
             {
-                public HashSet<TokenNode> AllNodes { get; } = new();
+                public HashSet<Node> AllNodes { get; } = new();
 
-                public HashSet<TokenNode> MappedNodes { get; } = new();
+                public HashSet<Node> MappedNodes { get; } = new();
             }
         }
     }

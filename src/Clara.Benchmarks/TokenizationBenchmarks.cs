@@ -35,7 +35,7 @@ namespace Clara.Benchmarks
                         new EquivalencySynonym(new[] { "dog", "fox" }),
                     });
 
-            this.synonymMap = synonymMap.CreateIndexTokenTermSource();
+            this.synonymMap = synonymMap.CreateTokenTermSource();
         }
 
         [Benchmark]

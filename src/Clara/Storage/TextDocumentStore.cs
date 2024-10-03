@@ -1,4 +1,6 @@
-﻿using Clara.Analysis;
+﻿using System.Xml.Linq;
+using Clara.Analysis;
+using Clara.Analysis.Synonyms;
 using Clara.Querying;
 using Clara.Utils;
 
@@ -12,7 +14,7 @@ namespace Clara.Storage
         private readonly IAnalyzer analyzer;
         private readonly ISynonymMap? synonymMap;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
-        private readonly ObjectPool<ITokenTermSource> tokenTermSourcePool;
+        private readonly ObjectPool<ISynonymTermSource> tokenTermSourcePool;
 
         public TextDocumentStore(
             TokenEncoder tokenEncoder,
@@ -39,7 +41,7 @@ namespace Clara.Storage
             this.analyzer = analyzer;
             this.synonymMap = synonymMap;
             this.tokenDocumentScores = tokenDocumentScores;
-            this.tokenTermSourcePool = new ObjectPool<ITokenTermSource>(() => this.synonymMap?.CreateSearchTokenTermSource() ?? this.analyzer.CreateTokenTermSource());
+            this.tokenTermSourcePool = new ObjectPool<ISynonymTermSource>(() => this.synonymMap?.CreateSynonymTermSource() ?? new SynonymTermSource(this.analyzer.CreateTokenTermSource()));
         }
 
         public static DocumentScoring Search(ListSlim<TextSearchFieldStore> stores, SearchMode searchMode, string text, ref DocumentResultBuilder documentResultBuilder)
@@ -47,7 +49,7 @@ namespace Clara.Storage
             using var terms = SharedObjectPools.SearchTerms.Lease();
             using var termStores = SharedObjectPools.SearchTermStoreIndexes.Lease();
             using var positionScores = SharedObjectPools.DocumentScores.Lease();
-            using var scoreValueCombiner = SharedObjectPools.ScoreValueCombiners.Lease();
+            using var boostedValueCombiner = SharedObjectPools.BoostedValueCombiners.Lease();
 
             var documentScores = SharedObjectPools.DocumentScores.Lease();
             var lastAnalyzedStore = default(TextDocumentStore?);
@@ -111,9 +113,9 @@ namespace Clara.Storage
                                 boost = 0;
                             }
 
-                            scoreValueCombiner.Instance.Initialize(boost);
+                            boostedValueCombiner.Instance.Boost = boost;
 
-                            store.Store.Search(termStore.SearchTerm, positionScores.Instance, scoreValueCombiner.Instance);
+                            store.Store.Search(termStore.SearchTerm, positionScores.Instance, boostedValueCombiner.Instance);
 
                             if (!isCovered)
                             {
@@ -130,12 +132,12 @@ namespace Clara.Storage
                     {
                         if (isFirst)
                         {
-                            documentScores.Instance.UnionWith(positionScores.Instance, ScoreValueCombiner.Default);
+                            documentScores.Instance.UnionWith(positionScores.Instance, ValueCombiner.Sum);
                             isFirst = false;
                         }
                         else
                         {
-                            documentScores.Instance.IntersectWith(positionScores.Instance, ScoreValueCombiner.Default);
+                            documentScores.Instance.IntersectWith(positionScores.Instance, ValueCombiner.Sum);
                         }
 
                         if (documentScores.Instance.Count == 0)
@@ -145,7 +147,7 @@ namespace Clara.Storage
                     }
                     else
                     {
-                        documentScores.Instance.UnionWith(positionScores.Instance, ScoreValueCombiner.Default);
+                        documentScores.Instance.UnionWith(positionScores.Instance, ValueCombiner.Sum);
                     }
                 }
             }
@@ -183,14 +185,63 @@ namespace Clara.Storage
             }
         }
 
-        private void Search(SearchTerm term, DictionarySlim<int, float> documentScores, IValueCombiner<float> scoreCombiner)
+        private void Search(SearchTerm searchTerm, DictionarySlim<int, float> positionScores, IValueCombiner<float> scoreCombiner)
         {
-            if (this.tokenEncoder.TryEncode(term.Token, out var tokenId))
+            if (searchTerm.Token is not null)
             {
-                if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
+                if (this.tokenEncoder.TryEncode(searchTerm.Token, out var tokenId))
                 {
-                    documentScores.UnionWith(documents, scoreCombiner);
+                    if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
+                    {
+                        positionScores.UnionWith(documents, scoreCombiner);
+                    }
                 }
+            }
+            else if (searchTerm.Phrases is not null)
+            {
+                using var termScores = SharedObjectPools.DocumentScores.Lease();
+                using var phraseScores = SharedObjectPools.DocumentScores.Lease();
+
+                foreach (var phrase in searchTerm.Phrases)
+                {
+                    var isFirst = true;
+
+                    phraseScores.Instance.Clear();
+
+                    foreach (var term in phrase)
+                    {
+                        if (this.tokenEncoder.TryEncode(term, out var tokenId))
+                        {
+                            if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
+                            {
+                                if (isFirst)
+                                {
+                                    phraseScores.Instance.UnionWith(documents, ValueCombiner.Sum);
+
+                                    isFirst = false;
+                                }
+                                else
+                                {
+                                    phraseScores.Instance.IntersectWith(documents, ValueCombiner.Sum);
+                                }
+
+                                continue;
+                            }
+                        }
+
+                        phraseScores.Instance.Clear();
+
+                        break;
+                    }
+
+                    termScores.Instance.UnionWith(phraseScores.Instance, ValueCombiner.Max);
+                }
+
+                positionScores.UnionWith(termScores.Instance, scoreCombiner);
+            }
+            else
+            {
+                throw new InvalidOperationException("Unsupported search term value encountered.");
             }
         }
 
@@ -200,9 +251,20 @@ namespace Clara.Storage
 
             foreach (var term in tokenTermSource.Instance.GetTerms(text))
             {
-                var token = this.tokenEncoder.ToReadOnly(term.Token) ?? InvalidToken;
+                if (term.Token is not null)
+                {
+                    var token = this.tokenEncoder.ToReadOnly(term.Token.Value) ?? InvalidToken;
 
-                terms.Add(new SearchTerm(token, term.Position));
+                    terms.Add(new SearchTerm(token, term.Position));
+                }
+                else if (term.Phrases is not null)
+                {
+                    terms.Add(new SearchTerm(term.Phrases.Value, term.Position));
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unsupported synonym term value encountered.");
+                }
             }
         }
 
