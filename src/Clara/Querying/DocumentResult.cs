@@ -1,6 +1,7 @@
 ﻿namespace Clara.Querying
 {
-    public readonly record struct DocumentResult<TDocument>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Not intended to be used directly for comparison")]
+    public readonly struct DocumentResult<TDocument>
     {
         public DocumentResult(string key, TDocument document, float score)
         {

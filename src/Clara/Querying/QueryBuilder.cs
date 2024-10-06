@@ -19,10 +19,7 @@ namespace Clara.Querying
 
         public Query ToQuery()
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             this.isDisposed = true;
 
@@ -31,10 +28,7 @@ namespace Clara.Querying
 
         public QueryBuilder Search(TextField field, SearchMode searchMode, string? text)
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (field is null)
             {
@@ -53,10 +47,7 @@ namespace Clara.Querying
 
         public QueryBuilder Search(IEnumerable<TextField> fields, SearchMode searchMode, string? text)
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (fields is null)
             {
@@ -75,10 +66,7 @@ namespace Clara.Querying
 
         public QueryBuilder Search(IEnumerable<TextSearchField> fields, SearchMode searchMode, string? text)
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (fields is null)
             {
@@ -97,10 +85,7 @@ namespace Clara.Querying
 
         public QueryBuilder Filter(KeywordField field, FilterMode filterMode, string? value)
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (field is null)
             {
@@ -119,10 +104,7 @@ namespace Clara.Querying
 
         public QueryBuilder Filter(KeywordField field, FilterMode filterMode, params string?[] values)
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (field is null)
             {
@@ -141,10 +123,7 @@ namespace Clara.Querying
 
         public QueryBuilder Filter(KeywordField field, FilterMode filterMode, IEnumerable<string?>? values)
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (field is null)
             {
@@ -163,10 +142,7 @@ namespace Clara.Querying
 
         public QueryBuilder Filter(HierarchyField field, FilterMode filterMode, string? value)
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (field is null)
             {
@@ -185,10 +161,7 @@ namespace Clara.Querying
 
         public QueryBuilder Filter(HierarchyField field, FilterMode filterMode, params string?[] values)
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (field is null)
             {
@@ -207,10 +180,7 @@ namespace Clara.Querying
 
         public QueryBuilder Filter(HierarchyField field, FilterMode filterMode, IEnumerable<string?>? values)
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (field is null)
             {
@@ -230,10 +200,7 @@ namespace Clara.Querying
         public QueryBuilder Filter<TValue>(RangeField<TValue> field, TValue? from, TValue? to)
             where TValue : struct, IComparable<TValue>
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (field is null)
             {
@@ -252,10 +219,7 @@ namespace Clara.Querying
 
         public QueryBuilder Facet(KeywordField field)
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (field is null)
             {
@@ -274,10 +238,7 @@ namespace Clara.Querying
 
         public QueryBuilder Facet(HierarchyField field)
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (field is null)
             {
@@ -297,10 +258,7 @@ namespace Clara.Querying
         public QueryBuilder Facet<TValue>(RangeField<TValue> field)
             where TValue : struct, IComparable<TValue>
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (field is null)
             {
@@ -320,10 +278,7 @@ namespace Clara.Querying
         public QueryBuilder Sort<TValue>(RangeField<TValue> field, SortDirection sortDirection)
             where TValue : struct, IComparable<TValue>
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (field is null)
             {
@@ -342,10 +297,7 @@ namespace Clara.Querying
 
         public QueryBuilder Include(IEnumerable<string?>? includeDocuments)
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (includeDocuments is not null)
             {
@@ -362,10 +314,7 @@ namespace Clara.Querying
 
         public QueryBuilder Exclude(IEnumerable<string?>? excludeDocuments)
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             if (excludeDocuments is not null)
             {
@@ -387,6 +336,14 @@ namespace Clara.Querying
                 this.query.Dispose();
 
                 this.isDisposed = true;
+            }
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (this.isDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().FullName);
             }
         }
     }

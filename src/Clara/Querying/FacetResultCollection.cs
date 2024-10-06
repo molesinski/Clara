@@ -4,7 +4,7 @@ using Clara.Utils;
 
 namespace Clara.Querying
 {
-    public sealed class FacetResultCollection : IReadOnlyCollection<FacetResult>, IDisposable
+    public sealed class FacetResultCollection : IReadOnlyList<FacetResult>, IDisposable
     {
         private readonly ObjectPoolLease<ListSlim<FacetResult>> items;
         private bool isDisposed;
@@ -19,21 +19,25 @@ namespace Clara.Querying
         {
             get
             {
-                if (this.isDisposed)
-                {
-                    throw new ObjectDisposedException(this.GetType().FullName);
-                }
+                this.ThrowIfDisposed();
 
                 return this.items.Instance.Count;
             }
         }
 
+        public FacetResult this[int index]
+        {
+            get
+            {
+                this.ThrowIfDisposed();
+
+                return this.items.Instance[index];
+            }
+        }
+
         public KeywordFacetResult Field(KeywordField field)
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             foreach (var facetResult in this.items.Instance)
             {
@@ -48,10 +52,7 @@ namespace Clara.Querying
 
         public HierarchyFacetResult Field(HierarchyField field)
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             foreach (var facetResult in this.items.Instance)
             {
@@ -67,10 +68,7 @@ namespace Clara.Querying
         public RangeFacetResult<TValue> Field<TValue>(RangeField<TValue> field)
             where TValue : struct, IComparable<TValue>
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             foreach (var facetResult in this.items.Instance)
             {
@@ -85,10 +83,7 @@ namespace Clara.Querying
 
         public Enumerator GetEnumerator()
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             return new Enumerator(this.items.Instance.GetEnumerator());
         }
@@ -115,6 +110,14 @@ namespace Clara.Querying
                 this.items.Dispose();
 
                 this.isDisposed = true;
+            }
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (this.isDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().FullName);
             }
         }
 

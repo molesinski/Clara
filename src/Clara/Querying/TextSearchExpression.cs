@@ -84,10 +84,7 @@ namespace Clara.Querying
         {
             get
             {
-                if (this.isDisposed)
-                {
-                    throw new ObjectDisposedException(this.GetType().Name);
-                }
+                this.ThrowIfDisposed();
 
                 return this.fields.Value;
             }
@@ -137,6 +134,14 @@ namespace Clara.Querying
                         throw new ArgumentException("All fields must use same tokenizer.", nameof(this.fields));
                     }
                 }
+            }
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (this.isDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().FullName);
             }
         }
     }

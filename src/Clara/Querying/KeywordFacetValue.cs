@@ -1,6 +1,7 @@
 ﻿namespace Clara.Querying
 {
-    public readonly record struct KeywordFacetValue
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Not intended to be used directly for comparison")]
+    public readonly struct KeywordFacetValue
     {
         public KeywordFacetValue(string value, int count, bool isSelected)
         {

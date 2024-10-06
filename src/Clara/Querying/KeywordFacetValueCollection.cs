@@ -3,7 +3,7 @@ using Clara.Utils;
 
 namespace Clara.Querying
 {
-    public sealed class KeywordFacetValueCollection : IReadOnlyCollection<KeywordFacetValue>, IDisposable
+    public sealed class KeywordFacetValueCollection : IReadOnlyList<KeywordFacetValue>, IDisposable
     {
         private readonly ObjectPoolLease<ListSlim<KeywordFacetValue>> items;
         private bool isDisposed;
@@ -18,21 +18,25 @@ namespace Clara.Querying
         {
             get
             {
-                if (this.isDisposed)
-                {
-                    throw new ObjectDisposedException(this.GetType().FullName);
-                }
+                this.ThrowIfDisposed();
 
                 return this.items.Instance.Count;
             }
         }
 
+        public KeywordFacetValue this[int index]
+        {
+            get
+            {
+                this.ThrowIfDisposed();
+
+                return this.items.Instance[index];
+            }
+        }
+
         public Enumerator GetEnumerator()
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             return new Enumerator(this.items.Instance.GetEnumerator());
         }
@@ -54,6 +58,14 @@ namespace Clara.Querying
                 this.items.Dispose();
 
                 this.isDisposed = true;
+            }
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (this.isDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().FullName);
             }
         }
 

@@ -1,7 +1,10 @@
 ﻿namespace Clara.Analysis
 {
-    public readonly record struct Position : IComparable<Position>
+    public readonly struct Position : IEquatable<Position>, IComparable<Position>
     {
+        private readonly int start;
+        private readonly int end;
+
         public Position(int position)
             : this(position, position)
         {
@@ -24,13 +27,35 @@
                 throw new ArgumentException("Position start index must be less than offset end index.", nameof(start));
             }
 
-            this.Start = start;
-            this.End = end;
+            this.start = start;
+            this.end = end;
         }
 
-        public int Start { get; }
+        public int Start
+        {
+            get
+            {
+                return this.start;
+            }
+        }
 
-        public int End { get; }
+        public int End
+        {
+            get
+            {
+                return this.end;
+            }
+        }
+
+        public static bool operator ==(Position left, Position right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Position left, Position right)
+        {
+            return !(left == right);
+        }
 
         public static bool operator <(Position left, Position right)
         {
@@ -67,6 +92,27 @@
             }
 
             return this.End.CompareTo(other.End);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is Position other && this == other;
+        }
+
+        public bool Equals(Position other)
+        {
+            return this.start == other.start
+                && this.end == other.end;
+        }
+
+        public override int GetHashCode()
+        {
+            var hash = default(HashCode);
+
+            hash.Add(this.start);
+            hash.Add(this.end);
+
+            return hash.ToHashCode();
         }
     }
 }

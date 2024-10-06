@@ -340,12 +340,7 @@ namespace Clara.Analysis
 
         public override readonly bool Equals(object? obj)
         {
-            if (obj is not Token other)
-            {
-                return false;
-            }
-
-            return this.Equals(other);
+            return obj is Token other && this == other;
         }
 
         public readonly bool Equals(Token other)

@@ -2,7 +2,8 @@
 
 namespace Clara.Querying
 {
-    public readonly record struct TextSearchField
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Not intended to be used directly for comparison")]
+    public readonly struct TextSearchField
     {
         public const float DefaultBoost = 1;
 

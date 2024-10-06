@@ -2,7 +2,8 @@
 
 namespace Clara.Querying
 {
-    public readonly record struct HierarchyFacetValue
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Not intended to be used directly for comparison")]
+    public readonly struct HierarchyFacetValue
     {
         private static readonly HierarchyFacetValueChildrenCollection EmptyChildren = new(new ListSlim<HierarchyFacetValue>(), 0, 0);
 

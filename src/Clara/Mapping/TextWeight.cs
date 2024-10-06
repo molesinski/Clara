@@ -1,6 +1,7 @@
 ﻿namespace Clara.Mapping
 {
-    public readonly record struct TextWeight
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Not intended to be used directly for comparison")]
+    public readonly struct TextWeight
     {
         public const float DefaultWeight = 1;
 

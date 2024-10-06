@@ -10,7 +10,7 @@ namespace Clara.Mapping
 
         public static Similarity Default { get; } = BM25();
 
-        public static Similarity Identity { get; } = new IdentitySimilarity();
+        public static Similarity TF { get; } = new TFSimilarity();
 
         public static Similarity TFIDF { get; } = new TFIDFSimilarity();
 
@@ -19,13 +19,13 @@ namespace Clara.Mapping
             return new BM25Similarity(k1, b);
         }
 
-        internal abstract void Process(
+        public abstract void Transform(
             DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
             DictionarySlim<int, float> documentLengths);
 
-        private sealed class IdentitySimilarity : Similarity
+        private sealed class TFSimilarity : Similarity
         {
-            internal override void Process(
+            public override void Transform(
                 DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
                 DictionarySlim<int, float> documentLengths)
             {
@@ -34,7 +34,7 @@ namespace Clara.Mapping
 
         private sealed class TFIDFSimilarity : Similarity
         {
-            internal override void Process(
+            public override void Transform(
                 DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
                 DictionarySlim<int, float> documentLengths)
             {
@@ -86,7 +86,7 @@ namespace Clara.Mapping
                 this.b = b;
             }
 
-            internal override void Process(
+            public override void Transform(
                 DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
                 DictionarySlim<int, float> documentLengths)
             {

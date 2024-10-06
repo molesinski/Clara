@@ -3,7 +3,7 @@ using Clara.Utils;
 
 namespace Clara.Querying
 {
-    public sealed class HierarchyFacetValueCollection : IReadOnlyCollection<HierarchyFacetValue>, IDisposable
+    public sealed class HierarchyFacetValueCollection : IReadOnlyList<HierarchyFacetValue>, IDisposable
     {
         private readonly ObjectPoolLease<ListSlim<HierarchyFacetValue>> items;
         private readonly int offset;
@@ -24,21 +24,30 @@ namespace Clara.Querying
         {
             get
             {
-                if (this.isDisposed)
-                {
-                    throw new ObjectDisposedException(this.GetType().FullName);
-                }
+                this.ThrowIfDisposed();
 
                 return this.count;
             }
         }
 
+        public HierarchyFacetValue this[int index]
+        {
+            get
+            {
+                this.ThrowIfDisposed();
+
+                if (index < 0 || index >= this.count)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+
+                return this.items.Instance[this.offset + index];
+            }
+        }
+
         public Enumerator GetEnumerator()
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             return new Enumerator(this.items.Instance.GetRangeEnumerator(this.offset, this.count));
         }
@@ -60,6 +69,14 @@ namespace Clara.Querying
                 this.items.Dispose();
 
                 this.isDisposed = true;
+            }
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (this.isDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().FullName);
             }
         }
 

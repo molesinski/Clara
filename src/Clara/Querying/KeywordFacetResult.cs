@@ -20,10 +20,7 @@ namespace Clara.Querying
         {
             get
             {
-                if (this.isDisposed)
-                {
-                    throw new ObjectDisposedException(this.GetType().FullName);
-                }
+                this.ThrowIfDisposed();
 
                 return this.items;
             }
@@ -39,6 +36,14 @@ namespace Clara.Querying
             }
 
             base.Dispose(disposing);
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (this.isDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().FullName);
+            }
         }
     }
 }

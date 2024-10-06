@@ -6,24 +6,24 @@ namespace Clara.Analysis.Synonyms
     public sealed partial class SynonymMap
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1214:Readonly fields should appear before non-readonly fields", Justification = "By design")]
-        private sealed class SynonymTermSource : ISynonymTermSource, IEnumerable<SynonymTerm>, IEnumerator<SynonymTerm>
+        private sealed class PhraseTermSource : IPhraseTermSource, IEnumerable<PhraseTerm>, IEnumerator<PhraseTerm>
         {
             private readonly ITokenTermSource tokenTermSource;
             private readonly StringPoolSlim stringPool;
             private readonly Node root;
             private string text = string.Empty;
-            private SynonymTerm current;
+            private PhraseTerm current;
             private IEnumerator<TokenTerm>? enumerator;
             private bool isEnumerated;
             private TokenTerm? peekedTerm;
             private int backtrackingState;
             private int backtrackingIndex;
             private readonly ListSlim<BacktrackingEntry> backtrackingEntries = new();
-            private SynonymPhraseCollection? replacementTokens;
+            private PhraseGroup? replacementPhrases;
             private Position replacementPosition;
             private Node currentNode;
 
-            public SynonymTermSource(SynonymMap synonymMap)
+            public PhraseTermSource(SynonymMap synonymMap)
             {
                 if (synonymMap is null)
                 {
@@ -36,7 +36,7 @@ namespace Clara.Analysis.Synonyms
                 this.currentNode = this.root;
             }
 
-            SynonymTerm IEnumerator<SynonymTerm>.Current
+            PhraseTerm IEnumerator<PhraseTerm>.Current
             {
                 get
                 {
@@ -52,7 +52,7 @@ namespace Clara.Analysis.Synonyms
                 }
             }
 
-            public IEnumerable<SynonymTerm> GetTerms(string text)
+            public IEnumerable<PhraseTerm> GetTerms(string text)
             {
                 if (text is null)
                 {
@@ -66,7 +66,7 @@ namespace Clara.Analysis.Synonyms
                 return this;
             }
 
-            IEnumerator<SynonymTerm> IEnumerable<SynonymTerm>.GetEnumerator()
+            IEnumerator<PhraseTerm> IEnumerable<PhraseTerm>.GetEnumerator()
             {
                 return this;
             }
@@ -80,7 +80,7 @@ namespace Clara.Analysis.Synonyms
             {
                 this.enumerator ??= this.tokenTermSource.GetTerms(this.text).GetEnumerator();
 
-                while (this.backtrackingState > 0 || this.replacementTokens is not null || !this.isEnumerated)
+                while (this.backtrackingState > 0 || this.replacementPhrases is not null || !this.isEnumerated)
                 {
                     if (this.backtrackingState == 1)
                     {
@@ -91,13 +91,13 @@ namespace Clara.Analysis.Synonyms
                         {
                             var entry = this.backtrackingEntries[index];
 
-                            var replacementTokens = entry.Node.SynonymTermReplacements;
+                            var replacementTokens = entry.Node.ReplacementPhrases;
 
                             if (replacementTokens.Count > 0)
                             {
                                 var position = CombinePositions(this.backtrackingEntries, 0, index + 1);
 
-                                this.replacementTokens = replacementTokens;
+                                this.replacementPhrases = replacementTokens;
                                 this.replacementPosition = position;
 
                                 break;
@@ -118,11 +118,11 @@ namespace Clara.Analysis.Synonyms
                         }
                     }
 
-                    if (this.replacementTokens is not null)
+                    if (this.replacementPhrases is not null)
                     {
-                        this.current = new SynonymTerm(this.replacementTokens.Value, this.replacementPosition);
+                        this.current = new PhraseTerm(this.replacementPhrases.Value, this.replacementPosition);
 
-                        this.replacementTokens = default;
+                        this.replacementPhrases = default;
                         this.replacementPosition = default;
 
                         return true;
@@ -132,7 +132,7 @@ namespace Clara.Analysis.Synonyms
                     {
                         var entry = this.backtrackingEntries[this.backtrackingIndex++];
 
-                        this.current = new SynonymTerm(new Token(entry.Node.Token), entry.Position);
+                        this.current = new PhraseTerm(new Token(entry.Node.Token), entry.Position);
 
                         if (this.backtrackingIndex == this.backtrackingEntries.Count)
                         {
@@ -170,7 +170,7 @@ namespace Clara.Analysis.Synonyms
                             continue;
                         }
 
-                        this.current = new SynonymTerm(currentTerm.Token, currentTerm.Position);
+                        this.current = new PhraseTerm(currentTerm.Token, currentTerm.Position);
 
                         return true;
                     }
@@ -207,7 +207,7 @@ namespace Clara.Analysis.Synonyms
                 this.backtrackingState = default;
                 this.backtrackingIndex = default;
                 this.backtrackingEntries.Clear();
-                this.replacementTokens = default;
+                this.replacementPhrases = default;
                 this.replacementPosition = default;
                 this.currentNode = this.root;
             }

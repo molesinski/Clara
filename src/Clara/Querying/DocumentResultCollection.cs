@@ -4,7 +4,7 @@ using Clara.Utils;
 
 namespace Clara.Querying
 {
-    public sealed class DocumentResultCollection<TDocument> : IReadOnlyCollection<DocumentResult<TDocument>>, IDisposable
+    public sealed class DocumentResultCollection<TDocument> : IReadOnlyList<DocumentResult<TDocument>>, IDisposable
     {
         private readonly TokenEncoder tokenEncoder;
         private readonly DictionarySlim<int, TDocument> documentMap;
@@ -38,21 +38,31 @@ namespace Clara.Querying
         {
             get
             {
-                if (this.isDisposed)
-                {
-                    throw new ObjectDisposedException(this.GetType().FullName);
-                }
+                this.ThrowIfDisposed();
 
                 return this.documentList.Value.Count;
             }
         }
 
+        public DocumentResult<TDocument> this[int index]
+        {
+            get
+            {
+                this.ThrowIfDisposed();
+
+                var documentId = this.documentList.Value[index];
+                var key = this.tokenEncoder.Decode(documentId);
+                var document = this.documentMap[documentId];
+
+                this.documentScoring.Value.TryGetValue(documentId, out var score);
+
+                return new DocumentResult<TDocument>(key, document, score);
+            }
+        }
+
         public Enumerator GetEnumerator()
         {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
-            }
+            this.ThrowIfDisposed();
 
             return new Enumerator(this);
         }
@@ -75,6 +85,14 @@ namespace Clara.Querying
                 this.documentList.Dispose();
 
                 this.isDisposed = true;
+            }
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (this.isDisposed)
+            {
+                throw new ObjectDisposedException(this.GetType().FullName);
             }
         }
 

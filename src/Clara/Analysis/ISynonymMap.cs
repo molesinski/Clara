@@ -6,6 +6,6 @@
 
         ITokenTermSource CreateTokenTermSource();
 
-        ISynonymTermSource CreateSynonymTermSource();
+        IPhraseTermSource CreatePhraseTermSource();
     }
 }

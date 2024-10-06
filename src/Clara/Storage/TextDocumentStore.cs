@@ -14,7 +14,7 @@ namespace Clara.Storage
         private readonly IAnalyzer analyzer;
         private readonly ISynonymMap? synonymMap;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
-        private readonly ObjectPool<ISynonymTermSource> tokenTermSourcePool;
+        private readonly ObjectPool<IPhraseTermSource> phraseTermSourcePool;
 
         public TextDocumentStore(
             TokenEncoder tokenEncoder,
@@ -41,7 +41,7 @@ namespace Clara.Storage
             this.analyzer = analyzer;
             this.synonymMap = synonymMap;
             this.tokenDocumentScores = tokenDocumentScores;
-            this.tokenTermSourcePool = new ObjectPool<ISynonymTermSource>(() => this.synonymMap?.CreateSynonymTermSource() ?? new SynonymTermSource(this.analyzer.CreateTokenTermSource()));
+            this.phraseTermSourcePool = new ObjectPool<IPhraseTermSource>(() => this.synonymMap?.CreatePhraseTermSource() ?? new PhraseTermSource(this.analyzer.CreateTokenTermSource()));
         }
 
         public static DocumentScoring Search(ListSlim<TextSearchFieldStore> stores, SearchMode searchMode, string text, ref DocumentResultBuilder documentResultBuilder)
@@ -199,7 +199,7 @@ namespace Clara.Storage
             }
             else if (searchTerm.Phrases is not null)
             {
-                using var termScores = SharedObjectPools.DocumentScores.Lease();
+                using var combinedScores = SharedObjectPools.DocumentScores.Lease();
                 using var phraseScores = SharedObjectPools.DocumentScores.Lease();
 
                 foreach (var phrase in searchTerm.Phrases)
@@ -234,10 +234,10 @@ namespace Clara.Storage
                         break;
                     }
 
-                    termScores.Instance.UnionWith(phraseScores.Instance, ValueCombiner.Max);
+                    combinedScores.Instance.UnionWith(phraseScores.Instance, ValueCombiner.Max);
                 }
 
-                positionScores.UnionWith(termScores.Instance, scoreCombiner);
+                positionScores.UnionWith(combinedScores.Instance, scoreCombiner);
             }
             else
             {
@@ -247,9 +247,9 @@ namespace Clara.Storage
 
         private void GetSearchTerms(string text, ListSlim<SearchTerm> terms)
         {
-            using var tokenTermSource = this.tokenTermSourcePool.Lease();
+            using var source = this.phraseTermSourcePool.Lease();
 
-            foreach (var term in tokenTermSource.Instance.GetTerms(text))
+            foreach (var term in source.Instance.GetTerms(text))
             {
                 if (term.Token is not null)
                 {

@@ -3,7 +3,7 @@ using Clara.Querying;
 
 namespace Clara.Storage
 {
-    internal readonly record struct TextSearchFieldStore
+    internal readonly struct TextSearchFieldStore
     {
         public TextSearchFieldStore(TextSearchField textSearchField, TextDocumentStore store)
         {

@@ -92,7 +92,7 @@ namespace Clara.Analysis.Synonyms
                         {
                             var entry = this.backtrackingEntries[index];
 
-                            var replacementTokens = entry.Node.TokenTermReplacements;
+                            var replacementTokens = entry.Node.TokenReplacements;
 
                             if (replacementTokens.Count > 0)
                             {

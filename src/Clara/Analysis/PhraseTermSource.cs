@@ -2,16 +2,15 @@
 
 namespace Clara.Analysis.Synonyms
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1214:Readonly fields should appear before non-readonly fields", Justification = "By design")]
-    internal sealed class SynonymTermSource : ISynonymTermSource, IEnumerable<SynonymTerm>, IEnumerator<SynonymTerm>
+    internal sealed class PhraseTermSource : IPhraseTermSource, IEnumerable<PhraseTerm>, IEnumerator<PhraseTerm>
     {
         private readonly ITokenTermSource tokenTermSource;
         private string text = string.Empty;
-        private SynonymTerm current;
+        private PhraseTerm current;
         private IEnumerator<TokenTerm>? enumerator;
         private bool isEnumerated;
 
-        public SynonymTermSource(ITokenTermSource tokenTermSource)
+        public PhraseTermSource(ITokenTermSource tokenTermSource)
         {
             if (tokenTermSource is null)
             {
@@ -21,7 +20,7 @@ namespace Clara.Analysis.Synonyms
             this.tokenTermSource = tokenTermSource;
         }
 
-        SynonymTerm IEnumerator<SynonymTerm>.Current
+        PhraseTerm IEnumerator<PhraseTerm>.Current
         {
             get
             {
@@ -37,7 +36,7 @@ namespace Clara.Analysis.Synonyms
             }
         }
 
-        public IEnumerable<SynonymTerm> GetTerms(string text)
+        public IEnumerable<PhraseTerm> GetTerms(string text)
         {
             if (text is null)
             {
@@ -51,7 +50,7 @@ namespace Clara.Analysis.Synonyms
             return this;
         }
 
-        IEnumerator<SynonymTerm> IEnumerable<SynonymTerm>.GetEnumerator()
+        IEnumerator<PhraseTerm> IEnumerable<PhraseTerm>.GetEnumerator()
         {
             return this;
         }
@@ -69,7 +68,7 @@ namespace Clara.Analysis.Synonyms
 
                 if (this.enumerator.MoveNext())
                 {
-                    this.current = new SynonymTerm(this.enumerator.Current.Token, this.enumerator.Current.Position);
+                    this.current = new PhraseTerm(this.enumerator.Current.Token, this.enumerator.Current.Position);
 
                     return true;
                 }

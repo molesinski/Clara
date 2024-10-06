@@ -1,6 +1,6 @@
 ﻿namespace Clara.Storage
 {
-    internal readonly record struct SearchTermStoreIndex
+    internal readonly struct SearchTermStoreIndex
     {
         public SearchTermStoreIndex(SearchTerm searchTerm, int storeIndex)
         {

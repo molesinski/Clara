@@ -61,9 +61,9 @@ namespace Clara.Analysis.Synonyms
             return new TokenTermSource(this);
         }
 
-        public ISynonymTermSource CreateSynonymTermSource()
+        public IPhraseTermSource CreatePhraseTermSource()
         {
-            return new SynonymTermSource(this);
+            return new PhraseTermSource(this);
         }
     }
 }

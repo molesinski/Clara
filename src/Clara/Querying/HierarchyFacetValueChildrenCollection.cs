@@ -3,7 +3,7 @@ using Clara.Utils;
 
 namespace Clara.Querying
 {
-    public class HierarchyFacetValueChildrenCollection : IReadOnlyCollection<HierarchyFacetValue>
+    public class HierarchyFacetValueChildrenCollection : IReadOnlyList<HierarchyFacetValue>
     {
         private readonly ListSlim<HierarchyFacetValue> items;
         private readonly int offset;
@@ -24,6 +24,19 @@ namespace Clara.Querying
             get
             {
                 return this.count;
+            }
+        }
+
+        public HierarchyFacetValue this[int index]
+        {
+            get
+            {
+                if (index < 0 || index >= this.count)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+
+                return this.items[this.offset + index];
             }
         }
 

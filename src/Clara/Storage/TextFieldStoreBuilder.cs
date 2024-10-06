@@ -76,7 +76,7 @@ namespace Clara.Storage
                 throw new InvalidOperationException("Current instance is already built.");
             }
 
-            this.field.Similarity.Process(this.tokenDocumentScores, this.documentLengths);
+            this.field.Similarity.Transform(this.tokenDocumentScores, this.documentLengths);
 
             var store =
                 new TextFieldStore(
