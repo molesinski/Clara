@@ -130,17 +130,10 @@ namespace Clara
             {
                 if (!textSearchExpression.IsEmpty)
                 {
-                    using var stores = SharedObjectPools.TextSearchFieldStores.Lease();
+                    var field = textSearchExpression.Field;
+                    var store = this.fieldStores[field];
 
-                    for (var i = 0; i < textSearchExpression.Fields.Count; i++)
-                    {
-                        var textSearchField = textSearchExpression.Fields[i];
-                        var store = this.fieldStores[textSearchField.Field];
-
-                        stores.Instance.Add(store.GetSearchStore(textSearchField));
-                    }
-
-                    documentScoring = TextDocumentStore.Search(stores.Instance, textSearchExpression.SearchMode, textSearchExpression.Text, ref documentResultBuilder);
+                    documentScoring = store.Search(textSearchExpression, ref documentResultBuilder);
                 }
             }
 

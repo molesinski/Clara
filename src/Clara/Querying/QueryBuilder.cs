@@ -45,44 +45,6 @@ namespace Clara.Querying
             return this;
         }
 
-        public QueryBuilder Search(IEnumerable<TextField> fields, SearchMode searchMode, string? text)
-        {
-            this.ThrowIfDisposed();
-
-            if (fields is null)
-            {
-                throw new ArgumentNullException(nameof(fields));
-            }
-
-            if (this.query.TextSearch is not null)
-            {
-                throw new InvalidOperationException("Text search already has been set.");
-            }
-
-            this.query.TextSearch = new TextSearchExpression(fields, searchMode, text ?? string.Empty);
-
-            return this;
-        }
-
-        public QueryBuilder Search(IEnumerable<TextSearchField> fields, SearchMode searchMode, string? text)
-        {
-            this.ThrowIfDisposed();
-
-            if (fields is null)
-            {
-                throw new ArgumentNullException(nameof(fields));
-            }
-
-            if (this.query.TextSearch is not null)
-            {
-                throw new InvalidOperationException("Text search already has been set.");
-            }
-
-            this.query.TextSearch = new TextSearchExpression(fields, searchMode, text ?? string.Empty);
-
-            return this;
-        }
-
         public QueryBuilder Filter(KeywordField field, FilterMode filterMode, string? value)
         {
             this.ThrowIfDisposed();

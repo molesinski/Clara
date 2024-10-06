@@ -16,7 +16,7 @@ namespace Clara.Storage
             }
         }
 
-        public virtual TextSearchFieldStore GetSearchStore(TextSearchField textSearchField)
+        public virtual DocumentScoring Search(TextSearchExpression searchExpression, ref DocumentResultBuilder documentResultBuilder)
         {
             throw new InvalidOperationException("Field does not support searching.");
         }

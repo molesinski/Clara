@@ -13,7 +13,7 @@ namespace Clara
 
         public static ObjectPool<DictionarySlim<int, int>> TokenCounts { get; } = new(() => new());
 
-        public static ObjectPool<DictionarySlim<int, float>> DocumentScores { get; } = new(() => new(), sizeFactor: 4);
+        public static ObjectPool<DictionarySlim<int, float>> DocumentScores { get; } = new(() => new(), sizeFactor: 3);
 
         public static ObjectPool<HashSetSlim<int>> DocumentSets { get; } = new(() => new(), sizeFactor: 3 + DefaultFilterFacetCount);
 
@@ -21,13 +21,7 @@ namespace Clara
 
         public static ObjectPool<HashSetSlim<string>> FilterValues { get; } = new(() => new(), sizeFactor: 1 + DefaultFilterFacetCount);
 
-        public static ObjectPool<ListSlim<TextSearchField>> TextSearchFields { get; } = new(() => new());
-
-        public static ObjectPool<ListSlim<TextSearchFieldStore>> TextSearchFieldStores { get; } = new(() => new());
-
         public static ObjectPool<ListSlim<SearchTerm>> SearchTerms { get; } = new(() => new());
-
-        public static ObjectPool<ListSlim<SearchTermStoreIndex>> SearchTermStoreIndexes { get; } = new(() => new());
 
         public static ObjectPool<ListSlim<int>> Documents { get; } = new(() => new());
 
@@ -46,8 +40,6 @@ namespace Clara
         public static ObjectPool<ListSlim<DocumentResultBuilderFacet>> QueryResultBuilderFacets { get; } = new(() => new(), sizeFactor: DefaultFilterFacetCount);
 
         public static ObjectPool<FilterExpressionComparer> FilterExpressionComparers { get; } = new(() => new());
-
-        public static ObjectPool<BoostedValueCombiner> BoostedValueCombiners { get; } = new(() => new());
     }
 
     internal static class SharedObjectPools<TValue>

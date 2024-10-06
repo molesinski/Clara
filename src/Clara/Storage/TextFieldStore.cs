@@ -17,9 +17,9 @@ namespace Clara.Storage
             this.textDocumentStore = textDocumentStore;
         }
 
-        public override TextSearchFieldStore GetSearchStore(TextSearchField textSearchField)
+        public override DocumentScoring Search(TextSearchExpression searchExpression, ref DocumentResultBuilder documentResultBuilder)
         {
-            return new TextSearchFieldStore(textSearchField, this.textDocumentStore);
+            return this.textDocumentStore.Search(searchExpression.SearchMode, searchExpression.Text, ref documentResultBuilder);
         }
     }
 }

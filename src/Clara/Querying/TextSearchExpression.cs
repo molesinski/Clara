@@ -1,13 +1,9 @@
-﻿using Clara.Analysis;
-using Clara.Mapping;
+﻿using Clara.Mapping;
 
 namespace Clara.Querying
 {
-    public sealed class TextSearchExpression : IDisposable
+    public sealed class TextSearchExpression
     {
-        private readonly TextSearchFields fields;
-        private bool isDisposed;
-
         public TextSearchExpression(TextField field, SearchMode searchMode, string text)
         {
             if (field is null)
@@ -25,70 +21,12 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(text));
             }
 
-            this.fields = new TextSearchFields(field);
+            this.Field = field;
             this.SearchMode = searchMode;
             this.Text = text;
-
-            this.ValidateFields();
         }
 
-        public TextSearchExpression(IEnumerable<TextField> fields, SearchMode searchMode, string text)
-        {
-            if (fields is null)
-            {
-                throw new ArgumentNullException(nameof(fields));
-            }
-
-            if (searchMode != SearchMode.All && searchMode != SearchMode.Any)
-            {
-                throw new ArgumentException("Illegal search mode enum value.", nameof(searchMode));
-            }
-
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            this.fields = new TextSearchFields(fields);
-            this.SearchMode = searchMode;
-            this.Text = text;
-
-            this.ValidateFields();
-        }
-
-        public TextSearchExpression(IEnumerable<TextSearchField> fields, SearchMode searchMode, string text)
-        {
-            if (fields is null)
-            {
-                throw new ArgumentNullException(nameof(fields));
-            }
-
-            if (searchMode != SearchMode.All && searchMode != SearchMode.Any)
-            {
-                throw new ArgumentException("Illegal search mode enum value.", nameof(searchMode));
-            }
-
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            this.fields = new TextSearchFields(fields);
-            this.SearchMode = searchMode;
-            this.Text = text;
-
-            this.ValidateFields();
-        }
-
-        public IReadOnlyList<TextSearchField> Fields
-        {
-            get
-            {
-                this.ThrowIfDisposed();
-
-                return this.fields.Value;
-            }
-        }
+        public TextField Field { get; }
 
         public SearchMode SearchMode { get; }
 
@@ -99,49 +37,6 @@ namespace Clara.Querying
             get
             {
                 return string.IsNullOrWhiteSpace(this.Text);
-            }
-        }
-
-        public void Dispose()
-        {
-            if (!this.isDisposed)
-            {
-                this.fields.Dispose();
-
-                this.isDisposed = true;
-            }
-        }
-
-        private void ValidateFields()
-        {
-            if (this.fields.Value.Count == 0)
-            {
-                throw new ArgumentException("At least one field must be specified.", nameof(this.fields));
-            }
-
-            var tokenizer = default(ITokenizer?);
-
-            foreach (var field in this.fields.Value)
-            {
-                if (tokenizer is null)
-                {
-                    tokenizer = field.Field.Analyzer.Tokenizer;
-                }
-                else
-                {
-                    if (!field.Field.Analyzer.Tokenizer.Equals(tokenizer))
-                    {
-                        throw new ArgumentException("All fields must use same tokenizer.", nameof(this.fields));
-                    }
-                }
-            }
-        }
-
-        private void ThrowIfDisposed()
-        {
-            if (this.isDisposed)
-            {
-                throw new ObjectDisposedException(this.GetType().FullName);
             }
         }
     }
