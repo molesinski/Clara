@@ -4,10 +4,6 @@ namespace Clara.Mapping
 {
     public abstract class Similarity
     {
-        internal Similarity()
-        {
-        }
-
         public static Similarity Default { get; } = BM25();
 
         public static Similarity TF { get; } = new TFSimilarity();
