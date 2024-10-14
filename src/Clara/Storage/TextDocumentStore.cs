@@ -41,7 +41,7 @@ namespace Clara.Storage
             this.phraseTermSourcePool = new ObjectPool<IPhraseTermSource>(() => this.synonymMap?.CreatePhraseTermSource() ?? new PhraseTermSource(this.analyzer.CreateTokenTermSource()));
         }
 
-        public DocumentScoring Search(SearchMode searchMode, string text, ref DocumentResultBuilder documentResultBuilder)
+        public DocumentScoring Search(SearchMode searchMode, string text, Func<Position, float>? positionBoost, ref DocumentResultBuilder documentResultBuilder)
         {
             using var source = this.phraseTermSourcePool.Lease();
             using var termScores = SharedObjectPools.DocumentScores.Lease();
@@ -69,16 +69,23 @@ namespace Clara.Storage
                     throw new InvalidOperationException("Unsupported phrase term value encountered.");
                 }
 
+                var boost = ValueCombiner.DefaultBoost;
+
+                if (positionBoost is not null)
+                {
+                    boost = positionBoost(term.Position);
+                }
+
                 if (searchMode == SearchMode.All)
                 {
                     if (isFirst)
                     {
-                        documentScores.Instance.UnionWith(termScores.Instance, ValueCombiner.Sum);
+                        documentScores.Instance.UnionWith(termScores.Instance, ValueCombiner.Sum, boost);
                         isFirst = false;
                     }
                     else
                     {
-                        documentScores.Instance.IntersectWith(termScores.Instance, ValueCombiner.Sum);
+                        documentScores.Instance.IntersectWith(termScores.Instance, ValueCombiner.Sum, boost);
                     }
 
                     if (documentScores.Instance.Count == 0)
@@ -88,7 +95,7 @@ namespace Clara.Storage
                 }
                 else
                 {
-                    documentScores.Instance.UnionWith(termScores.Instance, ValueCombiner.Sum);
+                    documentScores.Instance.UnionWith(termScores.Instance, ValueCombiner.Sum, boost);
                 }
             }
 
@@ -103,7 +110,7 @@ namespace Clara.Storage
             {
                 if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
                 {
-                    termScores.UnionWith(documents, ValueCombiner.Sum);
+                    termScores.UnionWith(documents, ValueCombiner.Sum, ValueCombiner.DefaultBoost);
                 }
             }
         }
@@ -118,7 +125,7 @@ namespace Clara.Storage
 
                 this.Search(phrase, phraseScores.Instance);
 
-                termScores.UnionWith(phraseScores.Instance, ValueCombiner.Max);
+                termScores.UnionWith(phraseScores.Instance, ValueCombiner.Max, ValueCombiner.DefaultBoost);
             }
         }
 
@@ -134,12 +141,12 @@ namespace Clara.Storage
                     {
                         if (isFirst)
                         {
-                            phraseScores.UnionWith(documents, ValueCombiner.Sum);
+                            phraseScores.UnionWith(documents, ValueCombiner.Sum, ValueCombiner.DefaultBoost);
                             isFirst = false;
                         }
                         else
                         {
-                            phraseScores.IntersectWith(documents, ValueCombiner.Sum);
+                            phraseScores.IntersectWith(documents, ValueCombiner.Sum, ValueCombiner.DefaultBoost);
                         }
 
                         continue;
@@ -149,6 +156,25 @@ namespace Clara.Storage
                 phraseScores.Clear();
 
                 break;
+            }
+        }
+
+        private static class ValueCombiner
+        {
+            public const float DefaultBoost = 1.0f;
+
+            public static float Sum(float current, float value, float boost)
+            {
+                var boosted = value * boost;
+
+                return current + boosted;
+            }
+
+            public static float Max(float current, float value, float boost)
+            {
+                var boosted = value * boost;
+
+                return current > boosted ? current : boosted;
             }
         }
     }

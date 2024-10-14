@@ -19,7 +19,7 @@ namespace Clara.Storage
 
         public override DocumentScoring Search(TextSearchExpression searchExpression, ref DocumentResultBuilder documentResultBuilder)
         {
-            return this.textDocumentStore.Search(searchExpression.SearchMode, searchExpression.Text, ref documentResultBuilder);
+            return this.textDocumentStore.Search(searchExpression.SearchMode, searchExpression.Text, searchExpression.PositionBoost, ref documentResultBuilder);
         }
     }
 }

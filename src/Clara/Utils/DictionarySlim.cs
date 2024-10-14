@@ -287,7 +287,7 @@ namespace Clara.Utils
             return ref this.AddKey(key, bucketIndex);
         }
 
-        public void IntersectWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, IValueCombiner<TValue> valueCombiner)
+        public void IntersectWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, Func<TValue, TValue, TValue, TValue> valueCombiner, TValue parameter)
         {
             if (enumerable is null)
             {
@@ -327,7 +327,7 @@ namespace Clara.Utils
 
                         if (other.TryGetValue(key, out var value))
                         {
-                            entry.Value = valueCombiner.Combine(entry.Value, value);
+                            entry.Value = valueCombiner(entry.Value, value, parameter);
                         }
                         else
                         {
@@ -371,7 +371,7 @@ namespace Clara.Utils
 
                         ref var entry = ref this.entries[index];
 
-                        entry.Value = valueCombiner.Combine(entry.Value, item.Value);
+                        entry.Value = valueCombiner(entry.Value, item.Value, parameter);
                     }
                 }
 
@@ -390,7 +390,7 @@ namespace Clara.Utils
             }
         }
 
-        public void UnionWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, IValueCombiner<TValue> valueCombiner)
+        public void UnionWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, Func<TValue, TValue, TValue, TValue> valueCombiner, TValue parameter)
         {
             if (enumerable is null)
             {
@@ -437,20 +437,17 @@ namespace Clara.Utils
                     Array.Copy(other.buckets, 0, this.buckets, 0, this.size);
                     Array.Copy(other.entries, 0, this.entries, 0, this.lastIndex);
 
-                    if (!valueCombiner.IsDefaultNeutral)
+                    var count = this.count;
+
+                    for (var i = 0; count > 0; i++)
                     {
-                        var count = this.count;
+                        ref var entry = ref this.entries[i];
 
-                        for (var i = 0; count > 0; i++)
+                        if (entry.Next >= -1)
                         {
-                            ref var entry = ref this.entries[i];
+                            count--;
 
-                            if (entry.Next >= -1)
-                            {
-                                count--;
-
-                                entry.Value = valueCombiner.Combine(default!, entry.Value);
-                            }
+                            entry.Value = valueCombiner(default!, entry.Value, parameter);
                         }
                     }
 
@@ -472,7 +469,7 @@ namespace Clara.Utils
 
                             ref var value = ref this.GetValueRefOrAddDefault(entry.Key, out _);
 
-                            value = valueCombiner.Combine(value, entry.Value);
+                            value = valueCombiner(value, entry.Value, parameter);
                         }
                     }
 
@@ -494,7 +491,7 @@ namespace Clara.Utils
             {
                 ref var value = ref this.GetValueRefOrAddDefault(item.Key, out _);
 
-                value = valueCombiner.Combine(value, item.Value);
+                value = valueCombiner(value, item.Value, parameter);
             }
         }
 

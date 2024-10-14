@@ -1,4 +1,5 @@
-﻿using Clara.Mapping;
+﻿using Clara.Analysis;
+using Clara.Mapping;
 
 namespace Clara.Querying
 {
@@ -26,7 +27,7 @@ namespace Clara.Querying
             return this.query;
         }
 
-        public QueryBuilder Search(TextField field, SearchMode searchMode, string? text)
+        public QueryBuilder Search(TextField field, SearchMode searchMode, string? text, Func<Position, float>? positionBoost = null)
         {
             this.ThrowIfDisposed();
 
@@ -40,7 +41,7 @@ namespace Clara.Querying
                 throw new InvalidOperationException("Text search already has been set.");
             }
 
-            this.query.TextSearch = new TextSearchExpression(field, searchMode, text ?? string.Empty);
+            this.query.TextSearch = new TextSearchExpression(field, searchMode, text ?? string.Empty, positionBoost);
 
             return this;
         }
