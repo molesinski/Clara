@@ -322,44 +322,44 @@ Index and query benchmarks and tests are performed using sample 100 product data
 variants with `x100` suffix are based on data set multiplied 100 times.
 
 ```
-BenchmarkDotNet v0.14.0, Windows 11 (10.0.22631.4249/23H2/2023Update/SunValley3)
-12th Gen Intel Core i9-12900K, 1 CPU, 24 logical and 16 physical cores
-.NET SDK 8.0.108
-  [Host]     : .NET 8.0.8 (8.0.824.36612), X64 RyuJIT AVX2 DEBUG
-  DefaultJob : .NET 8.0.8 (8.0.824.36612), X64 RyuJIT AVX2
+BenchmarkDotNet v0.14.0, Windows 11 (10.0.26100.4351)
+Intel Core i9-14900K, 1 CPU, 32 logical and 24 physical cores
+.NET SDK 8.0.411
+  [Host]     : .NET 8.0.17 (8.0.1725.26602), X64 RyuJIT AVX2
+  DefaultJob : .NET 8.0.17 (8.0.1725.26602), X64 RyuJIT AVX2
 ```
 
 ### Tokenization Benchmarks
 
-| Method             | Mean       | Error   | StdDev  | Allocated |
-|------------------- |-----------:|--------:|--------:|----------:|
-| StandardTokenizer  |   134.8 ns | 0.61 ns | 0.57 ns |         - |
-| StandardAnalyzer   |   236.0 ns | 0.85 ns | 0.79 ns |         - |
-| PorterAnalyzer     |   628.7 ns | 3.56 ns | 3.33 ns |         - |
-| SynonymMap         |   829.9 ns | 2.14 ns | 1.90 ns |         - |
-| EnglishAnalyzer    | 1,257.2 ns | 2.71 ns | 2.26 ns |         - |
-| MorfologikAnalyzer | 4,729.8 ns | 9.64 ns | 9.01 ns |     944 B |
+| Method             | Mean       | Error    | StdDev   | Allocated |
+|------------------- |-----------:|---------:|---------:|----------:|
+| StandardTokenizer  |   119.8 ns |  0.53 ns |  0.47 ns |         - |
+| StandardAnalyzer   |   214.6 ns |  0.78 ns |  0.66 ns |         - |
+| PorterAnalyzer     |   526.9 ns |  9.05 ns |  8.46 ns |         - |
+| SynonymMap         |   684.5 ns | 13.49 ns | 12.62 ns |         - |
+| EnglishAnalyzer    | 1,082.5 ns |  2.67 ns |  2.50 ns |         - |
+| MorfologikAnalyzer | 3,853.8 ns | 10.29 ns |  9.62 ns |     944 B |
 
 ### Indexing Benchmarks
 
 | Method             | Mean        | Error       | StdDev      | Allocated   |
 |------------------- |------------:|------------:|------------:|------------:|
-| IndexInstance_x100 | 64,705.4 μs | 1,265.52 μs | 1,732.26 μs | 25794.27 KB |
-| IndexInstance      |    654.1 μs |     3.78 μs |     3.54 μs |   598.38 KB |
-| IndexShared_x100   | 68,391.9 μs | 1,358.52 μs | 1,395.10 μs | 24512.33 KB |
-| IndexShared        |    598.5 μs |     2.03 μs |     1.80 μs |   485.57 KB |
+| IndexInstance_x100 | 54,326.6 μs |   988.01 μs | 1,098.17 μs | 25793.91 KB |
+| IndexInstance      |    529.1 μs |     3.93 μs |     3.67 μs |    598.7 KB |
+| IndexShared_x100   | 52,328.5 μs | 1,028.61 μs | 1,539.58 μs | 24509.84 KB |
+| IndexShared        |    502.1 μs |     9.79 μs |     9.61 μs |   485.88 KB |
 
 ### Querying Benchmarks
 
 | Method            | Mean         | Error       | StdDev      | Allocated |
 |------------------ |-------------:|------------:|------------:|----------:|
-| QueryComplex_x100 | 330,053.0 ns | 1,797.45 ns | 1,681.33 ns |     904 B |
-| QueryComplex      |   8,725.7 ns |    10.38 ns |     8.67 ns |     904 B |
-| QuerySearch       |   3,795.0 ns |    17.04 ns |    14.23 ns |     352 B |
-| QueryFilter       |     723.8 ns |     2.91 ns |     2.72 ns |     424 B |
-| QueryFacet        |   6,765.3 ns |    17.11 ns |    16.01 ns |     624 B |
-| QuerySort         |   1,529.3 ns |     3.43 ns |     3.04 ns |     392 B |
-| Query             |     509.8 ns |     3.10 ns |     2.90 ns |     296 B |
+| QueryComplex_x100 | 272,553.0 ns | 5,353.58 ns | 6,373.05 ns |     896 B |
+| QueryComplex      |   7,248.5 ns |    30.17 ns |    28.22 ns |     896 B |
+| QuerySearch       |   2,969.6 ns |    10.38 ns |     9.20 ns |     344 B |
+| QueryFilter       |     610.8 ns |     3.24 ns |     2.87 ns |     424 B |
+| QueryFacet        |   5,675.0 ns |    60.72 ns |    53.82 ns |     624 B |
+| QuerySort         |   1,318.5 ns |    20.24 ns |    18.93 ns |     392 B |
+| Query             |     425.1 ns |     8.31 ns |     7.36 ns |     296 B |
 
 ### Memory Allocations
 
