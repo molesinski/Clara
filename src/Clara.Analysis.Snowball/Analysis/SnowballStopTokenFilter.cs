@@ -33,7 +33,7 @@ namespace Clara.Analysis
 
             while (textReader.ReadLine() is string line)
             {
-#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 var commentIndex = line.IndexOf('|', StringComparison.Ordinal);
 #else
                 var commentIndex = line.IndexOf('|');

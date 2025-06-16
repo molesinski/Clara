@@ -91,7 +91,7 @@
 
             if (this.position != 0)
             {
-                result = this.text.Substring(this.position, this.text.Length - this.position);
+                result = this.text.Substring(this.position);
             }
 
             this.position = this.text.Length;

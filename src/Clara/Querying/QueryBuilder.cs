@@ -55,7 +55,7 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(field));
             }
 
-            if (this.query.IsFacetAdded(field))
+            if (this.query.IsFilterAdded(field))
             {
                 throw new InvalidOperationException("Filter for field already has been added.");
             }
@@ -74,7 +74,7 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(field));
             }
 
-            if (this.query.IsFacetAdded(field))
+            if (this.query.IsFilterAdded(field))
             {
                 throw new InvalidOperationException("Filter for field already has been added.");
             }
@@ -93,7 +93,7 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(field));
             }
 
-            if (this.query.IsFacetAdded(field))
+            if (this.query.IsFilterAdded(field))
             {
                 throw new InvalidOperationException("Filter for field already has been added.");
             }
@@ -112,7 +112,7 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(field));
             }
 
-            if (this.query.IsFacetAdded(field))
+            if (this.query.IsFilterAdded(field))
             {
                 throw new InvalidOperationException("Filter for field already has been added.");
             }
@@ -131,7 +131,7 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(field));
             }
 
-            if (this.query.IsFacetAdded(field))
+            if (this.query.IsFilterAdded(field))
             {
                 throw new InvalidOperationException("Filter for field already has been added.");
             }
@@ -150,7 +150,7 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(field));
             }
 
-            if (this.query.IsFacetAdded(field))
+            if (this.query.IsFilterAdded(field))
             {
                 throw new InvalidOperationException("Filter for field already has been added.");
             }
@@ -170,7 +170,7 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(field));
             }
 
-            if (this.query.IsFacetAdded(field))
+            if (this.query.IsFilterAdded(field))
             {
                 throw new InvalidOperationException("Filter for field already has been added.");
             }

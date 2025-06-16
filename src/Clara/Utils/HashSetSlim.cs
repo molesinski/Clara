@@ -106,7 +106,7 @@ namespace Clara.Utils
             {
                 Array.Clear(this.buckets, 0, this.size);
 
-#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 if (RuntimeHelpers.IsReferenceOrContainsReferences<Entry>())
                 {
                     Array.Clear(this.entries, 0, this.lastIndex);
@@ -536,7 +536,7 @@ namespace Clara.Utils
 
             if (this.size > 1)
             {
-#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 if (RuntimeHelpers.IsReferenceOrContainsReferences<Entry>())
                 {
                     Array.Clear(this.entries, 0, this.lastIndex);

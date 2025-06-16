@@ -82,7 +82,7 @@ namespace Clara.Analysis
                         return true;
                     }
 
-#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                     this.current = new Token(new string(this.charTermAttribute.Buffer.AsSpan(0, this.charTermAttribute.Length)));
 #else
                     this.current = new Token(new string(this.charTermAttribute.Buffer, 0, this.charTermAttribute.Length));

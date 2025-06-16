@@ -26,6 +26,12 @@ steps:
     version: "7.0.x"
 
 - task: UseDotNet@2
+  displayName: 'Use 8.0 .NET Runtime'
+  inputs:
+    packageType: "runtime"
+    version: "8.0.x"
+
+- task: UseDotNet@2
   displayName: 'Use latest .NET SDK'
   inputs:
     useGlobalJson: true
