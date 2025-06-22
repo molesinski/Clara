@@ -4,7 +4,7 @@ namespace Clara.Querying
 {
     public sealed class KeywordFilterExpression : FilterExpression
     {
-        private readonly FilterValues values;
+        private readonly FilterValueCollection values;
         private bool isDisposed;
 
         public KeywordFilterExpression(KeywordField field, FilterMode filterMode, string? value)
@@ -16,7 +16,7 @@ namespace Clara.Querying
             }
 
             this.FilterMode = filterMode;
-            this.values = new FilterValues(value);
+            this.values = new FilterValueCollection(value);
         }
 
         public KeywordFilterExpression(KeywordField field, FilterMode filterMode, IEnumerable<string?>? values)
@@ -28,18 +28,18 @@ namespace Clara.Querying
             }
 
             this.FilterMode = filterMode;
-            this.values = new FilterValues(values);
+            this.values = new FilterValueCollection(values);
         }
 
         public FilterMode FilterMode { get; }
 
-        public IReadOnlyCollection<string> Values
+        public FilterValueCollection Values
         {
             get
             {
                 this.ThrowIfDisposed();
 
-                return this.values.Value;
+                return this.values;
             }
         }
 
@@ -51,7 +51,7 @@ namespace Clara.Querying
             }
         }
 
-        internal override bool IsBranchingRequiredForFaceting
+        internal override bool HasPersistedFacets
         {
             get
             {

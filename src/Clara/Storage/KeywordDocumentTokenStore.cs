@@ -35,21 +35,21 @@ namespace Clara.Storage
             this.documentTokens = documentTokens;
         }
 
-        public FacetResult Facet(KeywordFilterExpression? keywordFilterExpression, ref DocumentResultBuilder documentResultBuilder)
+        public FacetResult Facet(FilterValueCollection? filterValues, HashSetSlim<int> documents)
         {
             using var selectedValues = SharedObjectPools.FilterValues.Lease();
 
-            if (keywordFilterExpression is not null)
+            if (filterValues?.Count > 0)
             {
-                if (keywordFilterExpression.Values.Count > 0)
+                foreach (var item in filterValues)
                 {
-                    selectedValues.Instance.UnionWith(keywordFilterExpression.Values);
+                    selectedValues.Instance.Add(item);
                 }
             }
 
             using var tokenCounts = SharedObjectPools.TokenCounts.Lease();
 
-            foreach (var documentId in documentResultBuilder.GetFacetDocuments(this.field))
+            foreach (var documentId in documents)
             {
                 if (this.documentTokens.TryGetValue(documentId, out var tokenIds))
                 {

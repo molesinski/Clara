@@ -1,5 +1,4 @@
-﻿using Clara.Mapping;
-using Clara.Querying;
+﻿using Clara.Querying;
 using Clara.Utils;
 
 namespace Clara.Storage
@@ -40,63 +39,71 @@ namespace Clara.Storage
 
         public double FilterOrder { get; }
 
-        public void Filter(Field field, FilterMode mode, HashSetSlim<string> values, ref DocumentResultBuilder documentResultBuilder)
+        public DocumentSet Filter(FilterMode mode, FilterValueCollection values)
         {
-            if (mode == FilterMode.Any)
-            {
-                if (values.Count == 1)
-                {
-                    foreach (var token in values)
-                    {
-                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
-                        {
-                            if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
-                            {
-                                documentResultBuilder.IntersectWith(field, documents);
-
-                                return;
-                            }
-                        }
-                    }
-
-                    documentResultBuilder.Clear();
-                }
-                else
-                {
-                    using var tempSet = SharedObjectPools.DocumentSets.Lease();
-
-                    foreach (var token in values)
-                    {
-                        if (this.tokenEncoder.TryEncode(token, out var tokenId))
-                        {
-                            if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
-                            {
-                                tempSet.Instance.UnionWith(documents);
-                            }
-                        }
-                    }
-
-                    documentResultBuilder.IntersectWith(field, tempSet.Instance);
-                }
-            }
-            else if (mode == FilterMode.All)
+            if (values.Count == 1)
             {
                 foreach (var token in values)
                 {
                     if (this.tokenEncoder.TryEncode(token, out var tokenId))
                     {
-                        if (this.tokenDocuments.TryGetValue(tokenId, out var documents))
+                        if (this.tokenDocuments.TryGetValue(tokenId, out var tokenDocuments))
                         {
-                            documentResultBuilder.IntersectWith(field, documents);
+                            return new DocumentSet(tokenDocuments);
+                        }
+                    }
+                }
+
+                return default;
+            }
+            else if (mode == FilterMode.Any)
+            {
+                var documents = SharedObjectPools.DocumentSets.Lease();
+
+                foreach (var token in values)
+                {
+                    if (this.tokenEncoder.TryEncode(token, out var tokenId))
+                    {
+                        if (this.tokenDocuments.TryGetValue(tokenId, out var tokenDocuments))
+                        {
+                            documents.Instance.UnionWith(tokenDocuments);
+                        }
+                    }
+                }
+
+                return new DocumentSet(documents);
+            }
+            else if (mode == FilterMode.All)
+            {
+                var documents = SharedObjectPools.DocumentSets.Lease();
+                var isFirst = true;
+
+                foreach (var token in values)
+                {
+                    if (this.tokenEncoder.TryEncode(token, out var tokenId))
+                    {
+                        if (this.tokenDocuments.TryGetValue(tokenId, out var tokenDocuments))
+                        {
+                            if (isFirst)
+                            {
+                                documents.Instance.UnionWith(tokenDocuments);
+                                isFirst = false;
+                            }
+                            else
+                            {
+                                documents.Instance.IntersectWith(tokenDocuments);
+                            }
 
                             continue;
                         }
                     }
 
-                    documentResultBuilder.Clear();
+                    documents.Instance.Clear();
 
                     break;
                 }
+
+                return new DocumentSet(documents);
             }
             else
             {

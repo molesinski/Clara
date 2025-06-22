@@ -48,7 +48,7 @@ namespace Clara.Querying
             }
         }
 
-        internal override bool IsBranchingRequiredForFaceting
+        internal override bool HasPersistedFacets
         {
             get
             {

@@ -7,11 +7,6 @@ namespace Clara.Mapping
         where TValue : struct, IComparable<TValue>
     {
         internal RangeField(TValue minValue, TValue maxValue, bool isFilterable, bool isFacetable, bool isSortable)
-            : base(
-                isSearchable: false,
-                isFilterable: isFilterable,
-                isFacetable: isFacetable,
-                isSortable: isSortable)
         {
             if (!(minValue.CompareTo(maxValue) <= 0))
             {
@@ -25,11 +20,20 @@ namespace Clara.Mapping
 
             this.MinValue = minValue;
             this.MaxValue = maxValue;
+            this.IsFilterable = isFilterable;
+            this.IsFacetable = isFacetable;
+            this.IsSortable = isSortable;
         }
 
         public TValue MinValue { get; }
 
         public TValue MaxValue { get; }
+
+        public override bool IsFilterable { get; }
+
+        public override bool IsFacetable { get; }
+
+        public override bool IsSortable { get; }
     }
 
     public class RangeField<TSource, TValue> : RangeField<TValue>

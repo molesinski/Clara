@@ -122,18 +122,20 @@ namespace Clara
 
                 if (hasValues)
                 {
-                    documentResultBuilder.IntersectWith(field: null, includedDocuments.Instance);
+                    documentResultBuilder.IntersectWith(includedDocuments.Instance);
                 }
             }
 
-            if (query.TextSearch is TextSearchExpression textSearchExpression)
+            if (query.Search is ScoringSearchExpression scoringSearchExpression)
             {
-                if (!textSearchExpression.IsEmpty)
+                if (!scoringSearchExpression.IsEmpty)
                 {
-                    var field = textSearchExpression.Field;
+                    var field = scoringSearchExpression.Field;
                     var store = this.fieldStores[field];
 
-                    documentScoring = store.Search(textSearchExpression, ref documentResultBuilder);
+                    documentScoring = store.Search(scoringSearchExpression);
+
+                    documentResultBuilder.IntersectWith(documentScoring.Value);
                 }
             }
 
@@ -174,15 +176,17 @@ namespace Clara
                         var field = filterExpression.Field;
                         var store = this.fieldStores[field];
 
-                        if (filterExpression.IsBranchingRequiredForFaceting)
+                        if (filterExpression.HasPersistedFacets)
                         {
                             if (facetFields.Instance.Contains(field))
                             {
-                                documentResultBuilder.Facet(field);
+                                documentResultBuilder.PersistFacets(field);
                             }
                         }
 
-                        store.Filter(filterExpression, ref documentResultBuilder);
+                        using var documents = store.Filter(filterExpression);
+
+                        documentResultBuilder.IntersectWith(field, documents.Value);
                     }
                 }
             }
@@ -231,7 +235,7 @@ namespace Clara
                     }
                 }
 
-                facetResults.Instance.Add(store.Facet(facetExpression, fieldFilterExpression, ref documentResultBuilder));
+                facetResults.Instance.Add(store.Facet(facetExpression, fieldFilterExpression, documentResultBuilder.GetFacetDocuments(field)));
             }
 
             if (documentResultBuilder.Documents.Count > 0)
@@ -241,7 +245,7 @@ namespace Clara
                     var field = sortExpression.Field;
                     var store = this.fieldStores[field];
 
-                    documentList = store.Sort(sortExpression, ref documentResultBuilder);
+                    documentList = store.Sort(sortExpression, documentResultBuilder.Documents);
                 }
                 else if (documentScoring.Value.Count > 0)
                 {

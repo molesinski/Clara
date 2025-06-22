@@ -15,13 +15,11 @@ namespace Clara
 
         public static ObjectPool<DictionarySlim<int, float>> DocumentScores { get; } = new(() => new(), sizeFactor: 3);
 
-        public static ObjectPool<HashSetSlim<int>> DocumentSets { get; } = new(() => new(), sizeFactor: 3 + DefaultFilterFacetCount);
+        public static ObjectPool<HashSetSlim<int>> DocumentSets { get; } = new(() => new(), sizeFactor: 4 + DefaultFilterFacetCount);
 
         public static ObjectPool<HashSetSlim<int>> FilteredTokens { get; } = new(() => new());
 
         public static ObjectPool<HashSetSlim<string>> FilterValues { get; } = new(() => new(), sizeFactor: 1 + DefaultFilterFacetCount);
-
-        public static ObjectPool<ListSlim<SearchTerm>> SearchTerms { get; } = new(() => new());
 
         public static ObjectPool<ListSlim<int>> Documents { get; } = new(() => new());
 

@@ -6,11 +6,6 @@ namespace Clara.Mapping
     public abstract class TextField : Field
     {
         internal TextField(IAnalyzer analyzer, ISynonymMap? synonymMap, Similarity? similarity)
-            : base(
-                isSearchable: true,
-                isFilterable: false,
-                isFacetable: false,
-                isSortable: false)
         {
             if (analyzer is null)
             {
@@ -35,6 +30,14 @@ namespace Clara.Mapping
         public ISynonymMap? SynonymMap { get; }
 
         public Similarity Similarity { get; }
+
+        public override bool IsSearchable
+        {
+            get
+            {
+                return true;
+            }
+        }
     }
 
     public sealed class TextField<TSource> : TextField

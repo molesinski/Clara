@@ -6,17 +6,19 @@ namespace Clara.Mapping
     public abstract class KeywordField : Field
     {
         internal KeywordField(bool isFilterable, bool isFacetable)
-            : base(
-                isSearchable: false,
-                isFilterable: isFilterable,
-                isFacetable: isFacetable,
-                isSortable: false)
         {
             if (!isFilterable && !isFacetable)
             {
                 throw new InvalidOperationException("Filtering or faceting must be enabled.");
             }
+
+            this.IsFilterable = isFilterable;
+            this.IsFacetable = isFacetable;
         }
+
+        public override bool IsFilterable { get; }
+
+        public override bool IsFacetable { get; }
     }
 
     public sealed class KeywordField<TSource> : KeywordField

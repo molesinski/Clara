@@ -52,8 +52,8 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(y));
             }
 
-            var a = x.IsBranchingRequiredForFaceting && this.facetFields.Contains(x.Field) ? 1 : 0;
-            var b = y.IsBranchingRequiredForFaceting && this.facetFields.Contains(y.Field) ? 1 : 0;
+            var a = x.HasPersistedFacets && this.facetFields.Contains(x.Field) ? 1 : 0;
+            var b = y.HasPersistedFacets && this.facetFields.Contains(y.Field) ? 1 : 0;
 
             var result = a.CompareTo(b);
 
@@ -62,8 +62,8 @@ namespace Clara.Querying
                 return result;
             }
 
-            var c = this.fieldStores.TryGetValue(x.Field, out var store1) ? store1.FilterOrder : double.MinValue;
-            var d = this.fieldStores.TryGetValue(y.Field, out var store2) ? store2.FilterOrder : double.MinValue;
+            var c = this.fieldStores.TryGetValue(x.Field, out var store1) ? (store1.FilterOrder ?? double.MaxValue) : double.MinValue;
+            var d = this.fieldStores.TryGetValue(y.Field, out var store2) ? (store2.FilterOrder ?? double.MaxValue) : double.MinValue;
 
             return c.CompareTo(d);
         }

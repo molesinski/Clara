@@ -44,7 +44,7 @@ namespace Clara.Storage
             return this.documents?.Instance ?? this.allDocuments;
         }
 
-        public void Facet(Field field)
+        public void PersistFacets(Field field)
         {
             this.facets ??= SharedObjectPools.QueryResultBuilderFacets.Lease();
 
@@ -113,7 +113,32 @@ namespace Clara.Storage
             }
         }
 
-        public void IntersectWith(Field? field, HashSetSlim<int> documents)
+        public void IntersectWith(HashSetSlim<int> documents)
+        {
+            if (this.documents is null)
+            {
+                this.documents = SharedObjectPools.DocumentSets.Lease();
+                this.documents.Value.Instance.UnionWith(documents);
+            }
+            else
+            {
+                this.documents.Value.Instance.IntersectWith(documents);
+
+                if (this.facets is not null)
+                {
+                    var count = this.facets.Value.Instance.Count;
+
+                    for (var i = 0; i < count; i++)
+                    {
+                        var item = this.facets.Value.Instance[i];
+
+                        this.facets.Value.Instance[i] = item.IntersectWith(documents);
+                    }
+                }
+            }
+        }
+
+        public void IntersectWith(Field field, HashSetSlim<int> documents)
         {
             if (this.documents is null)
             {

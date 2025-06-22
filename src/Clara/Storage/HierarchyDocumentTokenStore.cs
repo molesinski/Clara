@@ -43,15 +43,15 @@ namespace Clara.Storage
             this.parentChildren = parentChildren;
         }
 
-        public FacetResult Facet(HierarchyFilterExpression? hierarchyFilterExpression, ref DocumentResultBuilder documentResultBuilder)
+        public FacetResult Facet(FilterValueCollection? filterValues, HashSetSlim<int> documents)
         {
             using var selectedValues = SharedObjectPools.FilterValues.Lease();
 
-            if (hierarchyFilterExpression is not null)
+            if (filterValues?.Count > 0)
             {
-                if (hierarchyFilterExpression.Values.Count > 0)
+                foreach (var item in filterValues)
                 {
-                    selectedValues.Instance.UnionWith(hierarchyFilterExpression.Values);
+                    selectedValues.Instance.Add(item);
                 }
             }
 
@@ -77,7 +77,7 @@ namespace Clara.Storage
 
             using var tokenCounts = SharedObjectPools.TokenCounts.Lease();
 
-            foreach (var documentId in documentResultBuilder.GetFacetDocuments(this.field))
+            foreach (var documentId in documents)
             {
                 if (this.documentTokens.TryGetValue(documentId, out var tokenIds))
                 {

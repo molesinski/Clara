@@ -34,13 +34,13 @@ namespace Clara.Storage
             this.documentValueMinMax = documentValueMinMax;
         }
 
-        public FacetResult Facet(ref DocumentResultBuilder documentResultBuilder)
+        public FacetResult Facet(HashSetSlim<int> documents)
         {
             var hasMinMax = false;
             var min = this.maxValue;
             var max = this.minValue;
 
-            foreach (var documentId in documentResultBuilder.GetFacetDocuments(this.field))
+            foreach (var documentId in documents)
             {
                 if (this.documentValueMinMax.TryGetValue(documentId, out var minMax))
                 {
@@ -66,20 +66,20 @@ namespace Clara.Storage
             return new RangeFacetResult<TValue>(this.field, default, default);
         }
 
-        public DocumentList Sort(SortDirection direction, ref DocumentResultBuilder documentResultBuilder)
+        public DocumentList Sort(SortDirection direction, HashSetSlim<int> documents)
         {
-            using var sortedDocuments = SharedObjectPools<TValue>.SortedDocumentLists.Lease();
+            using var sortedDocumentValues = SharedObjectPools<TValue>.SortedDocumentLists.Lease();
 
             Func<int, TValue> valueSelector =
                 direction == SortDirection.Descending
                     ? this.GetDescendingValue
                     : this.GetAscendingValue;
 
-            foreach (var documentId in documentResultBuilder.Documents)
+            foreach (var documentId in documents)
             {
                 var value = valueSelector(documentId);
 
-                sortedDocuments.Instance.Add(new DocumentValue<TValue>(documentId, value));
+                sortedDocumentValues.Instance.Add(new DocumentValue<TValue>(documentId, value));
             }
 
             var comparer =
@@ -87,16 +87,16 @@ namespace Clara.Storage
                     ? DocumentValueComparer<TValue>.Descending
                     : DocumentValueComparer<TValue>.Ascending;
 
-            sortedDocuments.Instance.Sort(comparer);
+            sortedDocumentValues.Instance.Sort(comparer);
 
-            var documents = SharedObjectPools.Documents.Lease();
+            var sortedDocuments = SharedObjectPools.Documents.Lease();
 
-            foreach (var documentValue in sortedDocuments.Instance)
+            foreach (var documentValue in sortedDocumentValues.Instance)
             {
-                documents.Instance.Add(documentValue.DocumentId);
+                sortedDocuments.Instance.Add(documentValue.DocumentId);
             }
 
-            return new DocumentList(documents);
+            return new DocumentList(sortedDocuments);
         }
 
         private TValue GetDescendingValue(int documentId)

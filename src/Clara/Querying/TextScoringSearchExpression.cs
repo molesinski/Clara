@@ -3,9 +3,10 @@ using Clara.Mapping;
 
 namespace Clara.Querying
 {
-    public sealed class TextSearchExpression
+    public sealed class TextScoringSearchExpression : ScoringSearchExpression
     {
-        public TextSearchExpression(TextField field, SearchMode searchMode, string text, Func<Position, float>? positionBoost = null)
+        public TextScoringSearchExpression(TextField field, SearchMode searchMode, string text, Func<Position, float>? positionBoost = null)
+            : base(field)
         {
             if (field is null)
             {
@@ -22,13 +23,10 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(text));
             }
 
-            this.Field = field;
             this.SearchMode = searchMode;
             this.Text = text;
             this.PositionBoost = positionBoost;
         }
-
-        public TextField Field { get; }
 
         public SearchMode SearchMode { get; }
 
@@ -36,7 +34,7 @@ namespace Clara.Querying
 
         public Func<Position, float>? PositionBoost { get; }
 
-        internal bool IsEmpty
+        internal override bool IsEmpty
         {
             get
             {

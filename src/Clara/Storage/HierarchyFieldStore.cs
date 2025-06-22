@@ -16,39 +16,31 @@ namespace Clara.Storage
             this.documentTokenStore = documentTokenStore;
         }
 
-        public override double FilterOrder
+        public override double? FilterOrder
         {
             get
             {
-                if (this.tokenDocumentStore is not null)
-                {
-                    return this.tokenDocumentStore.FilterOrder;
-                }
-
-                return base.FilterOrder;
+                return this.tokenDocumentStore?.FilterOrder;
             }
         }
 
-        public override void Filter(FilterExpression filterExpression, ref DocumentResultBuilder documentResultBuilder)
+        public override DocumentSet Filter(FilterExpression filterExpression)
         {
             if (filterExpression is HierarchyFilterExpression hierarchyFilterExpression)
             {
                 if (this.tokenDocumentStore is not null)
                 {
-                    this.tokenDocumentStore.Filter(
-                        hierarchyFilterExpression.Field,
-                        hierarchyFilterExpression.FilterMode,
-                        (HashSetSlim<string>)hierarchyFilterExpression.Values,
-                        ref documentResultBuilder);
-
-                    return;
+                    return
+                        this.tokenDocumentStore.Filter(
+                            hierarchyFilterExpression.FilterMode,
+                            hierarchyFilterExpression.Values);
                 }
             }
 
-            base.Filter(filterExpression, ref documentResultBuilder);
+            return base.Filter(filterExpression);
         }
 
-        public override FacetResult Facet(FacetExpression facetExpression, FilterExpression? filterExpression, ref DocumentResultBuilder documentResultBuilder)
+        public override FacetResult Facet(FacetExpression facetExpression, FilterExpression? filterExpression, HashSetSlim<int> documents)
         {
             if (facetExpression is HierarchyFacetExpression)
             {
@@ -56,12 +48,12 @@ namespace Clara.Storage
                 {
                     return
                         this.documentTokenStore.Facet(
-                            filterExpression as HierarchyFilterExpression,
-                            ref documentResultBuilder);
+                            (filterExpression as HierarchyFilterExpression)?.Values,
+                            documents);
                 }
             }
 
-            return base.Facet(facetExpression, filterExpression, ref documentResultBuilder);
+            return base.Facet(facetExpression, filterExpression, documents);
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using Clara.Mapping;
-using Clara.Utils;
+﻿using Clara.Utils;
 
 namespace Clara.Storage
 {
@@ -24,7 +23,7 @@ namespace Clara.Storage
 
         public double FilterOrder { get; }
 
-        public void Filter(Field field, TValue? valueFrom, TValue? valueTo, ref DocumentResultBuilder documentResultBuilder)
+        public DocumentSet Filter(TValue? valueFrom, TValue? valueTo)
         {
             var list = this.sortedDocumentValues;
 
@@ -41,14 +40,14 @@ namespace Clara.Storage
                 hi = BinarySearchHigh(list, valueTo.Value);
             }
 
-            using var documents = SharedObjectPools.DocumentSets.Lease();
+            var documents = SharedObjectPools.DocumentSets.Lease();
 
             for (var i = lo; i <= hi; i++)
             {
                 documents.Instance.Add(list[i].DocumentId);
             }
 
-            documentResultBuilder.IntersectWith(field, documents.Instance);
+            return new DocumentSet(documents);
         }
 
         private static int BinarySearchLow(ListSlim<DocumentValue<TValue>> list, TValue value)

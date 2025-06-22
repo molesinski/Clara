@@ -8,7 +8,7 @@ namespace Clara.Querying
         private readonly Index index;
         private readonly ObjectPoolLease<ListSlim<FilterExpression>> filters;
         private readonly ObjectPoolLease<ListSlim<FacetExpression>> facets;
-        private TextSearchExpression? textSearch;
+        private SearchExpression? search;
         private SortExpression? sort;
         private IEnumerable<string?>? includeDocuments;
         private IEnumerable<string?>? excludeDocuments;
@@ -26,13 +26,13 @@ namespace Clara.Querying
             this.facets = SharedObjectPools.FacetExpressions.Lease();
         }
 
-        public TextSearchExpression? TextSearch
+        public SearchExpression? Search
         {
             get
             {
                 this.ThrowIfDisposed();
 
-                return this.textSearch;
+                return this.search;
             }
 
             set
@@ -41,17 +41,17 @@ namespace Clara.Querying
 
                 if (value is null)
                 {
-                    this.textSearch = null;
+                    this.search = null;
 
                     return;
                 }
 
                 if (!this.index.ContainsField(value.Field))
                 {
-                    throw new InvalidOperationException("Text search expression references field not belonging to current index.");
+                    throw new InvalidOperationException("Search expression references field not belonging to current index.");
                 }
 
-                this.textSearch = value;
+                this.search = value;
             }
         }
 

@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Clara.Utils;
 
 namespace Clara.Analysis
 {
@@ -19,7 +18,7 @@ namespace Clara.Analysis
             var builder = new StringBuilder();
             var isFirst = true;
 
-            foreach (var phrase in (HashSetSlim<string>)this.Phrases)
+            foreach (var phrase in this.Phrases)
             {
                 if (!isFirst)
                 {

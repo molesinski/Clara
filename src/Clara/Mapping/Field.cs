@@ -4,25 +4,41 @@ namespace Clara.Mapping
 {
     public abstract class Field
     {
-        internal Field(
-            bool isSearchable,
-            bool isFilterable,
-            bool isFacetable,
-            bool isSortable)
+        internal Field()
         {
-            this.IsSearchable = isSearchable;
-            this.IsFilterable = isFilterable;
-            this.IsFacetable = isFacetable;
-            this.IsSortable = isSortable;
         }
 
-        public bool IsSearchable { get; }
+        public virtual bool IsSearchable
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-        public bool IsFilterable { get; }
+        public virtual bool IsFilterable
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-        public bool IsFacetable { get; }
+        public virtual bool IsFacetable
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-        public bool IsSortable { get; }
+        public virtual bool IsSortable
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         internal abstract FieldStoreBuilder CreateFieldStoreBuilder(TokenEncoderBuilder tokenEncoderBuilder);
     }

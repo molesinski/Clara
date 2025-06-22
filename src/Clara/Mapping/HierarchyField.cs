@@ -6,11 +6,6 @@ namespace Clara.Mapping
     public abstract class HierarchyField : Field
     {
         internal HierarchyField(string separator, string root, HierarchyValueHandling valueHandling, bool isFilterable, bool isFacetable)
-            : base(
-                isSearchable: false,
-                isFilterable: isFilterable,
-                isFacetable: isFacetable,
-                isSortable: false)
         {
             if (separator is null)
             {
@@ -55,6 +50,8 @@ namespace Clara.Mapping
             this.Separator = separator.Trim();
             this.Root = root.Trim();
             this.ValueHandling = valueHandling;
+            this.IsFilterable = isFilterable;
+            this.IsFacetable = isFacetable;
         }
 
         public string Separator { get; }
@@ -62,6 +59,10 @@ namespace Clara.Mapping
         public string Root { get; }
 
         public HierarchyValueHandling ValueHandling { get; }
+
+        public override bool IsFilterable { get; }
+
+        public override bool IsFacetable { get; }
     }
 
     public sealed class HierarchyField<TSource> : HierarchyField

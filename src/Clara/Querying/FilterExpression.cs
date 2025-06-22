@@ -23,7 +23,7 @@ namespace Clara.Querying
 
         internal abstract bool IsEmpty { get; }
 
-        internal abstract bool IsBranchingRequiredForFaceting { get; }
+        internal abstract bool HasPersistedFacets { get; }
 
         public void Dispose()
         {

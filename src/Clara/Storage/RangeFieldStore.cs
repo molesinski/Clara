@@ -1,4 +1,5 @@
 ﻿using Clara.Querying;
+using Clara.Utils;
 
 namespace Clara.Storage
 {
@@ -16,39 +17,31 @@ namespace Clara.Storage
             this.documentValueMinMaxStore = documentValueMinMaxStore;
         }
 
-        public override double FilterOrder
+        public override double? FilterOrder
         {
             get
             {
-                if (this.sortedDocumentValueStore is not null)
-                {
-                    return this.sortedDocumentValueStore.FilterOrder;
-                }
-
-                return base.FilterOrder;
+                return this.sortedDocumentValueStore?.FilterOrder;
             }
         }
 
-        public override void Filter(FilterExpression filterExpression, ref DocumentResultBuilder documentResultBuilder)
+        public override DocumentSet Filter(FilterExpression filterExpression)
         {
             if (filterExpression is RangeFilterExpression<TValue> rangeFilterExpression)
             {
                 if (this.sortedDocumentValueStore is not null)
                 {
-                    this.sortedDocumentValueStore.Filter(
-                        rangeFilterExpression.Field,
-                        rangeFilterExpression.ValueFrom,
-                        rangeFilterExpression.ValueTo,
-                        ref documentResultBuilder);
-
-                    return;
+                    return
+                        this.sortedDocumentValueStore.Filter(
+                            rangeFilterExpression.ValueFrom,
+                            rangeFilterExpression.ValueTo);
                 }
             }
 
-            base.Filter(filterExpression, ref documentResultBuilder);
+            return base.Filter(filterExpression);
         }
 
-        public override FacetResult Facet(FacetExpression facetExpression, FilterExpression? filterExpression, ref DocumentResultBuilder documentResultBuilder)
+        public override FacetResult Facet(FacetExpression facetExpression, FilterExpression? filterExpression, HashSetSlim<int> documents)
         {
             if (facetExpression is RangeFacetExpression<TValue>)
             {
@@ -56,14 +49,14 @@ namespace Clara.Storage
                 {
                     return
                         this.documentValueMinMaxStore.Facet(
-                            ref documentResultBuilder);
+                            documents);
                 }
             }
 
-            return base.Facet(facetExpression, filterExpression, ref documentResultBuilder);
+            return base.Facet(facetExpression, filterExpression, documents);
         }
 
-        public override DocumentList Sort(SortExpression sortExpression, ref DocumentResultBuilder documentResultBuilder)
+        public override DocumentList Sort(SortExpression sortExpression, HashSetSlim<int> documents)
         {
             if (sortExpression is RangeSortExpression<TValue> rangeSortExpression)
             {
@@ -72,11 +65,11 @@ namespace Clara.Storage
                     return
                         this.documentValueMinMaxStore.Sort(
                             rangeSortExpression.SortDirection,
-                            ref documentResultBuilder);
+                            documents);
                 }
             }
 
-            return base.Sort(sortExpression, ref documentResultBuilder);
+            return base.Sort(sortExpression, documents);
         }
     }
 }

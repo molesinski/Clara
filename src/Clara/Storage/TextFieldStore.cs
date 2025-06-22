@@ -17,9 +17,18 @@ namespace Clara.Storage
             this.textDocumentStore = textDocumentStore;
         }
 
-        public override DocumentScoring Search(TextSearchExpression searchExpression, ref DocumentResultBuilder documentResultBuilder)
+        public override DocumentScoring Search(ScoringSearchExpression scoringSearchExpression)
         {
-            return this.textDocumentStore.Search(searchExpression.SearchMode, searchExpression.Text, searchExpression.PositionBoost, ref documentResultBuilder);
+            if (scoringSearchExpression is TextScoringSearchExpression textScoringSearchExpression)
+            {
+                return
+                    this.textDocumentStore.Search(
+                        textScoringSearchExpression.SearchMode,
+                        textScoringSearchExpression.Text,
+                        textScoringSearchExpression.PositionBoost);
+            }
+
+            return base.Search(scoringSearchExpression);
         }
     }
 }

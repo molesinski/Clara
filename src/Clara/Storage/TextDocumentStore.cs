@@ -41,7 +41,7 @@ namespace Clara.Storage
             this.phraseTermSourcePool = new ObjectPool<IPhraseTermSource>(() => this.synonymMap?.CreatePhraseTermSource() ?? new PhraseTermSource(this.analyzer.CreateTokenTermSource()));
         }
 
-        public DocumentScoring Search(SearchMode searchMode, string text, Func<Position, float>? positionBoost, ref DocumentResultBuilder documentResultBuilder)
+        public DocumentScoring Search(SearchMode searchMode, string text, Func<Position, float>? positionBoost)
         {
             using var source = this.phraseTermSourcePool.Lease();
             using var termScores = SharedObjectPools.DocumentScores.Lease();
@@ -99,8 +99,6 @@ namespace Clara.Storage
                 }
             }
 
-            documentResultBuilder.IntersectWith(documentScores.Instance);
-
             return new DocumentScoring(documentScores);
         }
 
@@ -108,9 +106,9 @@ namespace Clara.Storage
         {
             if (this.tokenEncoder.TryEncode(value, out var tokenId))
             {
-                if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
+                if (this.tokenDocumentScores.TryGetValue(tokenId, out var tokenDocuments))
                 {
-                    termScores.UnionWith(documents, ValueCombiner.Sum, ValueCombiner.DefaultBoost);
+                    termScores.UnionWith(tokenDocuments, ValueCombiner.Sum, ValueCombiner.DefaultBoost);
                 }
             }
         }
@@ -137,16 +135,16 @@ namespace Clara.Storage
             {
                 if (this.tokenEncoder.TryEncode(term, out var tokenId))
                 {
-                    if (this.tokenDocumentScores.TryGetValue(tokenId, out var documents))
+                    if (this.tokenDocumentScores.TryGetValue(tokenId, out var tokenDocuments))
                     {
                         if (isFirst)
                         {
-                            phraseScores.UnionWith(documents, ValueCombiner.Sum, ValueCombiner.DefaultBoost);
+                            phraseScores.UnionWith(tokenDocuments, ValueCombiner.Sum, ValueCombiner.DefaultBoost);
                             isFirst = false;
                         }
                         else
                         {
-                            phraseScores.IntersectWith(documents, ValueCombiner.Sum, ValueCombiner.DefaultBoost);
+                            phraseScores.IntersectWith(tokenDocuments, ValueCombiner.Sum, ValueCombiner.DefaultBoost);
                         }
 
                         continue;
