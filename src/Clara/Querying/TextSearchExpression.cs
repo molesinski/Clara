@@ -1,12 +1,12 @@
 ﻿using Clara.Analysis;
 using Clara.Mapping;
+using Clara.Storage;
 
 namespace Clara.Querying
 {
-    public sealed class TextScoringSearchExpression : ScoringSearchExpression
+    public sealed class TextSearchExpression : SearchExpression
     {
-        public TextScoringSearchExpression(TextField field, SearchMode searchMode, string text, Func<Position, float>? positionBoost = null)
-            : base(field)
+        public TextSearchExpression(TextField field, SearchMode searchMode, string text, Func<Position, float>? positionBoost = null)
         {
             if (field is null)
             {
@@ -23,10 +23,13 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(text));
             }
 
+            this.Field = field;
             this.SearchMode = searchMode;
             this.Text = text;
             this.PositionBoost = positionBoost;
         }
+
+        public TextField Field { get; }
 
         public SearchMode SearchMode { get; }
 
@@ -40,6 +43,13 @@ namespace Clara.Querying
             {
                 return string.IsNullOrWhiteSpace(this.Text);
             }
+        }
+
+        internal override DocumentScoring Search(Index index)
+        {
+            var store = index.GetFieldStore(this.Field);
+
+            return store.Search(this);
         }
     }
 }

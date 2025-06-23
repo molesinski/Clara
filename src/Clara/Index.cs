@@ -11,7 +11,7 @@ namespace Clara
         {
         }
 
-        internal abstract bool ContainsField(Field field);
+        internal abstract FieldStore GetFieldStore(Field field);
     }
 
     public sealed class Index<TDocument> : Index
@@ -126,14 +126,11 @@ namespace Clara
                 }
             }
 
-            if (query.Search is ScoringSearchExpression scoringSearchExpression)
+            if (query.Search is SearchExpression searchExpression)
             {
-                if (!scoringSearchExpression.IsEmpty)
+                if (!searchExpression.IsEmpty)
                 {
-                    var field = scoringSearchExpression.Field;
-                    var store = this.fieldStores[field];
-
-                    documentScoring = store.Search(scoringSearchExpression);
+                    documentScoring = searchExpression.Search(this);
 
                     documentResultBuilder.IntersectWith(documentScoring.Value);
                 }
@@ -174,7 +171,7 @@ namespace Clara
                     foreach (var filterExpression in filterExpressions.Instance)
                     {
                         var field = filterExpression.Field;
-                        var store = this.fieldStores[field];
+                        var store = this.GetFieldStore(field);
 
                         if (filterExpression.HasPersistedFacets)
                         {
@@ -218,7 +215,7 @@ namespace Clara
             {
                 var facetExpression = query.Facets[i];
                 var field = facetExpression.Field;
-                var store = this.fieldStores[field];
+                var store = this.GetFieldStore(field);
                 var fieldFilterExpression = default(FilterExpression);
 
                 for (var j = 0; j < query.Filters.Count; j++)
@@ -243,7 +240,7 @@ namespace Clara
                 if (query.Sort is SortExpression sortExpression)
                 {
                     var field = sortExpression.Field;
-                    var store = this.fieldStores[field];
+                    var store = this.GetFieldStore(field);
 
                     documentList = store.Sort(sortExpression, documentResultBuilder.Documents);
                 }
@@ -289,14 +286,14 @@ namespace Clara
             return new QueryResult<TDocument>(this.tokenEncoder, this.documentMap, documentScoring, documentList, facetResults);
         }
 
-        internal override bool ContainsField(Field field)
+        internal override FieldStore GetFieldStore(Field field)
         {
-            if (field is null)
+            if (!this.fieldStores.TryGetValue(field, out var store))
             {
-                throw new ArgumentNullException(nameof(field));
+                throw new InvalidOperationException("Query expression references field not belonging to current index.");
             }
 
-            return this.fieldStores.ContainsKey(field);
+            return store;
         }
     }
 }

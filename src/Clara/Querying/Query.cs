@@ -46,11 +46,6 @@ namespace Clara.Querying
                     return;
                 }
 
-                if (!this.index.ContainsField(value.Field))
-                {
-                    throw new InvalidOperationException("Search expression references field not belonging to current index.");
-                }
-
                 this.search = value;
             }
         }
@@ -93,11 +88,6 @@ namespace Clara.Querying
                     this.sort = null;
 
                     return;
-                }
-
-                if (!this.index.ContainsField(value.Field))
-                {
-                    throw new InvalidOperationException("Sort expression references field not belonging to current index.");
                 }
 
                 this.sort = value;
@@ -157,11 +147,6 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(filterExpression));
             }
 
-            if (!this.index.ContainsField(filterExpression.Field))
-            {
-                throw new InvalidOperationException("Filter expression references field not belonging to current index.");
-            }
-
             var filters = this.filters.Instance;
 
             for (var i = 0; i < filters.Count; i++)
@@ -184,11 +169,6 @@ namespace Clara.Querying
             if (facetExpression is null)
             {
                 throw new ArgumentNullException(nameof(facetExpression));
-            }
-
-            if (!this.index.ContainsField(facetExpression.Field))
-            {
-                throw new InvalidOperationException("Facet expression references field not belonging to current index.");
             }
 
             var facets = this.facets.Instance;

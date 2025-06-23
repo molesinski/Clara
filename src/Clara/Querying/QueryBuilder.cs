@@ -41,7 +41,7 @@ namespace Clara.Querying
                 throw new InvalidOperationException("Search already has been set.");
             }
 
-            this.query.Search = new TextScoringSearchExpression(field, searchMode, text ?? string.Empty, positionBoost);
+            this.query.Search = new TextSearchExpression(field, searchMode, text ?? string.Empty, positionBoost);
 
             return this;
         }
