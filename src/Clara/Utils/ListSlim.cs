@@ -115,23 +115,12 @@ namespace Clara.Utils
 
         public bool Contains(TItem item)
         {
-            return this.IndexOf(item) >= 0;
+            return this.IndexOf(item) != -1;
         }
 
         public int IndexOf(TItem item)
         {
-            var entries = this.entries;
-            var comparer = EqualityComparer<TItem>.Default;
-
-            for (var i = 0; i < this.count; i++)
-            {
-                if (comparer.Equals(item, entries[i]))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
+            return Array.IndexOf(this.entries, item, 0, this.count);
         }
 
         public void CopyTo(TItem[] array, int arrayIndex)
@@ -416,7 +405,7 @@ namespace Clara.Utils
                     return true;
                 }
 
-                this.index = this.count + 1;
+                this.index = this.count;
                 this.current = default!;
 
                 return false;

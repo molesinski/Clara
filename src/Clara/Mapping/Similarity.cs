@@ -10,7 +10,7 @@ namespace Clara.Mapping
 
         public static Similarity TFIDF { get; } = new TFIDFSimilarity();
 
-        public static Similarity BM25(double k1 = 1.2, double b = 0.75)
+        public static Similarity BM25(float k1 = 1.2f, float b = 0.75f)
         {
             return new BM25Similarity(k1, b);
         }
@@ -34,9 +34,9 @@ namespace Clara.Mapping
                 DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
                 DictionarySlim<int, float> documentLengths)
             {
-                var documentCount = documentLengths.Count;
+                var count = documentLengths.Count;
 
-                if (documentCount == 0)
+                if (count == 0)
                 {
                     return;
                 }
@@ -44,8 +44,8 @@ namespace Clara.Mapping
                 foreach (var tokenDocumentScoresItem in tokenDocumentScores)
                 {
                     var documentScores = tokenDocumentScoresItem.Value;
-                    var documentFrequency = documentScores.Count;
-                    var inverseDocumentFrequency = Math.Log(1 + (documentCount / documentFrequency));
+                    var df = documentScores.Count;
+                    var idf = MathF.Log(1f + ((float)count / df));
 
                     foreach (var documentScoresItem in documentScores)
                     {
@@ -53,9 +53,7 @@ namespace Clara.Mapping
 
                         ref var score = ref documentScores.GetValueRefOrAddDefault(documentId, out _);
 
-                        var weighted = score * inverseDocumentFrequency;
-
-                        score = (float)weighted;
+                        score = score * idf;
                     }
                 }
             }
@@ -63,10 +61,10 @@ namespace Clara.Mapping
 
         private sealed class BM25Similarity : Similarity
         {
-            private readonly double k1;
-            private readonly double b;
+            private readonly float k1;
+            private readonly float b;
 
-            public BM25Similarity(double k1 = 1.2, double b = 0.75)
+            public BM25Similarity(float k1 = 1.2f, float b = 0.75f)
             {
                 if (k1 < 0)
                 {
@@ -86,40 +84,38 @@ namespace Clara.Mapping
                 DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
                 DictionarySlim<int, float> documentLengths)
             {
-                var documentCount = documentLengths.Count;
+                var count = documentLengths.Count;
 
-                if (documentCount == 0)
+                if (count == 0)
                 {
                     return;
                 }
 
                 var k1 = this.k1;
                 var b = this.b;
-                var averageDocumentLength = 0.0;
+                var avgLen = 0.0f;
 
                 foreach (var pair in documentLengths)
                 {
-                    averageDocumentLength += pair.Value;
+                    avgLen += pair.Value;
                 }
 
-                averageDocumentLength /= documentCount;
+                avgLen /= count;
 
                 foreach (var tokenDocumentScoresItem in tokenDocumentScores)
                 {
                     var documentScores = tokenDocumentScoresItem.Value;
-                    var documentFrequency = documentScores.Count;
-                    var inverseDocumentFrequency = Math.Log(1 + ((documentCount - documentFrequency + 0.5) / (documentFrequency + 0.5)));
+                    var df = documentScores.Count;
+                    var idf = MathF.Log(1f + ((count - df + 0.5f) / (df + 0.5f)));
 
                     foreach (var documentScoresItem in documentScores)
                     {
                         var documentId = documentScoresItem.Key;
-                        var documentLength = documentLengths[documentId];
+                        var len = documentLengths[documentId];
 
                         ref var score = ref documentScores.GetValueRefOrAddDefault(documentId, out _);
 
-                        var weighted = ((score * (k1 + 1.0)) / (score + (k1 * (1.0 - b + (b * (documentLength / averageDocumentLength)))))) * inverseDocumentFrequency;
-
-                        score = (float)weighted;
+                        score = score * (k1 + 1f) / (score + (k1 * (1f - b + (b * (len / avgLen))))) * idf;
                     }
                 }
             }
