@@ -287,7 +287,7 @@ namespace Clara.Utils
             return ref this.AddKey(key, bucketIndex);
         }
 
-        public void IntersectWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, Func<TValue, TValue, TValue, TValue> valueCombiner, TValue parameter)
+        public void IntersectWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, IValueCombiner<TValue> valueCombiner, TValue valueBoost)
         {
             if (enumerable is null)
             {
@@ -327,7 +327,7 @@ namespace Clara.Utils
 
                         if (other.TryGetValue(key, out var value))
                         {
-                            entry.Value = valueCombiner(entry.Value, value, parameter);
+                            entry.Value = valueCombiner.Combine(entry.Value, value, valueBoost);
                         }
                         else
                         {
@@ -371,7 +371,7 @@ namespace Clara.Utils
 
                         ref var entry = ref this.entries[index];
 
-                        entry.Value = valueCombiner(entry.Value, item.Value, parameter);
+                        entry.Value = valueCombiner.Combine(entry.Value, item.Value, valueBoost);
                     }
                 }
 
@@ -390,7 +390,7 @@ namespace Clara.Utils
             }
         }
 
-        public void UnionWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, Func<TValue, TValue, TValue, TValue> valueCombiner, TValue parameter)
+        public void UnionWith(IEnumerable<KeyValuePair<TKey, TValue>> enumerable, IValueCombiner<TValue> valueCombiner, TValue valueBoost)
         {
             if (enumerable is null)
             {
@@ -447,7 +447,7 @@ namespace Clara.Utils
                         {
                             count--;
 
-                            entry.Value = valueCombiner(default!, entry.Value, parameter);
+                            entry.Value = valueCombiner.Combine(default!, entry.Value, valueBoost);
                         }
                     }
 
@@ -469,7 +469,7 @@ namespace Clara.Utils
 
                             ref var value = ref this.GetValueRefOrAddDefault(entry.Key, out _);
 
-                            value = valueCombiner(value, entry.Value, parameter);
+                            value = valueCombiner.Combine(value, entry.Value, valueBoost);
                         }
                     }
 
@@ -491,7 +491,7 @@ namespace Clara.Utils
             {
                 ref var value = ref this.GetValueRefOrAddDefault(item.Key, out _);
 
-                value = valueCombiner(value, item.Value, parameter);
+                value = valueCombiner.Combine(value, item.Value, valueBoost);
             }
         }
 

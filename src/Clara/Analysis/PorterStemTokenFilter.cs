@@ -172,6 +172,9 @@
                 case 'g':
                     ChangeSuffix(ref token, "logi", "log");
                     break;
+
+                default:
+                    break;
             }
         }
 
@@ -212,6 +215,9 @@
 
                 case 's':
                     RemoveSuffix(ref token, "ness");
+                    break;
+
+                default:
                     break;
             }
         }

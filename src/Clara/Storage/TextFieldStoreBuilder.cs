@@ -7,7 +7,8 @@ namespace Clara.Storage
     internal sealed class TextFieldStoreBuilder<TSource> : FieldStoreBuilder<TSource>
     {
         private readonly TextField<TSource> field;
-        private readonly ITokenTermSource tokenTermSource;
+        private readonly ITokenTermSource analyzerTermSource;
+        private readonly ITokenTermSource synonymTermSource;
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
         private readonly DictionarySlim<int, float> documentLengths;
@@ -26,7 +27,8 @@ namespace Clara.Storage
             }
 
             this.field = field;
-            this.tokenTermSource = field.SynonymMap?.CreateTokenTermSource() ?? field.Analyzer.CreateTokenTermSource();
+            this.analyzerTermSource = field.Analyzer.CreateTokenTermSource();
+            this.synonymTermSource = field.SynonymMap?.CreateTokenTermSource() ?? this.analyzerTermSource;
             this.tokenEncoderBuilder = tokenEncoderBuilder;
             this.tokenDocumentScores = new();
             this.documentLengths = new();
@@ -44,9 +46,15 @@ namespace Clara.Storage
                 if (!string.IsNullOrWhiteSpace(value.Text))
                 {
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    var terms = this.tokenTermSource.GetTerms(value.Text);
+                    var terms =
+                        value.ExpandSynonyms
+                            ? this.synonymTermSource.GetTerms(value.Text)
+                            : this.analyzerTermSource.GetTerms(value.Text);
 #else
-                    var terms = this.tokenTermSource.GetTerms(value.Text!);
+                    var terms =
+                        value.ExpandSynonyms
+                            ? this.synonymTermSource.GetTerms(value.Text!)
+                            : this.analyzerTermSource.GetTerms(value.Text!);
 #endif
 
                     foreach (var term in terms)
@@ -59,11 +67,11 @@ namespace Clara.Storage
 
                         ref var score = ref documents.GetValueRefOrAddDefault(documentId, out _);
 
-                        score += value.Weight;
+                        score = this.field.ScoreAggregation.Combine(score, value.Weight);
 
                         ref var length = ref this.documentLengths.GetValueRefOrAddDefault(documentId, out _);
 
-                        length += value.Weight;
+                        length += this.field.ScoreAggregation.Combine(length, value.Weight);
                     }
                 }
             }
@@ -80,7 +88,7 @@ namespace Clara.Storage
 
             var store =
                 new TextFieldStore(
-                    new TextDocumentStore(tokenEncoder, this.field.Analyzer, this.field.SynonymMap, this.tokenDocumentScores));
+                    new TextDocumentStore(tokenEncoder, this.field.Analyzer, this.field.SynonymMap, this.field.ScoreAggregation, this.tokenDocumentScores));
 
             this.isBuilt = true;
 

@@ -6,11 +6,11 @@
         public const float DefaultWeight = 1;
 
         public TextWeight(string? text)
-            : this(text, DefaultWeight)
+            : this(text, DefaultWeight, expandSynonyms: true)
         {
         }
 
-        public TextWeight(string? text, float weight)
+        public TextWeight(string? text, float weight, bool expandSynonyms)
         {
             if (!(weight > 0))
             {
@@ -19,10 +19,13 @@
 
             this.Text = text;
             this.Weight = weight;
+            this.ExpandSynonyms = expandSynonyms;
         }
 
         public string? Text { get; }
 
         public float Weight { get; }
+
+        public bool ExpandSynonyms { get; }
     }
 }

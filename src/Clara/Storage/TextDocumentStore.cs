@@ -1,5 +1,6 @@
 ﻿using Clara.Analysis;
 using Clara.Analysis.Synonyms;
+using Clara.Mapping;
 using Clara.Querying;
 using Clara.Utils;
 
@@ -7,9 +8,12 @@ namespace Clara.Storage
 {
     internal sealed class TextDocumentStore
     {
+        private const float DefaultBoost = 1f;
+
         private readonly TokenEncoder tokenEncoder;
         private readonly IAnalyzer analyzer;
         private readonly ISynonymMap? synonymMap;
+        private readonly ScoreAggregation scoreAggregation;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
         private readonly ObjectPool<IPhraseTermSource> phraseTermSourcePool;
 
@@ -17,6 +21,7 @@ namespace Clara.Storage
             TokenEncoder tokenEncoder,
             IAnalyzer analyzer,
             ISynonymMap? synonymMap,
+            ScoreAggregation scoreAggregation,
             DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores)
         {
             if (tokenEncoder is null)
@@ -29,6 +34,11 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(analyzer));
             }
 
+            if (scoreAggregation is null)
+            {
+                throw new ArgumentNullException(nameof(scoreAggregation));
+            }
+
             if (tokenDocumentScores is null)
             {
                 throw new ArgumentNullException(nameof(tokenDocumentScores));
@@ -37,6 +47,7 @@ namespace Clara.Storage
             this.tokenEncoder = tokenEncoder;
             this.analyzer = analyzer;
             this.synonymMap = synonymMap;
+            this.scoreAggregation = scoreAggregation;
             this.tokenDocumentScores = tokenDocumentScores;
             this.phraseTermSourcePool = new ObjectPool<IPhraseTermSource>(() => this.synonymMap?.CreatePhraseTermSource() ?? new PhraseTermSource(this.analyzer.CreateTokenTermSource()));
         }
@@ -69,7 +80,7 @@ namespace Clara.Storage
                     throw new InvalidOperationException("Unsupported phrase term value encountered.");
                 }
 
-                var boost = ValueCombiner.DefaultBoost;
+                var boost = DefaultBoost;
 
                 if (positionBoost is not null)
                 {
@@ -80,12 +91,12 @@ namespace Clara.Storage
                 {
                     if (isFirst)
                     {
-                        documentScores.Instance.UnionWith(termScores.Instance, ValueCombiner.Sum, boost);
+                        documentScores.Instance.UnionWith(termScores.Instance, this.scoreAggregation, boost);
                         isFirst = false;
                     }
                     else
                     {
-                        documentScores.Instance.IntersectWith(termScores.Instance, ValueCombiner.Sum, boost);
+                        documentScores.Instance.IntersectWith(termScores.Instance, this.scoreAggregation, boost);
                     }
 
                     if (documentScores.Instance.Count == 0)
@@ -95,7 +106,7 @@ namespace Clara.Storage
                 }
                 else
                 {
-                    documentScores.Instance.UnionWith(termScores.Instance, ValueCombiner.Sum, boost);
+                    documentScores.Instance.UnionWith(termScores.Instance, this.scoreAggregation, boost);
                 }
             }
 
@@ -108,7 +119,7 @@ namespace Clara.Storage
             {
                 if (this.tokenDocumentScores.TryGetValue(tokenId, out var tokenDocuments))
                 {
-                    termScores.UnionWith(tokenDocuments, ValueCombiner.Sum, ValueCombiner.DefaultBoost);
+                    termScores.UnionWith(tokenDocuments, this.scoreAggregation, DefaultBoost);
                 }
             }
         }
@@ -123,7 +134,7 @@ namespace Clara.Storage
 
                 this.Search(phrase, phraseScores.Instance);
 
-                termScores.UnionWith(phraseScores.Instance, ValueCombiner.Max, ValueCombiner.DefaultBoost);
+                termScores.UnionWith(phraseScores.Instance, ScoreAggregation.Max, DefaultBoost);
             }
         }
 
@@ -139,12 +150,12 @@ namespace Clara.Storage
                     {
                         if (isFirst)
                         {
-                            phraseScores.UnionWith(tokenDocuments, ValueCombiner.Sum, ValueCombiner.DefaultBoost);
+                            phraseScores.UnionWith(tokenDocuments, this.scoreAggregation, DefaultBoost);
                             isFirst = false;
                         }
                         else
                         {
-                            phraseScores.IntersectWith(tokenDocuments, ValueCombiner.Sum, ValueCombiner.DefaultBoost);
+                            phraseScores.IntersectWith(tokenDocuments, this.scoreAggregation, DefaultBoost);
                         }
 
                         continue;
@@ -154,25 +165,6 @@ namespace Clara.Storage
                 phraseScores.Clear();
 
                 break;
-            }
-        }
-
-        private static class ValueCombiner
-        {
-            public const float DefaultBoost = 1.0f;
-
-            public static float Sum(float current, float value, float boost)
-            {
-                var boosted = value * boost;
-
-                return current + boosted;
-            }
-
-            public static float Max(float current, float value, float boost)
-            {
-                var boosted = value * boost;
-
-                return current > boosted ? current : boosted;
             }
         }
     }
