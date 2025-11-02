@@ -1,4 +1,4 @@
-﻿// Generated from yiddish.sbl by Snowball 3.0.1 - https://snowballstem.org/
+﻿// Generated from yiddish.sbl by Snowball 3.0.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,217 +10,216 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from yiddish.sbl by Snowball 3.0.1 - https://snowballstem.org/
+    ///  Generated from yiddish.sbl by Snowball 3.0.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.1")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
     internal partial class YiddishStemmer : Stemmer
     {
-        private int I_x;
         private int I_p1;
 
-        private const string g_niked = "\u05B0\u05B4\u05B5\u05B6\u05B1\u05B7\u05B2\u05B8\u05B3\u05C2\u05C1\u05B9\u05BC\u05BB\u05BF";
+        private const string g_niked = "\u05B0\u05B1\u05B2\u05B3\u05B4\u05B5\u05B6\u05B7\u05B8\u05B9\u05BB\u05BC\u05BF\u05C1\u05C2";
         private const string g_vowel = "\u05D0\u05D5\u05D9\u05E2\u05F1\u05F2";
         private const string g_consonant = "\u05D1\u05D2\u05D3\u05D4\u05D6\u05D7\u05D8\u05DA\u05DB\u05DC\u05DD\u05DE\u05DF\u05E0\u05E1\u05E3\u05E4\u05E5\u05E6\u05E7\u05E8\u05E9\u05EA\u05F0";
 
         private static readonly Among[] a_0 = new[]
         {
-            new Among("\u05D5\u05D5", -1, 1),
-            new Among("\u05D5\u05D9", -1, 2),
-            new Among("\u05D9\u05D9", -1, 3),
-            new Among("\u05DA", -1, 4),
-            new Among("\u05DD", -1, 5),
-            new Among("\u05DF", -1, 6),
-            new Among("\u05E3", -1, 7),
-            new Among("\u05E5", -1, 8)
+            new Among("\u05D5\u05D5", -1, 1, 0),
+            new Among("\u05D5\u05D9", -1, 2, 0),
+            new Among("\u05D9\u05D9", -1, 3, 0),
+            new Among("\u05DA", -1, 4, 0),
+            new Among("\u05DD", -1, 5, 0),
+            new Among("\u05DF", -1, 6, 0),
+            new Among("\u05E3", -1, 7, 0),
+            new Among("\u05E5", -1, 8, 0)
         };
 
         private static readonly Among[] a_1 = new[]
         {
-            new Among("\u05D0\u05D3\u05D5\u05E8\u05DB", -1, 1),
-            new Among("\u05D0\u05D4\u05D9\u05E0", -1, 1),
-            new Among("\u05D0\u05D4\u05E2\u05E8", -1, 1),
-            new Among("\u05D0\u05D4\u05F2\u05DE", -1, 1),
-            new Among("\u05D0\u05D5\u05DE", -1, 1),
-            new Among("\u05D0\u05D5\u05E0\u05D8\u05E2\u05E8", -1, 1),
-            new Among("\u05D0\u05D9\u05D1\u05E2\u05E8", -1, 1),
-            new Among("\u05D0\u05E0", -1, 1),
-            new Among("\u05D0\u05E0\u05D8", 7, 1),
-            new Among("\u05D0\u05E0\u05D8\u05E7\u05E2\u05D2\u05E0", 8, 1),
-            new Among("\u05D0\u05E0\u05D9\u05D3\u05E2\u05E8", 7, 1),
-            new Among("\u05D0\u05E4", -1, 1),
-            new Among("\u05D0\u05E4\u05D9\u05E8", 11, 1),
-            new Among("\u05D0\u05E7\u05E2\u05D2\u05E0", -1, 1),
-            new Among("\u05D0\u05E8\u05D0\u05E4", -1, 1),
-            new Among("\u05D0\u05E8\u05D5\u05DE", -1, 1),
-            new Among("\u05D0\u05E8\u05D5\u05E0\u05D8\u05E2\u05E8", -1, 1),
-            new Among("\u05D0\u05E8\u05D9\u05D1\u05E2\u05E8", -1, 1),
-            new Among("\u05D0\u05E8\u05F1\u05E1", -1, 1),
-            new Among("\u05D0\u05E8\u05F1\u05E4", -1, 1),
-            new Among("\u05D0\u05E8\u05F2\u05E0", -1, 1),
-            new Among("\u05D0\u05F0\u05E2\u05E7", -1, 1),
-            new Among("\u05D0\u05F1\u05E1", -1, 1),
-            new Among("\u05D0\u05F1\u05E4", -1, 1),
-            new Among("\u05D0\u05F2\u05E0", -1, 1),
-            new Among("\u05D1\u05D0", -1, 1),
-            new Among("\u05D1\u05F2", -1, 1),
-            new Among("\u05D3\u05D5\u05E8\u05DB", -1, 1),
-            new Among("\u05D3\u05E2\u05E8", -1, 1),
-            new Among("\u05DE\u05D9\u05D8", -1, 1),
-            new Among("\u05E0\u05D0\u05DB", -1, 1),
-            new Among("\u05E4\u05D0\u05E8", -1, 1),
-            new Among("\u05E4\u05D0\u05E8\u05D1\u05F2", 31, 1),
-            new Among("\u05E4\u05D0\u05E8\u05F1\u05E1", 31, 1),
-            new Among("\u05E4\u05D5\u05E0\u05D0\u05E0\u05D3\u05E2\u05E8", -1, 1),
-            new Among("\u05E6\u05D5", -1, 1),
-            new Among("\u05E6\u05D5\u05D6\u05D0\u05DE\u05E2\u05E0", 35, 1),
-            new Among("\u05E6\u05D5\u05E0\u05F1\u05E4", 35, 1),
-            new Among("\u05E6\u05D5\u05E8\u05D9\u05E7", 35, 1),
-            new Among("\u05E6\u05E2", -1, 1)
+            new Among("\u05D0\u05D3\u05D5\u05E8\u05DB", -1, 1, 0),
+            new Among("\u05D0\u05D4\u05D9\u05E0", -1, 1, 0),
+            new Among("\u05D0\u05D4\u05E2\u05E8", -1, 1, 0),
+            new Among("\u05D0\u05D4\u05F2\u05DE", -1, 1, 0),
+            new Among("\u05D0\u05D5\u05DE", -1, 1, 0),
+            new Among("\u05D0\u05D5\u05E0\u05D8\u05E2\u05E8", -1, 1, 0),
+            new Among("\u05D0\u05D9\u05D1\u05E2\u05E8", -1, 1, 0),
+            new Among("\u05D0\u05E0", -1, 1, 0),
+            new Among("\u05D0\u05E0\u05D8", 7, 1, 0),
+            new Among("\u05D0\u05E0\u05D8\u05E7\u05E2\u05D2\u05E0", 8, 1, 0),
+            new Among("\u05D0\u05E0\u05D9\u05D3\u05E2\u05E8", 7, 1, 0),
+            new Among("\u05D0\u05E4", -1, 1, 0),
+            new Among("\u05D0\u05E4\u05D9\u05E8", 11, 1, 0),
+            new Among("\u05D0\u05E7\u05E2\u05D2\u05E0", -1, 1, 0),
+            new Among("\u05D0\u05E8\u05D0\u05E4", -1, 1, 0),
+            new Among("\u05D0\u05E8\u05D5\u05DE", -1, 1, 0),
+            new Among("\u05D0\u05E8\u05D5\u05E0\u05D8\u05E2\u05E8", -1, 1, 0),
+            new Among("\u05D0\u05E8\u05D9\u05D1\u05E2\u05E8", -1, 1, 0),
+            new Among("\u05D0\u05E8\u05F1\u05E1", -1, 1, 0),
+            new Among("\u05D0\u05E8\u05F1\u05E4", -1, 1, 0),
+            new Among("\u05D0\u05E8\u05F2\u05E0", -1, 1, 0),
+            new Among("\u05D0\u05F0\u05E2\u05E7", -1, 1, 0),
+            new Among("\u05D0\u05F1\u05E1", -1, 1, 0),
+            new Among("\u05D0\u05F1\u05E4", -1, 1, 0),
+            new Among("\u05D0\u05F2\u05E0", -1, 1, 0),
+            new Among("\u05D1\u05D0", -1, 1, 0),
+            new Among("\u05D1\u05F2", -1, 1, 0),
+            new Among("\u05D3\u05D5\u05E8\u05DB", -1, 1, 0),
+            new Among("\u05D3\u05E2\u05E8", -1, 1, 0),
+            new Among("\u05DE\u05D9\u05D8", -1, 1, 0),
+            new Among("\u05E0\u05D0\u05DB", -1, 1, 0),
+            new Among("\u05E4\u05D0\u05E8", -1, 1, 0),
+            new Among("\u05E4\u05D0\u05E8\u05D1\u05F2", 31, 1, 0),
+            new Among("\u05E4\u05D0\u05E8\u05F1\u05E1", 31, 1, 0),
+            new Among("\u05E4\u05D5\u05E0\u05D0\u05E0\u05D3\u05E2\u05E8", -1, 1, 0),
+            new Among("\u05E6\u05D5", -1, 1, 0),
+            new Among("\u05E6\u05D5\u05D6\u05D0\u05DE\u05E2\u05E0", 35, 1, 0),
+            new Among("\u05E6\u05D5\u05E0\u05F1\u05E4", 35, 1, 0),
+            new Among("\u05E6\u05D5\u05E8\u05D9\u05E7", 35, 1, 0),
+            new Among("\u05E6\u05E2", -1, 1, 0)
         };
 
         private static readonly Among[] a_2 = new[]
         {
-            new Among("\u05D3\u05D6\u05E9", -1, -1),
-            new Among("\u05E9\u05D8\u05E8", -1, -1),
-            new Among("\u05E9\u05D8\u05E9", -1, -1),
-            new Among("\u05E9\u05E4\u05E8", -1, -1)
+            new Among("\u05D3\u05D6\u05E9", -1, -1, 0),
+            new Among("\u05E9\u05D8\u05E8", -1, -1, 0),
+            new Among("\u05E9\u05D8\u05E9", -1, -1, 0),
+            new Among("\u05E9\u05E4\u05E8", -1, -1, 0)
         };
 
         private static readonly Among[] a_3 = new[]
         {
-            new Among("\u05E7\u05DC\u05D9\u05D1", -1, 9),
-            new Among("\u05E8\u05D9\u05D1", -1, 10),
-            new Among("\u05D8\u05E8\u05D9\u05D1", 1, 7),
-            new Among("\u05E9\u05E8\u05D9\u05D1", 1, 15),
-            new Among("\u05D4\u05F1\u05D1", -1, 23),
-            new Among("\u05E9\u05F0\u05D9\u05D2", -1, 12),
-            new Among("\u05D2\u05D0\u05E0\u05D2", -1, 1),
-            new Among("\u05D6\u05D5\u05E0\u05D2", -1, 18),
-            new Among("\u05E9\u05DC\u05D5\u05E0\u05D2", -1, 21),
-            new Among("\u05E6\u05F0\u05D5\u05E0\u05D2", -1, 20),
-            new Among("\u05D1\u05F1\u05D2", -1, 22),
-            new Among("\u05D1\u05D5\u05E0\u05D3", -1, 16),
-            new Among("\u05F0\u05D9\u05D6", -1, 6),
-            new Among("\u05D1\u05D9\u05D8", -1, 4),
-            new Among("\u05DC\u05D9\u05D8", -1, 8),
-            new Among("\u05DE\u05D9\u05D8", -1, 3),
-            new Among("\u05E9\u05E0\u05D9\u05D8", -1, 14),
-            new Among("\u05E0\u05D5\u05DE", -1, 2),
-            new Among("\u05E9\u05D8\u05D0\u05E0", -1, 25),
-            new Among("\u05D1\u05D9\u05E1", -1, 5),
-            new Among("\u05E9\u05DE\u05D9\u05E1", -1, 13),
-            new Among("\u05E8\u05D9\u05E1", -1, 11),
-            new Among("\u05D8\u05E8\u05D5\u05E0\u05E7", -1, 19),
-            new Among("\u05E4\u05D0\u05E8\u05DC\u05F1\u05E8", -1, 24),
-            new Among("\u05E9\u05F0\u05F1\u05E8", -1, 26),
-            new Among("\u05F0\u05D5\u05D8\u05E9", -1, 17)
+            new Among("\u05E7\u05DC\u05D9\u05D1", -1, 9, 0),
+            new Among("\u05E8\u05D9\u05D1", -1, 10, 0),
+            new Among("\u05D8\u05E8\u05D9\u05D1", 1, 7, 0),
+            new Among("\u05E9\u05E8\u05D9\u05D1", 1, 15, 0),
+            new Among("\u05D4\u05F1\u05D1", -1, 23, 0),
+            new Among("\u05E9\u05F0\u05D9\u05D2", -1, 12, 0),
+            new Among("\u05D2\u05D0\u05E0\u05D2", -1, 1, 0),
+            new Among("\u05D6\u05D5\u05E0\u05D2", -1, 18, 0),
+            new Among("\u05E9\u05DC\u05D5\u05E0\u05D2", -1, 21, 0),
+            new Among("\u05E6\u05F0\u05D5\u05E0\u05D2", -1, 20, 0),
+            new Among("\u05D1\u05F1\u05D2", -1, 22, 0),
+            new Among("\u05D1\u05D5\u05E0\u05D3", -1, 16, 0),
+            new Among("\u05F0\u05D9\u05D6", -1, 6, 0),
+            new Among("\u05D1\u05D9\u05D8", -1, 4, 0),
+            new Among("\u05DC\u05D9\u05D8", -1, 8, 0),
+            new Among("\u05DE\u05D9\u05D8", -1, 3, 0),
+            new Among("\u05E9\u05E0\u05D9\u05D8", -1, 14, 0),
+            new Among("\u05E0\u05D5\u05DE", -1, 2, 0),
+            new Among("\u05E9\u05D8\u05D0\u05E0", -1, 25, 0),
+            new Among("\u05D1\u05D9\u05E1", -1, 5, 0),
+            new Among("\u05E9\u05DE\u05D9\u05E1", -1, 13, 0),
+            new Among("\u05E8\u05D9\u05E1", -1, 11, 0),
+            new Among("\u05D8\u05E8\u05D5\u05E0\u05E7", -1, 19, 0),
+            new Among("\u05E4\u05D0\u05E8\u05DC\u05F1\u05E8", -1, 24, 0),
+            new Among("\u05E9\u05F0\u05F1\u05E8", -1, 26, 0),
+            new Among("\u05F0\u05D5\u05D8\u05E9", -1, 17, 0)
         };
 
         private static readonly Among[] a_4 = new[]
         {
-            new Among("\u05D5\u05E0\u05D2", -1, 1),
-            new Among("\u05E1\u05D8\u05D5", -1, 1),
-            new Among("\u05D8", -1, 1),
-            new Among("\u05D1\u05E8\u05D0\u05DB\u05D8", 2, 31),
-            new Among("\u05E1\u05D8", 2, 1),
-            new Among("\u05D9\u05E1\u05D8", 4, 33),
-            new Among("\u05E2\u05D8", 2, 1),
-            new Among("\u05E9\u05D0\u05E4\u05D8", 2, 1),
-            new Among("\u05D4\u05F2\u05D8", 2, 1),
-            new Among("\u05E7\u05F2\u05D8", 2, 1),
-            new Among("\u05D9\u05E7\u05F2\u05D8", 9, 1),
-            new Among("\u05DC\u05E2\u05DB", -1, 1),
-            new Among("\u05E2\u05DC\u05E2\u05DB", 11, 1),
-            new Among("\u05D9\u05D6\u05DE", -1, 1),
-            new Among("\u05D9\u05DE", -1, 1),
-            new Among("\u05E2\u05DE", -1, 1),
-            new Among("\u05E2\u05E0\u05E2\u05DE", 15, 3),
-            new Among("\u05D8\u05E2\u05E0\u05E2\u05DE", 16, 4),
-            new Among("\u05E0", -1, 1),
-            new Among("\u05E7\u05DC\u05D9\u05D1\u05E0", 18, 14),
-            new Among("\u05E8\u05D9\u05D1\u05E0", 18, 15),
-            new Among("\u05D8\u05E8\u05D9\u05D1\u05E0", 20, 12),
-            new Among("\u05E9\u05E8\u05D9\u05D1\u05E0", 20, 7),
-            new Among("\u05D4\u05F1\u05D1\u05E0", 18, 27),
-            new Among("\u05E9\u05F0\u05D9\u05D2\u05E0", 18, 17),
-            new Among("\u05D6\u05D5\u05E0\u05D2\u05E0", 18, 22),
-            new Among("\u05E9\u05DC\u05D5\u05E0\u05D2\u05E0", 18, 25),
-            new Among("\u05E6\u05F0\u05D5\u05E0\u05D2\u05E0", 18, 24),
-            new Among("\u05D1\u05F1\u05D2\u05E0", 18, 26),
-            new Among("\u05D1\u05D5\u05E0\u05D3\u05E0", 18, 20),
-            new Among("\u05F0\u05D9\u05D6\u05E0", 18, 11),
-            new Among("\u05D8\u05E0", 18, 4),
-            new Among("GE\u05D1\u05D9\u05D8\u05E0", 31, 9),
-            new Among("GE\u05DC\u05D9\u05D8\u05E0", 31, 13),
-            new Among("GE\u05DE\u05D9\u05D8\u05E0", 31, 8),
-            new Among("\u05E9\u05E0\u05D9\u05D8\u05E0", 31, 19),
-            new Among("\u05E1\u05D8\u05E0", 31, 1),
-            new Among("\u05D9\u05E1\u05D8\u05E0", 36, 1),
-            new Among("\u05E2\u05D8\u05E0", 31, 1),
-            new Among("GE\u05D1\u05D9\u05E1\u05E0", 18, 10),
-            new Among("\u05E9\u05DE\u05D9\u05E1\u05E0", 18, 18),
-            new Among("GE\u05E8\u05D9\u05E1\u05E0", 18, 16),
-            new Among("\u05E2\u05E0", 18, 1),
-            new Among("\u05D2\u05D0\u05E0\u05D2\u05E2\u05E0", 42, 5),
-            new Among("\u05E2\u05DC\u05E2\u05E0", 42, 1),
-            new Among("\u05E0\u05D5\u05DE\u05E2\u05E0", 42, 6),
-            new Among("\u05D9\u05D6\u05DE\u05E2\u05E0", 42, 1),
-            new Among("\u05E9\u05D8\u05D0\u05E0\u05E2\u05E0", 42, 29),
-            new Among("\u05D8\u05E8\u05D5\u05E0\u05E7\u05E0", 18, 23),
-            new Among("\u05E4\u05D0\u05E8\u05DC\u05F1\u05E8\u05E0", 18, 28),
-            new Among("\u05E9\u05F0\u05F1\u05E8\u05E0", 18, 30),
-            new Among("\u05F0\u05D5\u05D8\u05E9\u05E0", 18, 21),
-            new Among("\u05D2\u05F2\u05E0", 18, 5),
-            new Among("\u05E1", -1, 1),
-            new Among("\u05D8\u05E1", 53, 4),
-            new Among("\u05E2\u05D8\u05E1", 54, 1),
-            new Among("\u05E0\u05E1", 53, 1),
-            new Among("\u05D8\u05E0\u05E1", 56, 4),
-            new Among("\u05E2\u05E0\u05E1", 56, 3),
-            new Among("\u05E2\u05E1", 53, 1),
-            new Among("\u05D9\u05E2\u05E1", 59, 2),
-            new Among("\u05E2\u05DC\u05E2\u05E1", 59, 1),
-            new Among("\u05E2\u05E8\u05E1", 53, 1),
-            new Among("\u05E2\u05E0\u05E2\u05E8\u05E1", 62, 1),
-            new Among("\u05E2", -1, 1),
-            new Among("\u05D8\u05E2", 64, 4),
-            new Among("\u05E1\u05D8\u05E2", 65, 1),
-            new Among("\u05E2\u05D8\u05E2", 65, 1),
-            new Among("\u05D9\u05E2", 64, -1),
-            new Among("\u05E2\u05DC\u05E2", 64, 1),
-            new Among("\u05E2\u05E0\u05E2", 64, 3),
-            new Among("\u05D8\u05E2\u05E0\u05E2", 70, 4),
-            new Among("\u05E2\u05E8", -1, 1),
-            new Among("\u05D8\u05E2\u05E8", 72, 4),
-            new Among("\u05E1\u05D8\u05E2\u05E8", 73, 1),
-            new Among("\u05E2\u05D8\u05E2\u05E8", 73, 1),
-            new Among("\u05E2\u05E0\u05E2\u05E8", 72, 3),
-            new Among("\u05D8\u05E2\u05E0\u05E2\u05E8", 76, 4),
-            new Among("\u05D5\u05EA", -1, 32)
+            new Among("\u05D5\u05E0\u05D2", -1, 1, 0),
+            new Among("\u05E1\u05D8\u05D5", -1, 1, 0),
+            new Among("\u05D8", -1, 1, 0),
+            new Among("\u05D1\u05E8\u05D0\u05DB\u05D8", 2, 31, 0),
+            new Among("\u05E1\u05D8", 2, 1, 0),
+            new Among("\u05D9\u05E1\u05D8", 4, 33, 0),
+            new Among("\u05E2\u05D8", 2, 1, 0),
+            new Among("\u05E9\u05D0\u05E4\u05D8", 2, 1, 0),
+            new Among("\u05D4\u05F2\u05D8", 2, 1, 0),
+            new Among("\u05E7\u05F2\u05D8", 2, 1, 0),
+            new Among("\u05D9\u05E7\u05F2\u05D8", 9, 1, 0),
+            new Among("\u05DC\u05E2\u05DB", -1, 1, 0),
+            new Among("\u05E2\u05DC\u05E2\u05DB", 11, 1, 0),
+            new Among("\u05D9\u05D6\u05DE", -1, 1, 0),
+            new Among("\u05D9\u05DE", -1, 1, 0),
+            new Among("\u05E2\u05DE", -1, 1, 0),
+            new Among("\u05E2\u05E0\u05E2\u05DE", 15, 3, 0),
+            new Among("\u05D8\u05E2\u05E0\u05E2\u05DE", 16, 4, 0),
+            new Among("\u05E0", -1, 1, 0),
+            new Among("\u05E7\u05DC\u05D9\u05D1\u05E0", 18, 14, 0),
+            new Among("\u05E8\u05D9\u05D1\u05E0", 18, 15, 0),
+            new Among("\u05D8\u05E8\u05D9\u05D1\u05E0", 20, 12, 0),
+            new Among("\u05E9\u05E8\u05D9\u05D1\u05E0", 20, 7, 0),
+            new Among("\u05D4\u05F1\u05D1\u05E0", 18, 27, 0),
+            new Among("\u05E9\u05F0\u05D9\u05D2\u05E0", 18, 17, 0),
+            new Among("\u05D6\u05D5\u05E0\u05D2\u05E0", 18, 22, 0),
+            new Among("\u05E9\u05DC\u05D5\u05E0\u05D2\u05E0", 18, 25, 0),
+            new Among("\u05E6\u05F0\u05D5\u05E0\u05D2\u05E0", 18, 24, 0),
+            new Among("\u05D1\u05F1\u05D2\u05E0", 18, 26, 0),
+            new Among("\u05D1\u05D5\u05E0\u05D3\u05E0", 18, 20, 0),
+            new Among("\u05F0\u05D9\u05D6\u05E0", 18, 11, 0),
+            new Among("\u05D8\u05E0", 18, 4, 0),
+            new Among("GE\u05D1\u05D9\u05D8\u05E0", 31, 9, 0),
+            new Among("GE\u05DC\u05D9\u05D8\u05E0", 31, 13, 0),
+            new Among("GE\u05DE\u05D9\u05D8\u05E0", 31, 8, 0),
+            new Among("\u05E9\u05E0\u05D9\u05D8\u05E0", 31, 19, 0),
+            new Among("\u05E1\u05D8\u05E0", 31, 1, 0),
+            new Among("\u05D9\u05E1\u05D8\u05E0", 36, 1, 0),
+            new Among("\u05E2\u05D8\u05E0", 31, 1, 0),
+            new Among("GE\u05D1\u05D9\u05E1\u05E0", 18, 10, 0),
+            new Among("\u05E9\u05DE\u05D9\u05E1\u05E0", 18, 18, 0),
+            new Among("GE\u05E8\u05D9\u05E1\u05E0", 18, 16, 0),
+            new Among("\u05E2\u05E0", 18, 1, 0),
+            new Among("\u05D2\u05D0\u05E0\u05D2\u05E2\u05E0", 42, 5, 0),
+            new Among("\u05E2\u05DC\u05E2\u05E0", 42, 1, 0),
+            new Among("\u05E0\u05D5\u05DE\u05E2\u05E0", 42, 6, 0),
+            new Among("\u05D9\u05D6\u05DE\u05E2\u05E0", 42, 1, 0),
+            new Among("\u05E9\u05D8\u05D0\u05E0\u05E2\u05E0", 42, 29, 0),
+            new Among("\u05D8\u05E8\u05D5\u05E0\u05E7\u05E0", 18, 23, 0),
+            new Among("\u05E4\u05D0\u05E8\u05DC\u05F1\u05E8\u05E0", 18, 28, 0),
+            new Among("\u05E9\u05F0\u05F1\u05E8\u05E0", 18, 30, 0),
+            new Among("\u05F0\u05D5\u05D8\u05E9\u05E0", 18, 21, 0),
+            new Among("\u05D2\u05F2\u05E0", 18, 5, 0),
+            new Among("\u05E1", -1, 1, 0),
+            new Among("\u05D8\u05E1", 53, 4, 0),
+            new Among("\u05E2\u05D8\u05E1", 54, 1, 0),
+            new Among("\u05E0\u05E1", 53, 1, 0),
+            new Among("\u05D8\u05E0\u05E1", 56, 4, 0),
+            new Among("\u05E2\u05E0\u05E1", 56, 3, 0),
+            new Among("\u05E2\u05E1", 53, 1, 0),
+            new Among("\u05D9\u05E2\u05E1", 59, 2, 0),
+            new Among("\u05E2\u05DC\u05E2\u05E1", 59, 1, 0),
+            new Among("\u05E2\u05E8\u05E1", 53, 1, 0),
+            new Among("\u05E2\u05E0\u05E2\u05E8\u05E1", 62, 1, 0),
+            new Among("\u05E2", -1, 1, 0),
+            new Among("\u05D8\u05E2", 64, 4, 0),
+            new Among("\u05E1\u05D8\u05E2", 65, 1, 0),
+            new Among("\u05E2\u05D8\u05E2", 65, 1, 0),
+            new Among("\u05D9\u05E2", 64, -1, 0),
+            new Among("\u05E2\u05DC\u05E2", 64, 1, 0),
+            new Among("\u05E2\u05E0\u05E2", 64, 3, 0),
+            new Among("\u05D8\u05E2\u05E0\u05E2", 70, 4, 0),
+            new Among("\u05E2\u05E8", -1, 1, 0),
+            new Among("\u05D8\u05E2\u05E8", 72, 4, 0),
+            new Among("\u05E1\u05D8\u05E2\u05E8", 73, 1, 0),
+            new Among("\u05E2\u05D8\u05E2\u05E8", 73, 1, 0),
+            new Among("\u05E2\u05E0\u05E2\u05E8", 72, 3, 0),
+            new Among("\u05D8\u05E2\u05E0\u05E2\u05E8", 76, 4, 0),
+            new Among("\u05D5\u05EA", -1, 32, 0)
         };
 
         private static readonly Among[] a_5 = new[]
         {
-            new Among("\u05D5\u05E0\u05D2", -1, 1),
-            new Among("\u05E9\u05D0\u05E4\u05D8", -1, 1),
-            new Among("\u05D4\u05F2\u05D8", -1, 1),
-            new Among("\u05E7\u05F2\u05D8", -1, 1),
-            new Among("\u05D9\u05E7\u05F2\u05D8", 3, 1),
-            new Among("\u05DC", -1, 2)
+            new Among("\u05D5\u05E0\u05D2", -1, 1, 0),
+            new Among("\u05E9\u05D0\u05E4\u05D8", -1, 1, 0),
+            new Among("\u05D4\u05F2\u05D8", -1, 1, 0),
+            new Among("\u05E7\u05F2\u05D8", -1, 1, 0),
+            new Among("\u05D9\u05E7\u05F2\u05D8", 3, 1, 0),
+            new Among("\u05DC", -1, 2, 0)
         };
 
         private static readonly Among[] a_6 = new[]
         {
-            new Among("\u05D9\u05D2", -1, 1),
-            new Among("\u05D9\u05E7", -1, 1),
-            new Among("\u05D3\u05D9\u05E7", 1, 1),
-            new Among("\u05E0\u05D3\u05D9\u05E7", 2, 1),
-            new Among("\u05E2\u05E0\u05D3\u05D9\u05E7", 3, 1),
-            new Among("\u05D1\u05DC\u05D9\u05E7", 1, -1),
-            new Among("\u05D2\u05DC\u05D9\u05E7", 1, -1),
-            new Among("\u05E0\u05D9\u05E7", 1, 1),
-            new Among("\u05D9\u05E9", -1, 1)
+            new Among("\u05D9\u05D2", -1, 1, 0),
+            new Among("\u05D9\u05E7", -1, 1, 0),
+            new Among("\u05D3\u05D9\u05E7", 1, 1, 0),
+            new Among("\u05E0\u05D3\u05D9\u05E7", 2, 1, 0),
+            new Among("\u05E2\u05E0\u05D3\u05D9\u05E7", 3, 1, 0),
+            new Among("\u05D1\u05DC\u05D9\u05E7", 1, -1, 0),
+            new Among("\u05D2\u05DC\u05D9\u05E7", 1, -1, 0),
+            new Among("\u05E0\u05D9\u05E7", 1, 1, 0),
+            new Among("\u05D9\u05E9", -1, 1, 0)
         };
 
 
@@ -236,7 +235,7 @@ namespace Snowball
                     {
                         int c3 = cursor;
                         bra = cursor;
-                        among_var = find_among(a_0);
+                        among_var = find_among(a_0, null);
                         if (among_var == 0)
                         {
                             goto lab2;
@@ -360,6 +359,7 @@ namespace Snowball
 
         private bool r_mark_regions()
         {
+            int I_x;
             I_p1 = limit;
             {
                 int c1 = cursor;
@@ -408,7 +408,7 @@ namespace Snowball
             }
             {
                 int c4 = cursor;
-                if (find_among(a_1) == 0)
+                if (find_among(a_1, null) == 0)
                 {
                     {
                         cursor = c4;
@@ -500,7 +500,7 @@ namespace Snowball
             }
             {
                 int c10 = cursor;
-                if (find_among(a_2) == 0)
+                if (find_among(a_2, null) == 0)
                 {
                     {
                         cursor = c10;
@@ -569,7 +569,7 @@ namespace Snowball
             {
                 int c1 = limit - cursor;
                 ket = cursor;
-                among_var = find_among_b(a_4);
+                among_var = find_among_b(a_4, null);
                 if (among_var == 0)
                 {
                     goto lab0;
@@ -593,7 +593,7 @@ namespace Snowball
                             goto lab0;
                         slice_del();
                         ket = cursor;
-                        among_var = find_among_b(a_3);
+                        among_var = find_among_b(a_3, null);
                         if (among_var == 0)
                         {
                             goto lab0;
@@ -898,7 +898,7 @@ namespace Snowball
             {
                 int c7 = limit - cursor;
                 ket = cursor;
-                among_var = find_among_b(a_5);
+                among_var = find_among_b(a_5, null);
                 if (among_var == 0)
                 {
                     goto lab9;
@@ -928,7 +928,7 @@ namespace Snowball
             {
                 int c8 = limit - cursor;
                 ket = cursor;
-                among_var = find_among_b(a_6);
+                among_var = find_among_b(a_6, null);
                 if (among_var == 0)
                 {
                     goto lab10;

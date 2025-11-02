@@ -1,4 +1,4 @@
-﻿// Generated from turkish.sbl by Snowball 3.0.1 - https://snowballstem.org/
+﻿// Generated from turkish.sbl by Snowball 3.0.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,17 +10,17 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from turkish.sbl by Snowball 3.0.1 - https://snowballstem.org/
+    ///  Generated from turkish.sbl by Snowball 3.0.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.1")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
     internal partial class TurkishStemmer : Stemmer
     {
         private bool B_continue_stemming_noun_suffixes;
 
-        private const string g_vowel = "aeıioöuü";
-        private const string g_U = "ıiuü";
-        private const string g_vowel1 = "aıou";
+        private const string g_vowel = "aeiouöüı";
+        private const string g_U = "iuüı";
+        private const string g_vowel1 = "aouı";
         private const string g_vowel2 = "eiöü";
         private const string g_vowel3 = "aı";
         private const string g_vowel4 = "ei";
@@ -29,218 +29,218 @@ namespace Snowball
 
         private static readonly Among[] a_0 = new[]
         {
-            new Among("m", -1, -1),
-            new Among("n", -1, -1),
-            new Among("miz", -1, -1),
-            new Among("niz", -1, -1),
-            new Among("muz", -1, -1),
-            new Among("nuz", -1, -1),
-            new Among("müz", -1, -1),
-            new Among("nüz", -1, -1),
-            new Among("mız", -1, -1),
-            new Among("nız", -1, -1)
+            new Among("m", -1, -1, 0),
+            new Among("n", -1, -1, 0),
+            new Among("miz", -1, -1, 0),
+            new Among("niz", -1, -1, 0),
+            new Among("muz", -1, -1, 0),
+            new Among("nuz", -1, -1, 0),
+            new Among("müz", -1, -1, 0),
+            new Among("nüz", -1, -1, 0),
+            new Among("mız", -1, -1, 0),
+            new Among("nız", -1, -1, 0)
         };
 
         private static readonly Among[] a_1 = new[]
         {
-            new Among("leri", -1, -1),
-            new Among("ları", -1, -1)
+            new Among("leri", -1, -1, 0),
+            new Among("ları", -1, -1, 0)
         };
 
         private static readonly Among[] a_2 = new[]
         {
-            new Among("ni", -1, -1),
-            new Among("nu", -1, -1),
-            new Among("nü", -1, -1),
-            new Among("nı", -1, -1)
+            new Among("ni", -1, -1, 0),
+            new Among("nu", -1, -1, 0),
+            new Among("nü", -1, -1, 0),
+            new Among("nı", -1, -1, 0)
         };
 
         private static readonly Among[] a_3 = new[]
         {
-            new Among("in", -1, -1),
-            new Among("un", -1, -1),
-            new Among("ün", -1, -1),
-            new Among("ın", -1, -1)
+            new Among("in", -1, -1, 0),
+            new Among("un", -1, -1, 0),
+            new Among("ün", -1, -1, 0),
+            new Among("ın", -1, -1, 0)
         };
 
         private static readonly Among[] a_4 = new[]
         {
-            new Among("a", -1, -1),
-            new Among("e", -1, -1)
+            new Among("a", -1, -1, 0),
+            new Among("e", -1, -1, 0)
         };
 
         private static readonly Among[] a_5 = new[]
         {
-            new Among("na", -1, -1),
-            new Among("ne", -1, -1)
+            new Among("na", -1, -1, 0),
+            new Among("ne", -1, -1, 0)
         };
 
         private static readonly Among[] a_6 = new[]
         {
-            new Among("da", -1, -1),
-            new Among("ta", -1, -1),
-            new Among("de", -1, -1),
-            new Among("te", -1, -1)
+            new Among("da", -1, -1, 0),
+            new Among("ta", -1, -1, 0),
+            new Among("de", -1, -1, 0),
+            new Among("te", -1, -1, 0)
         };
 
         private static readonly Among[] a_7 = new[]
         {
-            new Among("nda", -1, -1),
-            new Among("nde", -1, -1)
+            new Among("nda", -1, -1, 0),
+            new Among("nde", -1, -1, 0)
         };
 
         private static readonly Among[] a_8 = new[]
         {
-            new Among("dan", -1, -1),
-            new Among("tan", -1, -1),
-            new Among("den", -1, -1),
-            new Among("ten", -1, -1)
+            new Among("dan", -1, -1, 0),
+            new Among("tan", -1, -1, 0),
+            new Among("den", -1, -1, 0),
+            new Among("ten", -1, -1, 0)
         };
 
         private static readonly Among[] a_9 = new[]
         {
-            new Among("ndan", -1, -1),
-            new Among("nden", -1, -1)
+            new Among("ndan", -1, -1, 0),
+            new Among("nden", -1, -1, 0)
         };
 
         private static readonly Among[] a_10 = new[]
         {
-            new Among("la", -1, -1),
-            new Among("le", -1, -1)
+            new Among("la", -1, -1, 0),
+            new Among("le", -1, -1, 0)
         };
 
         private static readonly Among[] a_11 = new[]
         {
-            new Among("ca", -1, -1),
-            new Among("ce", -1, -1)
+            new Among("ca", -1, -1, 0),
+            new Among("ce", -1, -1, 0)
         };
 
         private static readonly Among[] a_12 = new[]
         {
-            new Among("im", -1, -1),
-            new Among("um", -1, -1),
-            new Among("üm", -1, -1),
-            new Among("ım", -1, -1)
+            new Among("im", -1, -1, 0),
+            new Among("um", -1, -1, 0),
+            new Among("üm", -1, -1, 0),
+            new Among("ım", -1, -1, 0)
         };
 
         private static readonly Among[] a_13 = new[]
         {
-            new Among("sin", -1, -1),
-            new Among("sun", -1, -1),
-            new Among("sün", -1, -1),
-            new Among("sın", -1, -1)
+            new Among("sin", -1, -1, 0),
+            new Among("sun", -1, -1, 0),
+            new Among("sün", -1, -1, 0),
+            new Among("sın", -1, -1, 0)
         };
 
         private static readonly Among[] a_14 = new[]
         {
-            new Among("iz", -1, -1),
-            new Among("uz", -1, -1),
-            new Among("üz", -1, -1),
-            new Among("ız", -1, -1)
+            new Among("iz", -1, -1, 0),
+            new Among("uz", -1, -1, 0),
+            new Among("üz", -1, -1, 0),
+            new Among("ız", -1, -1, 0)
         };
 
         private static readonly Among[] a_15 = new[]
         {
-            new Among("siniz", -1, -1),
-            new Among("sunuz", -1, -1),
-            new Among("sünüz", -1, -1),
-            new Among("sınız", -1, -1)
+            new Among("siniz", -1, -1, 0),
+            new Among("sunuz", -1, -1, 0),
+            new Among("sünüz", -1, -1, 0),
+            new Among("sınız", -1, -1, 0)
         };
 
         private static readonly Among[] a_16 = new[]
         {
-            new Among("lar", -1, -1),
-            new Among("ler", -1, -1)
+            new Among("lar", -1, -1, 0),
+            new Among("ler", -1, -1, 0)
         };
 
         private static readonly Among[] a_17 = new[]
         {
-            new Among("niz", -1, -1),
-            new Among("nuz", -1, -1),
-            new Among("nüz", -1, -1),
-            new Among("nız", -1, -1)
+            new Among("niz", -1, -1, 0),
+            new Among("nuz", -1, -1, 0),
+            new Among("nüz", -1, -1, 0),
+            new Among("nız", -1, -1, 0)
         };
 
         private static readonly Among[] a_18 = new[]
         {
-            new Among("dir", -1, -1),
-            new Among("tir", -1, -1),
-            new Among("dur", -1, -1),
-            new Among("tur", -1, -1),
-            new Among("dür", -1, -1),
-            new Among("tür", -1, -1),
-            new Among("dır", -1, -1),
-            new Among("tır", -1, -1)
+            new Among("dir", -1, -1, 0),
+            new Among("tir", -1, -1, 0),
+            new Among("dur", -1, -1, 0),
+            new Among("tur", -1, -1, 0),
+            new Among("dür", -1, -1, 0),
+            new Among("tür", -1, -1, 0),
+            new Among("dır", -1, -1, 0),
+            new Among("tır", -1, -1, 0)
         };
 
         private static readonly Among[] a_19 = new[]
         {
-            new Among("casına", -1, -1),
-            new Among("cesine", -1, -1)
+            new Among("casına", -1, -1, 0),
+            new Among("cesine", -1, -1, 0)
         };
 
         private static readonly Among[] a_20 = new[]
         {
-            new Among("di", -1, -1),
-            new Among("ti", -1, -1),
-            new Among("dik", -1, -1),
-            new Among("tik", -1, -1),
-            new Among("duk", -1, -1),
-            new Among("tuk", -1, -1),
-            new Among("dük", -1, -1),
-            new Among("tük", -1, -1),
-            new Among("dık", -1, -1),
-            new Among("tık", -1, -1),
-            new Among("dim", -1, -1),
-            new Among("tim", -1, -1),
-            new Among("dum", -1, -1),
-            new Among("tum", -1, -1),
-            new Among("düm", -1, -1),
-            new Among("tüm", -1, -1),
-            new Among("dım", -1, -1),
-            new Among("tım", -1, -1),
-            new Among("din", -1, -1),
-            new Among("tin", -1, -1),
-            new Among("dun", -1, -1),
-            new Among("tun", -1, -1),
-            new Among("dün", -1, -1),
-            new Among("tün", -1, -1),
-            new Among("dın", -1, -1),
-            new Among("tın", -1, -1),
-            new Among("du", -1, -1),
-            new Among("tu", -1, -1),
-            new Among("dü", -1, -1),
-            new Among("tü", -1, -1),
-            new Among("dı", -1, -1),
-            new Among("tı", -1, -1)
+            new Among("di", -1, -1, 0),
+            new Among("ti", -1, -1, 0),
+            new Among("dik", -1, -1, 0),
+            new Among("tik", -1, -1, 0),
+            new Among("duk", -1, -1, 0),
+            new Among("tuk", -1, -1, 0),
+            new Among("dük", -1, -1, 0),
+            new Among("tük", -1, -1, 0),
+            new Among("dık", -1, -1, 0),
+            new Among("tık", -1, -1, 0),
+            new Among("dim", -1, -1, 0),
+            new Among("tim", -1, -1, 0),
+            new Among("dum", -1, -1, 0),
+            new Among("tum", -1, -1, 0),
+            new Among("düm", -1, -1, 0),
+            new Among("tüm", -1, -1, 0),
+            new Among("dım", -1, -1, 0),
+            new Among("tım", -1, -1, 0),
+            new Among("din", -1, -1, 0),
+            new Among("tin", -1, -1, 0),
+            new Among("dun", -1, -1, 0),
+            new Among("tun", -1, -1, 0),
+            new Among("dün", -1, -1, 0),
+            new Among("tün", -1, -1, 0),
+            new Among("dın", -1, -1, 0),
+            new Among("tın", -1, -1, 0),
+            new Among("du", -1, -1, 0),
+            new Among("tu", -1, -1, 0),
+            new Among("dü", -1, -1, 0),
+            new Among("tü", -1, -1, 0),
+            new Among("dı", -1, -1, 0),
+            new Among("tı", -1, -1, 0)
         };
 
         private static readonly Among[] a_21 = new[]
         {
-            new Among("sa", -1, -1),
-            new Among("se", -1, -1),
-            new Among("sak", -1, -1),
-            new Among("sek", -1, -1),
-            new Among("sam", -1, -1),
-            new Among("sem", -1, -1),
-            new Among("san", -1, -1),
-            new Among("sen", -1, -1)
+            new Among("sa", -1, -1, 0),
+            new Among("se", -1, -1, 0),
+            new Among("sak", -1, -1, 0),
+            new Among("sek", -1, -1, 0),
+            new Among("sam", -1, -1, 0),
+            new Among("sem", -1, -1, 0),
+            new Among("san", -1, -1, 0),
+            new Among("sen", -1, -1, 0)
         };
 
         private static readonly Among[] a_22 = new[]
         {
-            new Among("miş", -1, -1),
-            new Among("muş", -1, -1),
-            new Among("müş", -1, -1),
-            new Among("mış", -1, -1)
+            new Among("miş", -1, -1, 0),
+            new Among("muş", -1, -1, 0),
+            new Among("müş", -1, -1, 0),
+            new Among("mış", -1, -1, 0)
         };
 
         private static readonly Among[] a_23 = new[]
         {
-            new Among("b", -1, 1),
-            new Among("c", -1, 2),
-            new Among("d", -1, 3),
-            new Among("ğ", -1, 4)
+            new Among("b", -1, 1, 0),
+            new Among("c", -1, 2, 0),
+            new Among("d", -1, 3, 0),
+            new Among("ğ", -1, 4, 0)
         };
 
 
@@ -376,20 +376,16 @@ namespace Snowball
                 cursor = limit - c1;
                 {
                     int c3 = limit - cursor;
+                    if (!(eq_s_b("n")))
                     {
-                        int c4 = limit - cursor;
-                        if (!(eq_s_b("n")))
-                        {
-                            goto lab2;
-                        }
-                        cursor = limit - c4;
+                        goto lab2;
                     }
                     return false;
                 lab2: ;
                     cursor = limit - c3;
                 }
                 {
-                    int c5 = limit - cursor;
+                    int c4 = limit - cursor;
                     if (cursor <= limit_backward)
                     {
                         return false;
@@ -399,7 +395,7 @@ namespace Snowball
                     {
                         return false;
                     }
-                    cursor = limit - c5;
+                    cursor = limit - c4;
                 }
             }
         lab0: ;
@@ -427,20 +423,16 @@ namespace Snowball
                 cursor = limit - c1;
                 {
                     int c3 = limit - cursor;
+                    if (!(eq_s_b("s")))
                     {
-                        int c4 = limit - cursor;
-                        if (!(eq_s_b("s")))
-                        {
-                            goto lab2;
-                        }
-                        cursor = limit - c4;
+                        goto lab2;
                     }
                     return false;
                 lab2: ;
                     cursor = limit - c3;
                 }
                 {
-                    int c5 = limit - cursor;
+                    int c4 = limit - cursor;
                     if (cursor <= limit_backward)
                     {
                         return false;
@@ -450,7 +442,7 @@ namespace Snowball
                     {
                         return false;
                     }
-                    cursor = limit - c5;
+                    cursor = limit - c4;
                 }
             }
         lab0: ;
@@ -478,20 +470,16 @@ namespace Snowball
                 cursor = limit - c1;
                 {
                     int c3 = limit - cursor;
+                    if (!(eq_s_b("y")))
                     {
-                        int c4 = limit - cursor;
-                        if (!(eq_s_b("y")))
-                        {
-                            goto lab2;
-                        }
-                        cursor = limit - c4;
+                        goto lab2;
                     }
                     return false;
                 lab2: ;
                     cursor = limit - c3;
                 }
                 {
-                    int c5 = limit - cursor;
+                    int c4 = limit - cursor;
                     if (cursor <= limit_backward)
                     {
                         return false;
@@ -501,7 +489,7 @@ namespace Snowball
                     {
                         return false;
                     }
-                    cursor = limit - c5;
+                    cursor = limit - c4;
                 }
             }
         lab0: ;
@@ -529,20 +517,16 @@ namespace Snowball
                 cursor = limit - c1;
                 {
                     int c3 = limit - cursor;
+                    if (in_grouping_b(g_U, 105, 305, false) != 0)
                     {
-                        int c4 = limit - cursor;
-                        if (in_grouping_b(g_U, 105, 305, false) != 0)
-                        {
-                            goto lab2;
-                        }
-                        cursor = limit - c4;
+                        goto lab2;
                     }
                     return false;
                 lab2: ;
                     cursor = limit - c3;
                 }
                 {
-                    int c5 = limit - cursor;
+                    int c4 = limit - cursor;
                     if (cursor <= limit_backward)
                     {
                         return false;
@@ -552,7 +536,7 @@ namespace Snowball
                     {
                         return false;
                     }
-                    cursor = limit - c5;
+                    cursor = limit - c4;
                 }
             }
         lab0: ;
@@ -561,13 +545,11 @@ namespace Snowball
 
         private bool r_mark_possessives()
         {
-            if (find_among_b(a_0) == 0)
+            if (find_among_b(a_0, null) == 0)
             {
                 return false;
             }
-            if (!r_mark_suffix_with_optional_U_vowel())
-                return false;
-            return true;
+            return r_mark_suffix_with_optional_U_vowel();
         }
 
         private bool r_mark_sU()
@@ -578,18 +560,12 @@ namespace Snowball
             {
                 return false;
             }
-            if (!r_mark_suffix_with_optional_s_consonant())
-                return false;
-            return true;
+            return r_mark_suffix_with_optional_s_consonant();
         }
 
         private bool r_mark_lArI()
         {
-            if (find_among_b(a_1) == 0)
-            {
-                return false;
-            }
-            return true;
+            return find_among_b(a_1, null) != 0;
         }
 
         private bool r_mark_yU()
@@ -600,261 +576,189 @@ namespace Snowball
             {
                 return false;
             }
-            if (!r_mark_suffix_with_optional_y_consonant())
-                return false;
-            return true;
+            return r_mark_suffix_with_optional_y_consonant();
         }
 
         private bool r_mark_nU()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_2) == 0)
-            {
-                return false;
-            }
-            return true;
+            return find_among_b(a_2, null) != 0;
         }
 
         private bool r_mark_nUn()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_3) == 0)
+            if (find_among_b(a_3, null) == 0)
             {
                 return false;
             }
-            if (!r_mark_suffix_with_optional_n_consonant())
-                return false;
-            return true;
+            return r_mark_suffix_with_optional_n_consonant();
         }
 
         private bool r_mark_yA()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_4) == 0)
+            if (find_among_b(a_4, null) == 0)
             {
                 return false;
             }
-            if (!r_mark_suffix_with_optional_y_consonant())
-                return false;
-            return true;
+            return r_mark_suffix_with_optional_y_consonant();
         }
 
         private bool r_mark_nA()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_5) == 0)
-            {
-                return false;
-            }
-            return true;
+            return find_among_b(a_5, null) != 0;
         }
 
         private bool r_mark_DA()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_6) == 0)
-            {
-                return false;
-            }
-            return true;
+            return find_among_b(a_6, null) != 0;
         }
 
         private bool r_mark_ndA()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_7) == 0)
-            {
-                return false;
-            }
-            return true;
+            return find_among_b(a_7, null) != 0;
         }
 
         private bool r_mark_DAn()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_8) == 0)
-            {
-                return false;
-            }
-            return true;
+            return find_among_b(a_8, null) != 0;
         }
 
         private bool r_mark_ndAn()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_9) == 0)
-            {
-                return false;
-            }
-            return true;
+            return find_among_b(a_9, null) != 0;
         }
 
         private bool r_mark_ylA()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_10) == 0)
+            if (find_among_b(a_10, null) == 0)
             {
                 return false;
             }
-            if (!r_mark_suffix_with_optional_y_consonant())
-                return false;
-            return true;
+            return r_mark_suffix_with_optional_y_consonant();
         }
 
         private bool r_mark_ki()
         {
-            if (!(eq_s_b("ki")))
-            {
-                return false;
-            }
-            return true;
+            return eq_s_b("ki");
         }
 
         private bool r_mark_ncA()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_11) == 0)
+            if (find_among_b(a_11, null) == 0)
             {
                 return false;
             }
-            if (!r_mark_suffix_with_optional_n_consonant())
-                return false;
-            return true;
+            return r_mark_suffix_with_optional_n_consonant();
         }
 
         private bool r_mark_yUm()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_12) == 0)
+            if (find_among_b(a_12, null) == 0)
             {
                 return false;
             }
-            if (!r_mark_suffix_with_optional_y_consonant())
-                return false;
-            return true;
+            return r_mark_suffix_with_optional_y_consonant();
         }
 
         private bool r_mark_sUn()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_13) == 0)
-            {
-                return false;
-            }
-            return true;
+            return find_among_b(a_13, null) != 0;
         }
 
         private bool r_mark_yUz()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_14) == 0)
+            if (find_among_b(a_14, null) == 0)
             {
                 return false;
             }
-            if (!r_mark_suffix_with_optional_y_consonant())
-                return false;
-            return true;
+            return r_mark_suffix_with_optional_y_consonant();
         }
 
         private bool r_mark_sUnUz()
         {
-            if (find_among_b(a_15) == 0)
-            {
-                return false;
-            }
-            return true;
+            return find_among_b(a_15, null) != 0;
         }
 
         private bool r_mark_lAr()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_16) == 0)
-            {
-                return false;
-            }
-            return true;
+            return find_among_b(a_16, null) != 0;
         }
 
         private bool r_mark_nUz()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_17) == 0)
-            {
-                return false;
-            }
-            return true;
+            return find_among_b(a_17, null) != 0;
         }
 
         private bool r_mark_DUr()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_18) == 0)
-            {
-                return false;
-            }
-            return true;
+            return find_among_b(a_18, null) != 0;
         }
 
         private bool r_mark_cAsInA()
         {
-            if (find_among_b(a_19) == 0)
-            {
-                return false;
-            }
-            return true;
+            return find_among_b(a_19, null) != 0;
         }
 
         private bool r_mark_yDU()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_20) == 0)
+            if (find_among_b(a_20, null) == 0)
             {
                 return false;
             }
-            if (!r_mark_suffix_with_optional_y_consonant())
-                return false;
-            return true;
+            return r_mark_suffix_with_optional_y_consonant();
         }
 
         private bool r_mark_ysA()
         {
-            if (find_among_b(a_21) == 0)
+            if (find_among_b(a_21, null) == 0)
             {
                 return false;
             }
-            if (!r_mark_suffix_with_optional_y_consonant())
-                return false;
-            return true;
+            return r_mark_suffix_with_optional_y_consonant();
         }
 
         private bool r_mark_ymUs_()
         {
             if (!r_check_vowel_harmony())
                 return false;
-            if (find_among_b(a_22) == 0)
+            if (find_among_b(a_22, null) == 0)
             {
                 return false;
             }
-            if (!r_mark_suffix_with_optional_y_consonant())
-                return false;
-            return true;
+            return r_mark_suffix_with_optional_y_consonant();
         }
 
         private bool r_mark_yken()
@@ -863,9 +767,7 @@ namespace Snowball
             {
                 return false;
             }
-            if (!r_mark_suffix_with_optional_y_consonant())
-                return false;
-            return true;
+            return r_mark_suffix_with_optional_y_consonant();
         }
 
         private bool r_stem_nominal_verb_suffixes()
@@ -1681,7 +1583,7 @@ namespace Snowball
         {
             int among_var;
             ket = cursor;
-            among_var = find_among_b(a_23);
+            among_var = find_among_b(a_23, null);
             if (among_var == 0)
             {
                 return false;
@@ -1966,7 +1868,7 @@ namespace Snowball
                 r_stem_nominal_verb_suffixes();
                 cursor = limit - c1;
             }
-            if (!(B_continue_stemming_noun_suffixes))
+            if (!B_continue_stemming_noun_suffixes)
             {
                 return false;
             }
@@ -1976,9 +1878,7 @@ namespace Snowball
                 cursor = limit - c2;
             }
             cursor = limit_backward;
-            if (!r_postlude())
-                return false;
-            return true;
+            return r_postlude();
         }
 
     }

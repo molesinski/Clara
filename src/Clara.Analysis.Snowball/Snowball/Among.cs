@@ -1,19 +1,20 @@
 ﻿// Copyright (c) 2001, Dr Martin Porter
 // Copyright (c) 2002, Richard Boulton
 // Copyright (c) 2015, Cesar Souza
+// Copyright (c) 2025, Olly Betts
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //
-//     * Redistributions of source code must retain the above copyright notice,
-//     * this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//     * notice, this list of conditions and the following disclaimer in the
-//     * documentation and/or other materials provided with the distribution.
-//     * Neither the name of the copyright holders nor the names of its contributors
-//     * may be used to endorse or promote products derived from this software
-//     * without specific prior written permission.
+//    1. Redistributions of source code must retain the above copyright notice,
+//       this list of conditions and the following disclaimer.
+//    2. Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//    3. Neither the name of the Snowball project nor the names of its contributors
+//       may be used to endorse or promote products derived from this software
+//       without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -56,10 +57,10 @@ namespace Snowball
         public int Result { get; private set; }
 
         /// <summary>
-        ///   Action to be invoked.
+        ///   Condition function index (or 0 for no condition).
         /// </summary>
         ///
-        public Func<bool> Action { get; private set; }
+        public int Condition { get; private set; }
 
         /// <summary>
         ///   Initializes a new instance of the <see cref="Among"/> class.
@@ -68,27 +69,14 @@ namespace Snowball
         /// <param name="str">The search string.</param>
         /// <param name="index">The index to the longest matching substring.</param>
         /// <param name="result">The result of the lookup.</param>
+        /// <param name="condition">The index of the condition function (0 if none).</param>
         ///
-        public Among(String str, int index, int result)
-            : this(str, index, result, null)
-        {
-        }
-
-        /// <summary>
-        ///   Initializes a new instance of the <see cref="Among"/> class.
-        /// </summary>
-        ///
-        /// <param name="str">The search string.</param>
-        /// <param name="index">The index to the longest matching substring.</param>
-        /// <param name="result">The result of the lookup.</param>
-        /// <param name="action">The action to be performed, if any.</param>
-        ///
-        public Among(String str, int index, int result, Func<bool> action)
+        public Among(String str, int index, int result, int condition)
         {
             this.SearchString = str;
             this.MatchIndex = index;
             this.Result = result;
-            this.Action = action;
+            this.Condition = condition;
         }
 
         /// <summary>

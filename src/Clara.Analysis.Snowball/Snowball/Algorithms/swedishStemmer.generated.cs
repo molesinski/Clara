@@ -1,4 +1,4 @@
-﻿// Generated from swedish.sbl by Snowball 3.0.1 - https://snowballstem.org/
+﻿// Generated from swedish.sbl by Snowball 3.0.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,13 +10,12 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from swedish.sbl by Snowball 3.0.1 - https://snowballstem.org/
+    ///  Generated from swedish.sbl by Snowball 3.0.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.1")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
     internal partial class SwedishStemmer : Stemmer
     {
-        private int I_x;
         private int I_p1;
 
         private const string g_v = "aeiouyäåö";
@@ -25,94 +24,95 @@ namespace Snowball
 
         private static readonly Among[] a_0 = new[]
         {
-            new Among("fab", -1, -1),
-            new Among("h", -1, -1),
-            new Among("pak", -1, -1),
-            new Among("rak", -1, -1),
-            new Among("stak", -1, -1),
-            new Among("kom", -1, -1),
-            new Among("iet", -1, -1),
-            new Among("cit", -1, -1),
-            new Among("dit", -1, -1),
-            new Among("alit", -1, -1),
-            new Among("ilit", -1, -1),
-            new Among("mit", -1, -1),
-            new Among("nit", -1, -1),
-            new Among("pit", -1, -1),
-            new Among("rit", -1, -1),
-            new Among("sit", -1, -1),
-            new Among("tit", -1, -1),
-            new Among("uit", -1, -1),
-            new Among("ivit", -1, -1),
-            new Among("kvit", -1, -1),
-            new Among("xit", -1, -1)
+            new Among("fab", -1, -1, 0),
+            new Among("h", -1, -1, 0),
+            new Among("pak", -1, -1, 0),
+            new Among("rak", -1, -1, 0),
+            new Among("stak", -1, -1, 0),
+            new Among("kom", -1, -1, 0),
+            new Among("iet", -1, -1, 0),
+            new Among("cit", -1, -1, 0),
+            new Among("dit", -1, -1, 0),
+            new Among("alit", -1, -1, 0),
+            new Among("ilit", -1, -1, 0),
+            new Among("mit", -1, -1, 0),
+            new Among("nit", -1, -1, 0),
+            new Among("pit", -1, -1, 0),
+            new Among("rit", -1, -1, 0),
+            new Among("sit", -1, -1, 0),
+            new Among("tit", -1, -1, 0),
+            new Among("uit", -1, -1, 0),
+            new Among("ivit", -1, -1, 0),
+            new Among("kvit", -1, -1, 0),
+            new Among("xit", -1, -1, 0)
         };
 
         private static readonly Among[] a_1 = new[]
         {
-            new Among("a", -1, 1),
-            new Among("arna", 0, 1),
-            new Among("erna", 0, 1),
-            new Among("heterna", 2, 1),
-            new Among("orna", 0, 1),
-            new Among("ad", -1, 1),
-            new Among("e", -1, 1),
-            new Among("ade", 6, 1),
-            new Among("ande", 6, 1),
-            new Among("arne", 6, 1),
-            new Among("are", 6, 1),
-            new Among("aste", 6, 1),
-            new Among("en", -1, 1),
-            new Among("anden", 12, 1),
-            new Among("aren", 12, 1),
-            new Among("heten", 12, 1),
-            new Among("ern", -1, 1),
-            new Among("ar", -1, 1),
-            new Among("er", -1, 1),
-            new Among("heter", 18, 1),
-            new Among("or", -1, 1),
-            new Among("s", -1, 2),
-            new Among("as", 21, 1),
-            new Among("arnas", 22, 1),
-            new Among("ernas", 22, 1),
-            new Among("ornas", 22, 1),
-            new Among("es", 21, 1),
-            new Among("ades", 26, 1),
-            new Among("andes", 26, 1),
-            new Among("ens", 21, 1),
-            new Among("arens", 29, 1),
-            new Among("hetens", 29, 1),
-            new Among("erns", 21, 1),
-            new Among("at", -1, 1),
-            new Among("et", -1, 3),
-            new Among("andet", 34, 1),
-            new Among("het", 34, 1),
-            new Among("ast", -1, 1)
+            new Among("a", -1, 1, 0),
+            new Among("arna", 0, 1, 0),
+            new Among("erna", 0, 1, 0),
+            new Among("heterna", 2, 1, 0),
+            new Among("orna", 0, 1, 0),
+            new Among("ad", -1, 1, 0),
+            new Among("e", -1, 1, 0),
+            new Among("ade", 6, 1, 0),
+            new Among("ande", 6, 1, 0),
+            new Among("arne", 6, 1, 0),
+            new Among("are", 6, 1, 0),
+            new Among("aste", 6, 1, 0),
+            new Among("en", -1, 1, 0),
+            new Among("anden", 12, 1, 0),
+            new Among("aren", 12, 1, 0),
+            new Among("heten", 12, 1, 0),
+            new Among("ern", -1, 1, 0),
+            new Among("ar", -1, 1, 0),
+            new Among("er", -1, 1, 0),
+            new Among("heter", 18, 1, 0),
+            new Among("or", -1, 1, 0),
+            new Among("s", -1, 2, 0),
+            new Among("as", 21, 1, 0),
+            new Among("arnas", 22, 1, 0),
+            new Among("ernas", 22, 1, 0),
+            new Among("ornas", 22, 1, 0),
+            new Among("es", 21, 1, 0),
+            new Among("ades", 26, 1, 0),
+            new Among("andes", 26, 1, 0),
+            new Among("ens", 21, 1, 0),
+            new Among("arens", 29, 1, 0),
+            new Among("hetens", 29, 1, 0),
+            new Among("erns", 21, 1, 0),
+            new Among("at", -1, 1, 0),
+            new Among("et", -1, 3, 0),
+            new Among("andet", 34, 1, 0),
+            new Among("het", 34, 1, 0),
+            new Among("ast", -1, 1, 0)
         };
 
         private static readonly Among[] a_2 = new[]
         {
-            new Among("dd", -1, -1),
-            new Among("gd", -1, -1),
-            new Among("nn", -1, -1),
-            new Among("dt", -1, -1),
-            new Among("gt", -1, -1),
-            new Among("kt", -1, -1),
-            new Among("tt", -1, -1)
+            new Among("dd", -1, -1, 0),
+            new Among("gd", -1, -1, 0),
+            new Among("nn", -1, -1, 0),
+            new Among("dt", -1, -1, 0),
+            new Among("gt", -1, -1, 0),
+            new Among("kt", -1, -1, 0),
+            new Among("tt", -1, -1, 0)
         };
 
         private static readonly Among[] a_3 = new[]
         {
-            new Among("ig", -1, 1),
-            new Among("lig", 0, 1),
-            new Among("els", -1, 1),
-            new Among("fullt", -1, 3),
-            new Among("öst", -1, 2)
+            new Among("ig", -1, 1, 0),
+            new Among("lig", 0, 1, 0),
+            new Among("els", -1, 1, 0),
+            new Among("fullt", -1, 3, 0),
+            new Among("öst", -1, 2, 0)
         };
 
 
         private bool r_mark_regions()
         {
+            int I_x;
             I_p1 = limit;
             {
                 int c1 = cursor;
@@ -177,7 +177,7 @@ namespace Snowball
             cursor = limit - c1;
             {
                 int c2 = limit - cursor;
-                if (find_among_b(a_0) == 0)
+                if (find_among_b(a_0, null) == 0)
                 {
                     goto lab1;
                 }
@@ -198,7 +198,7 @@ namespace Snowball
             int c1 = limit_backward;
             limit_backward = I_p1;
             ket = cursor;
-            among_var = find_among_b(a_1);
+            among_var = find_among_b(a_1, null);
             if (among_var == 0)
             {
                 {
@@ -254,7 +254,7 @@ namespace Snowball
             int c1 = limit_backward;
             limit_backward = I_p1;
             int c2 = limit - cursor;
-            if (find_among_b(a_2) == 0)
+            if (find_among_b(a_2, null) == 0)
             {
                 {
                     limit_backward = c1;
@@ -287,7 +287,7 @@ namespace Snowball
             int c1 = limit_backward;
             limit_backward = I_p1;
             ket = cursor;
-            among_var = find_among_b(a_3);
+            among_var = find_among_b(a_3, null);
             if (among_var == 0)
             {
                 {

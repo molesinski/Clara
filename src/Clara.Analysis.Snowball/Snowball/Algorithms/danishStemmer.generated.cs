@@ -1,4 +1,4 @@
-﻿// Generated from danish.sbl by Snowball 3.0.1 - https://snowballstem.org/
+﻿// Generated from danish.sbl by Snowball 3.0.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,76 +10,76 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from danish.sbl by Snowball 3.0.1 - https://snowballstem.org/
+    ///  Generated from danish.sbl by Snowball 3.0.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.1")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
     internal partial class DanishStemmer : Stemmer
     {
-        private int I_x;
         private int I_p1;
         private StringBuilder S_ch = new StringBuilder();
 
         private const string g_c = "bcdfghjklmnpqrstvwxz";
-        private const string g_v = "aeiouyæåø";
+        private const string g_v = "aeiouyåæø";
         private const string g_s_ending = "abcdfghjklmnoprtvyzå";
 
         private static readonly Among[] a_0 = new[]
         {
-            new Among("hed", -1, 1),
-            new Among("ethed", 0, 1),
-            new Among("ered", -1, 1),
-            new Among("e", -1, 1),
-            new Among("erede", 3, 1),
-            new Among("ende", 3, 1),
-            new Among("erende", 5, 1),
-            new Among("ene", 3, 1),
-            new Among("erne", 3, 1),
-            new Among("ere", 3, 1),
-            new Among("en", -1, 1),
-            new Among("heden", 10, 1),
-            new Among("eren", 10, 1),
-            new Among("er", -1, 1),
-            new Among("heder", 13, 1),
-            new Among("erer", 13, 1),
-            new Among("s", -1, 2),
-            new Among("heds", 16, 1),
-            new Among("es", 16, 1),
-            new Among("endes", 18, 1),
-            new Among("erendes", 19, 1),
-            new Among("enes", 18, 1),
-            new Among("ernes", 18, 1),
-            new Among("eres", 18, 1),
-            new Among("ens", 16, 1),
-            new Among("hedens", 24, 1),
-            new Among("erens", 24, 1),
-            new Among("ers", 16, 1),
-            new Among("ets", 16, 1),
-            new Among("erets", 28, 1),
-            new Among("et", -1, 1),
-            new Among("eret", 30, 1)
+            new Among("hed", -1, 1, 0),
+            new Among("ethed", 0, 1, 0),
+            new Among("ered", -1, 1, 0),
+            new Among("e", -1, 1, 0),
+            new Among("erede", 3, 1, 0),
+            new Among("ende", 3, 1, 0),
+            new Among("erende", 5, 1, 0),
+            new Among("ene", 3, 1, 0),
+            new Among("erne", 3, 1, 0),
+            new Among("ere", 3, 1, 0),
+            new Among("en", -1, 1, 0),
+            new Among("heden", 10, 1, 0),
+            new Among("eren", 10, 1, 0),
+            new Among("er", -1, 1, 0),
+            new Among("heder", 13, 1, 0),
+            new Among("erer", 13, 1, 0),
+            new Among("s", -1, 2, 0),
+            new Among("heds", 16, 1, 0),
+            new Among("es", 16, 1, 0),
+            new Among("endes", 18, 1, 0),
+            new Among("erendes", 19, 1, 0),
+            new Among("enes", 18, 1, 0),
+            new Among("ernes", 18, 1, 0),
+            new Among("eres", 18, 1, 0),
+            new Among("ens", 16, 1, 0),
+            new Among("hedens", 24, 1, 0),
+            new Among("erens", 24, 1, 0),
+            new Among("ers", 16, 1, 0),
+            new Among("ets", 16, 1, 0),
+            new Among("erets", 28, 1, 0),
+            new Among("et", -1, 1, 0),
+            new Among("eret", 30, 1, 0)
         };
 
         private static readonly Among[] a_1 = new[]
         {
-            new Among("gd", -1, -1),
-            new Among("dt", -1, -1),
-            new Among("gt", -1, -1),
-            new Among("kt", -1, -1)
+            new Among("gd", -1, -1, 0),
+            new Among("dt", -1, -1, 0),
+            new Among("gt", -1, -1, 0),
+            new Among("kt", -1, -1, 0)
         };
 
         private static readonly Among[] a_2 = new[]
         {
-            new Among("ig", -1, 1),
-            new Among("lig", 0, 1),
-            new Among("elig", 1, 1),
-            new Among("els", -1, 1),
-            new Among("løst", -1, 2)
+            new Among("ig", -1, 1, 0),
+            new Among("lig", 0, 1, 0),
+            new Among("elig", 1, 1, 0),
+            new Among("els", -1, 1, 0),
+            new Among("løst", -1, 2, 0)
         };
 
 
         private bool r_mark_regions()
         {
+            int I_x;
             I_p1 = limit;
             {
                 int c1 = cursor;
@@ -134,7 +134,7 @@ namespace Snowball
             int c1 = limit_backward;
             limit_backward = I_p1;
             ket = cursor;
-            among_var = find_among_b(a_0);
+            among_var = find_among_b(a_0, null);
             if (among_var == 0)
             {
                 {
@@ -172,7 +172,7 @@ namespace Snowball
                 int c2 = limit_backward;
                 limit_backward = I_p1;
                 ket = cursor;
-                if (find_among_b(a_1) == 0)
+                if (find_among_b(a_1, null) == 0)
                 {
                     {
                         limit_backward = c2;
@@ -219,7 +219,7 @@ namespace Snowball
             int c2 = limit_backward;
             limit_backward = I_p1;
             ket = cursor;
-            among_var = find_among_b(a_2);
+            among_var = find_among_b(a_2, null);
             if (among_var == 0)
             {
                 {

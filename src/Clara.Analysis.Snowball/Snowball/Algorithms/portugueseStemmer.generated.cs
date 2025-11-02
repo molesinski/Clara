@@ -1,4 +1,4 @@
-﻿// Generated from portuguese.sbl by Snowball 3.0.1 - https://snowballstem.org/
+﻿// Generated from portuguese.sbl by Snowball 3.0.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,244 +10,244 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from portuguese.sbl by Snowball 3.0.1 - https://snowballstem.org/
+    ///  Generated from portuguese.sbl by Snowball 3.0.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.1")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
     internal partial class PortugueseStemmer : Stemmer
     {
         private int I_p2;
         private int I_p1;
         private int I_pV;
 
-        private const string g_v = "aeiouáéíóúâêô";
+        private const string g_v = "aeiouáâéêíóôú";
 
         private static readonly Among[] a_0 = new[]
         {
-            new Among("", -1, 3),
-            new Among("ã", 0, 1),
-            new Among("õ", 0, 2)
+            new Among("", -1, 3, 0),
+            new Among("ã", 0, 1, 0),
+            new Among("õ", 0, 2, 0)
         };
 
         private static readonly Among[] a_1 = new[]
         {
-            new Among("", -1, 3),
-            new Among("a~", 0, 1),
-            new Among("o~", 0, 2)
+            new Among("", -1, 3, 0),
+            new Among("a~", 0, 1, 0),
+            new Among("o~", 0, 2, 0)
         };
 
         private static readonly Among[] a_2 = new[]
         {
-            new Among("ic", -1, -1),
-            new Among("ad", -1, -1),
-            new Among("os", -1, -1),
-            new Among("iv", -1, 1)
+            new Among("ic", -1, -1, 0),
+            new Among("ad", -1, -1, 0),
+            new Among("os", -1, -1, 0),
+            new Among("iv", -1, 1, 0)
         };
 
         private static readonly Among[] a_3 = new[]
         {
-            new Among("ante", -1, 1),
-            new Among("avel", -1, 1),
-            new Among("ível", -1, 1)
+            new Among("ante", -1, 1, 0),
+            new Among("avel", -1, 1, 0),
+            new Among("ível", -1, 1, 0)
         };
 
         private static readonly Among[] a_4 = new[]
         {
-            new Among("ic", -1, 1),
-            new Among("abil", -1, 1),
-            new Among("iv", -1, 1)
+            new Among("ic", -1, 1, 0),
+            new Among("abil", -1, 1, 0),
+            new Among("iv", -1, 1, 0)
         };
 
         private static readonly Among[] a_5 = new[]
         {
-            new Among("ica", -1, 1),
-            new Among("ância", -1, 1),
-            new Among("ência", -1, 4),
-            new Among("logia", -1, 2),
-            new Among("ira", -1, 9),
-            new Among("adora", -1, 1),
-            new Among("osa", -1, 1),
-            new Among("ista", -1, 1),
-            new Among("iva", -1, 8),
-            new Among("eza", -1, 1),
-            new Among("idade", -1, 7),
-            new Among("ante", -1, 1),
-            new Among("mente", -1, 6),
-            new Among("amente", 12, 5),
-            new Among("ável", -1, 1),
-            new Among("ível", -1, 1),
-            new Among("ico", -1, 1),
-            new Among("ismo", -1, 1),
-            new Among("oso", -1, 1),
-            new Among("amento", -1, 1),
-            new Among("imento", -1, 1),
-            new Among("ivo", -1, 8),
-            new Among("aça~o", -1, 1),
-            new Among("uça~o", -1, 3),
-            new Among("ador", -1, 1),
-            new Among("icas", -1, 1),
-            new Among("ências", -1, 4),
-            new Among("logias", -1, 2),
-            new Among("iras", -1, 9),
-            new Among("adoras", -1, 1),
-            new Among("osas", -1, 1),
-            new Among("istas", -1, 1),
-            new Among("ivas", -1, 8),
-            new Among("ezas", -1, 1),
-            new Among("idades", -1, 7),
-            new Among("adores", -1, 1),
-            new Among("antes", -1, 1),
-            new Among("aço~es", -1, 1),
-            new Among("uço~es", -1, 3),
-            new Among("icos", -1, 1),
-            new Among("ismos", -1, 1),
-            new Among("osos", -1, 1),
-            new Among("amentos", -1, 1),
-            new Among("imentos", -1, 1),
-            new Among("ivos", -1, 8)
+            new Among("ica", -1, 1, 0),
+            new Among("ância", -1, 1, 0),
+            new Among("ência", -1, 4, 0),
+            new Among("logia", -1, 2, 0),
+            new Among("ira", -1, 9, 0),
+            new Among("adora", -1, 1, 0),
+            new Among("osa", -1, 1, 0),
+            new Among("ista", -1, 1, 0),
+            new Among("iva", -1, 8, 0),
+            new Among("eza", -1, 1, 0),
+            new Among("idade", -1, 7, 0),
+            new Among("ante", -1, 1, 0),
+            new Among("mente", -1, 6, 0),
+            new Among("amente", 12, 5, 0),
+            new Among("ável", -1, 1, 0),
+            new Among("ível", -1, 1, 0),
+            new Among("ico", -1, 1, 0),
+            new Among("ismo", -1, 1, 0),
+            new Among("oso", -1, 1, 0),
+            new Among("amento", -1, 1, 0),
+            new Among("imento", -1, 1, 0),
+            new Among("ivo", -1, 8, 0),
+            new Among("aça~o", -1, 1, 0),
+            new Among("uça~o", -1, 3, 0),
+            new Among("ador", -1, 1, 0),
+            new Among("icas", -1, 1, 0),
+            new Among("ências", -1, 4, 0),
+            new Among("logias", -1, 2, 0),
+            new Among("iras", -1, 9, 0),
+            new Among("adoras", -1, 1, 0),
+            new Among("osas", -1, 1, 0),
+            new Among("istas", -1, 1, 0),
+            new Among("ivas", -1, 8, 0),
+            new Among("ezas", -1, 1, 0),
+            new Among("idades", -1, 7, 0),
+            new Among("adores", -1, 1, 0),
+            new Among("antes", -1, 1, 0),
+            new Among("aço~es", -1, 1, 0),
+            new Among("uço~es", -1, 3, 0),
+            new Among("icos", -1, 1, 0),
+            new Among("ismos", -1, 1, 0),
+            new Among("osos", -1, 1, 0),
+            new Among("amentos", -1, 1, 0),
+            new Among("imentos", -1, 1, 0),
+            new Among("ivos", -1, 8, 0)
         };
 
         private static readonly Among[] a_6 = new[]
         {
-            new Among("ada", -1, 1),
-            new Among("ida", -1, 1),
-            new Among("ia", -1, 1),
-            new Among("aria", 2, 1),
-            new Among("eria", 2, 1),
-            new Among("iria", 2, 1),
-            new Among("ara", -1, 1),
-            new Among("era", -1, 1),
-            new Among("ira", -1, 1),
-            new Among("ava", -1, 1),
-            new Among("asse", -1, 1),
-            new Among("esse", -1, 1),
-            new Among("isse", -1, 1),
-            new Among("aste", -1, 1),
-            new Among("este", -1, 1),
-            new Among("iste", -1, 1),
-            new Among("ei", -1, 1),
-            new Among("arei", 16, 1),
-            new Among("erei", 16, 1),
-            new Among("irei", 16, 1),
-            new Among("am", -1, 1),
-            new Among("iam", 20, 1),
-            new Among("ariam", 21, 1),
-            new Among("eriam", 21, 1),
-            new Among("iriam", 21, 1),
-            new Among("aram", 20, 1),
-            new Among("eram", 20, 1),
-            new Among("iram", 20, 1),
-            new Among("avam", 20, 1),
-            new Among("em", -1, 1),
-            new Among("arem", 29, 1),
-            new Among("erem", 29, 1),
-            new Among("irem", 29, 1),
-            new Among("assem", 29, 1),
-            new Among("essem", 29, 1),
-            new Among("issem", 29, 1),
-            new Among("ado", -1, 1),
-            new Among("ido", -1, 1),
-            new Among("ando", -1, 1),
-            new Among("endo", -1, 1),
-            new Among("indo", -1, 1),
-            new Among("ara~o", -1, 1),
-            new Among("era~o", -1, 1),
-            new Among("ira~o", -1, 1),
-            new Among("ar", -1, 1),
-            new Among("er", -1, 1),
-            new Among("ir", -1, 1),
-            new Among("as", -1, 1),
-            new Among("adas", 47, 1),
-            new Among("idas", 47, 1),
-            new Among("ias", 47, 1),
-            new Among("arias", 50, 1),
-            new Among("erias", 50, 1),
-            new Among("irias", 50, 1),
-            new Among("aras", 47, 1),
-            new Among("eras", 47, 1),
-            new Among("iras", 47, 1),
-            new Among("avas", 47, 1),
-            new Among("es", -1, 1),
-            new Among("ardes", 58, 1),
-            new Among("erdes", 58, 1),
-            new Among("irdes", 58, 1),
-            new Among("ares", 58, 1),
-            new Among("eres", 58, 1),
-            new Among("ires", 58, 1),
-            new Among("asses", 58, 1),
-            new Among("esses", 58, 1),
-            new Among("isses", 58, 1),
-            new Among("astes", 58, 1),
-            new Among("estes", 58, 1),
-            new Among("istes", 58, 1),
-            new Among("is", -1, 1),
-            new Among("ais", 71, 1),
-            new Among("eis", 71, 1),
-            new Among("areis", 73, 1),
-            new Among("ereis", 73, 1),
-            new Among("ireis", 73, 1),
-            new Among("áreis", 73, 1),
-            new Among("éreis", 73, 1),
-            new Among("íreis", 73, 1),
-            new Among("ásseis", 73, 1),
-            new Among("ésseis", 73, 1),
-            new Among("ísseis", 73, 1),
-            new Among("áveis", 73, 1),
-            new Among("íeis", 73, 1),
-            new Among("aríeis", 84, 1),
-            new Among("eríeis", 84, 1),
-            new Among("iríeis", 84, 1),
-            new Among("ados", -1, 1),
-            new Among("idos", -1, 1),
-            new Among("amos", -1, 1),
-            new Among("áramos", 90, 1),
-            new Among("éramos", 90, 1),
-            new Among("íramos", 90, 1),
-            new Among("ávamos", 90, 1),
-            new Among("íamos", 90, 1),
-            new Among("aríamos", 95, 1),
-            new Among("eríamos", 95, 1),
-            new Among("iríamos", 95, 1),
-            new Among("emos", -1, 1),
-            new Among("aremos", 99, 1),
-            new Among("eremos", 99, 1),
-            new Among("iremos", 99, 1),
-            new Among("ássemos", 99, 1),
-            new Among("êssemos", 99, 1),
-            new Among("íssemos", 99, 1),
-            new Among("imos", -1, 1),
-            new Among("armos", -1, 1),
-            new Among("ermos", -1, 1),
-            new Among("irmos", -1, 1),
-            new Among("ámos", -1, 1),
-            new Among("arás", -1, 1),
-            new Among("erás", -1, 1),
-            new Among("irás", -1, 1),
-            new Among("eu", -1, 1),
-            new Among("iu", -1, 1),
-            new Among("ou", -1, 1),
-            new Among("ará", -1, 1),
-            new Among("erá", -1, 1),
-            new Among("irá", -1, 1)
+            new Among("ada", -1, 1, 0),
+            new Among("ida", -1, 1, 0),
+            new Among("ia", -1, 1, 0),
+            new Among("aria", 2, 1, 0),
+            new Among("eria", 2, 1, 0),
+            new Among("iria", 2, 1, 0),
+            new Among("ara", -1, 1, 0),
+            new Among("era", -1, 1, 0),
+            new Among("ira", -1, 1, 0),
+            new Among("ava", -1, 1, 0),
+            new Among("asse", -1, 1, 0),
+            new Among("esse", -1, 1, 0),
+            new Among("isse", -1, 1, 0),
+            new Among("aste", -1, 1, 0),
+            new Among("este", -1, 1, 0),
+            new Among("iste", -1, 1, 0),
+            new Among("ei", -1, 1, 0),
+            new Among("arei", 16, 1, 0),
+            new Among("erei", 16, 1, 0),
+            new Among("irei", 16, 1, 0),
+            new Among("am", -1, 1, 0),
+            new Among("iam", 20, 1, 0),
+            new Among("ariam", 21, 1, 0),
+            new Among("eriam", 21, 1, 0),
+            new Among("iriam", 21, 1, 0),
+            new Among("aram", 20, 1, 0),
+            new Among("eram", 20, 1, 0),
+            new Among("iram", 20, 1, 0),
+            new Among("avam", 20, 1, 0),
+            new Among("em", -1, 1, 0),
+            new Among("arem", 29, 1, 0),
+            new Among("erem", 29, 1, 0),
+            new Among("irem", 29, 1, 0),
+            new Among("assem", 29, 1, 0),
+            new Among("essem", 29, 1, 0),
+            new Among("issem", 29, 1, 0),
+            new Among("ado", -1, 1, 0),
+            new Among("ido", -1, 1, 0),
+            new Among("ando", -1, 1, 0),
+            new Among("endo", -1, 1, 0),
+            new Among("indo", -1, 1, 0),
+            new Among("ara~o", -1, 1, 0),
+            new Among("era~o", -1, 1, 0),
+            new Among("ira~o", -1, 1, 0),
+            new Among("ar", -1, 1, 0),
+            new Among("er", -1, 1, 0),
+            new Among("ir", -1, 1, 0),
+            new Among("as", -1, 1, 0),
+            new Among("adas", 47, 1, 0),
+            new Among("idas", 47, 1, 0),
+            new Among("ias", 47, 1, 0),
+            new Among("arias", 50, 1, 0),
+            new Among("erias", 50, 1, 0),
+            new Among("irias", 50, 1, 0),
+            new Among("aras", 47, 1, 0),
+            new Among("eras", 47, 1, 0),
+            new Among("iras", 47, 1, 0),
+            new Among("avas", 47, 1, 0),
+            new Among("es", -1, 1, 0),
+            new Among("ardes", 58, 1, 0),
+            new Among("erdes", 58, 1, 0),
+            new Among("irdes", 58, 1, 0),
+            new Among("ares", 58, 1, 0),
+            new Among("eres", 58, 1, 0),
+            new Among("ires", 58, 1, 0),
+            new Among("asses", 58, 1, 0),
+            new Among("esses", 58, 1, 0),
+            new Among("isses", 58, 1, 0),
+            new Among("astes", 58, 1, 0),
+            new Among("estes", 58, 1, 0),
+            new Among("istes", 58, 1, 0),
+            new Among("is", -1, 1, 0),
+            new Among("ais", 71, 1, 0),
+            new Among("eis", 71, 1, 0),
+            new Among("areis", 73, 1, 0),
+            new Among("ereis", 73, 1, 0),
+            new Among("ireis", 73, 1, 0),
+            new Among("áreis", 73, 1, 0),
+            new Among("éreis", 73, 1, 0),
+            new Among("íreis", 73, 1, 0),
+            new Among("ásseis", 73, 1, 0),
+            new Among("ésseis", 73, 1, 0),
+            new Among("ísseis", 73, 1, 0),
+            new Among("áveis", 73, 1, 0),
+            new Among("íeis", 73, 1, 0),
+            new Among("aríeis", 84, 1, 0),
+            new Among("eríeis", 84, 1, 0),
+            new Among("iríeis", 84, 1, 0),
+            new Among("ados", -1, 1, 0),
+            new Among("idos", -1, 1, 0),
+            new Among("amos", -1, 1, 0),
+            new Among("áramos", 90, 1, 0),
+            new Among("éramos", 90, 1, 0),
+            new Among("íramos", 90, 1, 0),
+            new Among("ávamos", 90, 1, 0),
+            new Among("íamos", 90, 1, 0),
+            new Among("aríamos", 95, 1, 0),
+            new Among("eríamos", 95, 1, 0),
+            new Among("iríamos", 95, 1, 0),
+            new Among("emos", -1, 1, 0),
+            new Among("aremos", 99, 1, 0),
+            new Among("eremos", 99, 1, 0),
+            new Among("iremos", 99, 1, 0),
+            new Among("ássemos", 99, 1, 0),
+            new Among("êssemos", 99, 1, 0),
+            new Among("íssemos", 99, 1, 0),
+            new Among("imos", -1, 1, 0),
+            new Among("armos", -1, 1, 0),
+            new Among("ermos", -1, 1, 0),
+            new Among("irmos", -1, 1, 0),
+            new Among("ámos", -1, 1, 0),
+            new Among("arás", -1, 1, 0),
+            new Among("erás", -1, 1, 0),
+            new Among("irás", -1, 1, 0),
+            new Among("eu", -1, 1, 0),
+            new Among("iu", -1, 1, 0),
+            new Among("ou", -1, 1, 0),
+            new Among("ará", -1, 1, 0),
+            new Among("erá", -1, 1, 0),
+            new Among("irá", -1, 1, 0)
         };
 
         private static readonly Among[] a_7 = new[]
         {
-            new Among("a", -1, 1),
-            new Among("i", -1, 1),
-            new Among("o", -1, 1),
-            new Among("os", -1, 1),
-            new Among("á", -1, 1),
-            new Among("í", -1, 1),
-            new Among("ó", -1, 1)
+            new Among("a", -1, 1, 0),
+            new Among("i", -1, 1, 0),
+            new Among("o", -1, 1, 0),
+            new Among("os", -1, 1, 0),
+            new Among("á", -1, 1, 0),
+            new Among("í", -1, 1, 0),
+            new Among("ó", -1, 1, 0)
         };
 
         private static readonly Among[] a_8 = new[]
         {
-            new Among("e", -1, 1),
-            new Among("ç", -1, 2),
-            new Among("é", -1, 1),
-            new Among("ê", -1, 1)
+            new Among("e", -1, 1, 0),
+            new Among("ç", -1, 2, 0),
+            new Among("é", -1, 1, 0),
+            new Among("ê", -1, 1, 0)
         };
 
 
@@ -258,7 +258,7 @@ namespace Snowball
             {
                 int c1 = cursor;
                 bra = cursor;
-                among_var = find_among(a_0);
+                among_var = find_among(a_0, null);
                 ket = cursor;
                 switch (among_var) {
                     case 1: {
@@ -434,7 +434,7 @@ namespace Snowball
             {
                 int c1 = cursor;
                 bra = cursor;
-                among_var = find_among(a_1);
+                among_var = find_among(a_1, null);
                 ket = cursor;
                 switch (among_var) {
                     case 1: {
@@ -481,7 +481,7 @@ namespace Snowball
         {
             int among_var;
             ket = cursor;
-            among_var = find_among_b(a_5);
+            among_var = find_among_b(a_5, null);
             if (among_var == 0)
             {
                 return false;
@@ -519,7 +519,7 @@ namespace Snowball
                     {
                         int c1 = limit - cursor;
                         ket = cursor;
-                        among_var = find_among_b(a_2);
+                        among_var = find_among_b(a_2, null);
                         if (among_var == 0)
                         {
                             {
@@ -565,7 +565,7 @@ namespace Snowball
                     {
                         int c2 = limit - cursor;
                         ket = cursor;
-                        if (find_among_b(a_3) == 0)
+                        if (find_among_b(a_3, null) == 0)
                         {
                             {
                                 cursor = limit - c2;
@@ -590,7 +590,7 @@ namespace Snowball
                     {
                         int c3 = limit - cursor;
                         ket = cursor;
-                        if (find_among_b(a_4) == 0)
+                        if (find_among_b(a_4, null) == 0)
                         {
                             {
                                 cursor = limit - c3;
@@ -656,7 +656,7 @@ namespace Snowball
             int c1 = limit_backward;
             limit_backward = I_pV;
             ket = cursor;
-            if (find_among_b(a_6) == 0)
+            if (find_among_b(a_6, null) == 0)
             {
                 {
                     limit_backward = c1;
@@ -672,7 +672,7 @@ namespace Snowball
         private bool r_residual_suffix()
         {
             ket = cursor;
-            if (find_among_b(a_7) == 0)
+            if (find_among_b(a_7, null) == 0)
             {
                 return false;
             }
@@ -687,7 +687,7 @@ namespace Snowball
         {
             int among_var;
             ket = cursor;
-            among_var = find_among_b(a_8);
+            among_var = find_among_b(a_8, null);
             if (among_var == 0)
             {
                 return false;

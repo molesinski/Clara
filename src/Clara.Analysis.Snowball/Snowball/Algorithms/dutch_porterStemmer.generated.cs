@@ -1,4 +1,4 @@
-﻿// Generated from dutch_porter.sbl by Snowball 3.0.1 - https://snowballstem.org/
+﻿// Generated from dutch_porter.sbl by Snowball 3.0.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,75 +10,74 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from dutch_porter.sbl by Snowball 3.0.1 - https://snowballstem.org/
+    ///  Generated from dutch_porter.sbl by Snowball 3.0.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.1")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
     internal partial class Dutch_porterStemmer : Stemmer
     {
-        private int I_x;
         private int I_p2;
         private int I_p1;
         private bool B_e_found;
 
         private const string g_v = "aeiouyè";
-        private const string g_v_I = "aeiouyèI";
-        private const string g_v_j = "aeiouyèj";
+        private const string g_v_I = "Iaeiouyè";
+        private const string g_v_j = "aeijouyè";
 
         private static readonly Among[] a_0 = new[]
         {
-            new Among("", -1, 6),
-            new Among("á", 0, 1),
-            new Among("ä", 0, 1),
-            new Among("é", 0, 2),
-            new Among("ë", 0, 2),
-            new Among("í", 0, 3),
-            new Among("ï", 0, 3),
-            new Among("ó", 0, 4),
-            new Among("ö", 0, 4),
-            new Among("ú", 0, 5),
-            new Among("ü", 0, 5)
+            new Among("", -1, 6, 0),
+            new Among("á", 0, 1, 0),
+            new Among("ä", 0, 1, 0),
+            new Among("é", 0, 2, 0),
+            new Among("ë", 0, 2, 0),
+            new Among("í", 0, 3, 0),
+            new Among("ï", 0, 3, 0),
+            new Among("ó", 0, 4, 0),
+            new Among("ö", 0, 4, 0),
+            new Among("ú", 0, 5, 0),
+            new Among("ü", 0, 5, 0)
         };
 
         private static readonly Among[] a_1 = new[]
         {
-            new Among("", -1, 3),
-            new Among("I", 0, 2),
-            new Among("Y", 0, 1)
+            new Among("", -1, 3, 0),
+            new Among("I", 0, 2, 0),
+            new Among("Y", 0, 1, 0)
         };
 
         private static readonly Among[] a_2 = new[]
         {
-            new Among("dd", -1, -1),
-            new Among("kk", -1, -1),
-            new Among("tt", -1, -1)
+            new Among("dd", -1, -1, 0),
+            new Among("kk", -1, -1, 0),
+            new Among("tt", -1, -1, 0)
         };
 
         private static readonly Among[] a_3 = new[]
         {
-            new Among("ene", -1, 2),
-            new Among("se", -1, 3),
-            new Among("en", -1, 2),
-            new Among("heden", 2, 1),
-            new Among("s", -1, 3)
+            new Among("ene", -1, 2, 0),
+            new Among("se", -1, 3, 0),
+            new Among("en", -1, 2, 0),
+            new Among("heden", 2, 1, 0),
+            new Among("s", -1, 3, 0)
         };
 
         private static readonly Among[] a_4 = new[]
         {
-            new Among("end", -1, 1),
-            new Among("ig", -1, 2),
-            new Among("ing", -1, 1),
-            new Among("lijk", -1, 3),
-            new Among("baar", -1, 4),
-            new Among("bar", -1, 5)
+            new Among("end", -1, 1, 0),
+            new Among("ig", -1, 2, 0),
+            new Among("ing", -1, 1, 0),
+            new Among("lijk", -1, 3, 0),
+            new Among("baar", -1, 4, 0),
+            new Among("bar", -1, 5, 0)
         };
 
         private static readonly Among[] a_5 = new[]
         {
-            new Among("aa", -1, -1),
-            new Among("ee", -1, -1),
-            new Among("oo", -1, -1),
-            new Among("uu", -1, -1)
+            new Among("aa", -1, -1, 0),
+            new Among("ee", -1, -1, 0),
+            new Among("oo", -1, -1, 0),
+            new Among("uu", -1, -1, 0)
         };
 
 
@@ -91,7 +90,7 @@ namespace Snowball
                 {
                     int c2 = cursor;
                     bra = cursor;
-                    among_var = find_among(a_0);
+                    among_var = find_among(a_0, null);
                     ket = cursor;
                     switch (among_var) {
                         case 1: {
@@ -203,6 +202,7 @@ namespace Snowball
 
         private bool r_mark_regions()
         {
+            int I_x;
             I_p1 = limit;
             I_p2 = limit;
             {
@@ -276,7 +276,7 @@ namespace Snowball
             {
                 int c1 = cursor;
                 bra = cursor;
-                among_var = find_among(a_1);
+                among_var = find_among(a_1, null);
                 ket = cursor;
                 switch (among_var) {
                     case 1: {
@@ -318,7 +318,7 @@ namespace Snowball
         {
             {
                 int c1 = limit - cursor;
-                if (find_among_b(a_2) == 0)
+                if (find_among_b(a_2, null) == 0)
                 {
                     return false;
                 }
@@ -356,9 +356,7 @@ namespace Snowball
             }
             slice_del();
             B_e_found = true;
-            if (!r_undouble())
-                return false;
-            return true;
+            return r_undouble();
         }
 
         private bool r_en_ending()
@@ -382,9 +380,7 @@ namespace Snowball
                 cursor = limit - c2;
             }
             slice_del();
-            if (!r_undouble())
-                return false;
-            return true;
+            return r_undouble();
         }
 
         private bool r_standard_suffix()
@@ -393,7 +389,7 @@ namespace Snowball
             {
                 int c1 = limit - cursor;
                 ket = cursor;
-                among_var = find_among_b(a_3);
+                among_var = find_among_b(a_3, null);
                 if (among_var == 0)
                 {
                     goto lab0;
@@ -465,7 +461,7 @@ namespace Snowball
             {
                 int c5 = limit - cursor;
                 ket = cursor;
-                among_var = find_among_b(a_4);
+                among_var = find_among_b(a_4, null);
                 if (among_var == 0)
                 {
                     goto lab3;
@@ -539,7 +535,7 @@ namespace Snowball
                     case 5: {
                         if (!r_R2())
                             goto lab3;
-                        if (!(B_e_found))
+                        if (!B_e_found)
                         {
                             goto lab3;
                         }
@@ -558,7 +554,7 @@ namespace Snowball
                 }
                 {
                     int c10 = limit - cursor;
-                    if (find_among_b(a_5) == 0)
+                    if (find_among_b(a_5, null) == 0)
                     {
                         goto lab8;
                     }

@@ -17,7 +17,9 @@ namespace Clara.Benchmarks
         private readonly ITokenTermSource porterAnalyzer;
         private readonly ITokenTermSource synonymMap;
         private readonly ITokenTermSource englishAnalyzer;
+        private readonly ITokenTermSource polishAnalyzer;
         private readonly ITokenTermSource morfologikAnalyzer;
+        private readonly ITokenTermSource lucenePolishAnalyzer;
 
         public TokenizationBenchmarks()
         {
@@ -25,7 +27,9 @@ namespace Clara.Benchmarks
             this.standardAnalyzer = new StandardAnalyzer().CreateTokenTermSource();
             this.porterAnalyzer = new PorterAnalyzer().CreateTokenTermSource();
             this.englishAnalyzer = new EnglishAnalyzer().CreateTokenTermSource();
+            this.polishAnalyzer = new PolishAnalyzer().CreateTokenTermSource();
             this.morfologikAnalyzer = new MorfologikAnalyzer().CreateTokenTermSource();
+            this.lucenePolishAnalyzer = new LucenePolishAnalyzer().CreateTokenTermSource();
 
             var synonymMap =
                 new SynonymMap(
@@ -84,9 +88,27 @@ namespace Clara.Benchmarks
         }
 
         [Benchmark]
+        public void PolishAnalyzer()
+        {
+            foreach (var term in this.polishAnalyzer.GetTerms(PolishPhrase))
+            {
+                _ = term;
+            }
+        }
+
+        [Benchmark]
         public void MorfologikAnalyzer()
         {
             foreach (var term in this.morfologikAnalyzer.GetTerms(PolishPhrase))
+            {
+                _ = term;
+            }
+        }
+
+        [Benchmark]
+        public void LucenePolishAnalyzer()
+        {
+            foreach (var term in this.lucenePolishAnalyzer.GetTerms(PolishPhrase))
             {
                 _ = term;
             }

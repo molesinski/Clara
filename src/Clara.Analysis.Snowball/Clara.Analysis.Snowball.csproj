@@ -63,6 +63,7 @@
     <EmbeddedResource Include="Analysis\LithuanianStopTokenFilter.txt" />
     <EmbeddedResource Include="Analysis\NepaliStopTokenFilter.txt" />
     <EmbeddedResource Include="Analysis\NorwegianStopTokenFilter.txt" />
+    <EmbeddedResource Include="Analysis\PolishStopTokenFilter.txt" />
     <EmbeddedResource Include="Analysis\PortugueseStopTokenFilter.txt" />
     <EmbeddedResource Include="Analysis\RomanianStopTokenFilter.txt" />
     <EmbeddedResource Include="Analysis\RussianStopTokenFilter.txt" />

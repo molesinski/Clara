@@ -1,4 +1,4 @@
-﻿// Generated from dutch.sbl by Snowball 3.0.1 - https://snowballstem.org/
+﻿// Generated from dutch.sbl by Snowball 3.0.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,180 +10,179 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from dutch.sbl by Snowball 3.0.1 - https://snowballstem.org/
+    ///  Generated from dutch.sbl by Snowball 3.0.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.1")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
     internal partial class DutchStemmer : Stemmer
     {
         private bool B_GE_removed;
-        private bool B_stemmed;
         private int I_p2;
         private int I_p1;
         private StringBuilder S_ch = new StringBuilder();
 
-        private const string g_E = "eëéèê";
-        private const string g_AIOU = "aäáàâiïíìîoöóòôuüúùû";
-        private const string g_AEIOU = "aäáàâeëéèêiïíìîoöóòôuüúùû";
-        private const string g_v = "aäáàâeëéèêiïíìîoöóòôuüúùûy";
-        private const string g_v_WX = "aäáàâeëéèêiïíìîoöóòôuüúùûywx";
+        private const string g_E = "eèéêë";
+        private const string g_AIOU = "aiouàáâäìíîïòóôöùúûü";
+        private const string g_AEIOU = "aeiouàáâäèéêëìíîïòóôöùúûü";
+        private const string g_v = "aeiouyàáâäèéêëìíîïòóôöùúûü";
+        private const string g_v_WX = "aeiouwxyàáâäèéêëìíîïòóôöùúûü";
 
         private static readonly Among[] a_0 = new[]
         {
-            new Among("a", -1, 1),
-            new Among("e", -1, 2),
-            new Among("o", -1, 1),
-            new Among("u", -1, 1),
-            new Among("à", -1, 1),
-            new Among("á", -1, 1),
-            new Among("â", -1, 1),
-            new Among("ä", -1, 1),
-            new Among("è", -1, 2),
-            new Among("é", -1, 2),
-            new Among("ê", -1, 2),
-            new Among("eë", -1, 3),
-            new Among("ië", -1, 4),
-            new Among("ò", -1, 1),
-            new Among("ó", -1, 1),
-            new Among("ô", -1, 1),
-            new Among("ö", -1, 1),
-            new Among("ù", -1, 1),
-            new Among("ú", -1, 1),
-            new Among("û", -1, 1),
-            new Among("ü", -1, 1)
+            new Among("a", -1, 1, 0),
+            new Among("e", -1, 2, 0),
+            new Among("o", -1, 1, 0),
+            new Among("u", -1, 1, 0),
+            new Among("à", -1, 1, 0),
+            new Among("á", -1, 1, 0),
+            new Among("â", -1, 1, 0),
+            new Among("ä", -1, 1, 0),
+            new Among("è", -1, 2, 0),
+            new Among("é", -1, 2, 0),
+            new Among("ê", -1, 2, 0),
+            new Among("eë", -1, 3, 0),
+            new Among("ië", -1, 4, 0),
+            new Among("ò", -1, 1, 0),
+            new Among("ó", -1, 1, 0),
+            new Among("ô", -1, 1, 0),
+            new Among("ö", -1, 1, 0),
+            new Among("ù", -1, 1, 0),
+            new Among("ú", -1, 1, 0),
+            new Among("û", -1, 1, 0),
+            new Among("ü", -1, 1, 0)
         };
 
         private static readonly Among[] a_1 = new[]
         {
-            new Among("nde", -1, 8),
-            new Among("en", -1, 7),
-            new Among("s", -1, 2),
-            new Among("'s", 2, 1),
-            new Among("es", 2, 4),
-            new Among("ies", 4, 3),
-            new Among("aus", 2, 6),
-            new Among("és", 2, 5)
+            new Among("nde", -1, 8, 0),
+            new Among("en", -1, 7, 0),
+            new Among("s", -1, 2, 0),
+            new Among("'s", 2, 1, 0),
+            new Among("es", 2, 4, 0),
+            new Among("ies", 4, 3, 0),
+            new Among("aus", 2, 6, 0),
+            new Among("és", 2, 5, 0)
         };
 
         private static readonly Among[] a_2 = new[]
         {
-            new Among("de", -1, 5),
-            new Among("ge", -1, 2),
-            new Among("ische", -1, 4),
-            new Among("je", -1, 1),
-            new Among("lijke", -1, 3),
-            new Among("le", -1, 9),
-            new Among("ene", -1, 10),
-            new Among("re", -1, 8),
-            new Among("se", -1, 7),
-            new Among("te", -1, 6),
-            new Among("ieve", -1, 11)
+            new Among("de", -1, 5, 0),
+            new Among("ge", -1, 2, 0),
+            new Among("ische", -1, 4, 0),
+            new Among("je", -1, 1, 0),
+            new Among("lijke", -1, 3, 0),
+            new Among("le", -1, 9, 0),
+            new Among("ene", -1, 10, 0),
+            new Among("re", -1, 8, 0),
+            new Among("se", -1, 7, 0),
+            new Among("te", -1, 6, 0),
+            new Among("ieve", -1, 11, 0)
         };
 
         private static readonly Among[] a_3 = new[]
         {
-            new Among("heid", -1, 3),
-            new Among("fie", -1, 7),
-            new Among("gie", -1, 8),
-            new Among("atie", -1, 1),
-            new Among("isme", -1, 5),
-            new Among("ing", -1, 5),
-            new Among("arij", -1, 6),
-            new Among("erij", -1, 5),
-            new Among("sel", -1, 3),
-            new Among("rder", -1, 4),
-            new Among("ster", -1, 3),
-            new Among("iteit", -1, 2),
-            new Among("dst", -1, 10),
-            new Among("tst", -1, 9)
+            new Among("heid", -1, 3, 0),
+            new Among("fie", -1, 7, 0),
+            new Among("gie", -1, 8, 0),
+            new Among("atie", -1, 1, 0),
+            new Among("isme", -1, 5, 0),
+            new Among("ing", -1, 5, 0),
+            new Among("arij", -1, 6, 0),
+            new Among("erij", -1, 5, 0),
+            new Among("sel", -1, 3, 0),
+            new Among("rder", -1, 4, 0),
+            new Among("ster", -1, 3, 0),
+            new Among("iteit", -1, 2, 0),
+            new Among("dst", -1, 10, 0),
+            new Among("tst", -1, 9, 0)
         };
 
         private static readonly Among[] a_4 = new[]
         {
-            new Among("end", -1, 9),
-            new Among("atief", -1, 2),
-            new Among("erig", -1, 9),
-            new Among("achtig", -1, 3),
-            new Among("ioneel", -1, 1),
-            new Among("baar", -1, 3),
-            new Among("laar", -1, 5),
-            new Among("naar", -1, 4),
-            new Among("raar", -1, 6),
-            new Among("eriger", -1, 9),
-            new Among("achtiger", -1, 3),
-            new Among("lijker", -1, 8),
-            new Among("tant", -1, 7),
-            new Among("erigst", -1, 9),
-            new Among("achtigst", -1, 3),
-            new Among("lijkst", -1, 8)
+            new Among("end", -1, 9, 0),
+            new Among("atief", -1, 2, 0),
+            new Among("erig", -1, 9, 0),
+            new Among("achtig", -1, 3, 0),
+            new Among("ioneel", -1, 1, 0),
+            new Among("baar", -1, 3, 0),
+            new Among("laar", -1, 5, 0),
+            new Among("naar", -1, 4, 0),
+            new Among("raar", -1, 6, 0),
+            new Among("eriger", -1, 9, 0),
+            new Among("achtiger", -1, 3, 0),
+            new Among("lijker", -1, 8, 0),
+            new Among("tant", -1, 7, 0),
+            new Among("erigst", -1, 9, 0),
+            new Among("achtigst", -1, 3, 0),
+            new Among("lijkst", -1, 8, 0)
         };
 
         private static readonly Among[] a_5 = new[]
         {
-            new Among("ig", -1, 1),
-            new Among("iger", -1, 1),
-            new Among("igst", -1, 1)
+            new Among("ig", -1, 1, 0),
+            new Among("iger", -1, 1, 0),
+            new Among("igst", -1, 1, 0)
         };
 
         private static readonly Among[] a_6 = new[]
         {
-            new Among("ft", -1, 2),
-            new Among("kt", -1, 1),
-            new Among("pt", -1, 3)
+            new Among("ft", -1, 2, 0),
+            new Among("kt", -1, 1, 0),
+            new Among("pt", -1, 3, 0)
         };
 
         private static readonly Among[] a_7 = new[]
         {
-            new Among("bb", -1, 1),
-            new Among("cc", -1, 2),
-            new Among("dd", -1, 3),
-            new Among("ff", -1, 4),
-            new Among("gg", -1, 5),
-            new Among("hh", -1, 6),
-            new Among("jj", -1, 7),
-            new Among("kk", -1, 8),
-            new Among("ll", -1, 9),
-            new Among("mm", -1, 10),
-            new Among("nn", -1, 11),
-            new Among("pp", -1, 12),
-            new Among("qq", -1, 13),
-            new Among("rr", -1, 14),
-            new Among("ss", -1, 15),
-            new Among("tt", -1, 16),
-            new Among("v", -1, 4),
-            new Among("vv", 16, 17),
-            new Among("ww", -1, 18),
-            new Among("xx", -1, 19),
-            new Among("z", -1, 15),
-            new Among("zz", 20, 20)
+            new Among("bb", -1, 1, 0),
+            new Among("cc", -1, 2, 0),
+            new Among("dd", -1, 3, 0),
+            new Among("ff", -1, 4, 0),
+            new Among("gg", -1, 5, 0),
+            new Among("hh", -1, 6, 0),
+            new Among("jj", -1, 7, 0),
+            new Among("kk", -1, 8, 0),
+            new Among("ll", -1, 9, 0),
+            new Among("mm", -1, 10, 0),
+            new Among("nn", -1, 11, 0),
+            new Among("pp", -1, 12, 0),
+            new Among("qq", -1, 13, 0),
+            new Among("rr", -1, 14, 0),
+            new Among("ss", -1, 15, 0),
+            new Among("tt", -1, 16, 0),
+            new Among("v", -1, 4, 0),
+            new Among("vv", 16, 17, 0),
+            new Among("ww", -1, 18, 0),
+            new Among("xx", -1, 19, 0),
+            new Among("z", -1, 15, 0),
+            new Among("zz", 20, 20, 0)
         };
 
         private static readonly Among[] a_8 = new[]
         {
-            new Among("d", -1, 1),
-            new Among("t", -1, 2)
+            new Among("d", -1, 1, 0),
+            new Among("t", -1, 2, 0)
         };
 
         private static readonly Among[] a_9 = new[]
         {
-            new Among("", -1, -1),
-            new Among("eft", 0, 1),
-            new Among("vaa", 0, 1),
-            new Among("val", 0, 1),
-            new Among("vali", 3, -1),
-            new Among("vare", 0, 1)
+            new Among("", -1, -1, 0),
+            new Among("eft", 0, 1, 0),
+            new Among("vaa", 0, 1, 0),
+            new Among("val", 0, 1, 0),
+            new Among("vali", 3, -1, 0),
+            new Among("vare", 0, 1, 0)
         };
 
         private static readonly Among[] a_10 = new[]
         {
-            new Among("ë", -1, 1),
-            new Among("ï", -1, 2)
+            new Among("ë", -1, 1, 0),
+            new Among("ï", -1, 2, 0)
         };
 
         private static readonly Among[] a_11 = new[]
         {
-            new Among("ë", -1, 1),
-            new Among("ï", -1, 2)
+            new Among("ë", -1, 1, 0),
+            new Among("ï", -1, 2, 0)
         };
 
 
@@ -283,7 +282,7 @@ namespace Snowball
                     goto lab0;
                 }
                 ket = cursor;
-                among_var = find_among_b(a_0);
+                among_var = find_among_b(a_0, null);
                 if (among_var == 0)
                 {
                     goto lab0;
@@ -409,7 +408,7 @@ namespace Snowball
         {
             int among_var;
             ket = cursor;
-            among_var = find_among_b(a_1);
+            among_var = find_among_b(a_1, null);
             if (among_var == 0)
             {
                 return false;
@@ -583,7 +582,7 @@ namespace Snowball
         {
             int among_var;
             ket = cursor;
-            among_var = find_among_b(a_2);
+            among_var = find_among_b(a_2, null);
             if (among_var == 0)
             {
                 return false;
@@ -754,7 +753,7 @@ namespace Snowball
         {
             int among_var;
             ket = cursor;
-            among_var = find_among_b(a_3);
+            among_var = find_among_b(a_3, null);
             if (among_var == 0)
             {
                 return false;
@@ -853,7 +852,7 @@ namespace Snowball
             {
                 int c1 = limit - cursor;
                 ket = cursor;
-                among_var = find_among_b(a_4);
+                among_var = find_among_b(a_4, null);
                 if (among_var == 0)
                 {
                     goto lab1;
@@ -928,7 +927,7 @@ namespace Snowball
             lab1: ;
                 cursor = limit - c1;
                 ket = cursor;
-                if (find_among_b(a_5) == 0)
+                if (find_among_b(a_5, null) == 0)
                 {
                     return false;
                 }
@@ -962,7 +961,7 @@ namespace Snowball
         {
             int among_var;
             ket = cursor;
-            among_var = find_among_b(a_6);
+            among_var = find_among_b(a_6, null);
             if (among_var == 0)
             {
                 return false;
@@ -989,7 +988,7 @@ namespace Snowball
         {
             int among_var;
             ket = cursor;
-            among_var = find_among_b(a_7);
+            among_var = find_among_b(a_7, null);
             if (among_var == 0)
             {
                 return false;
@@ -1098,7 +1097,7 @@ namespace Snowball
         {
             int among_var;
             ket = cursor;
-            among_var = find_among_b(a_8);
+            among_var = find_among_b(a_8, null);
             if (among_var == 0)
             {
                 return false;
@@ -1256,7 +1255,7 @@ namespace Snowball
             lab6: ;
                 cursor = c2;
             }
-            among_var = find_among(a_9);
+            among_var = find_among(a_9, null);
             switch (among_var) {
                 case 1: {
                     return false;
@@ -1268,7 +1267,7 @@ namespace Snowball
             {
                 int c7 = cursor;
                 bra = cursor;
-                among_var = find_among(a_10);
+                among_var = find_among(a_10, null);
                 if (among_var == 0)
                 {
                     goto lab7;
@@ -1391,7 +1390,7 @@ namespace Snowball
             {
                 int c7 = cursor;
                 bra = cursor;
-                among_var = find_among(a_11);
+                among_var = find_among(a_11, null);
                 if (among_var == 0)
                 {
                     goto lab8;
@@ -1519,6 +1518,7 @@ namespace Snowball
 
         protected override bool stem()
         {
+            bool B_stemmed;
             B_stemmed = false;
             r_measure();
             limit_backward = cursor;
@@ -1571,7 +1571,7 @@ namespace Snowball
             cursor = limit;
             {
                 int c7 = limit - cursor;
-                if (!(B_GE_removed))
+                if (!B_GE_removed)
                 {
                     goto lab5;
                 }
@@ -1597,7 +1597,7 @@ namespace Snowball
             cursor = limit;
             {
                 int c10 = limit - cursor;
-                if (!(B_GE_removed))
+                if (!B_GE_removed)
                 {
                     goto lab7;
                 }
@@ -1620,7 +1620,7 @@ namespace Snowball
             }
             {
                 int c12 = limit - cursor;
-                if (!(B_stemmed))
+                if (!B_stemmed)
                 {
                     goto lab9;
                 }

@@ -1,4 +1,4 @@
-﻿// Generated from french.sbl by Snowball 3.0.1 - https://snowballstem.org/
+﻿// Generated from french.sbl by Snowball 3.0.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,213 +10,213 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from french.sbl by Snowball 3.0.1 - https://snowballstem.org/
+    ///  Generated from french.sbl by Snowball 3.0.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.1")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
     internal partial class FrenchStemmer : Stemmer
     {
         private int I_p2;
         private int I_p1;
         private int I_pV;
 
-        private const string g_v = "aeiouyâàëéêèïîôûù";
+        private const string g_v = "aeiouyàâèéêëîïôùû";
         private const string g_oux_ending = "bhjlnp";
         private const string g_elision_char = "cdjlmnst";
-        private const string g_keep_with_s = "aiouès";
+        private const string g_keep_with_s = "aiosuè";
 
         private static readonly Among[] a_0 = new[]
         {
-            new Among("col", -1, -1),
-            new Among("ni", -1, 1),
-            new Among("par", -1, -1),
-            new Among("tap", -1, -1)
+            new Among("col", -1, -1, 0),
+            new Among("ni", -1, 1, 0),
+            new Among("par", -1, -1, 0),
+            new Among("tap", -1, -1, 0)
         };
 
         private static readonly Among[] a_1 = new[]
         {
-            new Among("", -1, 7),
-            new Among("H", 0, 6),
-            new Among("He", 1, 4),
-            new Among("Hi", 1, 5),
-            new Among("I", 0, 1),
-            new Among("U", 0, 2),
-            new Among("Y", 0, 3)
+            new Among("", -1, 7, 0),
+            new Among("H", 0, 6, 0),
+            new Among("He", 1, 4, 0),
+            new Among("Hi", 1, 5, 0),
+            new Among("I", 0, 1, 0),
+            new Among("U", 0, 2, 0),
+            new Among("Y", 0, 3, 0)
         };
 
         private static readonly Among[] a_2 = new[]
         {
-            new Among("iqU", -1, 3),
-            new Among("abl", -1, 3),
-            new Among("Ièr", -1, 4),
-            new Among("ièr", -1, 4),
-            new Among("eus", -1, 2),
-            new Among("iv", -1, 1)
+            new Among("iqU", -1, 3, 0),
+            new Among("abl", -1, 3, 0),
+            new Among("Ièr", -1, 4, 0),
+            new Among("ièr", -1, 4, 0),
+            new Among("eus", -1, 2, 0),
+            new Among("iv", -1, 1, 0)
         };
 
         private static readonly Among[] a_3 = new[]
         {
-            new Among("ic", -1, 2),
-            new Among("abil", -1, 1),
-            new Among("iv", -1, 3)
+            new Among("ic", -1, 2, 0),
+            new Among("abil", -1, 1, 0),
+            new Among("iv", -1, 3, 0)
         };
 
         private static readonly Among[] a_4 = new[]
         {
-            new Among("iqUe", -1, 1),
-            new Among("atrice", -1, 2),
-            new Among("ance", -1, 1),
-            new Among("ence", -1, 5),
-            new Among("logie", -1, 3),
-            new Among("able", -1, 1),
-            new Among("isme", -1, 1),
-            new Among("euse", -1, 12),
-            new Among("iste", -1, 1),
-            new Among("ive", -1, 8),
-            new Among("if", -1, 8),
-            new Among("usion", -1, 4),
-            new Among("ation", -1, 2),
-            new Among("ution", -1, 4),
-            new Among("ateur", -1, 2),
-            new Among("iqUes", -1, 1),
-            new Among("atrices", -1, 2),
-            new Among("ances", -1, 1),
-            new Among("ences", -1, 5),
-            new Among("logies", -1, 3),
-            new Among("ables", -1, 1),
-            new Among("ismes", -1, 1),
-            new Among("euses", -1, 12),
-            new Among("istes", -1, 1),
-            new Among("ives", -1, 8),
-            new Among("ifs", -1, 8),
-            new Among("usions", -1, 4),
-            new Among("ations", -1, 2),
-            new Among("utions", -1, 4),
-            new Among("ateurs", -1, 2),
-            new Among("ments", -1, 16),
-            new Among("ements", 30, 6),
-            new Among("issements", 31, 13),
-            new Among("ités", -1, 7),
-            new Among("ment", -1, 16),
-            new Among("ement", 34, 6),
-            new Among("issement", 35, 13),
-            new Among("amment", 34, 14),
-            new Among("emment", 34, 15),
-            new Among("aux", -1, 10),
-            new Among("eaux", 39, 9),
-            new Among("eux", -1, 1),
-            new Among("oux", -1, 11),
-            new Among("ité", -1, 7)
+            new Among("iqUe", -1, 1, 0),
+            new Among("atrice", -1, 2, 0),
+            new Among("ance", -1, 1, 0),
+            new Among("ence", -1, 5, 0),
+            new Among("logie", -1, 3, 0),
+            new Among("able", -1, 1, 0),
+            new Among("isme", -1, 1, 0),
+            new Among("euse", -1, 12, 0),
+            new Among("iste", -1, 1, 0),
+            new Among("ive", -1, 8, 0),
+            new Among("if", -1, 8, 0),
+            new Among("usion", -1, 4, 0),
+            new Among("ation", -1, 2, 0),
+            new Among("ution", -1, 4, 0),
+            new Among("ateur", -1, 2, 0),
+            new Among("iqUes", -1, 1, 0),
+            new Among("atrices", -1, 2, 0),
+            new Among("ances", -1, 1, 0),
+            new Among("ences", -1, 5, 0),
+            new Among("logies", -1, 3, 0),
+            new Among("ables", -1, 1, 0),
+            new Among("ismes", -1, 1, 0),
+            new Among("euses", -1, 12, 0),
+            new Among("istes", -1, 1, 0),
+            new Among("ives", -1, 8, 0),
+            new Among("ifs", -1, 8, 0),
+            new Among("usions", -1, 4, 0),
+            new Among("ations", -1, 2, 0),
+            new Among("utions", -1, 4, 0),
+            new Among("ateurs", -1, 2, 0),
+            new Among("ments", -1, 16, 0),
+            new Among("ements", 30, 6, 0),
+            new Among("issements", 31, 13, 0),
+            new Among("ités", -1, 7, 0),
+            new Among("ment", -1, 16, 0),
+            new Among("ement", 34, 6, 0),
+            new Among("issement", 35, 13, 0),
+            new Among("amment", 34, 14, 0),
+            new Among("emment", 34, 15, 0),
+            new Among("aux", -1, 10, 0),
+            new Among("eaux", 39, 9, 0),
+            new Among("eux", -1, 1, 0),
+            new Among("oux", -1, 11, 0),
+            new Among("ité", -1, 7, 0)
         };
 
         private static readonly Among[] a_5 = new[]
         {
-            new Among("ira", -1, 1),
-            new Among("ie", -1, 1),
-            new Among("isse", -1, 1),
-            new Among("issante", -1, 1),
-            new Among("i", -1, 1),
-            new Among("irai", 4, 1),
-            new Among("ir", -1, 1),
-            new Among("iras", -1, 1),
-            new Among("ies", -1, 1),
-            new Among("îmes", -1, 1),
-            new Among("isses", -1, 1),
-            new Among("issantes", -1, 1),
-            new Among("îtes", -1, 1),
-            new Among("is", -1, 1),
-            new Among("irais", 13, 1),
-            new Among("issais", 13, 1),
-            new Among("irions", -1, 1),
-            new Among("issions", -1, 1),
-            new Among("irons", -1, 1),
-            new Among("issons", -1, 1),
-            new Among("issants", -1, 1),
-            new Among("it", -1, 1),
-            new Among("irait", 21, 1),
-            new Among("issait", 21, 1),
-            new Among("issant", -1, 1),
-            new Among("iraIent", -1, 1),
-            new Among("issaIent", -1, 1),
-            new Among("irent", -1, 1),
-            new Among("issent", -1, 1),
-            new Among("iront", -1, 1),
-            new Among("ît", -1, 1),
-            new Among("iriez", -1, 1),
-            new Among("issiez", -1, 1),
-            new Among("irez", -1, 1),
-            new Among("issez", -1, 1)
+            new Among("ira", -1, 1, 0),
+            new Among("ie", -1, 1, 0),
+            new Among("isse", -1, 1, 0),
+            new Among("issante", -1, 1, 0),
+            new Among("i", -1, 1, 0),
+            new Among("irai", 4, 1, 0),
+            new Among("ir", -1, 1, 0),
+            new Among("iras", -1, 1, 0),
+            new Among("ies", -1, 1, 0),
+            new Among("îmes", -1, 1, 0),
+            new Among("isses", -1, 1, 0),
+            new Among("issantes", -1, 1, 0),
+            new Among("îtes", -1, 1, 0),
+            new Among("is", -1, 1, 0),
+            new Among("irais", 13, 1, 0),
+            new Among("issais", 13, 1, 0),
+            new Among("irions", -1, 1, 0),
+            new Among("issions", -1, 1, 0),
+            new Among("irons", -1, 1, 0),
+            new Among("issons", -1, 1, 0),
+            new Among("issants", -1, 1, 0),
+            new Among("it", -1, 1, 0),
+            new Among("irait", 21, 1, 0),
+            new Among("issait", 21, 1, 0),
+            new Among("issant", -1, 1, 0),
+            new Among("iraIent", -1, 1, 0),
+            new Among("issaIent", -1, 1, 0),
+            new Among("irent", -1, 1, 0),
+            new Among("issent", -1, 1, 0),
+            new Among("iront", -1, 1, 0),
+            new Among("ît", -1, 1, 0),
+            new Among("iriez", -1, 1, 0),
+            new Among("issiez", -1, 1, 0),
+            new Among("irez", -1, 1, 0),
+            new Among("issez", -1, 1, 0)
         };
 
         private static readonly Among[] a_6 = new[]
         {
-            new Among("al", -1, 1),
-            new Among("épl", -1, -1),
-            new Among("auv", -1, -1)
+            new Among("al", -1, 1, 0),
+            new Among("épl", -1, -1, 0),
+            new Among("auv", -1, -1, 0)
         };
 
         private static readonly Among[] a_7 = new[]
         {
-            new Among("a", -1, 3),
-            new Among("era", 0, 2),
-            new Among("aise", -1, 4),
-            new Among("asse", -1, 3),
-            new Among("ante", -1, 3),
-            new Among("ée", -1, 2),
-            new Among("ai", -1, 3),
-            new Among("erai", 6, 2),
-            new Among("er", -1, 2),
-            new Among("as", -1, 3),
-            new Among("eras", 9, 2),
-            new Among("âmes", -1, 3),
-            new Among("aises", -1, 4),
-            new Among("asses", -1, 3),
-            new Among("antes", -1, 3),
-            new Among("âtes", -1, 3),
-            new Among("ées", -1, 2),
-            new Among("ais", -1, 4),
-            new Among("eais", 17, 2),
-            new Among("erais", 17, 2),
-            new Among("ions", -1, 1),
-            new Among("erions", 20, 2),
-            new Among("assions", 20, 3),
-            new Among("erons", -1, 2),
-            new Among("ants", -1, 3),
-            new Among("és", -1, 2),
-            new Among("ait", -1, 3),
-            new Among("erait", 26, 2),
-            new Among("ant", -1, 3),
-            new Among("aIent", -1, 3),
-            new Among("eraIent", 29, 2),
-            new Among("èrent", -1, 2),
-            new Among("assent", -1, 3),
-            new Among("eront", -1, 2),
-            new Among("ât", -1, 3),
-            new Among("ez", -1, 2),
-            new Among("iez", 35, 2),
-            new Among("eriez", 36, 2),
-            new Among("assiez", 36, 3),
-            new Among("erez", 35, 2),
-            new Among("é", -1, 2)
+            new Among("a", -1, 3, 0),
+            new Among("era", 0, 2, 0),
+            new Among("aise", -1, 4, 0),
+            new Among("asse", -1, 3, 0),
+            new Among("ante", -1, 3, 0),
+            new Among("ée", -1, 2, 0),
+            new Among("ai", -1, 3, 0),
+            new Among("erai", 6, 2, 0),
+            new Among("er", -1, 2, 0),
+            new Among("as", -1, 3, 0),
+            new Among("eras", 9, 2, 0),
+            new Among("âmes", -1, 3, 0),
+            new Among("aises", -1, 4, 0),
+            new Among("asses", -1, 3, 0),
+            new Among("antes", -1, 3, 0),
+            new Among("âtes", -1, 3, 0),
+            new Among("ées", -1, 2, 0),
+            new Among("ais", -1, 4, 0),
+            new Among("eais", 17, 2, 0),
+            new Among("erais", 17, 2, 0),
+            new Among("ions", -1, 1, 0),
+            new Among("erions", 20, 2, 0),
+            new Among("assions", 20, 3, 0),
+            new Among("erons", -1, 2, 0),
+            new Among("ants", -1, 3, 0),
+            new Among("és", -1, 2, 0),
+            new Among("ait", -1, 3, 0),
+            new Among("erait", 26, 2, 0),
+            new Among("ant", -1, 3, 0),
+            new Among("aIent", -1, 3, 0),
+            new Among("eraIent", 29, 2, 0),
+            new Among("èrent", -1, 2, 0),
+            new Among("assent", -1, 3, 0),
+            new Among("eront", -1, 2, 0),
+            new Among("ât", -1, 3, 0),
+            new Among("ez", -1, 2, 0),
+            new Among("iez", 35, 2, 0),
+            new Among("eriez", 36, 2, 0),
+            new Among("assiez", 36, 3, 0),
+            new Among("erez", 35, 2, 0),
+            new Among("é", -1, 2, 0)
         };
 
         private static readonly Among[] a_8 = new[]
         {
-            new Among("e", -1, 3),
-            new Among("Ière", 0, 2),
-            new Among("ière", 0, 2),
-            new Among("ion", -1, 1),
-            new Among("Ier", -1, 2),
-            new Among("ier", -1, 2)
+            new Among("e", -1, 3, 0),
+            new Among("Ière", 0, 2, 0),
+            new Among("ière", 0, 2, 0),
+            new Among("ion", -1, 1, 0),
+            new Among("Ier", -1, 2, 0),
+            new Among("ier", -1, 2, 0)
         };
 
         private static readonly Among[] a_9 = new[]
         {
-            new Among("ell", -1, -1),
-            new Among("eill", -1, -1),
-            new Among("enn", -1, -1),
-            new Among("onn", -1, -1),
-            new Among("ett", -1, -1)
+            new Among("ell", -1, -1, 0),
+            new Among("eill", -1, -1, 0),
+            new Among("enn", -1, -1, 0),
+            new Among("onn", -1, -1, 0),
+            new Among("ett", -1, -1, 0)
         };
 
 
@@ -398,7 +398,7 @@ namespace Snowball
                     goto lab1;
                 lab2: ;
                     cursor = c2;
-                    among_var = find_among(a_0);
+                    among_var = find_among(a_0, null);
                     if (among_var == 0)
                     {
                         goto lab3;
@@ -493,7 +493,7 @@ namespace Snowball
             {
                 int c1 = cursor;
                 bra = cursor;
-                among_var = find_among(a_1);
+                among_var = find_among(a_1, null);
                 ket = cursor;
                 switch (among_var) {
                     case 1: {
@@ -556,7 +556,7 @@ namespace Snowball
         {
             int among_var;
             ket = cursor;
-            among_var = find_among_b(a_4);
+            among_var = find_among_b(a_4, null);
             if (among_var == 0)
             {
                 return false;
@@ -624,7 +624,7 @@ namespace Snowball
                     {
                         int c3 = limit - cursor;
                         ket = cursor;
-                        among_var = find_among_b(a_2);
+                        among_var = find_among_b(a_2, null);
                         if (among_var == 0)
                         {
                             {
@@ -707,7 +707,7 @@ namespace Snowball
                     {
                         int c5 = limit - cursor;
                         ket = cursor;
-                        among_var = find_among_b(a_3);
+                        among_var = find_among_b(a_3, null);
                         if (among_var == 0)
                         {
                             {
@@ -890,7 +890,7 @@ namespace Snowball
             int c1 = limit_backward;
             limit_backward = I_pV;
             ket = cursor;
-            if (find_among_b(a_5) == 0)
+            if (find_among_b(a_5, null) == 0)
             {
                 {
                     limit_backward = c1;
@@ -933,7 +933,7 @@ namespace Snowball
             int c1 = limit_backward;
             limit_backward = I_pV;
             ket = cursor;
-            among_var = find_among_b(a_7);
+            among_var = find_among_b(a_7, null);
             if (among_var == 0)
             {
                 {
@@ -978,7 +978,7 @@ namespace Snowball
                 case 4: {
                     {
                         int c3 = limit - cursor;
-                        among_var = find_among_b(a_6);
+                        among_var = find_among_b(a_6, null);
                         if (among_var == 0)
                         {
                             goto lab1;
@@ -1054,7 +1054,7 @@ namespace Snowball
             int c4 = limit_backward;
             limit_backward = I_pV;
             ket = cursor;
-            among_var = find_among_b(a_8);
+            among_var = find_among_b(a_8, null);
             if (among_var == 0)
             {
                 {
@@ -1108,7 +1108,7 @@ namespace Snowball
         {
             {
                 int c1 = limit - cursor;
-                if (find_among_b(a_9) == 0)
+                if (find_among_b(a_9, null) == 0)
                 {
                     return false;
                 }

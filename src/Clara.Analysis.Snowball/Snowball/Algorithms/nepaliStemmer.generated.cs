@@ -1,4 +1,4 @@
-﻿// Generated from nepali.sbl by Snowball 3.0.1 - https://snowballstem.org/
+﻿// Generated from nepali.sbl by Snowball 3.0.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,134 +10,134 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from nepali.sbl by Snowball 3.0.1 - https://snowballstem.org/
+    ///  Generated from nepali.sbl by Snowball 3.0.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.1")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
     internal partial class NepaliStemmer : Stemmer
     {
 
         private static readonly Among[] a_0 = new[]
         {
-            new Among("\u0932\u093E\u0907", -1, 1),
-            new Among("\u0932\u093E\u0908", -1, 1),
-            new Among("\u0938\u0901\u0917", -1, 1),
-            new Among("\u0938\u0902\u0917", -1, 1),
-            new Among("\u092E\u093E\u0930\u094D\u092B\u0924", -1, 1),
-            new Among("\u0930\u0924", -1, 1),
-            new Among("\u0915\u093E", -1, 2),
-            new Among("\u092E\u093E", -1, 1),
-            new Among("\u0926\u094D\u0935\u093E\u0930\u093E", -1, 1),
-            new Among("\u0915\u093F", -1, 2),
-            new Among("\u092A\u091B\u093F", -1, 1),
-            new Among("\u0915\u0940", -1, 2),
-            new Among("\u0932\u0947", -1, 1),
-            new Among("\u0915\u0948", -1, 2),
-            new Among("\u0938\u0901\u0917\u0948", -1, 1),
-            new Among("\u092E\u0948", -1, 1),
-            new Among("\u0915\u094B", -1, 2)
+            new Among("\u0932\u093E\u0907", -1, 1, 0),
+            new Among("\u0932\u093E\u0908", -1, 1, 0),
+            new Among("\u0938\u0901\u0917", -1, 1, 0),
+            new Among("\u0938\u0902\u0917", -1, 1, 0),
+            new Among("\u092E\u093E\u0930\u094D\u092B\u0924", -1, 1, 0),
+            new Among("\u0930\u0924", -1, 1, 0),
+            new Among("\u0915\u093E", -1, 2, 0),
+            new Among("\u092E\u093E", -1, 1, 0),
+            new Among("\u0926\u094D\u0935\u093E\u0930\u093E", -1, 1, 0),
+            new Among("\u0915\u093F", -1, 2, 0),
+            new Among("\u092A\u091B\u093F", -1, 1, 0),
+            new Among("\u0915\u0940", -1, 2, 0),
+            new Among("\u0932\u0947", -1, 1, 0),
+            new Among("\u0915\u0948", -1, 2, 0),
+            new Among("\u0938\u0901\u0917\u0948", -1, 1, 0),
+            new Among("\u092E\u0948", -1, 1, 0),
+            new Among("\u0915\u094B", -1, 2, 0)
         };
 
         private static readonly Among[] a_1 = new[]
         {
-            new Among("\u0901", -1, 1),
-            new Among("\u0902", -1, 1),
-            new Among("\u0948", -1, 2)
+            new Among("\u0901", -1, 1, 0),
+            new Among("\u0902", -1, 1, 0),
+            new Among("\u0948", -1, 2, 0)
         };
 
         private static readonly Among[] a_2 = new[]
         {
-            new Among("\u0925\u093F\u090F", -1, 1),
-            new Among("\u091B", -1, 1),
-            new Among("\u0907\u091B", 1, 1),
-            new Among("\u090F\u091B", 1, 1),
-            new Among("\u093F\u091B", 1, 1),
-            new Among("\u0947\u091B", 1, 1),
-            new Among("\u0928\u0947\u091B", 5, 1),
-            new Among("\u0939\u0941\u0928\u0947\u091B", 6, 1),
-            new Among("\u0907\u0928\u094D\u091B", 1, 1),
-            new Among("\u093F\u0928\u094D\u091B", 1, 1),
-            new Among("\u0939\u0941\u0928\u094D\u091B", 1, 1),
-            new Among("\u090F\u0915\u093E", -1, 1),
-            new Among("\u0907\u090F\u0915\u093E", 11, 1),
-            new Among("\u093F\u090F\u0915\u093E", 11, 1),
-            new Among("\u0947\u0915\u093E", -1, 1),
-            new Among("\u0928\u0947\u0915\u093E", 14, 1),
-            new Among("\u0926\u093E", -1, 1),
-            new Among("\u0907\u0926\u093E", 16, 1),
-            new Among("\u093F\u0926\u093E", 16, 1),
-            new Among("\u0926\u0947\u0916\u093F", -1, 1),
-            new Among("\u092E\u093E\u0925\u093F", -1, 1),
-            new Among("\u090F\u0915\u0940", -1, 1),
-            new Among("\u0907\u090F\u0915\u0940", 21, 1),
-            new Among("\u093F\u090F\u0915\u0940", 21, 1),
-            new Among("\u0947\u0915\u0940", -1, 1),
-            new Among("\u0926\u0947\u0916\u0940", -1, 1),
-            new Among("\u0925\u0940", -1, 1),
-            new Among("\u0926\u0940", -1, 1),
-            new Among("\u091B\u0941", -1, 1),
-            new Among("\u090F\u091B\u0941", 28, 1),
-            new Among("\u0947\u091B\u0941", 28, 1),
-            new Among("\u0928\u0947\u091B\u0941", 30, 1),
-            new Among("\u0928\u0941", -1, 1),
-            new Among("\u0939\u0930\u0941", -1, 1),
-            new Among("\u0939\u0930\u0942", -1, 1),
-            new Among("\u091B\u0947", -1, 1),
-            new Among("\u0925\u0947", -1, 1),
-            new Among("\u0928\u0947", -1, 1),
-            new Among("\u090F\u0915\u0948", -1, 1),
-            new Among("\u0947\u0915\u0948", -1, 1),
-            new Among("\u0928\u0947\u0915\u0948", 39, 1),
-            new Among("\u0926\u0948", -1, 1),
-            new Among("\u0907\u0926\u0948", 41, 1),
-            new Among("\u093F\u0926\u0948", 41, 1),
-            new Among("\u090F\u0915\u094B", -1, 1),
-            new Among("\u0907\u090F\u0915\u094B", 44, 1),
-            new Among("\u093F\u090F\u0915\u094B", 44, 1),
-            new Among("\u0947\u0915\u094B", -1, 1),
-            new Among("\u0928\u0947\u0915\u094B", 47, 1),
-            new Among("\u0926\u094B", -1, 1),
-            new Among("\u0907\u0926\u094B", 49, 1),
-            new Among("\u093F\u0926\u094B", 49, 1),
-            new Among("\u092F\u094B", -1, 1),
-            new Among("\u0907\u092F\u094B", 52, 1),
-            new Among("\u092D\u092F\u094B", 52, 1),
-            new Among("\u093F\u092F\u094B", 52, 1),
-            new Among("\u0925\u093F\u092F\u094B", 55, 1),
-            new Among("\u0926\u093F\u092F\u094B", 55, 1),
-            new Among("\u0925\u094D\u092F\u094B", 52, 1),
-            new Among("\u091B\u094C", -1, 1),
-            new Among("\u0907\u091B\u094C", 59, 1),
-            new Among("\u090F\u091B\u094C", 59, 1),
-            new Among("\u093F\u091B\u094C", 59, 1),
-            new Among("\u0947\u091B\u094C", 59, 1),
-            new Among("\u0928\u0947\u091B\u094C", 63, 1),
-            new Among("\u092F\u094C", -1, 1),
-            new Among("\u0925\u093F\u092F\u094C", 65, 1),
-            new Among("\u091B\u094D\u092F\u094C", 65, 1),
-            new Among("\u0925\u094D\u092F\u094C", 65, 1),
-            new Among("\u091B\u0928\u094D", -1, 1),
-            new Among("\u0907\u091B\u0928\u094D", 69, 1),
-            new Among("\u090F\u091B\u0928\u094D", 69, 1),
-            new Among("\u093F\u091B\u0928\u094D", 69, 1),
-            new Among("\u0947\u091B\u0928\u094D", 69, 1),
-            new Among("\u0928\u0947\u091B\u0928\u094D", 73, 1),
-            new Among("\u0932\u093E\u0928\u094D", -1, 1),
-            new Among("\u091B\u093F\u0928\u094D", -1, 1),
-            new Among("\u0925\u093F\u0928\u094D", -1, 1),
-            new Among("\u092A\u0930\u094D", -1, 1),
-            new Among("\u0907\u0938\u094D", -1, 1),
-            new Among("\u0925\u093F\u0907\u0938\u094D", 79, 1),
-            new Among("\u091B\u0938\u094D", -1, 1),
-            new Among("\u0907\u091B\u0938\u094D", 81, 1),
-            new Among("\u090F\u091B\u0938\u094D", 81, 1),
-            new Among("\u093F\u091B\u0938\u094D", 81, 1),
-            new Among("\u0947\u091B\u0938\u094D", 81, 1),
-            new Among("\u0928\u0947\u091B\u0938\u094D", 85, 1),
-            new Among("\u093F\u0938\u094D", -1, 1),
-            new Among("\u0925\u093F\u0938\u094D", 87, 1),
-            new Among("\u091B\u0947\u0938\u094D", -1, 1),
-            new Among("\u0939\u094B\u0938\u094D", -1, 1)
+            new Among("\u0925\u093F\u090F", -1, 1, 0),
+            new Among("\u091B", -1, 1, 0),
+            new Among("\u0907\u091B", 1, 1, 0),
+            new Among("\u090F\u091B", 1, 1, 0),
+            new Among("\u093F\u091B", 1, 1, 0),
+            new Among("\u0947\u091B", 1, 1, 0),
+            new Among("\u0928\u0947\u091B", 5, 1, 0),
+            new Among("\u0939\u0941\u0928\u0947\u091B", 6, 1, 0),
+            new Among("\u0907\u0928\u094D\u091B", 1, 1, 0),
+            new Among("\u093F\u0928\u094D\u091B", 1, 1, 0),
+            new Among("\u0939\u0941\u0928\u094D\u091B", 1, 1, 0),
+            new Among("\u090F\u0915\u093E", -1, 1, 0),
+            new Among("\u0907\u090F\u0915\u093E", 11, 1, 0),
+            new Among("\u093F\u090F\u0915\u093E", 11, 1, 0),
+            new Among("\u0947\u0915\u093E", -1, 1, 0),
+            new Among("\u0928\u0947\u0915\u093E", 14, 1, 0),
+            new Among("\u0926\u093E", -1, 1, 0),
+            new Among("\u0907\u0926\u093E", 16, 1, 0),
+            new Among("\u093F\u0926\u093E", 16, 1, 0),
+            new Among("\u0926\u0947\u0916\u093F", -1, 1, 0),
+            new Among("\u092E\u093E\u0925\u093F", -1, 1, 0),
+            new Among("\u090F\u0915\u0940", -1, 1, 0),
+            new Among("\u0907\u090F\u0915\u0940", 21, 1, 0),
+            new Among("\u093F\u090F\u0915\u0940", 21, 1, 0),
+            new Among("\u0947\u0915\u0940", -1, 1, 0),
+            new Among("\u0926\u0947\u0916\u0940", -1, 1, 0),
+            new Among("\u0925\u0940", -1, 1, 0),
+            new Among("\u0926\u0940", -1, 1, 0),
+            new Among("\u091B\u0941", -1, 1, 0),
+            new Among("\u090F\u091B\u0941", 28, 1, 0),
+            new Among("\u0947\u091B\u0941", 28, 1, 0),
+            new Among("\u0928\u0947\u091B\u0941", 30, 1, 0),
+            new Among("\u0928\u0941", -1, 1, 0),
+            new Among("\u0939\u0930\u0941", -1, 1, 0),
+            new Among("\u0939\u0930\u0942", -1, 1, 0),
+            new Among("\u091B\u0947", -1, 1, 0),
+            new Among("\u0925\u0947", -1, 1, 0),
+            new Among("\u0928\u0947", -1, 1, 0),
+            new Among("\u090F\u0915\u0948", -1, 1, 0),
+            new Among("\u0947\u0915\u0948", -1, 1, 0),
+            new Among("\u0928\u0947\u0915\u0948", 39, 1, 0),
+            new Among("\u0926\u0948", -1, 1, 0),
+            new Among("\u0907\u0926\u0948", 41, 1, 0),
+            new Among("\u093F\u0926\u0948", 41, 1, 0),
+            new Among("\u090F\u0915\u094B", -1, 1, 0),
+            new Among("\u0907\u090F\u0915\u094B", 44, 1, 0),
+            new Among("\u093F\u090F\u0915\u094B", 44, 1, 0),
+            new Among("\u0947\u0915\u094B", -1, 1, 0),
+            new Among("\u0928\u0947\u0915\u094B", 47, 1, 0),
+            new Among("\u0926\u094B", -1, 1, 0),
+            new Among("\u0907\u0926\u094B", 49, 1, 0),
+            new Among("\u093F\u0926\u094B", 49, 1, 0),
+            new Among("\u092F\u094B", -1, 1, 0),
+            new Among("\u0907\u092F\u094B", 52, 1, 0),
+            new Among("\u092D\u092F\u094B", 52, 1, 0),
+            new Among("\u093F\u092F\u094B", 52, 1, 0),
+            new Among("\u0925\u093F\u092F\u094B", 55, 1, 0),
+            new Among("\u0926\u093F\u092F\u094B", 55, 1, 0),
+            new Among("\u0925\u094D\u092F\u094B", 52, 1, 0),
+            new Among("\u091B\u094C", -1, 1, 0),
+            new Among("\u0907\u091B\u094C", 59, 1, 0),
+            new Among("\u090F\u091B\u094C", 59, 1, 0),
+            new Among("\u093F\u091B\u094C", 59, 1, 0),
+            new Among("\u0947\u091B\u094C", 59, 1, 0),
+            new Among("\u0928\u0947\u091B\u094C", 63, 1, 0),
+            new Among("\u092F\u094C", -1, 1, 0),
+            new Among("\u0925\u093F\u092F\u094C", 65, 1, 0),
+            new Among("\u091B\u094D\u092F\u094C", 65, 1, 0),
+            new Among("\u0925\u094D\u092F\u094C", 65, 1, 0),
+            new Among("\u091B\u0928\u094D", -1, 1, 0),
+            new Among("\u0907\u091B\u0928\u094D", 69, 1, 0),
+            new Among("\u090F\u091B\u0928\u094D", 69, 1, 0),
+            new Among("\u093F\u091B\u0928\u094D", 69, 1, 0),
+            new Among("\u0947\u091B\u0928\u094D", 69, 1, 0),
+            new Among("\u0928\u0947\u091B\u0928\u094D", 73, 1, 0),
+            new Among("\u0932\u093E\u0928\u094D", -1, 1, 0),
+            new Among("\u091B\u093F\u0928\u094D", -1, 1, 0),
+            new Among("\u0925\u093F\u0928\u094D", -1, 1, 0),
+            new Among("\u092A\u0930\u094D", -1, 1, 0),
+            new Among("\u0907\u0938\u094D", -1, 1, 0),
+            new Among("\u0925\u093F\u0907\u0938\u094D", 79, 1, 0),
+            new Among("\u091B\u0938\u094D", -1, 1, 0),
+            new Among("\u0907\u091B\u0938\u094D", 81, 1, 0),
+            new Among("\u090F\u091B\u0938\u094D", 81, 1, 0),
+            new Among("\u093F\u091B\u0938\u094D", 81, 1, 0),
+            new Among("\u0947\u091B\u0938\u094D", 81, 1, 0),
+            new Among("\u0928\u0947\u091B\u0938\u094D", 85, 1, 0),
+            new Among("\u093F\u0938\u094D", -1, 1, 0),
+            new Among("\u0925\u093F\u0938\u094D", 87, 1, 0),
+            new Among("\u091B\u0947\u0938\u094D", -1, 1, 0),
+            new Among("\u0939\u094B\u0938\u094D", -1, 1, 0)
         };
 
 
@@ -145,7 +145,7 @@ namespace Snowball
         {
             int among_var;
             ket = cursor;
-            among_var = find_among_b(a_0);
+            among_var = find_among_b(a_0, null);
             if (among_var == 0)
             {
                 return false;
@@ -186,7 +186,7 @@ namespace Snowball
         {
             int among_var;
             ket = cursor;
-            among_var = find_among_b(a_1);
+            among_var = find_among_b(a_1, null);
             if (among_var == 0)
             {
                 return false;
@@ -241,7 +241,7 @@ namespace Snowball
         private bool r_remove_category_3()
         {
             ket = cursor;
-            if (find_among_b(a_2) == 0)
+            if (find_among_b(a_2, null) == 0)
             {
                 return false;
             }

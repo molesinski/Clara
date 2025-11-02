@@ -1,4 +1,4 @@
-﻿// Generated from tamil.sbl by Snowball 3.0.1 - https://snowballstem.org/
+﻿// Generated from tamil.sbl by Snowball 3.0.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,383 +10,382 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from tamil.sbl by Snowball 3.0.1 - https://snowballstem.org/
+    ///  Generated from tamil.sbl by Snowball 3.0.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.1")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
     internal partial class TamilStemmer : Stemmer
     {
         private bool B_found_vetrumai_urupu;
-        private bool B_found_a_match;
 
 
         private static readonly Among[] a_0 = new[]
         {
-            new Among("\u0BB5\u0BC1", -1, 3),
-            new Among("\u0BB5\u0BC2", -1, 4),
-            new Among("\u0BB5\u0BCA", -1, 2),
-            new Among("\u0BB5\u0BCB", -1, 1)
+            new Among("\u0BB5\u0BC1", -1, 3, 0),
+            new Among("\u0BB5\u0BC2", -1, 4, 0),
+            new Among("\u0BB5\u0BCA", -1, 2, 0),
+            new Among("\u0BB5\u0BCB", -1, 1, 0)
         };
 
         private static readonly Among[] a_1 = new[]
         {
-            new Among("\u0B95", -1, -1),
-            new Among("\u0B99", -1, -1),
-            new Among("\u0B9A", -1, -1),
-            new Among("\u0B9E", -1, -1),
-            new Among("\u0BA4", -1, -1),
-            new Among("\u0BA8", -1, -1),
-            new Among("\u0BAA", -1, -1),
-            new Among("\u0BAE", -1, -1),
-            new Among("\u0BAF", -1, -1),
-            new Among("\u0BB5", -1, -1)
+            new Among("\u0B95", -1, -1, 0),
+            new Among("\u0B99", -1, -1, 0),
+            new Among("\u0B9A", -1, -1, 0),
+            new Among("\u0B9E", -1, -1, 0),
+            new Among("\u0BA4", -1, -1, 0),
+            new Among("\u0BA8", -1, -1, 0),
+            new Among("\u0BAA", -1, -1, 0),
+            new Among("\u0BAE", -1, -1, 0),
+            new Among("\u0BAF", -1, -1, 0),
+            new Among("\u0BB5", -1, -1, 0)
         };
 
         private static readonly Among[] a_2 = new[]
         {
-            new Among("\u0BBF", -1, -1),
-            new Among("\u0BC0", -1, -1),
-            new Among("\u0BC8", -1, -1)
+            new Among("\u0BBF", -1, -1, 0),
+            new Among("\u0BC0", -1, -1, 0),
+            new Among("\u0BC8", -1, -1, 0)
         };
 
         private static readonly Among[] a_3 = new[]
         {
-            new Among("\u0BBE", -1, -1),
-            new Among("\u0BBF", -1, -1),
-            new Among("\u0BC0", -1, -1),
-            new Among("\u0BC1", -1, -1),
-            new Among("\u0BC2", -1, -1),
-            new Among("\u0BC6", -1, -1),
-            new Among("\u0BC7", -1, -1),
-            new Among("\u0BC8", -1, -1)
+            new Among("\u0BBE", -1, -1, 0),
+            new Among("\u0BBF", -1, -1, 0),
+            new Among("\u0BC0", -1, -1, 0),
+            new Among("\u0BC1", -1, -1, 0),
+            new Among("\u0BC2", -1, -1, 0),
+            new Among("\u0BC6", -1, -1, 0),
+            new Among("\u0BC7", -1, -1, 0),
+            new Among("\u0BC8", -1, -1, 0)
         };
 
         private static readonly Among[] a_4 = new[]
         {
-            new Among("", -1, 2),
-            new Among("\u0BC8", 0, 1),
-            new Among("\u0BCD", 0, 1)
+            new Among("", -1, 2, 0),
+            new Among("\u0BC8", 0, 1, 0),
+            new Among("\u0BCD", 0, 1, 0)
         };
 
         private static readonly Among[] a_5 = new[]
         {
-            new Among("\u0BA8\u0BCD\u0BA4", -1, 1),
-            new Among("\u0BAF", -1, 1),
-            new Among("\u0BB5", -1, 1),
-            new Among("\u0BA9\u0BC1", -1, 8),
-            new Among("\u0BC1\u0B95\u0BCD", -1, 7),
-            new Among("\u0BC1\u0B95\u0BCD\u0B95\u0BCD", -1, 7),
-            new Among("\u0B9F\u0BCD\u0B95\u0BCD", -1, 3),
-            new Among("\u0BB1\u0BCD\u0B95\u0BCD", -1, 4),
-            new Among("\u0B99\u0BCD", -1, 9),
-            new Among("\u0B9F\u0BCD\u0B9F\u0BCD", -1, 5),
-            new Among("\u0BA4\u0BCD\u0BA4\u0BCD", -1, 6),
-            new Among("\u0BA8\u0BCD\u0BA4\u0BCD", -1, 1),
-            new Among("\u0BA8\u0BCD", -1, 1),
-            new Among("\u0B9F\u0BCD\u0BAA\u0BCD", -1, 3),
-            new Among("\u0BAF\u0BCD", -1, 2),
-            new Among("\u0BA9\u0BCD\u0BB1\u0BCD", -1, 4),
-            new Among("\u0BB5\u0BCD", -1, 1)
+            new Among("\u0BA8\u0BCD\u0BA4", -1, 1, 0),
+            new Among("\u0BAF", -1, 1, 0),
+            new Among("\u0BB5", -1, 1, 0),
+            new Among("\u0BA9\u0BC1", -1, 8, 0),
+            new Among("\u0BC1\u0B95\u0BCD", -1, 7, 0),
+            new Among("\u0BC1\u0B95\u0BCD\u0B95\u0BCD", -1, 7, 0),
+            new Among("\u0B9F\u0BCD\u0B95\u0BCD", -1, 3, 0),
+            new Among("\u0BB1\u0BCD\u0B95\u0BCD", -1, 4, 0),
+            new Among("\u0B99\u0BCD", -1, 9, 0),
+            new Among("\u0B9F\u0BCD\u0B9F\u0BCD", -1, 5, 0),
+            new Among("\u0BA4\u0BCD\u0BA4\u0BCD", -1, 6, 0),
+            new Among("\u0BA8\u0BCD\u0BA4\u0BCD", -1, 1, 0),
+            new Among("\u0BA8\u0BCD", -1, 1, 0),
+            new Among("\u0B9F\u0BCD\u0BAA\u0BCD", -1, 3, 0),
+            new Among("\u0BAF\u0BCD", -1, 2, 0),
+            new Among("\u0BA9\u0BCD\u0BB1\u0BCD", -1, 4, 0),
+            new Among("\u0BB5\u0BCD", -1, 1, 0)
         };
 
         private static readonly Among[] a_6 = new[]
         {
-            new Among("\u0B95", -1, -1),
-            new Among("\u0B9A", -1, -1),
-            new Among("\u0B9F", -1, -1),
-            new Among("\u0BA4", -1, -1),
-            new Among("\u0BAA", -1, -1),
-            new Among("\u0BB1", -1, -1)
+            new Among("\u0B95", -1, -1, 0),
+            new Among("\u0B9A", -1, -1, 0),
+            new Among("\u0B9F", -1, -1, 0),
+            new Among("\u0BA4", -1, -1, 0),
+            new Among("\u0BAA", -1, -1, 0),
+            new Among("\u0BB1", -1, -1, 0)
         };
 
         private static readonly Among[] a_7 = new[]
         {
-            new Among("\u0B95", -1, -1),
-            new Among("\u0B9A", -1, -1),
-            new Among("\u0B9F", -1, -1),
-            new Among("\u0BA4", -1, -1),
-            new Among("\u0BAA", -1, -1),
-            new Among("\u0BB1", -1, -1)
+            new Among("\u0B95", -1, -1, 0),
+            new Among("\u0B9A", -1, -1, 0),
+            new Among("\u0B9F", -1, -1, 0),
+            new Among("\u0BA4", -1, -1, 0),
+            new Among("\u0BAA", -1, -1, 0),
+            new Among("\u0BB1", -1, -1, 0)
         };
 
         private static readonly Among[] a_8 = new[]
         {
-            new Among("\u0B9E", -1, -1),
-            new Among("\u0BA3", -1, -1),
-            new Among("\u0BA8", -1, -1),
-            new Among("\u0BA9", -1, -1),
-            new Among("\u0BAE", -1, -1),
-            new Among("\u0BAF", -1, -1),
-            new Among("\u0BB0", -1, -1),
-            new Among("\u0BB2", -1, -1),
-            new Among("\u0BB3", -1, -1),
-            new Among("\u0BB4", -1, -1),
-            new Among("\u0BB5", -1, -1)
+            new Among("\u0B9E", -1, -1, 0),
+            new Among("\u0BA3", -1, -1, 0),
+            new Among("\u0BA8", -1, -1, 0),
+            new Among("\u0BA9", -1, -1, 0),
+            new Among("\u0BAE", -1, -1, 0),
+            new Among("\u0BAF", -1, -1, 0),
+            new Among("\u0BB0", -1, -1, 0),
+            new Among("\u0BB2", -1, -1, 0),
+            new Among("\u0BB3", -1, -1, 0),
+            new Among("\u0BB4", -1, -1, 0),
+            new Among("\u0BB5", -1, -1, 0)
         };
 
         private static readonly Among[] a_9 = new[]
         {
-            new Among("\u0BBE", -1, -1),
-            new Among("\u0BBF", -1, -1),
-            new Among("\u0BC0", -1, -1),
-            new Among("\u0BC1", -1, -1),
-            new Among("\u0BC2", -1, -1),
-            new Among("\u0BC6", -1, -1),
-            new Among("\u0BC7", -1, -1),
-            new Among("\u0BC8", -1, -1),
-            new Among("\u0BCD", -1, -1)
+            new Among("\u0BBE", -1, -1, 0),
+            new Among("\u0BBF", -1, -1, 0),
+            new Among("\u0BC0", -1, -1, 0),
+            new Among("\u0BC1", -1, -1, 0),
+            new Among("\u0BC2", -1, -1, 0),
+            new Among("\u0BC6", -1, -1, 0),
+            new Among("\u0BC7", -1, -1, 0),
+            new Among("\u0BC8", -1, -1, 0),
+            new Among("\u0BCD", -1, -1, 0)
         };
 
         private static readonly Among[] a_10 = new[]
         {
-            new Among("\u0B85", -1, -1),
-            new Among("\u0B87", -1, -1),
-            new Among("\u0B89", -1, -1)
+            new Among("\u0B85", -1, -1, 0),
+            new Among("\u0B87", -1, -1, 0),
+            new Among("\u0B89", -1, -1, 0)
         };
 
         private static readonly Among[] a_11 = new[]
         {
-            new Among("\u0B95", -1, -1),
-            new Among("\u0B99", -1, -1),
-            new Among("\u0B9A", -1, -1),
-            new Among("\u0B9E", -1, -1),
-            new Among("\u0BA4", -1, -1),
-            new Among("\u0BA8", -1, -1),
-            new Among("\u0BAA", -1, -1),
-            new Among("\u0BAE", -1, -1),
-            new Among("\u0BAF", -1, -1),
-            new Among("\u0BB5", -1, -1)
+            new Among("\u0B95", -1, -1, 0),
+            new Among("\u0B99", -1, -1, 0),
+            new Among("\u0B9A", -1, -1, 0),
+            new Among("\u0B9E", -1, -1, 0),
+            new Among("\u0BA4", -1, -1, 0),
+            new Among("\u0BA8", -1, -1, 0),
+            new Among("\u0BAA", -1, -1, 0),
+            new Among("\u0BAE", -1, -1, 0),
+            new Among("\u0BAF", -1, -1, 0),
+            new Among("\u0BB5", -1, -1, 0)
         };
 
         private static readonly Among[] a_12 = new[]
         {
-            new Among("\u0B95", -1, -1),
-            new Among("\u0B9A", -1, -1),
-            new Among("\u0B9F", -1, -1),
-            new Among("\u0BA4", -1, -1),
-            new Among("\u0BAA", -1, -1),
-            new Among("\u0BB1", -1, -1)
+            new Among("\u0B95", -1, -1, 0),
+            new Among("\u0B9A", -1, -1, 0),
+            new Among("\u0B9F", -1, -1, 0),
+            new Among("\u0BA4", -1, -1, 0),
+            new Among("\u0BAA", -1, -1, 0),
+            new Among("\u0BB1", -1, -1, 0)
         };
 
         private static readonly Among[] a_13 = new[]
         {
-            new Among("\u0B95\u0BB3\u0BCD", -1, 4),
-            new Among("\u0BC1\u0B99\u0BCD\u0B95\u0BB3\u0BCD", 0, 1),
-            new Among("\u0B9F\u0BCD\u0B95\u0BB3\u0BCD", 0, 3),
-            new Among("\u0BB1\u0BCD\u0B95\u0BB3\u0BCD", 0, 2)
+            new Among("\u0B95\u0BB3\u0BCD", -1, 4, 0),
+            new Among("\u0BC1\u0B99\u0BCD\u0B95\u0BB3\u0BCD", 0, 1, 0),
+            new Among("\u0B9F\u0BCD\u0B95\u0BB3\u0BCD", 0, 3, 0),
+            new Among("\u0BB1\u0BCD\u0B95\u0BB3\u0BCD", 0, 2, 0)
         };
 
         private static readonly Among[] a_14 = new[]
         {
-            new Among("\u0BBE", -1, -1),
-            new Among("\u0BC7", -1, -1),
-            new Among("\u0BCB", -1, -1)
+            new Among("\u0BBE", -1, -1, 0),
+            new Among("\u0BC7", -1, -1, 0),
+            new Among("\u0BCB", -1, -1, 0)
         };
 
         private static readonly Among[] a_15 = new[]
         {
-            new Among("\u0BAA\u0BBF", -1, -1),
-            new Among("\u0BB5\u0BBF", -1, -1)
+            new Among("\u0BAA\u0BBF", -1, -1, 0),
+            new Among("\u0BB5\u0BBF", -1, -1, 0)
         };
 
         private static readonly Among[] a_16 = new[]
         {
-            new Among("\u0BBE", -1, -1),
-            new Among("\u0BBF", -1, -1),
-            new Among("\u0BC0", -1, -1),
-            new Among("\u0BC1", -1, -1),
-            new Among("\u0BC2", -1, -1),
-            new Among("\u0BC6", -1, -1),
-            new Among("\u0BC7", -1, -1),
-            new Among("\u0BC8", -1, -1)
+            new Among("\u0BBE", -1, -1, 0),
+            new Among("\u0BBF", -1, -1, 0),
+            new Among("\u0BC0", -1, -1, 0),
+            new Among("\u0BC1", -1, -1, 0),
+            new Among("\u0BC2", -1, -1, 0),
+            new Among("\u0BC6", -1, -1, 0),
+            new Among("\u0BC7", -1, -1, 0),
+            new Among("\u0BC8", -1, -1, 0)
         };
 
         private static readonly Among[] a_17 = new[]
         {
-            new Among("\u0BAA\u0B9F\u0BCD\u0B9F", -1, 3),
-            new Among("\u0BAA\u0B9F\u0BCD\u0B9F\u0BA3", -1, 3),
-            new Among("\u0BA4\u0BBE\u0BA9", -1, 3),
-            new Among("\u0BAA\u0B9F\u0BBF\u0BA4\u0BBE\u0BA9", 2, 3),
-            new Among("\u0BC6\u0BA9", -1, 1),
-            new Among("\u0BBE\u0B95\u0BBF\u0BAF", -1, 1),
-            new Among("\u0B95\u0BC1\u0BB0\u0BBF\u0BAF", -1, 3),
-            new Among("\u0BC1\u0B9F\u0BC8\u0BAF", -1, 1),
-            new Among("\u0BB2\u0BCD\u0BB2", -1, 2),
-            new Among("\u0BC1\u0BB3\u0BCD\u0BB3", -1, 1),
-            new Among("\u0BBE\u0B95\u0BBF", -1, 1),
-            new Among("\u0BAA\u0B9F\u0BBF", -1, 3),
-            new Among("\u0BBF\u0BA9\u0BCD\u0BB1\u0BBF", -1, 1),
-            new Among("\u0BAA\u0BB1\u0BCD\u0BB1\u0BBF", -1, 3),
-            new Among("\u0BAA\u0B9F\u0BC1", -1, 3),
-            new Among("\u0BB5\u0BBF\u0B9F\u0BC1", -1, 3),
-            new Among("\u0BAA\u0B9F\u0BCD\u0B9F\u0BC1", -1, 3),
-            new Among("\u0BB5\u0BBF\u0B9F\u0BCD\u0B9F\u0BC1", -1, 3),
-            new Among("\u0BAA\u0B9F\u0BCD\u0B9F\u0BA4\u0BC1", -1, 3),
-            new Among("\u0BC6\u0BA9\u0BCD\u0BB1\u0BC1", -1, 1),
-            new Among("\u0BC1\u0B9F\u0BC8", -1, 1),
-            new Among("\u0BBF\u0BB2\u0BCD\u0BB2\u0BC8", -1, 1),
-            new Among("\u0BC1\u0B9F\u0BA9\u0BCD", -1, 1),
-            new Among("\u0BBF\u0B9F\u0BAE\u0BCD", -1, 1),
-            new Among("\u0BC6\u0BB2\u0BCD\u0BB2\u0BBE\u0BAE\u0BCD", -1, 3),
-            new Among("\u0BC6\u0BA9\u0BC1\u0BAE\u0BCD", -1, 1)
+            new Among("\u0BAA\u0B9F\u0BCD\u0B9F", -1, 3, 0),
+            new Among("\u0BAA\u0B9F\u0BCD\u0B9F\u0BA3", -1, 3, 0),
+            new Among("\u0BA4\u0BBE\u0BA9", -1, 3, 0),
+            new Among("\u0BAA\u0B9F\u0BBF\u0BA4\u0BBE\u0BA9", 2, 3, 0),
+            new Among("\u0BC6\u0BA9", -1, 1, 0),
+            new Among("\u0BBE\u0B95\u0BBF\u0BAF", -1, 1, 0),
+            new Among("\u0B95\u0BC1\u0BB0\u0BBF\u0BAF", -1, 3, 0),
+            new Among("\u0BC1\u0B9F\u0BC8\u0BAF", -1, 1, 0),
+            new Among("\u0BB2\u0BCD\u0BB2", -1, 2, 0),
+            new Among("\u0BC1\u0BB3\u0BCD\u0BB3", -1, 1, 0),
+            new Among("\u0BBE\u0B95\u0BBF", -1, 1, 0),
+            new Among("\u0BAA\u0B9F\u0BBF", -1, 3, 0),
+            new Among("\u0BBF\u0BA9\u0BCD\u0BB1\u0BBF", -1, 1, 0),
+            new Among("\u0BAA\u0BB1\u0BCD\u0BB1\u0BBF", -1, 3, 0),
+            new Among("\u0BAA\u0B9F\u0BC1", -1, 3, 0),
+            new Among("\u0BB5\u0BBF\u0B9F\u0BC1", -1, 3, 0),
+            new Among("\u0BAA\u0B9F\u0BCD\u0B9F\u0BC1", -1, 3, 0),
+            new Among("\u0BB5\u0BBF\u0B9F\u0BCD\u0B9F\u0BC1", -1, 3, 0),
+            new Among("\u0BAA\u0B9F\u0BCD\u0B9F\u0BA4\u0BC1", -1, 3, 0),
+            new Among("\u0BC6\u0BA9\u0BCD\u0BB1\u0BC1", -1, 1, 0),
+            new Among("\u0BC1\u0B9F\u0BC8", -1, 1, 0),
+            new Among("\u0BBF\u0BB2\u0BCD\u0BB2\u0BC8", -1, 1, 0),
+            new Among("\u0BC1\u0B9F\u0BA9\u0BCD", -1, 1, 0),
+            new Among("\u0BBF\u0B9F\u0BAE\u0BCD", -1, 1, 0),
+            new Among("\u0BC6\u0BB2\u0BCD\u0BB2\u0BBE\u0BAE\u0BCD", -1, 3, 0),
+            new Among("\u0BC6\u0BA9\u0BC1\u0BAE\u0BCD", -1, 1, 0)
         };
 
         private static readonly Among[] a_18 = new[]
         {
-            new Among("\u0BBE", -1, -1),
-            new Among("\u0BBF", -1, -1),
-            new Among("\u0BC0", -1, -1),
-            new Among("\u0BC1", -1, -1),
-            new Among("\u0BC2", -1, -1),
-            new Among("\u0BC6", -1, -1),
-            new Among("\u0BC7", -1, -1),
-            new Among("\u0BC8", -1, -1)
+            new Among("\u0BBE", -1, -1, 0),
+            new Among("\u0BBF", -1, -1, 0),
+            new Among("\u0BC0", -1, -1, 0),
+            new Among("\u0BC1", -1, -1, 0),
+            new Among("\u0BC2", -1, -1, 0),
+            new Among("\u0BC6", -1, -1, 0),
+            new Among("\u0BC7", -1, -1, 0),
+            new Among("\u0BC8", -1, -1, 0)
         };
 
         private static readonly Among[] a_19 = new[]
         {
-            new Among("\u0BBE", -1, -1),
-            new Among("\u0BBF", -1, -1),
-            new Among("\u0BC0", -1, -1),
-            new Among("\u0BC1", -1, -1),
-            new Among("\u0BC2", -1, -1),
-            new Among("\u0BC6", -1, -1),
-            new Among("\u0BC7", -1, -1),
-            new Among("\u0BC8", -1, -1)
+            new Among("\u0BBE", -1, -1, 0),
+            new Among("\u0BBF", -1, -1, 0),
+            new Among("\u0BC0", -1, -1, 0),
+            new Among("\u0BC1", -1, -1, 0),
+            new Among("\u0BC2", -1, -1, 0),
+            new Among("\u0BC6", -1, -1, 0),
+            new Among("\u0BC7", -1, -1, 0),
+            new Among("\u0BC8", -1, -1, 0)
         };
 
         private static readonly Among[] a_20 = new[]
         {
-            new Among("\u0BB5\u0BBF\u0B9F", -1, 2),
-            new Among("\u0BC0", -1, 7),
-            new Among("\u0BCA\u0B9F\u0BC1", -1, 2),
-            new Among("\u0BCB\u0B9F\u0BC1", -1, 2),
-            new Among("\u0BA4\u0BC1", -1, 6),
-            new Among("\u0BBF\u0BB0\u0BC1\u0BA8\u0BCD\u0BA4\u0BC1", 4, 2),
-            new Among("\u0BBF\u0BA9\u0BCD\u0BB1\u0BC1", -1, 2),
-            new Among("\u0BC1\u0B9F\u0BC8", -1, 2),
-            new Among("\u0BA9\u0BC8", -1, 1),
-            new Among("\u0B95\u0BA3\u0BCD", -1, 1),
-            new Among("\u0BBF\u0BA9\u0BCD", -1, 3),
-            new Among("\u0BAE\u0BC1\u0BA9\u0BCD", -1, 1),
-            new Among("\u0BBF\u0B9F\u0BAE\u0BCD", -1, 4),
-            new Among("\u0BBF\u0BB1\u0BCD", -1, 2),
-            new Among("\u0BAE\u0BC7\u0BB1\u0BCD", -1, 1),
-            new Among("\u0BB2\u0BCD", -1, 5),
-            new Among("\u0BBE\u0BAE\u0BB2\u0BCD", 15, 2),
-            new Among("\u0BBE\u0BB2\u0BCD", 15, 2),
-            new Among("\u0BBF\u0BB2\u0BCD", 15, 2),
-            new Among("\u0BAE\u0BC7\u0BB2\u0BCD", 15, 1),
-            new Among("\u0BC1\u0BB3\u0BCD", -1, 2),
-            new Among("\u0B95\u0BC0\u0BB4\u0BCD", -1, 1)
+            new Among("\u0BB5\u0BBF\u0B9F", -1, 2, 0),
+            new Among("\u0BC0", -1, 7, 0),
+            new Among("\u0BCA\u0B9F\u0BC1", -1, 2, 0),
+            new Among("\u0BCB\u0B9F\u0BC1", -1, 2, 0),
+            new Among("\u0BA4\u0BC1", -1, 6, 0),
+            new Among("\u0BBF\u0BB0\u0BC1\u0BA8\u0BCD\u0BA4\u0BC1", 4, 2, 0),
+            new Among("\u0BBF\u0BA9\u0BCD\u0BB1\u0BC1", -1, 2, 0),
+            new Among("\u0BC1\u0B9F\u0BC8", -1, 2, 0),
+            new Among("\u0BA9\u0BC8", -1, 1, 0),
+            new Among("\u0B95\u0BA3\u0BCD", -1, 1, 0),
+            new Among("\u0BBF\u0BA9\u0BCD", -1, 3, 0),
+            new Among("\u0BAE\u0BC1\u0BA9\u0BCD", -1, 1, 0),
+            new Among("\u0BBF\u0B9F\u0BAE\u0BCD", -1, 4, 0),
+            new Among("\u0BBF\u0BB1\u0BCD", -1, 2, 0),
+            new Among("\u0BAE\u0BC7\u0BB1\u0BCD", -1, 1, 0),
+            new Among("\u0BB2\u0BCD", -1, 5, 0),
+            new Among("\u0BBE\u0BAE\u0BB2\u0BCD", 15, 2, 0),
+            new Among("\u0BBE\u0BB2\u0BCD", 15, 2, 0),
+            new Among("\u0BBF\u0BB2\u0BCD", 15, 2, 0),
+            new Among("\u0BAE\u0BC7\u0BB2\u0BCD", 15, 1, 0),
+            new Among("\u0BC1\u0BB3\u0BCD", -1, 2, 0),
+            new Among("\u0B95\u0BC0\u0BB4\u0BCD", -1, 1, 0)
         };
 
         private static readonly Among[] a_21 = new[]
         {
-            new Among("\u0B95", -1, -1),
-            new Among("\u0B9A", -1, -1),
-            new Among("\u0B9F", -1, -1),
-            new Among("\u0BA4", -1, -1),
-            new Among("\u0BAA", -1, -1),
-            new Among("\u0BB1", -1, -1)
+            new Among("\u0B95", -1, -1, 0),
+            new Among("\u0B9A", -1, -1, 0),
+            new Among("\u0B9F", -1, -1, 0),
+            new Among("\u0BA4", -1, -1, 0),
+            new Among("\u0BAA", -1, -1, 0),
+            new Among("\u0BB1", -1, -1, 0)
         };
 
         private static readonly Among[] a_22 = new[]
         {
-            new Among("\u0B95", -1, -1),
-            new Among("\u0B9A", -1, -1),
-            new Among("\u0B9F", -1, -1),
-            new Among("\u0BA4", -1, -1),
-            new Among("\u0BAA", -1, -1),
-            new Among("\u0BB1", -1, -1)
+            new Among("\u0B95", -1, -1, 0),
+            new Among("\u0B9A", -1, -1, 0),
+            new Among("\u0B9F", -1, -1, 0),
+            new Among("\u0BA4", -1, -1, 0),
+            new Among("\u0BAA", -1, -1, 0),
+            new Among("\u0BB1", -1, -1, 0)
         };
 
         private static readonly Among[] a_23 = new[]
         {
-            new Among("\u0B85", -1, -1),
-            new Among("\u0B86", -1, -1),
-            new Among("\u0B87", -1, -1),
-            new Among("\u0B88", -1, -1),
-            new Among("\u0B89", -1, -1),
-            new Among("\u0B8A", -1, -1),
-            new Among("\u0B8E", -1, -1),
-            new Among("\u0B8F", -1, -1),
-            new Among("\u0B90", -1, -1),
-            new Among("\u0B92", -1, -1),
-            new Among("\u0B93", -1, -1),
-            new Among("\u0B94", -1, -1)
+            new Among("\u0B85", -1, -1, 0),
+            new Among("\u0B86", -1, -1, 0),
+            new Among("\u0B87", -1, -1, 0),
+            new Among("\u0B88", -1, -1, 0),
+            new Among("\u0B89", -1, -1, 0),
+            new Among("\u0B8A", -1, -1, 0),
+            new Among("\u0B8E", -1, -1, 0),
+            new Among("\u0B8F", -1, -1, 0),
+            new Among("\u0B90", -1, -1, 0),
+            new Among("\u0B92", -1, -1, 0),
+            new Among("\u0B93", -1, -1, 0),
+            new Among("\u0B94", -1, -1, 0)
         };
 
         private static readonly Among[] a_24 = new[]
         {
-            new Among("\u0BBE", -1, -1),
-            new Among("\u0BBF", -1, -1),
-            new Among("\u0BC0", -1, -1),
-            new Among("\u0BC1", -1, -1),
-            new Among("\u0BC2", -1, -1),
-            new Among("\u0BC6", -1, -1),
-            new Among("\u0BC7", -1, -1),
-            new Among("\u0BC8", -1, -1)
+            new Among("\u0BBE", -1, -1, 0),
+            new Among("\u0BBF", -1, -1, 0),
+            new Among("\u0BC0", -1, -1, 0),
+            new Among("\u0BC1", -1, -1, 0),
+            new Among("\u0BC2", -1, -1, 0),
+            new Among("\u0BC6", -1, -1, 0),
+            new Among("\u0BC7", -1, -1, 0),
+            new Among("\u0BC8", -1, -1, 0)
         };
 
         private static readonly Among[] a_25 = new[]
         {
-            new Among("\u0B95", -1, 1),
-            new Among("\u0BA4", -1, 1),
-            new Among("\u0BA9", -1, 1),
-            new Among("\u0BAA", -1, 1),
-            new Among("\u0BAF", -1, 1),
-            new Among("\u0BBE", -1, 5),
-            new Among("\u0B95\u0BC1", -1, 6),
-            new Among("\u0BAA\u0B9F\u0BC1", -1, 1),
-            new Among("\u0BA4\u0BC1", -1, 3),
-            new Among("\u0BBF\u0BB1\u0BCD\u0BB1\u0BC1", -1, 1),
-            new Among("\u0BA9\u0BC8", -1, 1),
-            new Among("\u0BB5\u0BC8", -1, 1),
-            new Among("\u0BA9\u0BA9\u0BCD", -1, 1),
-            new Among("\u0BAA\u0BA9\u0BCD", -1, 1),
-            new Among("\u0BB5\u0BA9\u0BCD", -1, 2),
-            new Among("\u0BBE\u0BA9\u0BCD", -1, 4),
-            new Among("\u0BA9\u0BBE\u0BA9\u0BCD", 15, 1),
-            new Among("\u0BAE\u0BBF\u0BA9\u0BCD", -1, 1),
-            new Among("\u0BA9\u0BC6\u0BA9\u0BCD", -1, 1),
-            new Among("\u0BC7\u0BA9\u0BCD", -1, 5),
-            new Among("\u0BA9\u0BAE\u0BCD", -1, 1),
-            new Among("\u0BAA\u0BAE\u0BCD", -1, 1),
-            new Among("\u0BBE\u0BAE\u0BCD", -1, 5),
-            new Among("\u0B95\u0BC1\u0BAE\u0BCD", -1, 1),
-            new Among("\u0B9F\u0BC1\u0BAE\u0BCD", -1, 5),
-            new Among("\u0BA4\u0BC1\u0BAE\u0BCD", -1, 1),
-            new Among("\u0BB1\u0BC1\u0BAE\u0BCD", -1, 1),
-            new Among("\u0BC6\u0BAE\u0BCD", -1, 5),
-            new Among("\u0BC7\u0BAE\u0BCD", -1, 5),
-            new Among("\u0BCB\u0BAE\u0BCD", -1, 5),
-            new Among("\u0BBE\u0BAF\u0BCD", -1, 5),
-            new Among("\u0BA9\u0BB0\u0BCD", -1, 1),
-            new Among("\u0BAA\u0BB0\u0BCD", -1, 1),
-            new Among("\u0BC0\u0BAF\u0BB0\u0BCD", -1, 5),
-            new Among("\u0BB5\u0BB0\u0BCD", -1, 1),
-            new Among("\u0BBE\u0BB0\u0BCD", -1, 5),
-            new Among("\u0BA9\u0BBE\u0BB0\u0BCD", 35, 1),
-            new Among("\u0BAE\u0BBE\u0BB0\u0BCD", 35, 1),
-            new Among("\u0B95\u0BCA\u0BA3\u0BCD\u0B9F\u0BBF\u0BB0\u0BCD", -1, 1),
-            new Among("\u0BA9\u0BBF\u0BB0\u0BCD", -1, 5),
-            new Among("\u0BC0\u0BB0\u0BCD", -1, 5),
-            new Among("\u0BA9\u0BB3\u0BCD", -1, 1),
-            new Among("\u0BAA\u0BB3\u0BCD", -1, 1),
-            new Among("\u0BB5\u0BB3\u0BCD", -1, 1),
-            new Among("\u0BBE\u0BB3\u0BCD", -1, 5),
-            new Among("\u0BA9\u0BBE\u0BB3\u0BCD", 44, 1)
+            new Among("\u0B95", -1, 1, 0),
+            new Among("\u0BA4", -1, 1, 0),
+            new Among("\u0BA9", -1, 1, 0),
+            new Among("\u0BAA", -1, 1, 0),
+            new Among("\u0BAF", -1, 1, 0),
+            new Among("\u0BBE", -1, 5, 0),
+            new Among("\u0B95\u0BC1", -1, 6, 0),
+            new Among("\u0BAA\u0B9F\u0BC1", -1, 1, 0),
+            new Among("\u0BA4\u0BC1", -1, 3, 0),
+            new Among("\u0BBF\u0BB1\u0BCD\u0BB1\u0BC1", -1, 1, 0),
+            new Among("\u0BA9\u0BC8", -1, 1, 0),
+            new Among("\u0BB5\u0BC8", -1, 1, 0),
+            new Among("\u0BA9\u0BA9\u0BCD", -1, 1, 0),
+            new Among("\u0BAA\u0BA9\u0BCD", -1, 1, 0),
+            new Among("\u0BB5\u0BA9\u0BCD", -1, 2, 0),
+            new Among("\u0BBE\u0BA9\u0BCD", -1, 4, 0),
+            new Among("\u0BA9\u0BBE\u0BA9\u0BCD", 15, 1, 0),
+            new Among("\u0BAE\u0BBF\u0BA9\u0BCD", -1, 1, 0),
+            new Among("\u0BA9\u0BC6\u0BA9\u0BCD", -1, 1, 0),
+            new Among("\u0BC7\u0BA9\u0BCD", -1, 5, 0),
+            new Among("\u0BA9\u0BAE\u0BCD", -1, 1, 0),
+            new Among("\u0BAA\u0BAE\u0BCD", -1, 1, 0),
+            new Among("\u0BBE\u0BAE\u0BCD", -1, 5, 0),
+            new Among("\u0B95\u0BC1\u0BAE\u0BCD", -1, 1, 0),
+            new Among("\u0B9F\u0BC1\u0BAE\u0BCD", -1, 5, 0),
+            new Among("\u0BA4\u0BC1\u0BAE\u0BCD", -1, 1, 0),
+            new Among("\u0BB1\u0BC1\u0BAE\u0BCD", -1, 1, 0),
+            new Among("\u0BC6\u0BAE\u0BCD", -1, 5, 0),
+            new Among("\u0BC7\u0BAE\u0BCD", -1, 5, 0),
+            new Among("\u0BCB\u0BAE\u0BCD", -1, 5, 0),
+            new Among("\u0BBE\u0BAF\u0BCD", -1, 5, 0),
+            new Among("\u0BA9\u0BB0\u0BCD", -1, 1, 0),
+            new Among("\u0BAA\u0BB0\u0BCD", -1, 1, 0),
+            new Among("\u0BC0\u0BAF\u0BB0\u0BCD", -1, 5, 0),
+            new Among("\u0BB5\u0BB0\u0BCD", -1, 1, 0),
+            new Among("\u0BBE\u0BB0\u0BCD", -1, 5, 0),
+            new Among("\u0BA9\u0BBE\u0BB0\u0BCD", 35, 1, 0),
+            new Among("\u0BAE\u0BBE\u0BB0\u0BCD", 35, 1, 0),
+            new Among("\u0B95\u0BCA\u0BA3\u0BCD\u0B9F\u0BBF\u0BB0\u0BCD", -1, 1, 0),
+            new Among("\u0BA9\u0BBF\u0BB0\u0BCD", -1, 5, 0),
+            new Among("\u0BC0\u0BB0\u0BCD", -1, 5, 0),
+            new Among("\u0BA9\u0BB3\u0BCD", -1, 1, 0),
+            new Among("\u0BAA\u0BB3\u0BCD", -1, 1, 0),
+            new Among("\u0BB5\u0BB3\u0BCD", -1, 1, 0),
+            new Among("\u0BBE\u0BB3\u0BCD", -1, 5, 0),
+            new Among("\u0BA9\u0BBE\u0BB3\u0BCD", 44, 1, 0)
         };
 
         private static readonly Among[] a_26 = new[]
         {
-            new Among("\u0B95\u0BBF\u0BB1", -1, -1),
-            new Among("\u0B95\u0BBF\u0BA9\u0BCD\u0BB1", -1, -1),
-            new Among("\u0BBE\u0BA8\u0BBF\u0BA9\u0BCD\u0BB1", -1, -1),
-            new Among("\u0B95\u0BBF\u0BB1\u0BCD", -1, -1),
-            new Among("\u0B95\u0BBF\u0BA9\u0BCD\u0BB1\u0BCD", -1, -1),
-            new Among("\u0BBE\u0BA8\u0BBF\u0BA9\u0BCD\u0BB1\u0BCD", -1, -1)
+            new Among("\u0B95\u0BBF\u0BB1", -1, -1, 0),
+            new Among("\u0B95\u0BBF\u0BA9\u0BCD\u0BB1", -1, -1, 0),
+            new Among("\u0BBE\u0BA8\u0BBF\u0BA9\u0BCD\u0BB1", -1, -1, 0),
+            new Among("\u0B95\u0BBF\u0BB1\u0BCD", -1, -1, 0),
+            new Among("\u0B95\u0BBF\u0BA9\u0BCD\u0BB1\u0BCD", -1, -1, 0),
+            new Among("\u0BBE\u0BA8\u0BBF\u0BA9\u0BCD\u0BB1\u0BCD", -1, -1, 0)
         };
 
 
@@ -399,7 +398,7 @@ namespace Snowball
         {
             int among_var;
             bra = cursor;
-            among_var = find_among(a_0);
+            among_var = find_among(a_0, null);
             if (among_var == 0)
             {
                 return false;
@@ -452,7 +451,7 @@ namespace Snowball
             {
                 return false;
             }
-            if (find_among(a_1) == 0)
+            if (find_among(a_1, null) == 0)
             {
                 return false;
             }
@@ -482,7 +481,7 @@ namespace Snowball
             {
                 int c1 = limit - cursor;
                 ket = cursor;
-                among_var = find_among_b(a_5);
+                among_var = find_among_b(a_5, null);
                 if (among_var == 0)
                 {
                     goto lab1;
@@ -496,7 +495,7 @@ namespace Snowball
                     case 2: {
                         {
                             int c2 = limit - cursor;
-                            if (find_among_b(a_2) == 0)
+                            if (find_among_b(a_2, null) == 0)
                             {
                                 goto lab1;
                             }
@@ -518,7 +517,7 @@ namespace Snowball
                         break;
                     }
                     case 6: {
-                        if (!(B_found_vetrumai_urupu))
+                        if (!B_found_vetrumai_urupu)
                         {
                             goto lab1;
                         }
@@ -542,7 +541,7 @@ namespace Snowball
                     case 8: {
                         {
                             int c4 = limit - cursor;
-                            if (find_among_b(a_3) == 0)
+                            if (find_among_b(a_3, null) == 0)
                             {
                                 goto lab3;
                             }
@@ -554,7 +553,7 @@ namespace Snowball
                         break;
                     }
                     case 9: {
-                        among_var = find_among_b(a_4);
+                        among_var = find_among_b(a_4, null);
                         switch (among_var) {
                             case 1: {
                                 slice_del();
@@ -578,7 +577,7 @@ namespace Snowball
                 }
                 {
                     int c5 = limit - cursor;
-                    if (find_among_b(a_6) == 0)
+                    if (find_among_b(a_6, null) == 0)
                     {
                         goto lab5;
                     }
@@ -591,7 +590,7 @@ namespace Snowball
                                 goto lab6;
                             }
                         }
-                        if (find_among_b(a_7) == 0)
+                        if (find_among_b(a_7, null) == 0)
                         {
                             {
                                 cursor = limit - c6;
@@ -605,7 +604,7 @@ namespace Snowball
                     goto lab4;
                 lab5: ;
                     cursor = limit - c5;
-                    if (find_among_b(a_8) == 0)
+                    if (find_among_b(a_8, null) == 0)
                     {
                         goto lab7;
                     }
@@ -620,7 +619,7 @@ namespace Snowball
                     cursor = limit - c5;
                     {
                         int c7 = limit - cursor;
-                        if (find_among_b(a_9) == 0)
+                        if (find_among_b(a_9, null) == 0)
                         {
                             return false;
                         }
@@ -639,11 +638,11 @@ namespace Snowball
         private bool r_remove_pronoun_prefixes()
         {
             bra = cursor;
-            if (find_among(a_10) == 0)
+            if (find_among(a_10, null) == 0)
             {
                 return false;
             }
-            if (find_among(a_11) == 0)
+            if (find_among(a_11, null) == 0)
             {
                 return false;
             }
@@ -667,7 +666,7 @@ namespace Snowball
             limit_backward = cursor;
             cursor = limit;
             ket = cursor;
-            among_var = find_among_b(a_13);
+            among_var = find_among_b(a_13, null);
             if (among_var == 0)
             {
                 return false;
@@ -677,7 +676,7 @@ namespace Snowball
                 case 1: {
                     {
                         int c1 = limit - cursor;
-                        if (find_among_b(a_12) == 0)
+                        if (find_among_b(a_12, null) == 0)
                         {
                             goto lab1;
                         }
@@ -716,7 +715,7 @@ namespace Snowball
             {
                 int c1 = limit - cursor;
                 ket = cursor;
-                if (find_among_b(a_14) == 0)
+                if (find_among_b(a_14, null) == 0)
                 {
                     goto lab0;
                 }
@@ -737,7 +736,7 @@ namespace Snowball
             limit_backward = cursor;
             cursor = limit;
             ket = cursor;
-            if (find_among_b(a_15) == 0)
+            if (find_among_b(a_15, null) == 0)
             {
                 return false;
             }
@@ -777,7 +776,7 @@ namespace Snowball
             limit_backward = cursor;
             cursor = limit;
             ket = cursor;
-            among_var = find_among_b(a_17);
+            among_var = find_among_b(a_17, null);
             if (among_var == 0)
             {
                 return false;
@@ -791,7 +790,7 @@ namespace Snowball
                 case 2: {
                     {
                         int c1 = limit - cursor;
-                        if (find_among_b(a_16) == 0)
+                        if (find_among_b(a_16, null) == 0)
                         {
                             goto lab0;
                         }
@@ -825,7 +824,7 @@ namespace Snowball
                 {
                     int c2 = limit - cursor;
                     ket = cursor;
-                    among_var = find_among_b(a_20);
+                    among_var = find_among_b(a_20, null);
                     if (among_var == 0)
                     {
                         goto lab1;
@@ -865,7 +864,7 @@ namespace Snowball
                         case 5: {
                             {
                                 int c4 = limit - cursor;
-                                if (find_among_b(a_18) == 0)
+                                if (find_among_b(a_18, null) == 0)
                                 {
                                     goto lab3;
                                 }
@@ -879,7 +878,7 @@ namespace Snowball
                         case 6: {
                             {
                                 int c5 = limit - cursor;
-                                if (find_among_b(a_19) == 0)
+                                if (find_among_b(a_19, null) == 0)
                                 {
                                     goto lab4;
                                 }
@@ -911,7 +910,7 @@ namespace Snowball
                         int c7 = limit - cursor;
                         {
                             int c8 = limit - cursor;
-                            if (find_among_b(a_21) == 0)
+                            if (find_among_b(a_21, null) == 0)
                             {
                                 goto lab7;
                             }
@@ -924,7 +923,7 @@ namespace Snowball
                         cursor = limit - c7;
                         {
                             int c9 = limit - cursor;
-                            if (find_among_b(a_22) == 0)
+                            if (find_among_b(a_22, null) == 0)
                             {
                                 return false;
                             }
@@ -977,6 +976,7 @@ namespace Snowball
 
         private bool r_remove_tense_suffix()
         {
+            bool B_found_a_match;
             int among_var;
             B_found_a_match = false;
             if (!r_has_min_length())
@@ -988,7 +988,7 @@ namespace Snowball
                 {
                     int c2 = limit - cursor;
                     ket = cursor;
-                    among_var = find_among_b(a_25);
+                    among_var = find_among_b(a_25, null);
                     if (among_var == 0)
                     {
                         goto lab0;
@@ -1002,7 +1002,7 @@ namespace Snowball
                         case 2: {
                             {
                                 int c3 = limit - cursor;
-                                if (find_among_b(a_23) == 0)
+                                if (find_among_b(a_23, null) == 0)
                                 {
                                     goto lab1;
                                 }
@@ -1016,7 +1016,7 @@ namespace Snowball
                         case 3: {
                             {
                                 int c4 = limit - cursor;
-                                if (find_among_b(a_24) == 0)
+                                if (find_among_b(a_24, null) == 0)
                                 {
                                     goto lab2;
                                 }
@@ -1067,7 +1067,7 @@ namespace Snowball
             {
                 int c7 = limit - cursor;
                 ket = cursor;
-                if (find_among_b(a_26) == 0)
+                if (find_among_b(a_26, null) == 0)
                 {
                     goto lab4;
                 }
@@ -1079,11 +1079,7 @@ namespace Snowball
             }
             cursor = limit_backward;
             r_fix_endings();
-            if (!(B_found_a_match))
-            {
-                return false;
-            }
-            return true;
+            return B_found_a_match;
         }
 
         protected override bool stem()

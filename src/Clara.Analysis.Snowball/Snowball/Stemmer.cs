@@ -1,20 +1,20 @@
 ﻿// Copyright (c) 2001, Dr Martin Porter
 // Copyright (c) 2002, Richard Boulton
 // Copyright (c) 2015, Cesar Souza
-// Copyright (c) 2018, Olly Betts
+// Copyright (c) 2018-2025, Olly Betts
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //
-//     * Redistributions of source code must retain the above copyright notice,
-//     * this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//     * notice, this list of conditions and the following disclaimer in the
-//     * documentation and/or other materials provided with the distribution.
-//     * Neither the name of the copyright holders nor the names of its contributors
-//     * may be used to endorse or promote products derived from this software
-//     * without specific prior written permission.
+//    1. Redistributions of source code must retain the above copyright notice,
+//       this list of conditions and the following disclaimer.
+//    2. Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//    3. Neither the name of the Snowball project nor the names of its contributors
+//       may be used to endorse or promote products derived from this software
+//       without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,6 +30,7 @@
 namespace Snowball
 {
     using System;
+    using System.Diagnostics;
     using System.Linq;
     using System.Text;
     using Clara.Analysis;
@@ -115,6 +116,12 @@ namespace Snowball
     ///
     internal abstract class Stemmer : Env
     {
+        /// <summary>
+        ///   Among function being called.
+        /// </summary>
+        ///
+        protected int af;
+
         /// <summary>
         ///   Initializes a new instance of the <see cref="Stemmer"/> class.
         /// </summary>
@@ -403,7 +410,7 @@ namespace Snowball
         ///   forward.
         /// </summary>
         ///
-        protected int find_among(Among[] v)
+        protected int find_among(Among[] v, Func<bool> call_among_func)
         {
             int i = 0;
             int j = v.Length;
@@ -478,14 +485,14 @@ namespace Snowball
                 {
                     cursor = c + w.SearchString.Length;
 
-                    if (w.Action == null)
+                    if (w.Condition == 0)
                         return w.Result;
 
-                    bool res = w.Action();
-                    cursor = c + w.SearchString.Length;
-
-                    if (res)
+                    af = w.Condition;
+                    if (call_among_func()) {
+                        cursor = c + w.SearchString.Length;
                         return w.Result;
+                    }
                 }
 
                 i = w.MatchIndex;
@@ -501,7 +508,7 @@ namespace Snowball
         ///   backwards.
         /// </summary>
         ///
-        protected int find_among_b(Among[] v)
+        protected int find_among_b(Among[] v, Func<bool> call_among_func)
         {
             int i = 0;
             int j = v.Length;
@@ -571,14 +578,14 @@ namespace Snowball
                 {
                     cursor = c - w.SearchString.Length;
 
-                    if (w.Action == null)
+                    if (w.Condition == 0)
                         return w.Result;
 
-                    bool res = w.Action();
-                    cursor = c - w.SearchString.Length;
-
-                    if (res)
+                    af = w.Condition;
+                    if (call_among_func()) {
+                        cursor = c - w.SearchString.Length;
                         return w.Result;
+                    }
                 }
 
                 i = w.MatchIndex;
@@ -610,10 +617,10 @@ namespace Snowball
         /// </summary>
         protected void slice_check()
         {
-            if (bra < 0 || bra > ket || ket > limit || limit > current.Length)
-            {
-                System.Diagnostics.Trace.WriteLine("faulty slice operation");
-            }
+            Debug.Assert(bra >= 0);
+            Debug.Assert(bra <= ket);
+            Debug.Assert(ket <= limit);
+            Debug.Assert(limit <= current.Length);
         }
 
         /// <summary>
@@ -625,6 +632,7 @@ namespace Snowball
         {
             slice_check();
             replace_s(bra, ket, s);
+            ket = bra + s.Length;
         }
 
         /// <summary>
@@ -682,11 +690,10 @@ namespace Snowball
         /// <summary>
         ///   Replaces a specific region of the buffer with another text.
         /// </summary>
-        public static StringBuilder Replace(StringBuilder sb, int index, int length, string text)
+        public static void Replace(StringBuilder sb, int index, int length, string text)
         {
             sb.Remove(index, length - index);
             sb.Insert(index, text);
-            return sb;
         }
 
     }

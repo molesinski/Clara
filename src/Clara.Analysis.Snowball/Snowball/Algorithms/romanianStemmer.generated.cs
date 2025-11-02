@@ -1,4 +1,4 @@
-﻿// Generated from romanian.sbl by Snowball 3.0.1 - https://snowballstem.org/
+﻿// Generated from romanian.sbl by Snowball 3.0.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,10 +10,10 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from romanian.sbl by Snowball 3.0.1 - https://snowballstem.org/
+    ///  Generated from romanian.sbl by Snowball 3.0.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.1")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
     internal partial class RomanianStemmer : Stemmer
     {
         private bool B_standard_suffix_removed;
@@ -25,258 +25,258 @@ namespace Snowball
 
         private static readonly Among[] a_0 = new[]
         {
-            new Among("ş", -1, 1),
-            new Among("ţ", -1, 2)
+            new Among("ş", -1, 1, 0),
+            new Among("ţ", -1, 2, 0)
         };
 
         private static readonly Among[] a_1 = new[]
         {
-            new Among("", -1, 3),
-            new Among("I", 0, 1),
-            new Among("U", 0, 2)
+            new Among("", -1, 3, 0),
+            new Among("I", 0, 1, 0),
+            new Among("U", 0, 2, 0)
         };
 
         private static readonly Among[] a_2 = new[]
         {
-            new Among("ea", -1, 3),
-            new Among("ația", -1, 7),
-            new Among("aua", -1, 2),
-            new Among("iua", -1, 4),
-            new Among("ație", -1, 7),
-            new Among("ele", -1, 3),
-            new Among("ile", -1, 5),
-            new Among("iile", 6, 4),
-            new Among("iei", -1, 4),
-            new Among("atei", -1, 6),
-            new Among("ii", -1, 4),
-            new Among("ului", -1, 1),
-            new Among("ul", -1, 1),
-            new Among("elor", -1, 3),
-            new Among("ilor", -1, 4),
-            new Among("iilor", 14, 4)
+            new Among("ea", -1, 3, 0),
+            new Among("ația", -1, 7, 0),
+            new Among("aua", -1, 2, 0),
+            new Among("iua", -1, 4, 0),
+            new Among("ație", -1, 7, 0),
+            new Among("ele", -1, 3, 0),
+            new Among("ile", -1, 5, 0),
+            new Among("iile", 6, 4, 0),
+            new Among("iei", -1, 4, 0),
+            new Among("atei", -1, 6, 0),
+            new Among("ii", -1, 4, 0),
+            new Among("ului", -1, 1, 0),
+            new Among("ul", -1, 1, 0),
+            new Among("elor", -1, 3, 0),
+            new Among("ilor", -1, 4, 0),
+            new Among("iilor", 14, 4, 0)
         };
 
         private static readonly Among[] a_3 = new[]
         {
-            new Among("icala", -1, 4),
-            new Among("iciva", -1, 4),
-            new Among("ativa", -1, 5),
-            new Among("itiva", -1, 6),
-            new Among("icale", -1, 4),
-            new Among("ațiune", -1, 5),
-            new Among("ițiune", -1, 6),
-            new Among("atoare", -1, 5),
-            new Among("itoare", -1, 6),
-            new Among("ătoare", -1, 5),
-            new Among("icitate", -1, 4),
-            new Among("abilitate", -1, 1),
-            new Among("ibilitate", -1, 2),
-            new Among("ivitate", -1, 3),
-            new Among("icive", -1, 4),
-            new Among("ative", -1, 5),
-            new Among("itive", -1, 6),
-            new Among("icali", -1, 4),
-            new Among("atori", -1, 5),
-            new Among("icatori", 18, 4),
-            new Among("itori", -1, 6),
-            new Among("ători", -1, 5),
-            new Among("icitati", -1, 4),
-            new Among("abilitati", -1, 1),
-            new Among("ivitati", -1, 3),
-            new Among("icivi", -1, 4),
-            new Among("ativi", -1, 5),
-            new Among("itivi", -1, 6),
-            new Among("icităi", -1, 4),
-            new Among("abilităi", -1, 1),
-            new Among("ivităi", -1, 3),
-            new Among("icități", -1, 4),
-            new Among("abilități", -1, 1),
-            new Among("ivități", -1, 3),
-            new Among("ical", -1, 4),
-            new Among("ator", -1, 5),
-            new Among("icator", 35, 4),
-            new Among("itor", -1, 6),
-            new Among("ător", -1, 5),
-            new Among("iciv", -1, 4),
-            new Among("ativ", -1, 5),
-            new Among("itiv", -1, 6),
-            new Among("icală", -1, 4),
-            new Among("icivă", -1, 4),
-            new Among("ativă", -1, 5),
-            new Among("itivă", -1, 6)
+            new Among("icala", -1, 4, 0),
+            new Among("iciva", -1, 4, 0),
+            new Among("ativa", -1, 5, 0),
+            new Among("itiva", -1, 6, 0),
+            new Among("icale", -1, 4, 0),
+            new Among("ațiune", -1, 5, 0),
+            new Among("ițiune", -1, 6, 0),
+            new Among("atoare", -1, 5, 0),
+            new Among("itoare", -1, 6, 0),
+            new Among("ătoare", -1, 5, 0),
+            new Among("icitate", -1, 4, 0),
+            new Among("abilitate", -1, 1, 0),
+            new Among("ibilitate", -1, 2, 0),
+            new Among("ivitate", -1, 3, 0),
+            new Among("icive", -1, 4, 0),
+            new Among("ative", -1, 5, 0),
+            new Among("itive", -1, 6, 0),
+            new Among("icali", -1, 4, 0),
+            new Among("atori", -1, 5, 0),
+            new Among("icatori", 18, 4, 0),
+            new Among("itori", -1, 6, 0),
+            new Among("ători", -1, 5, 0),
+            new Among("icitati", -1, 4, 0),
+            new Among("abilitati", -1, 1, 0),
+            new Among("ivitati", -1, 3, 0),
+            new Among("icivi", -1, 4, 0),
+            new Among("ativi", -1, 5, 0),
+            new Among("itivi", -1, 6, 0),
+            new Among("icităi", -1, 4, 0),
+            new Among("abilităi", -1, 1, 0),
+            new Among("ivităi", -1, 3, 0),
+            new Among("icități", -1, 4, 0),
+            new Among("abilități", -1, 1, 0),
+            new Among("ivități", -1, 3, 0),
+            new Among("ical", -1, 4, 0),
+            new Among("ator", -1, 5, 0),
+            new Among("icator", 35, 4, 0),
+            new Among("itor", -1, 6, 0),
+            new Among("ător", -1, 5, 0),
+            new Among("iciv", -1, 4, 0),
+            new Among("ativ", -1, 5, 0),
+            new Among("itiv", -1, 6, 0),
+            new Among("icală", -1, 4, 0),
+            new Among("icivă", -1, 4, 0),
+            new Among("ativă", -1, 5, 0),
+            new Among("itivă", -1, 6, 0)
         };
 
         private static readonly Among[] a_4 = new[]
         {
-            new Among("ica", -1, 1),
-            new Among("abila", -1, 1),
-            new Among("ibila", -1, 1),
-            new Among("oasa", -1, 1),
-            new Among("ata", -1, 1),
-            new Among("ita", -1, 1),
-            new Among("anta", -1, 1),
-            new Among("ista", -1, 3),
-            new Among("uta", -1, 1),
-            new Among("iva", -1, 1),
-            new Among("ic", -1, 1),
-            new Among("ice", -1, 1),
-            new Among("abile", -1, 1),
-            new Among("ibile", -1, 1),
-            new Among("isme", -1, 3),
-            new Among("iune", -1, 2),
-            new Among("oase", -1, 1),
-            new Among("ate", -1, 1),
-            new Among("itate", 17, 1),
-            new Among("ite", -1, 1),
-            new Among("ante", -1, 1),
-            new Among("iste", -1, 3),
-            new Among("ute", -1, 1),
-            new Among("ive", -1, 1),
-            new Among("ici", -1, 1),
-            new Among("abili", -1, 1),
-            new Among("ibili", -1, 1),
-            new Among("iuni", -1, 2),
-            new Among("atori", -1, 1),
-            new Among("osi", -1, 1),
-            new Among("ati", -1, 1),
-            new Among("itati", 30, 1),
-            new Among("iti", -1, 1),
-            new Among("anti", -1, 1),
-            new Among("isti", -1, 3),
-            new Among("uti", -1, 1),
-            new Among("iști", -1, 3),
-            new Among("ivi", -1, 1),
-            new Among("ităi", -1, 1),
-            new Among("oși", -1, 1),
-            new Among("ități", -1, 1),
-            new Among("abil", -1, 1),
-            new Among("ibil", -1, 1),
-            new Among("ism", -1, 3),
-            new Among("ator", -1, 1),
-            new Among("os", -1, 1),
-            new Among("at", -1, 1),
-            new Among("it", -1, 1),
-            new Among("ant", -1, 1),
-            new Among("ist", -1, 3),
-            new Among("ut", -1, 1),
-            new Among("iv", -1, 1),
-            new Among("ică", -1, 1),
-            new Among("abilă", -1, 1),
-            new Among("ibilă", -1, 1),
-            new Among("oasă", -1, 1),
-            new Among("ată", -1, 1),
-            new Among("ită", -1, 1),
-            new Among("antă", -1, 1),
-            new Among("istă", -1, 3),
-            new Among("ută", -1, 1),
-            new Among("ivă", -1, 1)
+            new Among("ica", -1, 1, 0),
+            new Among("abila", -1, 1, 0),
+            new Among("ibila", -1, 1, 0),
+            new Among("oasa", -1, 1, 0),
+            new Among("ata", -1, 1, 0),
+            new Among("ita", -1, 1, 0),
+            new Among("anta", -1, 1, 0),
+            new Among("ista", -1, 3, 0),
+            new Among("uta", -1, 1, 0),
+            new Among("iva", -1, 1, 0),
+            new Among("ic", -1, 1, 0),
+            new Among("ice", -1, 1, 0),
+            new Among("abile", -1, 1, 0),
+            new Among("ibile", -1, 1, 0),
+            new Among("isme", -1, 3, 0),
+            new Among("iune", -1, 2, 0),
+            new Among("oase", -1, 1, 0),
+            new Among("ate", -1, 1, 0),
+            new Among("itate", 17, 1, 0),
+            new Among("ite", -1, 1, 0),
+            new Among("ante", -1, 1, 0),
+            new Among("iste", -1, 3, 0),
+            new Among("ute", -1, 1, 0),
+            new Among("ive", -1, 1, 0),
+            new Among("ici", -1, 1, 0),
+            new Among("abili", -1, 1, 0),
+            new Among("ibili", -1, 1, 0),
+            new Among("iuni", -1, 2, 0),
+            new Among("atori", -1, 1, 0),
+            new Among("osi", -1, 1, 0),
+            new Among("ati", -1, 1, 0),
+            new Among("itati", 30, 1, 0),
+            new Among("iti", -1, 1, 0),
+            new Among("anti", -1, 1, 0),
+            new Among("isti", -1, 3, 0),
+            new Among("uti", -1, 1, 0),
+            new Among("iști", -1, 3, 0),
+            new Among("ivi", -1, 1, 0),
+            new Among("ităi", -1, 1, 0),
+            new Among("oși", -1, 1, 0),
+            new Among("ități", -1, 1, 0),
+            new Among("abil", -1, 1, 0),
+            new Among("ibil", -1, 1, 0),
+            new Among("ism", -1, 3, 0),
+            new Among("ator", -1, 1, 0),
+            new Among("os", -1, 1, 0),
+            new Among("at", -1, 1, 0),
+            new Among("it", -1, 1, 0),
+            new Among("ant", -1, 1, 0),
+            new Among("ist", -1, 3, 0),
+            new Among("ut", -1, 1, 0),
+            new Among("iv", -1, 1, 0),
+            new Among("ică", -1, 1, 0),
+            new Among("abilă", -1, 1, 0),
+            new Among("ibilă", -1, 1, 0),
+            new Among("oasă", -1, 1, 0),
+            new Among("ată", -1, 1, 0),
+            new Among("ită", -1, 1, 0),
+            new Among("antă", -1, 1, 0),
+            new Among("istă", -1, 3, 0),
+            new Among("ută", -1, 1, 0),
+            new Among("ivă", -1, 1, 0)
         };
 
         private static readonly Among[] a_5 = new[]
         {
-            new Among("ea", -1, 1),
-            new Among("ia", -1, 1),
-            new Among("esc", -1, 1),
-            new Among("ăsc", -1, 1),
-            new Among("ind", -1, 1),
-            new Among("ând", -1, 1),
-            new Among("are", -1, 1),
-            new Among("ere", -1, 1),
-            new Among("ire", -1, 1),
-            new Among("âre", -1, 1),
-            new Among("se", -1, 2),
-            new Among("ase", 10, 1),
-            new Among("sese", 10, 2),
-            new Among("ise", 10, 1),
-            new Among("use", 10, 1),
-            new Among("âse", 10, 1),
-            new Among("ește", -1, 1),
-            new Among("ăște", -1, 1),
-            new Among("eze", -1, 1),
-            new Among("ai", -1, 1),
-            new Among("eai", 19, 1),
-            new Among("iai", 19, 1),
-            new Among("sei", -1, 2),
-            new Among("ești", -1, 1),
-            new Among("ăști", -1, 1),
-            new Among("ui", -1, 1),
-            new Among("ezi", -1, 1),
-            new Among("âi", -1, 1),
-            new Among("ași", -1, 1),
-            new Among("seși", -1, 2),
-            new Among("aseși", 29, 1),
-            new Among("seseși", 29, 2),
-            new Among("iseși", 29, 1),
-            new Among("useși", 29, 1),
-            new Among("âseși", 29, 1),
-            new Among("iși", -1, 1),
-            new Among("uși", -1, 1),
-            new Among("âși", -1, 1),
-            new Among("ați", -1, 2),
-            new Among("eați", 38, 1),
-            new Among("iați", 38, 1),
-            new Among("eți", -1, 2),
-            new Among("iți", -1, 2),
-            new Among("âți", -1, 2),
-            new Among("arăți", -1, 1),
-            new Among("serăți", -1, 2),
-            new Among("aserăți", 45, 1),
-            new Among("seserăți", 45, 2),
-            new Among("iserăți", 45, 1),
-            new Among("userăți", 45, 1),
-            new Among("âserăți", 45, 1),
-            new Among("irăți", -1, 1),
-            new Among("urăți", -1, 1),
-            new Among("ârăți", -1, 1),
-            new Among("am", -1, 1),
-            new Among("eam", 54, 1),
-            new Among("iam", 54, 1),
-            new Among("em", -1, 2),
-            new Among("asem", 57, 1),
-            new Among("sesem", 57, 2),
-            new Among("isem", 57, 1),
-            new Among("usem", 57, 1),
-            new Among("âsem", 57, 1),
-            new Among("im", -1, 2),
-            new Among("âm", -1, 2),
-            new Among("ăm", -1, 2),
-            new Among("arăm", 65, 1),
-            new Among("serăm", 65, 2),
-            new Among("aserăm", 67, 1),
-            new Among("seserăm", 67, 2),
-            new Among("iserăm", 67, 1),
-            new Among("userăm", 67, 1),
-            new Among("âserăm", 67, 1),
-            new Among("irăm", 65, 1),
-            new Among("urăm", 65, 1),
-            new Among("ârăm", 65, 1),
-            new Among("au", -1, 1),
-            new Among("eau", 76, 1),
-            new Among("iau", 76, 1),
-            new Among("indu", -1, 1),
-            new Among("ându", -1, 1),
-            new Among("ez", -1, 1),
-            new Among("ească", -1, 1),
-            new Among("ară", -1, 1),
-            new Among("seră", -1, 2),
-            new Among("aseră", 84, 1),
-            new Among("seseră", 84, 2),
-            new Among("iseră", 84, 1),
-            new Among("useră", 84, 1),
-            new Among("âseră", 84, 1),
-            new Among("iră", -1, 1),
-            new Among("ură", -1, 1),
-            new Among("âră", -1, 1),
-            new Among("ează", -1, 1)
+            new Among("ea", -1, 1, 0),
+            new Among("ia", -1, 1, 0),
+            new Among("esc", -1, 1, 0),
+            new Among("ăsc", -1, 1, 0),
+            new Among("ind", -1, 1, 0),
+            new Among("ând", -1, 1, 0),
+            new Among("are", -1, 1, 0),
+            new Among("ere", -1, 1, 0),
+            new Among("ire", -1, 1, 0),
+            new Among("âre", -1, 1, 0),
+            new Among("se", -1, 2, 0),
+            new Among("ase", 10, 1, 0),
+            new Among("sese", 10, 2, 0),
+            new Among("ise", 10, 1, 0),
+            new Among("use", 10, 1, 0),
+            new Among("âse", 10, 1, 0),
+            new Among("ește", -1, 1, 0),
+            new Among("ăște", -1, 1, 0),
+            new Among("eze", -1, 1, 0),
+            new Among("ai", -1, 1, 0),
+            new Among("eai", 19, 1, 0),
+            new Among("iai", 19, 1, 0),
+            new Among("sei", -1, 2, 0),
+            new Among("ești", -1, 1, 0),
+            new Among("ăști", -1, 1, 0),
+            new Among("ui", -1, 1, 0),
+            new Among("ezi", -1, 1, 0),
+            new Among("âi", -1, 1, 0),
+            new Among("ași", -1, 1, 0),
+            new Among("seși", -1, 2, 0),
+            new Among("aseși", 29, 1, 0),
+            new Among("seseși", 29, 2, 0),
+            new Among("iseși", 29, 1, 0),
+            new Among("useși", 29, 1, 0),
+            new Among("âseși", 29, 1, 0),
+            new Among("iși", -1, 1, 0),
+            new Among("uși", -1, 1, 0),
+            new Among("âși", -1, 1, 0),
+            new Among("ați", -1, 2, 0),
+            new Among("eați", 38, 1, 0),
+            new Among("iați", 38, 1, 0),
+            new Among("eți", -1, 2, 0),
+            new Among("iți", -1, 2, 0),
+            new Among("âți", -1, 2, 0),
+            new Among("arăți", -1, 1, 0),
+            new Among("serăți", -1, 2, 0),
+            new Among("aserăți", 45, 1, 0),
+            new Among("seserăți", 45, 2, 0),
+            new Among("iserăți", 45, 1, 0),
+            new Among("userăți", 45, 1, 0),
+            new Among("âserăți", 45, 1, 0),
+            new Among("irăți", -1, 1, 0),
+            new Among("urăți", -1, 1, 0),
+            new Among("ârăți", -1, 1, 0),
+            new Among("am", -1, 1, 0),
+            new Among("eam", 54, 1, 0),
+            new Among("iam", 54, 1, 0),
+            new Among("em", -1, 2, 0),
+            new Among("asem", 57, 1, 0),
+            new Among("sesem", 57, 2, 0),
+            new Among("isem", 57, 1, 0),
+            new Among("usem", 57, 1, 0),
+            new Among("âsem", 57, 1, 0),
+            new Among("im", -1, 2, 0),
+            new Among("âm", -1, 2, 0),
+            new Among("ăm", -1, 2, 0),
+            new Among("arăm", 65, 1, 0),
+            new Among("serăm", 65, 2, 0),
+            new Among("aserăm", 67, 1, 0),
+            new Among("seserăm", 67, 2, 0),
+            new Among("iserăm", 67, 1, 0),
+            new Among("userăm", 67, 1, 0),
+            new Among("âserăm", 67, 1, 0),
+            new Among("irăm", 65, 1, 0),
+            new Among("urăm", 65, 1, 0),
+            new Among("ârăm", 65, 1, 0),
+            new Among("au", -1, 1, 0),
+            new Among("eau", 76, 1, 0),
+            new Among("iau", 76, 1, 0),
+            new Among("indu", -1, 1, 0),
+            new Among("ându", -1, 1, 0),
+            new Among("ez", -1, 1, 0),
+            new Among("ească", -1, 1, 0),
+            new Among("ară", -1, 1, 0),
+            new Among("seră", -1, 2, 0),
+            new Among("aseră", 84, 1, 0),
+            new Among("seseră", 84, 2, 0),
+            new Among("iseră", 84, 1, 0),
+            new Among("useră", 84, 1, 0),
+            new Among("âseră", 84, 1, 0),
+            new Among("iră", -1, 1, 0),
+            new Among("ură", -1, 1, 0),
+            new Among("âră", -1, 1, 0),
+            new Among("ează", -1, 1, 0)
         };
 
         private static readonly Among[] a_6 = new[]
         {
-            new Among("a", -1, 1),
-            new Among("e", -1, 1),
-            new Among("ie", 1, 1),
-            new Among("i", -1, 1),
-            new Among("ă", -1, 1)
+            new Among("a", -1, 1, 0),
+            new Among("e", -1, 1, 0),
+            new Among("ie", 1, 1, 0),
+            new Among("i", -1, 1, 0),
+            new Among("ă", -1, 1, 0)
         };
 
 
@@ -292,7 +292,7 @@ namespace Snowball
                     {
                         int c3 = cursor;
                         bra = cursor;
-                        among_var = find_among(a_0);
+                        among_var = find_among(a_0, null);
                         if (among_var == 0)
                         {
                             goto lab2;
@@ -534,7 +534,7 @@ namespace Snowball
             {
                 int c1 = cursor;
                 bra = cursor;
-                among_var = find_among(a_1);
+                among_var = find_among(a_1, null);
                 ket = cursor;
                 switch (among_var) {
                     case 1: {
@@ -581,7 +581,7 @@ namespace Snowball
         {
             int among_var;
             ket = cursor;
-            among_var = find_among_b(a_2);
+            among_var = find_among_b(a_2, null);
             if (among_var == 0)
             {
                 return false;
@@ -638,7 +638,7 @@ namespace Snowball
             {
                 int c1 = limit - cursor;
                 ket = cursor;
-                among_var = find_among_b(a_3);
+                among_var = find_among_b(a_3, null);
                 if (among_var == 0)
                 {
                     return false;
@@ -693,7 +693,7 @@ namespace Snowball
                 break;
             }
             ket = cursor;
-            among_var = find_among_b(a_4);
+            among_var = find_among_b(a_4, null);
             if (among_var == 0)
             {
                 return false;
@@ -734,7 +734,7 @@ namespace Snowball
             int c1 = limit_backward;
             limit_backward = I_pV;
             ket = cursor;
-            among_var = find_among_b(a_5);
+            among_var = find_among_b(a_5, null);
             if (among_var == 0)
             {
                 {
@@ -778,7 +778,7 @@ namespace Snowball
         private bool r_vowel_suffix()
         {
             ket = cursor;
-            if (find_among_b(a_6) == 0)
+            if (find_among_b(a_6, null) == 0)
             {
                 return false;
             }
@@ -814,7 +814,7 @@ namespace Snowball
                 int c4 = limit - cursor;
                 {
                     int c5 = limit - cursor;
-                    if (!(B_standard_suffix_removed))
+                    if (!B_standard_suffix_removed)
                     {
                         goto lab2;
                     }
