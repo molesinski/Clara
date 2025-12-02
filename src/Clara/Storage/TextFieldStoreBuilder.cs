@@ -67,11 +67,11 @@ namespace Clara.Storage
 
                         ref var score = ref documents.GetValueRefOrAddDefault(documentId, out _);
 
-                        score = this.field.ScoreAggregation.Combine(score, value.Weight);
+                        score = this.field.IndexScoreAggregation.Combine(score, value.Weight);
 
                         ref var length = ref this.documentLengths.GetValueRefOrAddDefault(documentId, out _);
 
-                        length += this.field.ScoreAggregation.Combine(length, value.Weight);
+                        length += this.field.IndexScoreAggregation.Combine(length, value.Weight);
                     }
                 }
             }
@@ -88,7 +88,7 @@ namespace Clara.Storage
 
             var store =
                 new TextFieldStore(
-                    new TextDocumentStore(tokenEncoder, this.field.Analyzer, this.field.SynonymMap, this.field.ScoreAggregation, this.tokenDocumentScores));
+                    new TextDocumentStore(tokenEncoder, this.field.Analyzer, this.field.SynonymMap, this.field.SearchScoreAggregation, this.tokenDocumentScores));
 
             this.isBuilt = true;
 

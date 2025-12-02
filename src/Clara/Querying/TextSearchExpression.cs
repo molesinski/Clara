@@ -6,7 +6,7 @@ namespace Clara.Querying
 {
     public sealed class TextSearchExpression : SearchExpression
     {
-        public TextSearchExpression(TextField field, SearchMode searchMode, string text, Func<Position, float>? positionBoost = null)
+        public TextSearchExpression(TextField field, SearchMode searchMode, string text, Func<Position, float>? positionBoost = null, ScoreAggregation? searchScoreAggregation = null)
         {
             if (field is null)
             {
@@ -27,6 +27,7 @@ namespace Clara.Querying
             this.SearchMode = searchMode;
             this.Text = text;
             this.PositionBoost = positionBoost;
+            this.SearchScoreAggregation = searchScoreAggregation;
         }
 
         public TextField Field { get; }
@@ -36,6 +37,8 @@ namespace Clara.Querying
         public string Text { get; }
 
         public Func<Position, float>? PositionBoost { get; }
+
+        public ScoreAggregation? SearchScoreAggregation { get; }
 
         internal override bool IsEmpty
         {

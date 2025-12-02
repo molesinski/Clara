@@ -13,7 +13,7 @@ namespace Clara.Storage
         private readonly TokenEncoder tokenEncoder;
         private readonly IAnalyzer analyzer;
         private readonly ISynonymMap? synonymMap;
-        private readonly ScoreAggregation scoreAggregation;
+        private readonly ScoreAggregation searchScoreAggregation;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
         private readonly ObjectPool<IPhraseTermSource> phraseTermSourcePool;
 
@@ -21,7 +21,7 @@ namespace Clara.Storage
             TokenEncoder tokenEncoder,
             IAnalyzer analyzer,
             ISynonymMap? synonymMap,
-            ScoreAggregation scoreAggregation,
+            ScoreAggregation searchScoreAggregation,
             DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores)
         {
             if (tokenEncoder is null)
@@ -34,9 +34,9 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(analyzer));
             }
 
-            if (scoreAggregation is null)
+            if (searchScoreAggregation is null)
             {
-                throw new ArgumentNullException(nameof(scoreAggregation));
+                throw new ArgumentNullException(nameof(searchScoreAggregation));
             }
 
             if (tokenDocumentScores is null)
@@ -47,18 +47,20 @@ namespace Clara.Storage
             this.tokenEncoder = tokenEncoder;
             this.analyzer = analyzer;
             this.synonymMap = synonymMap;
-            this.scoreAggregation = scoreAggregation;
+            this.searchScoreAggregation = searchScoreAggregation;
             this.tokenDocumentScores = tokenDocumentScores;
             this.phraseTermSourcePool = new ObjectPool<IPhraseTermSource>(() => this.synonymMap?.CreatePhraseTermSource() ?? new PhraseTermSource(this.analyzer.CreateTokenTermSource()));
         }
 
-        public DocumentScoring Search(SearchMode searchMode, string text, Func<Position, float>? positionBoost)
+        public DocumentScoring Search(SearchMode searchMode, string text, Func<Position, float>? positionBoost, ScoreAggregation? searchScoreAggregation)
         {
             using var source = this.phraseTermSourcePool.Lease();
             using var termScores = SharedObjectPools.DocumentScores.Lease();
 
             var documentScores = SharedObjectPools.DocumentScores.Lease();
             var isFirst = true;
+
+            searchScoreAggregation ??= this.searchScoreAggregation;
 
             foreach (var term in source.Instance.GetTerms(text))
             {
@@ -68,12 +70,12 @@ namespace Clara.Storage
                 {
                     if (this.tokenEncoder.ToReadOnly(token) is string value)
                     {
-                        this.Search(value, termScores.Instance);
+                        this.Search(value, termScores.Instance, searchScoreAggregation);
                     }
                 }
                 else if (term.Phrases is PhraseGroup phrases)
                 {
-                    this.Search(phrases, termScores.Instance);
+                    this.Search(phrases, termScores.Instance, searchScoreAggregation);
                 }
                 else
                 {
@@ -91,12 +93,12 @@ namespace Clara.Storage
                 {
                     if (isFirst)
                     {
-                        documentScores.Instance.UnionWith(termScores.Instance, this.scoreAggregation, boost);
+                        documentScores.Instance.UnionWith(termScores.Instance, searchScoreAggregation, boost);
                         isFirst = false;
                     }
                     else
                     {
-                        documentScores.Instance.IntersectWith(termScores.Instance, this.scoreAggregation, boost);
+                        documentScores.Instance.IntersectWith(termScores.Instance, searchScoreAggregation, boost);
                     }
 
                     if (documentScores.Instance.Count == 0)
@@ -106,25 +108,25 @@ namespace Clara.Storage
                 }
                 else
                 {
-                    documentScores.Instance.UnionWith(termScores.Instance, this.scoreAggregation, boost);
+                    documentScores.Instance.UnionWith(termScores.Instance, searchScoreAggregation, boost);
                 }
             }
 
             return new DocumentScoring(documentScores);
         }
 
-        private void Search(string value, DictionarySlim<int, float> termScores)
+        private void Search(string value, DictionarySlim<int, float> termScores, ScoreAggregation searchScoreAggregation)
         {
             if (this.tokenEncoder.TryEncode(value, out var tokenId))
             {
                 if (this.tokenDocumentScores.TryGetValue(tokenId, out var tokenDocuments))
                 {
-                    termScores.UnionWith(tokenDocuments, this.scoreAggregation, DefaultBoost);
+                    termScores.UnionWith(tokenDocuments, this.searchScoreAggregation, DefaultBoost);
                 }
             }
         }
 
-        private void Search(PhraseGroup phrases, DictionarySlim<int, float> termScores)
+        private void Search(PhraseGroup phrases, DictionarySlim<int, float> termScores, ScoreAggregation searchScoreAggregation)
         {
             using var phraseScores = SharedObjectPools.DocumentScores.Lease();
 
@@ -132,13 +134,13 @@ namespace Clara.Storage
             {
                 phraseScores.Instance.Clear();
 
-                this.Search(phrase, phraseScores.Instance);
+                this.Search(phrase, phraseScores.Instance, searchScoreAggregation);
 
                 termScores.UnionWith(phraseScores.Instance, ScoreAggregation.Max, DefaultBoost);
             }
         }
 
-        private void Search(Phrase phrase, DictionarySlim<int, float> phraseScores)
+        private void Search(Phrase phrase, DictionarySlim<int, float> phraseScores, ScoreAggregation searchScoreAggregation)
         {
             var isFirst = true;
 
@@ -150,12 +152,12 @@ namespace Clara.Storage
                     {
                         if (isFirst)
                         {
-                            phraseScores.UnionWith(tokenDocuments, this.scoreAggregation, DefaultBoost);
+                            phraseScores.UnionWith(tokenDocuments, this.searchScoreAggregation, DefaultBoost);
                             isFirst = false;
                         }
                         else
                         {
-                            phraseScores.IntersectWith(tokenDocuments, this.scoreAggregation, DefaultBoost);
+                            phraseScores.IntersectWith(tokenDocuments, this.searchScoreAggregation, DefaultBoost);
                         }
 
                         continue;

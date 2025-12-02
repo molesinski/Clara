@@ -25,7 +25,8 @@ namespace Clara.Storage
                     this.textDocumentStore.Search(
                         textSearchExpression.SearchMode,
                         textSearchExpression.Text,
-                        textSearchExpression.PositionBoost);
+                        textSearchExpression.PositionBoost,
+                        textSearchExpression.SearchScoreAggregation);
             }
 
             return base.Search(searchExpression);

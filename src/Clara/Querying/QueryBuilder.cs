@@ -27,7 +27,7 @@ namespace Clara.Querying
             return this.query;
         }
 
-        public QueryBuilder Search(TextField field, SearchMode searchMode, string? text, Func<Position, float>? positionBoost = null)
+        public QueryBuilder Search(TextField field, SearchMode searchMode, string? text, Func<Position, float>? positionBoost = null, ScoreAggregation? scoreAggregation = null)
         {
             this.ThrowIfDisposed();
 
@@ -41,7 +41,7 @@ namespace Clara.Querying
                 throw new InvalidOperationException("Search already has been set.");
             }
 
-            this.query.Search = new TextSearchExpression(field, searchMode, text ?? string.Empty, positionBoost);
+            this.query.Search = new TextSearchExpression(field, searchMode, text ?? string.Empty, positionBoost, scoreAggregation);
 
             return this;
         }
