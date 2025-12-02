@@ -14,22 +14,16 @@ pr: none
 
 steps:
 - task: UseDotNet@2
-  displayName: 'Use 6.0 .NET Runtime'
-  inputs:
-    packageType: "runtime"
-    version: "6.0.x"
-
-- task: UseDotNet@2
-  displayName: 'Use 7.0 .NET Runtime'
-  inputs:
-    packageType: "runtime"
-    version: "7.0.x"
-
-- task: UseDotNet@2
   displayName: 'Use 8.0 .NET Runtime'
   inputs:
     packageType: "runtime"
     version: "8.0.x"
+
+- task: UseDotNet@2
+  displayName: 'Use 9.0 .NET Runtime'
+  inputs:
+    packageType: "runtime"
+    version: "9.0.x"
 
 - task: UseDotNet@2
   displayName: 'Use latest .NET SDK'
