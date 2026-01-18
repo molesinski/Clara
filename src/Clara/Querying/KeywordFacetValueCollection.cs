@@ -5,11 +5,11 @@ namespace Clara.Querying
 {
     public sealed class KeywordFacetValueCollection : IReadOnlyList<KeywordFacetValue>, IDisposable
     {
-        private readonly ObjectPoolLease<ListSlim<KeywordFacetValue>> items;
+        private readonly ObjectPoolSlimLease<ListSlim<KeywordFacetValue>> items;
         private bool isDisposed;
 
         internal KeywordFacetValueCollection(
-            ObjectPoolLease<ListSlim<KeywordFacetValue>> items)
+            ObjectPoolSlimLease<ListSlim<KeywordFacetValue>> items)
         {
             this.items = items;
         }

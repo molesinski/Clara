@@ -10,7 +10,7 @@ namespace Clara.Querying
 
         internal HierarchyFacetResult(
             HierarchyField field,
-            ObjectPoolLease<ListSlim<HierarchyFacetValue>> items,
+            ObjectPoolSlimLease<ListSlim<HierarchyFacetValue>> items,
             int offset,
             int count)
                 : base(field)

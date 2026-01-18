@@ -6,8 +6,8 @@ namespace Clara.Querying
     public sealed class Query : IDisposable
     {
         private readonly Index index;
-        private readonly ObjectPoolLease<ListSlim<FilterExpression>> filters;
-        private readonly ObjectPoolLease<ListSlim<FacetExpression>> facets;
+        private readonly ObjectPoolSlimLease<ListSlim<FilterExpression>> filters;
+        private readonly ObjectPoolSlimLease<ListSlim<FacetExpression>> facets;
         private SearchExpression? search;
         private SortExpression? sort;
         private IEnumerable<string?>? includeDocuments;

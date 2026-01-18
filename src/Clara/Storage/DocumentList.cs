@@ -6,9 +6,9 @@ namespace Clara.Storage
     {
         private static readonly ListSlim<int> Empty = new();
 
-        private readonly ObjectPoolLease<ListSlim<int>>? lease;
+        private readonly ObjectPoolSlimLease<ListSlim<int>>? lease;
 
-        public DocumentList(ObjectPoolLease<ListSlim<int>> lease)
+        public DocumentList(ObjectPoolSlimLease<ListSlim<int>> lease)
         {
             this.lease = lease;
         }

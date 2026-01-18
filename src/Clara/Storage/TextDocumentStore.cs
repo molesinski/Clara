@@ -15,7 +15,7 @@ namespace Clara.Storage
         private readonly ISynonymMap? synonymMap;
         private readonly ScoreAggregation searchScoreAggregation;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
-        private readonly ObjectPool<IPhraseTermSource> phraseTermSourcePool;
+        private readonly ObjectPoolSlim<IPhraseTermSource> phraseTermSourcePool;
 
         public TextDocumentStore(
             TokenEncoder tokenEncoder,
@@ -49,7 +49,7 @@ namespace Clara.Storage
             this.synonymMap = synonymMap;
             this.searchScoreAggregation = searchScoreAggregation;
             this.tokenDocumentScores = tokenDocumentScores;
-            this.phraseTermSourcePool = new ObjectPool<IPhraseTermSource>(() => this.synonymMap?.CreatePhraseTermSource() ?? new PhraseTermSource(this.analyzer.CreateTokenTermSource()));
+            this.phraseTermSourcePool = new ObjectPoolSlim<IPhraseTermSource>(() => this.synonymMap?.CreatePhraseTermSource() ?? new PhraseTermSource(this.analyzer.CreateTokenTermSource()));
         }
 
         public DocumentScoring Search(SearchMode searchMode, string text, Func<Position, float>? positionBoost, ScoreAggregation? searchScoreAggregation)

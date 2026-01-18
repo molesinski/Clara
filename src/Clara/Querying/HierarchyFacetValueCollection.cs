@@ -5,13 +5,13 @@ namespace Clara.Querying
 {
     public sealed class HierarchyFacetValueCollection : IReadOnlyList<HierarchyFacetValue>, IDisposable
     {
-        private readonly ObjectPoolLease<ListSlim<HierarchyFacetValue>> items;
+        private readonly ObjectPoolSlimLease<ListSlim<HierarchyFacetValue>> items;
         private readonly int offset;
         private readonly int count;
         private bool isDisposed;
 
         internal HierarchyFacetValueCollection(
-            ObjectPoolLease<ListSlim<HierarchyFacetValue>> items,
+            ObjectPoolSlimLease<ListSlim<HierarchyFacetValue>> items,
             int offset,
             int count)
         {

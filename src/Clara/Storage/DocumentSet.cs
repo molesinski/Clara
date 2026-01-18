@@ -7,14 +7,14 @@ namespace Clara.Storage
         private static readonly HashSetSlim<int> Empty = new();
 
         private readonly HashSetSlim<int>? value;
-        private readonly ObjectPoolLease<HashSetSlim<int>>? lease;
+        private readonly ObjectPoolSlimLease<HashSetSlim<int>>? lease;
 
         public DocumentSet(HashSetSlim<int> value)
         {
             this.value = value;
         }
 
-        public DocumentSet(ObjectPoolLease<HashSetSlim<int>> lease)
+        public DocumentSet(ObjectPoolSlimLease<HashSetSlim<int>> lease)
         {
             this.lease = lease;
         }

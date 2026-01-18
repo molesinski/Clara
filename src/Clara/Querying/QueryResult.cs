@@ -14,7 +14,7 @@ namespace Clara.Querying
             DictionarySlim<int, TDocument> documentMap,
             DocumentScoring documentScoring,
             DocumentList documentList,
-            ObjectPoolLease<ListSlim<FacetResult>> facetResults)
+            ObjectPoolSlimLease<ListSlim<FacetResult>> facetResults)
         {
             if (tokenEncoder is null)
             {

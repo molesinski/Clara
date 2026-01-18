@@ -9,7 +9,7 @@ namespace Clara.Storage
 
         private readonly Field field;
         private readonly HashSetSlim<int> allDocuments;
-        private readonly ObjectPoolLease<HashSetSlim<int>>? facetDocuments;
+        private readonly ObjectPoolSlimLease<HashSetSlim<int>>? facetDocuments;
 
         public DocumentResultBuilderFacet(Field field, HashSetSlim<int> allDocuments)
         {
@@ -28,7 +28,7 @@ namespace Clara.Storage
             this.facetDocuments = null;
         }
 
-        public DocumentResultBuilderFacet(Field field, ObjectPoolLease<HashSetSlim<int>> facetDocuments)
+        public DocumentResultBuilderFacet(Field field, ObjectPoolSlimLease<HashSetSlim<int>> facetDocuments)
         {
             if (field is null)
             {

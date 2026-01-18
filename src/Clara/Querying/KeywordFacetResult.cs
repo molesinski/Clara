@@ -10,7 +10,7 @@ namespace Clara.Querying
 
         internal KeywordFacetResult(
             KeywordField field,
-            ObjectPoolLease<ListSlim<KeywordFacetValue>> items)
+            ObjectPoolSlimLease<ListSlim<KeywordFacetValue>> items)
             : base(field)
         {
             this.items = new KeywordFacetValueCollection(items);

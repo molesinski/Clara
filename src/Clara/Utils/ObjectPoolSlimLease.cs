@@ -1,14 +1,14 @@
 ﻿namespace Clara.Utils
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Not intended to be used directly for comparison")]
-    public readonly struct ObjectPoolLease<TItem> : IDisposable
+    public readonly struct ObjectPoolSlimLease<TItem> : IDisposable
         where TItem : class
     {
-        private readonly ObjectPool<TItem> pool;
+        private readonly ObjectPoolSlim<TItem> pool;
         private readonly TItem instance;
 
-        internal ObjectPoolLease(
-            ObjectPool<TItem> pool,
+        internal ObjectPoolSlimLease(
+            ObjectPoolSlim<TItem> pool,
             TItem target)
         {
             this.pool = pool;

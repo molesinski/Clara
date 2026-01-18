@@ -5,7 +5,7 @@ namespace Clara.Querying
 {
     public sealed class FilterValueCollection : IReadOnlyCollection<string>, IDisposable
     {
-        private readonly ObjectPoolLease<HashSetSlim<string>> lease;
+        private readonly ObjectPoolSlimLease<HashSetSlim<string>> lease;
         private bool isDisposed;
 
         internal FilterValueCollection(string? value)

@@ -6,9 +6,9 @@ namespace Clara.Storage
     {
         private static readonly DictionarySlim<int, float> Empty = new();
 
-        private readonly ObjectPoolLease<DictionarySlim<int, float>>? lease;
+        private readonly ObjectPoolSlimLease<DictionarySlim<int, float>>? lease;
 
-        public DocumentScoring(ObjectPoolLease<DictionarySlim<int, float>> lease)
+        public DocumentScoring(ObjectPoolSlimLease<DictionarySlim<int, float>> lease)
         {
             this.lease = lease;
         }

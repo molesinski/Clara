@@ -5,7 +5,7 @@ namespace Clara.Analysis
 {
     public sealed class PolishStemTokenFilter : ITokenFilter
     {
-        private static readonly ObjectPool<PolishStemmer> Pool = new(() => new());
+        private static readonly ObjectPoolSlim<PolishStemmer> Pool = new(() => new());
 
         public Token Process(Token token, TokenFilterDelegate next)
         {

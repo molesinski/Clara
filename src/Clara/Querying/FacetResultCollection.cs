@@ -6,11 +6,11 @@ namespace Clara.Querying
 {
     public sealed class FacetResultCollection : IReadOnlyList<FacetResult>, IDisposable
     {
-        private readonly ObjectPoolLease<ListSlim<FacetResult>> items;
+        private readonly ObjectPoolSlimLease<ListSlim<FacetResult>> items;
         private bool isDisposed;
 
         internal FacetResultCollection(
-            ObjectPoolLease<ListSlim<FacetResult>> items)
+            ObjectPoolSlimLease<ListSlim<FacetResult>> items)
         {
             this.items = items;
         }

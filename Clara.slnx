@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/.Solution/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path=".globalconfig" />
+    <File Path="azure-pipelines.yml" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
+    <File Path="Package.props" />
+    <File Path="README.md" />
+    <File Path="spelling.dic" />
+  </Folder>
+  <Project Path="src/Clara.Analysis.LuceneNet/Clara.Analysis.LuceneNet.csproj" />
+  <Project Path="src/Clara.Analysis.Morfologik/Clara.Analysis.Morfologik.csproj" />
+  <Project Path="src/Clara.Analysis.Snowball/Clara.Analysis.Snowball.csproj" />
+  <Project Path="src/Clara.Benchmarks/Clara.Benchmarks.csproj" />
+  <Project Path="src/Clara.Tests/Clara.Tests.csproj" />
+  <Project Path="src/Clara/Clara.csproj" />
+</Solution>

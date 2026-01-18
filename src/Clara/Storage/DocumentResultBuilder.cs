@@ -6,8 +6,8 @@ namespace Clara.Storage
     internal ref struct DocumentResultBuilder
     {
         private readonly HashSetSlim<int> allDocuments;
-        private ObjectPoolLease<ListSlim<DocumentResultBuilderFacet>>? facets;
-        private ObjectPoolLease<HashSetSlim<int>>? documents;
+        private ObjectPoolSlimLease<ListSlim<DocumentResultBuilderFacet>>? facets;
+        private ObjectPoolSlimLease<HashSetSlim<int>>? documents;
 
         public DocumentResultBuilder(HashSetSlim<int> allDocuments)
         {

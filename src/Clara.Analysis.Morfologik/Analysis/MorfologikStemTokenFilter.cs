@@ -6,7 +6,7 @@ namespace Clara.Analysis
 {
     public sealed class MorfologikStemTokenFilter : ITokenFilter
     {
-        private static readonly ObjectPool<StemmerContext> Pool = new(() => new());
+        private static readonly ObjectPoolSlim<StemmerContext> Pool = new(() => new());
 
         public Token Process(Token token, TokenFilterDelegate next)
         {
