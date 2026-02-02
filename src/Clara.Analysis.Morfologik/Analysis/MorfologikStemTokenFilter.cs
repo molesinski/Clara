@@ -27,9 +27,9 @@ namespace Clara.Analysis
 
             var lemmas = stemmer.Lookup(input);
 
-            if (lemmas.Count > 0)
+            for (var i = lemmas.Count - 1; i >= 0; i--)
             {
-                var lemma = lemmas[0];
+                var lemma = lemmas[i];
 
                 var buffer = stemmerContext.Instance.Output;
                 buffer.Clear();
@@ -42,6 +42,11 @@ namespace Clara.Analysis
                 if (charCount > 0 && charCount <= Token.MaximumLength)
                 {
                     token.Set(chars.AsSpan(0, charCount));
+
+                    if (token.AsReadOnlySpan().EndsWith("y", StringComparison.OrdinalIgnoreCase))
+                    {
+                        break;
+                    }
                 }
             }
 
