@@ -1,7 +1,7 @@
 ﻿# Clara
 
 [![CI](https://dev.azure.com/molesinski/Clara/_apis/build/status/Clara?branchName=master)](https://dev.azure.com/molesinski/Clara/_build/latest?definitionId=1&branchName=master)
-[![NuGet](https://img.shields.io/nuget/dt/clara.svg)](https://www.nuget.org/packages/clara) 
+[![NuGet](https://img.shields.io/nuget/dt/clara.svg)](https://www.nuget.org/packages/clara)
 [![NuGet](https://img.shields.io/nuget/v/clara.svg)](https://www.nuget.org/packages/clara)
 [![License](https://img.shields.io/github/license/molesinski/clara.svg)](https://github.com/molesinski/clara/blob/master/LICENSE)
 
@@ -11,7 +11,7 @@ Developer documentation: [architecture, API, development, and implementation not
 
 ## Highlights
 
-This library is meant for relatively small document sets (up to tenths of thousands) while maintaining
+This library is meant for relatively small document sets (up to tens of thousands) while maintaining
 fast query times (measured in low milliseconds). Index updates are not supported by design and full index
 rebuild is required to reflect changes in source data.
 
@@ -20,15 +20,34 @@ Main features are:
 * Inspired by well known Lucene design
 * Fast in memory searching
 * Low memory allocation for search execution
-* Stemming and stop words handling for 31 languages
+* Multilingual stemming and configurable stopword lists
 * Text, keyword, hierarchy and range fields
 * Index time synonym maps with multi token support
-* Cross field searching with BM25 scoring
+* Searching across document properties combined into one text field, with BM25 scoring
 * Filtering keyword and hierarchy fields by any or all values and range fields by value subrange
-* Faceting without restricting facet values by field filters
+* Faceting that can retain alternatives excluded by the facet's own field filter
 * Result sorting by document scoring or range field values
 * Fully configurable and extendable text analysis pipeline
 * Fluent query builder
+
+## Installation
+
+Add the core package to your application:
+
+```shell
+dotnet add package Clara
+```
+
+For additional language analyzers, add `Clara.Analysis.Snowball` or `Clara.Analysis.Morfologik`.
+The projects target .NET Standard 2.0/2.1 and .NET 8/9/10. The examples below use modern C#;
+the `DateOnly` example requires .NET 6 or later. Use these namespaces for mapping and querying:
+
+```csharp
+using Clara;
+using Clara.Analysis;
+using Clara.Mapping;
+using Clara.Querying;
+```
 
 ## Supported Languages
 
@@ -39,7 +58,7 @@ Main features are:
 * Using [Clara.Analysis.Snowball](https://www.nuget.org/packages/Clara.Analysis.Snowball) package
 
   Arabic, Armenian, Basque, Catalan, Danish, Dutch, **English**, Estonian, Finnish, French, German, Greek,
-  Hindi, Hungarian, Indonesian, Irish, Italian, Lithuanian, Nepali, Norwegian, Portuguese, Romanian, Russian,
+  Hindi, Hungarian, Indonesian, Irish, Italian, Lithuanian, Nepali, Norwegian, Polish, Portuguese, Romanian, Russian,
   Serbian, Spanish, Swedish, Tamil, Turkish, Yiddish
 
 * Using [Clara.Analysis.Morfologik](https://www.nuget.org/packages/Clara.Analysis.Morfologik) package
@@ -48,7 +67,9 @@ Main features are:
 
 ## A Quick Example
 
-Given sample product data set from [dummyjson.com](https://dummyjson.com/products).
+The repository includes a sample product dataset originally obtained from
+[dummyjson.com](https://dummyjson.com/products), saved in [Product.json](src/Clara.Tests/Product.json).
+The following is one record; load the full fixture into `products` to run the catalog query below.
 
 ```json
 [
@@ -73,14 +94,14 @@ We define data model as follows.
 public class Product
 {
     public int Id { get; set; }
-    public string Title { get; set; }
-    public string Description { get; set; }
+    public string? Title { get; set; }
+    public string? Description { get; set; }
     public decimal? Price { get; set; }
     public double? DiscountPercentage { get; set; }
     public double? Rating { get; set; }
     public int? Stock { get; set; }
-    public string Brand { get; set; }
-    public string Category { get; set; }
+    public string? Brand { get; set; }
+    public string? Category { get; set; }
 }
 ```
 
@@ -96,13 +117,12 @@ For simple fields we define delegates that provide raw values for indexing. Each
 one or more values, null values are automatically skipped during indexing. All non-text fields can be marked
 as filterable or facetable, while only range fields can be made sortable.
 
-Built indexes have no persistence and reside only in memory. If index needs updating, it should be rebuild
-and old one should be discarded. This is why fields have no names and can be referenced only by their
-usually static definition.
+Built indexes have no persistence and reside only in memory. Rebuild an index when its source data changes.
+Fields have no names: keep their definitions in mapper properties and use those same instances when querying.
 
 `IIndexMapper<TSource>` interface is straightforward. It provides all fields collection, method to access document
 key and method to access indexed document value. Indexed document value, which is provided in query results
-can be different than index source document. To indicate such distinction use `IIndexMapper<TSouce, TDocument>`
+can be different than index source document. To indicate such distinction use `IIndexMapper<TSource, TDocument>`
 type instead and return proper document type in `GetDocument` method implementation.
 
 ```csharp
@@ -161,7 +181,7 @@ using var result = index.Query(
         .Search(mapper.Text, SearchMode.Any, "watch ring leather bag")
         .Filter(mapper.Brand, FilterMode.Any, "Eastern Watches", "Bracelet", "Copenhagen Luxe")
         .Filter(mapper.Category, FilterMode.Any, "womens")
-        .Filter(mapper.Price, valueFrom: 10, valueTo: 90)
+        .Filter(mapper.Price, from: 10, to: 90)
         .Facet(mapper.Brand)
         .Facet(mapper.Category)
         .Facet(mapper.Price)
@@ -196,19 +216,21 @@ foreach (var value in result.Facets.Field(mapper.Category).Values.Take(5))
 var priceFacet = result.Facets.Field(mapper.Price);
 
 Console.WriteLine("Price:");
-Console.WriteLine($"  [Min] => {priceFacet.Min}");
-Console.WriteLine($"  [Max] => {priceFacet.Max}");
+Console.WriteLine($"  [Min] => {priceFacet.MinValue}");
+Console.WriteLine($"  [Max] => {priceFacet.MaxValue}");
 ```
 
-Running this query against sample data results in following output.
+The query returns matching products sorted by descending price, plus brand, category, and price facets.
+The following output uses the bundled fixture and invariant number formatting; scores depend on the dataset,
+analyzer, and scoring settings.
 
 ```
 Documents:
-  [Fashion Magnetic Wrist Watch] $60 => 3,31469
-  [Leather Hand Bag] $57 => 6,3701906
-  [Fancy hand clutch] $44 => 6,559135
-  [Steel Analog Couple Watches] $35 => 3,4505985
-  [Stainless Steel Women] $35 => 3,4802377
+  [Fashion Magnetic Wrist Watch] $60 => 3.316201
+  [Leather Hand Bag] $57 => 6.3456607
+  [Fancy hand clutch] $44 => 6.5686703
+  [Steel Analog Couple Watches] $35 => 3.4590023
+  [Stainless Steel Women] $35 => 3.4776275
 Brands:
   (x) [Eastern Watches] => 2
   (x) [Bracelet] => 2
@@ -226,43 +248,130 @@ Price:
 
 ## Field Mapping
 
-TODO
+Implement `IIndexMapper<TSource>` to provide document keys, returned documents, and field definitions.
+Use `IIndexMapper<TSource, TDocument>` when results should contain a different projection. Keys must be unique
+within the index. `GetDocument` does not copy the object, so changing it later does not update indexed values.
+
+Each field reads one value or an enumerable of values from a source document. Null values are skipped.
+Non-text fields require at least one capability flag; enable only the operations your queries need.
+
+| Field | Value type | Supported operations |
+| --- | --- | --- |
+| `TextField<TSource>` | Strings or `TextWeight` values | Search and scoring |
+| `KeywordField<TSource>` | Labels | Filtering and faceting |
+| `HierarchyField<TSource>` | Hierarchical identifiers or paths | Filtering and hierarchical faceting |
+| `RangeField<TSource, TValue>` | Comparable value types | Filtering, min/max facets, and sorting |
+
+Include every field in `GetFields()` and query with the same field instances used to build the index.
+See [indexing and field storage](docs/indexing.md) for the build lifecycle and encoder options.
 
 ### Text Fields
 
-TODO
+`TextField<TSource>` requires an analyzer and accepts a string, multiple strings, or weighted text values.
+Collect properties such as title and description into one field to search them together. A query searches
+one text field; separate fields can provide different languages or analysis rules.
+
+Use `TextWeight` to give selected source values more influence on scoring:
+
+```csharp
+var weightedText = new TextField<Product>(
+    product => new[]
+    {
+        new TextWeight(product.Title, weight: 3f, expandSynonyms: true),
+        new TextWeight(product.Description, weight: 1f, expandSynonyms: true),
+    },
+    new PorterAnalyzer(),
+    similarity: Similarity.BM25());
+```
+
+Plain strings use weight 1 and enable synonym expansion. Empty text is ignored. By default, BM25 scores
+the indexed terms, and `ScoreAggregation.Sum` combines weights during indexing and scores during search.
+`ScoreAggregation.Max`, `Similarity.TF`, and `Similarity.TFIDF` are also available. A larger input weight
+does not imply a proportional final BM25 score. See [scoring](docs/scoring.md) for the calculation stages.
+
+`SearchMode.Any` accepts documents matching any query term; `SearchMode.All` requires every term.
+Search uses analyzed tokens, without fuzzy matching or quoted phrase adjacency checks.
 
 ### Keyword Fields
 
-TODO
+Keyword fields store whole labels without text analysis. Labels are trimmed, empty values are skipped,
+and comparisons are case-sensitive: `Apple` and `apple` are distinct. Repeated values in a document
+count only once in a facet.
+
+```csharp
+var brand = new KeywordField<Product>(
+    product => product.Brand,
+    isFilterable: true,
+    isFacetable: true);
+```
+
+For multivalued labels, return an `IEnumerable<string?>` from the mapper delegate. `FilterMode.Any`
+matches any selected label; `FilterMode.All` requires all selected labels in the document. Filters on
+different fields are combined with AND. A keyword facet returns each value's `Count` and `IsSelected`.
+With an `Any` filter on that field, its facet retains alternatives while respecting the other filters;
+an `All` filter also restricts its own facet.
 
 ### Hierarchy Fields
 
-TODO
+Hierarchy fields index a node and its ancestors. Set a separator, a synthetic root, and how node values
+are identified. For a category such as `womens-watches`:
+
+```csharp
+var category = new HierarchyField<Product>(
+    product => product.Category,
+    separator: "-",
+    root: "all",
+    valueHandling: HierarchyValueHandling.Path,
+    isFilterable: true,
+    isFacetable: true);
+```
+
+`Path` indexes `all`, `womens`, and `womens-watches`. `Identifiers` instead uses `all`, `womens`, and
+`watches`; use it only when node identifiers are unambiguous across branches. Do not include the synthetic
+root in source paths. A mapper may return multiple paths per document.
+
+Filtering `womens` includes its descendants. Hierarchy facets expose selected nodes and their immediate
+`Children`; with no selection, navigation starts at the root. Fetch another facet result to navigate deeper.
+Counts represent documents, not the number of paths. See [query and facet semantics](docs/queries.md).
 
 ### Range Fields
 
-Range fields represent index fields for `struct` values with `IComparable<T>` interface implementation,
-that is for comparable values, which can be within specific range. Range fields allow filtering by
-subrange and their facet values contain matched documents minimum and maximum values. Sorting is dependant
-on direction `Ascending` or `Descedning`. When sorting by `Ascending` order, then minumum document value
-is used and documents without any value are treated as if they had `maxValue`. While when sorting by
-`Descending` order maximum document value is used and documents without values have `minValue` assigned
-to them.
+Range fields accept a `struct` implementing `IComparable<TValue>`. A mapper returns a nullable value or an
+enumerable of values; values outside the declared `minValue`/`maxValue` bounds are skipped during indexing.
+Range filters use inclusive `from` and `to` bounds, with `null` leaving a side unbounded. For multiple values,
+a document matches when any value is in the requested range.
+
+Range facets expose `MinValue` and `MaxValue`, excluding their own field filter while respecting other
+constraints. With no values, both bounds are `default(TValue)`. Ascending sorting uses a document's minimum
+value; descending sorting uses its maximum. Missing values use the field's upper or lower bound respectively,
+so they sort last or tie with documents at that bound. Sort ties have no guaranteed secondary ordering.
 
 Internally `DateTime`, `Decimal`, `Double` and `Int32` types are supported. Implementors can support
-any type that fullfills requirements by directly using `RangeField<TValue>` and providing `minValue` and
+any type that fulfills these requirements by using `RangeField<TSource, TValue>` and providing `minValue` and
 `maxValue` for a given type. For example given `DateOnly` type, index field can be defined as follows.
 
 ```csharp
-public static RangeField<DateOnly> DateOfBirth { get; } = new(x => x.DateOfBirth, minValue: DateOnly.MinValue, maxValue: DateOnly.MaxValue, isFilterable: true, isFacetable: true, isSortable: true);
+public sealed class Person
+{
+    public DateOnly? DateOfBirth { get; set; }
+}
+```
+
+```csharp
+var dateOfBirth = new RangeField<Person, DateOnly>(
+    person => person.DateOfBirth,
+    minValue: DateOnly.MinValue,
+    maxValue: DateOnly.MaxValue,
+    isFilterable: true,
+    isFacetable: true,
+    isSortable: true);
 ```
 
 Alternatively it is possible to provide own concrete implementation, by creating subclass of
-`RangeField<TValue>`.
+`RangeField<TSource, TValue>`.
 
 ```csharp
-public sealed class DateOnlyField<TSource> : RangeField<TSource, int>
+public sealed class DateOnlyField<TSource> : RangeField<TSource, DateOnly>
 {
     public DateOnlyField(Func<TSource, DateOnly?> valueMapper, bool isFilterable = false, bool isFacetable = false, bool isSortable = false)
         : base(
@@ -292,33 +401,119 @@ Defined `DateOnlyField` can be used now directly, without the need to specify `T
 each time.
 
 ```csharp
-public static DateOnlyField DateOfBirth { get; } = new(x => x.DateOfBirth, isFilterable: true, isFacetable: true, isSortable: true);
+var dateOfBirth = new DateOnlyField<Person>(
+    person => person.DateOfBirth,
+    isFilterable: true,
+    isFacetable: true,
+    isSortable: true);
 ```
 
 ## Text Analysis
 
-TODO
+Text analysis turns source text and query text into matching terms. A tokenizer finds tokens; an ordered
+filter pipeline normalizes them, removes stopwords, protects selected keywords, or reduces words to stems.
+The text field uses its configured analyzer on both sides. Rebuild the index after changing analysis rules.
+
+`StandardTokenizer` recognizes letters, digits, and underscores, with rules for apostrophes and numeric
+punctuation. `WhitespaceTokenizer` splits on whitespace only. Both skip tokens longer than
+`Token.MaximumLength` (255 UTF-16 code units). Token positions are token indices, not character offsets.
 
 ### Analyzers
 
-TODO
+The core library provides `StandardAnalyzer` for lowercase normalization and optional stopwords, and
+`PorterAnalyzer` for English stemming, possessive handling, and a default English stopword list.
 
-Internally only `PorterAnalyzer` is provided for English language stemming. For other languages
+For additional language analyzers,
 [Clara.Analysis.Snowball](https://www.nuget.org/packages/Clara.Analysis.Snowball) or
 [Clara.Analysis.Morfologik](https://www.nuget.org/packages/Clara.Analysis.Morfologik) packages can
-be used. Those packages provide stem and stop token filters for all supported languages.
+be used. Snowball provides analyzers such as `EnglishAnalyzer` and `PolishAnalyzer`; Morfologik provides
+the dictionary-based `MorfologikAnalyzer` for Polish. These classes also use the `Clara.Analysis` namespace.
 
-TODO
+```csharp
+var analyzer = new PorterAnalyzer(
+    stopwords: Array.Empty<string>(),
+    keywords: new[] { "running" });
+
+var source = analyzer.CreateTokenTermSource();
+var terms = source.GetTerms("RUNNING shoes")
+    .Select(term => term.Token.ToString())
+    .ToArray();
+// terms: ["running", "shoe"]
+```
+
+For language analyzers, `stopwords: null` selects their built-in list; an empty collection disables removal.
+`StandardAnalyzer` has no default stopwords. Protected keywords should match the normalized token form
+at that pipeline stage, typically lowercase.
+
+A token source reuses its character buffer. Convert tokens to strings during enumeration if you need to
+retain them, and use separate sources for concurrent or nested enumerations. Morfologik emits one selected
+lemma rather than performing contextual disambiguation; see [text analysis](docs/text-analysis.md) for details.
 
 ### Synonym Maps
 
-TODO
+Synonym maps normalize related words and multiword expressions with the field's analyzer. Construct a
+`SynonymMap` from rules and pass the **same analyzer instance** to both the map and the text field:
+
+```csharp
+using Clara.Analysis.Synonyms;
+
+var analyzer = new StandardAnalyzer();
+var rules = Synonym.Parse("mug, cup\ni phone, i-phone => iphone");
+var synonyms = new SynonymMap(analyzer, rules);
+var text = new TextField<Product>(product => product.Title, analyzer, synonyms);
+```
+
+Comma-separated phrases define an equivalence group. A rule with `=>` maps the left side to the right;
+the original source is retained only if it is also a target. Rules can also be built with
+`EquivalencySynonym` and `ExplicitMappingSynonym`. Equivalence groups expand by default; passing `expand: false`
+to `SynonymMap` uses their first analyzed phrase as the target. The parser accepts blank lines and `#` comment lines;
+invalid lines can be skipped, so validate externally supplied rules.
+
+During indexing, replacement tokens are emitted unless a `TextWeight` is constructed with `expandSynonyms: false`.
+During querying, all tokens of a synonym phrase must match, while alternative phrases are combined using
+the maximum score. This does not enforce adjacency in the document. Disabling expansion for an indexed
+value does not disable query-side synonyms. See [synonym processing](docs/text-analysis.md#synonyms).
 
 ### Extending Analysis Pipeline
 
-TODO
+Compose `Analyzer` with an `ITokenizer` and filters in execution order. A custom `ITokenFilter` can
+continue with `next(token)`, discard a token by returning `default`, or return a token directly to stop
+the chain. For example, this filter removes tokens shorter than three characters:
+
+```csharp
+public sealed class ShortTokenFilter : ITokenFilter
+{
+    public Token Process(Token token, TokenFilterDelegate next)
+    {
+        if (next is null)
+        {
+            throw new ArgumentNullException(nameof(next));
+        }
+
+        return token.Length < 3 ? default : next(token);
+    }
+}
+```
+
+```csharp
+var analyzer = new Analyzer(
+    new StandardTokenizer(),
+    new LowerInvariantTokenFilter(),
+    new ShortTokenFilter(),
+    new PorterStemTokenFilter());
+```
+
+The built-in `LengthStopTokenFilter(minimumLength: 3)` provides the same length check. Place stopword and
+keyword filters after the normalization they rely on, and stemming last: Porter, Snowball, and Morfologik
+stem filters terminate the chain. Tokens backed by strings are read-only; tokens backed by tokenizer
+buffers can be modified in place. Keep filters stateless or provide synchronization for shared state.
+Implement `ITokenizer` or `IAnalyzer` when an entirely different token source is needed.
 
 ## Benchmarks
+
+The tables below are historical measurements from the environment shown. They predate the recent scoring,
+Snowball, and pool ownership changes. See [current targeted comparisons](docs/development-and-testing.md#benchmarks)
+for recorded update measurements and commands to benchmark your own workload.
 
 Index and query benchmarks and tests are performed using sample 100 product data set. Benchmark
 variants with `x100` suffix are based on data set multiplied 100 times.
@@ -367,10 +562,13 @@ Intel Core i9-14900K 3.20GHz, 1 CPU, 32 logical and 24 physical cores
 
 ### Memory Allocations
 
-Clara depends heavily on internal buffer pooling in order to provide minimal query execution memory
-footprint. Due to that fact, memory allocation per search execution is constant after initial buffer
-allocation. Although there are compromises being made regarding `Query` and `QueryResult` object
-allocations to provide ease of use and proper disposal of internal buffers. 
+Clara reuses buffers to reduce allocations on repeated queries. After warming the pools and their buffer
+capacities for a workload, reuse avoids allocating those buffers again. Larger result sets, pool misses,
+and concurrent queries can still cause allocations. `Query`, `QueryResult`, and facet wrappers also allocate.
+
+Always dispose query results and materialize any data that must outlive them. Pool leases use shared,
+versioned state to prevent repeated returns through copied leases, but accessing a buffer after its lease
+is disposed remains invalid. See [memory and concurrency](docs/memory-and-concurrency.md) for ownership rules.
 
 ## License
 

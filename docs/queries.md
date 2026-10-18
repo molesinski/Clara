@@ -4,7 +4,7 @@
 
 The simplest form is `using var result = index.Query(q => q.Filter(...));`. The library manages the builder and `Query`, while the caller owns the result. You can also use `index.QueryBuilder()` or construct `new Query(index)` directly.
 
-[`QueryBuilder`](../src/Clara/Querying/QueryBuilder.cs) allows one `Search`, one `Sort`, and one filter and facet per field instance. Repeating an operation throws an exception. `ToQuery()` transfers query ownership to the caller and consumes the builder. In contrast, `Query.AddFilter` and `AddFacet` replace an entry for the same field; when replacing a filter manually, dispose the previous object.
+[`QueryBuilder`](../src/Clara/Querying/QueryBuilder.cs) allows one `Search`, one `Sort`, and one filter and facet per field instance. Repeating an operation throws an exception. `ToQuery()` transfers query ownership to the caller and consumes the builder. In contrast, `Query.AddFilter` and `AddFacet` replace an entry for the same field. `Query.AddFilter` disposes the replaced filter unless the same instance is re-added; the query owns its filters.
 
 ## Text search
 

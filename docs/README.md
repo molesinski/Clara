@@ -21,6 +21,6 @@ For library integration, start with the example, field model, and queries. Befor
 
 ## Scope and baseline
 
-This documentation describes the current code, including the document length, synonym aggregation, and `Include` corrections summarized in [implementation notes](implementation-notes.md). The initial analysis used revision `c3073b3` on October 18, 2026. Links point to source files in this repository. Current code contracts take precedence over older examples in the main README; for example, the builder's range filter uses `from` and `to` parameters, and range facets expose `MinValue` and `MaxValue`.
+This documentation describes the current code, including the document length, synonym aggregation, `Include`, and pool ownership corrections summarized in [implementation notes](implementation-notes.md). The initial analysis used revision `c3073b3` on October 18, 2026. Links point to source files in this repository. The main [README](../README.md) introduces field mapping and text analysis; these chapters provide the detailed contracts and implementation context.
 
 The repository does not provide an HTTP server or a separate search service. The application embedding the library is responsible for loading data, refreshing the index, and presenting results. Contributor guidelines are in [AGENTS.md](../AGENTS.md).
