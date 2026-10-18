@@ -143,6 +143,8 @@ namespace Clara.Analysis
             void IDisposable.Dispose()
             {
                 ((IEnumerator)this).Reset();
+
+                this.text = string.Empty;
             }
         }
     }

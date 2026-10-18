@@ -183,6 +183,8 @@ namespace Clara.Analysis
             void IDisposable.Dispose()
             {
                 ((IEnumerator)this).Reset();
+
+                this.text = string.Empty;
             }
 
             private static bool IsConnected(char pp, char p, char c, char n, char nn)
