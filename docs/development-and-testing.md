@@ -45,7 +45,7 @@ The project uses xUnit 2.9.3, Microsoft.NET.Test.Sdk 18.11.0, and Visual Studio 
 | `IncludeTests.cs` | Current document key validation, shared encoder history, empty and mixed selections, and interaction with search and facets |
 | `PoolOwnershipTests.cs` | Buffer identities after repeated exceptions, partial facet cleanup, filter replacement, and successful result ownership |
 | `ObjectPoolSlimTests.cs` | Concurrent returns without overwritten instances and reset before reuse |
-| `ObjectPoolSlimLeaseTests.cs` | Copied, boxed, stale, and concurrent disposal; default leases; reset failures; full pools; allocation-free warmed reuse |
+| `ObjectPoolSlimLeaseTests.cs` | Default lease disposal and allocation-free warmed reuse |
 | `GettingStartedTests.cs` | Integration and result-reading example |
 
 `Product.json` is an embedded resource; tests do not download products from the network. No coverage threshold or coverage collector is configured. Choose test cases according to behavior, not just line counts.
@@ -83,22 +83,22 @@ These are three measured iterations after three warmups, with one launch. Alloca
 dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*QueryingBenchmarks.QuerySearch' '*QueryingBenchmarks.QueryComplex' --job short --artifacts artifacts/pool-after
 ```
 
-### Copied-lease protection
+### Pool simplification
 
-The versioned lease change was measured separately against `0b77af9` using the same benchmark harness, machine, and .NET 10.0.13 runtime. Each benchmark used one launch, five warmup iterations, and ten measured iterations. The retained [ObjectPoolSlimBenchmarks.cs](../src/Clara.Benchmarks/ObjectPoolSlimBenchmarks.cs) isolates one warmed, uncontended lease/return cycle.
+The simple lease stores pool and instance references without shared version metadata. This comparison measures the versioned implementation at `0150aab` against the simplified implementation, retaining atomic pool returns in both. BenchmarkDotNet 0.15.8 ran on .NET 10.0.13 / Intel Core i9-14900K with one launch, five warmups, and ten measured iterations per benchmark.
 
-| Benchmark | Before | After | Mean change | Allocated before / after |
-| --- | --- | --- | --- | --- |
-| `LeaseAndReturn` | 10.38 ns | 16.71 ns | +61.0% (+6.33 ns) | 0 B / 0 B |
-| `QueryComplex` | 6.485 us | 6.659 us | +2.7% | 864 B / 864 B |
-| `QuerySearch` | 2.554 us | 2.719 us | +6.5% | 352 B / 352 B |
+| Benchmark | Versioned lease | Simple lease | Allocated before / after |
+| --- | --- | --- | --- |
+| `LeaseAndReturn` | 24.38 ns | 14.59 ns | 0 B / 0 B |
+| `QueryComplex` | 12.590 us | 12.415 us | 864 B / 864 B |
+| `QuerySearch` | 5.547 us | 4.739 us | 352 B / 352 B |
 
-The additional atomic version operations have a measurable cost in the isolated pool cycle and search scenario. `QueryComplex` has overlapping 99.9% confidence intervals (before: 6.372–6.598 us; after: 6.512–6.807 us). These are local, single-thread measurements, not a contention or production-throughput assessment. Warmed allocations remain unchanged; creating a new pooled instance additionally allocates its metadata object, which these warmed measurements exclude.
+These local, single-thread measurements show lower mean times for the pool cycle and search. Timing variability limits the precision of the comparison; `QueryComplex` has overlapping 99.9% confidence intervals and does not establish an improvement. Warmed allocations are unchanged. New pooled instances no longer require a separate metadata object. See [ownership rules](memory-and-concurrency.md#pools-and-slim-collections) for the single-disposal contract.
 
-Reports are retained locally under ignored `artifacts/lease-before/` and `artifacts/lease-after/`. Reproduce with:
+Reports are retained locally under ignored `artifacts/pool-simplification-before/` and `artifacts/pool-simplification-after/`. Reproduce with:
 
 ```powershell
-dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*QueryingBenchmarks.QuerySearch' '*QueryingBenchmarks.QueryComplex' '*ObjectPoolSlimBenchmarks*' --job short --warmupCount 5 --iterationCount 10 --artifacts artifacts/lease-after
+dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*QueryingBenchmarks.QuerySearch' '*QueryingBenchmarks.QueryComplex' '*ObjectPoolSlimBenchmarks*' --job short --warmupCount 5 --iterationCount 10 --artifacts artifacts/pool-simplification-after
 ```
 
 ### Snowball 3.2.0

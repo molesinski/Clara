@@ -566,9 +566,9 @@ Clara reuses buffers to reduce allocations on repeated queries. After warming th
 capacities for a workload, reuse avoids allocating those buffers again. Larger result sets, pool misses,
 and concurrent queries can still cause allocations. `Query`, `QueryResult`, and facet wrappers also allocate.
 
-Always dispose query results and materialize any data that must outlive them. Pool leases use shared,
-versioned state to prevent repeated returns through copied leases, but accessing a buffer after its lease
-is disposed remains invalid. See [memory and concurrency](docs/memory-and-concurrency.md) for ownership rules.
+Always dispose query results and materialize any data that must outlive them. Each acquired pool lease must
+be disposed exactly once, including across copies; accessing a buffer after disposal is invalid.
+See [memory and concurrency](docs/memory-and-concurrency.md) for ownership rules.
 
 ## License
 

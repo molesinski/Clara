@@ -263,8 +263,8 @@ namespace Clara.Tests
             {
                 var pool = property.GetValue(null)!;
                 var slots = (Array)pool.GetType().GetField("items", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(pool)!;
-                var instanceProperty = slots.GetType().GetElementType()!.GetProperty("Instance", BindingFlags.NonPublic | BindingFlags.Instance)!;
-                snapshot.Add(property.Name, slots.Cast<object?>().Where(item => item is not null).Select(item => instanceProperty.GetValue(item)!).ToArray());
+                var valueField = slots.GetType().GetElementType()!.GetField("Value")!;
+                snapshot.Add(property.Name, slots.Cast<object>().Select(valueField.GetValue).Where(value => value is not null).Cast<object>().ToArray());
             }
 
             return snapshot;
