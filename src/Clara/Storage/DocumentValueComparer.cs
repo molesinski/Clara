@@ -5,11 +5,11 @@ namespace Clara.Storage
     internal sealed class DocumentValueComparer<TValue> : IComparer<DocumentValue<TValue>>
         where TValue : struct, IComparable<TValue>
     {
-        private readonly int direction;
+        private readonly SortDirection direction;
 
         private DocumentValueComparer(SortDirection direction)
         {
-            this.direction = direction == SortDirection.Descending ? -1 : 1;
+            this.direction = direction;
         }
 
         public static DocumentValueComparer<TValue> Ascending { get; } = new DocumentValueComparer<TValue>(SortDirection.Ascending);
@@ -18,7 +18,9 @@ namespace Clara.Storage
 
         public int Compare(DocumentValue<TValue> x, DocumentValue<TValue> y)
         {
-            return x.Value.CompareTo(y.Value) * this.direction;
+            return this.direction == SortDirection.Descending
+                ? y.Value.CompareTo(x.Value)
+                : x.Value.CompareTo(y.Value);
         }
     }
 }
