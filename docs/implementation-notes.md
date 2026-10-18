@@ -1,44 +1,49 @@
 ﻿# Current Implementation Notes
 
-These observations apply to revision `c3073b3`. They distinguish results confirmed by small execution probes from conclusions based on code flow. The documentation does not change the implementation; it identifies areas relevant to future fixes and regression tests.
+The three confirmed defects found in revision `c3073b3` are corrected: document length accumulation, synonym search aggregation overrides, and `Include` key validation. The sections below describe the resulting contracts and regression coverage. The remaining exception-path concern is separate from these fixes.
 
-## Document length in BM25
+## Corrected document lengths
 
-**Confirmed by execution.** The `Index` method in [TextFieldStoreBuilder.cs](../src/Clara/Storage/TextFieldStoreBuilder.cs) uses:
+[TextFieldStoreBuilder.cs](../src/Clara/Storage/TextFieldStoreBuilder.cs) now assigns the aggregation result once per emitted token:
 
 ```csharp
-length += this.field.IndexScoreAggregation.Combine(length, value.Weight);
+length = this.field.IndexScoreAggregation.Combine(length, value.Weight);
 ```
 
-With `Sum`, this gives `L[n+1] = 2 * L[n] + weight`. Texts `one`, `one two`, and `one two three`, each in a separate document with `StandardAnalyzer` and weight 1, pass lengths `1, 3, 7` to `Similarity.Transform`. A plain sum of weights would instead be `1, 2, 3`.
+Length aggregates token weights across all values of a document's text field. `Sum` adds each weight once; `Max` keeps the largest emitted weight. Unit weights with `Sum` give lengths `1, 2, 3` for documents containing one, two, and three tokens. For `red red` at weight 2 plus `blue` at weight 3, the length is 7 under `Sum` and 3 under `Max`.
 
-This affects BM25 normalization: length grows exponentially, and sufficiently long text can cause `float` to reach infinity and subsequent calculations to produce `NaN`. The first three values were reproduced using a custom `Similarity` class that records the `documentLengths` argument; overflow is a conclusion from the recurrence, not a measurement made here.
+Synonym expansion contributes the emitted replacement tokens. Disabling expansion for a value uses its original analyzed tokens. Documents that emit no tokens are absent from the length map and therefore do not contribute to the document count or average length used by BM25. Custom aggregations fold the emitted weights in order, starting from zero.
 
-Before fixing this, define length semantics for `Sum`, `Max`, and expanded synonyms. Add tests for lengths, finite scores, and ranking of short and long documents. Even replacing `+=` with assignment requires confirming that contract.
+Previously, adding the aggregation result to the previous length caused exponential growth under `Sum`. A regression with one matching token and 255 other tokens reproduced a non-finite BM25 score before the fix. [ScoringTests.cs](../src/Clara.Tests/ScoringTests.cs) now verifies weighted lengths for `Sum` and `Max`, expansion enabled and disabled, exact BM25 reference scores, and finite scores with the expected ordering for long documents.
 
-## Aggregation overrides in synonym queries
+The fix changes BM25 normalization and can change document rankings. Rebuild existing indexes to apply corrected lengths; an already built index retains its precomputed scores.
 
-**Confirmed by execution.** [TextDocumentStore.cs](../src/Clara/Storage/TextDocumentStore.cs) passes the aggregation parameter to helper `Search` methods, but internal phrase token combination uses `this.searchScoreAggregation`, the field's setting.
+## Corrected aggregation overrides in synonym queries
 
-Reproduction setup: `StandardAnalyzer`, `Similarity.TF`, document `red blue`, rule `alias => red blue`, unit weights, and default `Sum` index aggregation.
+[TextDocumentStore.cs](../src/Clara/Storage/TextDocumentStore.cs) uses the effective search aggregation throughout token and phrase processing. The query override takes precedence; when omitted, the field's `SearchScoreAggregation` is used. Alternatives within a `PhraseGroup` still select the maximum complete phrase score.
+
+For `StandardAnalyzer`, `Similarity.TF`, document `red blue`, rule `alias => red blue`, unit weights, and default `Sum` index aggregation:
 
 | Field aggregation | Query | Query aggregation | Score |
 | --- | --- | --- | --- |
-| `Sum` | `alias` | `Max` | 2 |
-| `Sum` | `red blue` | `Max` | 1 |
-| `Max` | `alias` | `Max` | 1 |
+| `Sum` | `alias` | `Max` | 1 |
+| `Max` | `alias` | `Sum` | 2 |
+| `Sum` | `alias` | Omitted | 2 |
+| `Max` | `alias` | Omitted | 1 |
 
-The override works between terms but not inside a replacement phrase. If it is intended to apply throughout the search, tests must cover mixed aggregations, multiple alternatives, and position boosts. Using `Max` for `PhraseGroup` alternatives is a separate, explicit implementation decision.
+Previously, phrase internals ignored the query override and used the field's aggregation. [ScoringTests.cs](../src/Clara.Tests/ScoringTests.cs) covers overrides in both directions, default fallback, `Any` and `All`, partial matches, multiple synonym alternatives, and composition with position boosts and other query terms. The override controls scoring; it does not relax the requirement that all tokens of a phrase must match.
 
-## Include can accept a token instead of a document key
+## Corrected Include validation
 
-**Confirmed by execution.** The encoder in [TokenEncoderBuilder.cs](../src/Clara/Storage/TokenEncoderBuilder.cs) assigns identifiers to document keys, tokens, and labels. The `Include` path in [Index.cs](../src/Clara/Index.cs) only checks `TryEncode`. The first intersection in `DocumentResultBuilder` copies the supplied identifiers without intersecting them with `allDocuments`.
+The encoder assigns identifiers to document keys, text tokens, and labels, and a shared store can retain identifiers from previous indexes. [Index.cs](../src/Clara/Index.cs) now requires both a successful encoder lookup and membership in the current index's `allDocuments` set before including an identifier.
 
-Probe: an index contains keys `1`, `2`, and `3` and brand label `A`, but no document with key `A`. A query restricted only by `q.Include(new[] { "A" })` returns `Documents.Count == 1`, after which reading `Documents[0]` throws `KeyNotFoundException`.
+A known label such as `A` that is not a current document key now produces an empty result when it is the only requested key. Previously, this could create a phantom result entry and throw `KeyNotFoundException` during result enumeration. Historical keys from a shared encoder are ignored in the replacement index, while queries against the original index can still retrieve their documents.
 
-The same risk follows from historical keys retained in a shared store. Membership in the current index must be checked before accepting an identifier. A regression test should cover a regular key, a label, a text token, a deleted document's key, and a value entirely unknown to the encoder. Until this is fixed, applications should restrict `Include` to keys from the current dataset.
+An empty, null, or all-null selection remains unrestricted. Once a non-null value is supplied, only valid current keys are selected; an entirely invalid selection returns no documents. Mixed selections retain valid keys, discard invalid ones, and remove duplicates. A string that is both a token and a current document key remains a valid key.
 
-## Returning leases on exception paths
+[IncludeTests.cs](../src/Clara.Tests/IncludeTests.cs) covers labels, text tokens, unknown and blank values, historical keys with shared and instance stores, mixed selections, duplicate keys, empty selections, and composition with search, filters, facets, and exclusion.
+
+## Remaining concern with leases on exception paths
 
 **Conclusion from the code.** In [Index.cs](../src/Clara/Index.cs), some leases are protected by `using`, but `documentResultBuilder.Dispose()` runs at the end of the normal path. `documentScoring`, the result list, and facets transfer to a new owner only when `QueryResult` is created. Similarly, the destination `documentScores` in `TextDocumentStore.Search` is not protected against an exception before the result is returned.
 
@@ -46,16 +51,15 @@ An exception from the `positionBoost` callback or a later operation can bypass r
 
 Direct `Query.AddFilter` calls replace a previous filter without disposing it. `QueryBuilder` prevents duplicate filters, so this issue concerns manual use of the lower-level API.
 
-## Behavior relevant to integration
+## Other behavior relevant to integration
 
 - A range facet with no values returns `default(TValue)` for both bounds, without a missing-data flag. An empty range cannot be directly distinguished from a valid `0..0` range.
-- An empty `Include` means no restriction. In a three-document probe, it returned three results; a collection containing one unknown key returned zero.
 - A probe with brands A and B confirmed that a keyword facet retains both brands with an `Any` filter on A, but shows only A with `All`. Filtering values 10, 20, and 30 to range `10..10` produced a facet maximum of 30.
 - `SharedTokenEncoderStore` retains historical vocabulary. Retention follows from its design and needs measurement during long-running use with a changing vocabulary.
 - Sort ties have no secondary ordering key. An application requiring stable pagination must define that order.
 
-## Priorities for further tests
+## Regression verification and further tests
 
-Existing tests passed on all four targets, but they contain no numeric assertions for `Score`, dedicated `Include`/`Exclude` tests, or tests of concurrent use and callback exceptions. Prioritize `Include` correctness and the scoring regressions above, then facet semantics for each mode and result ownership after `Dispose`.
+The 35 new regression cases ran on .NET 10 before the fixes: 23 failed and 12 passed. With the fixes, all 212 tests pass on each of `net472`, `net8.0`, `net9.0`, and `net10.0`, for 848 successful executions. The Release solution build also passes with no warnings or errors.
 
-Treat the current 177 tests per target as confirmation of the scenarios they cover. Add assertions for new contracts before changing the engine.
+Remaining test priorities include concurrent use, callback exceptions, broader facet semantics for each mode, and result ownership after `Dispose`. Add assertions for new contracts before changing the engine.

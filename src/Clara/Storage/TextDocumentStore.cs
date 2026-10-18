@@ -121,7 +121,7 @@ namespace Clara.Storage
             {
                 if (this.tokenDocumentScores.TryGetValue(tokenId, out var tokenDocuments))
                 {
-                    termScores.UnionWith(tokenDocuments, this.searchScoreAggregation, DefaultBoost);
+                    termScores.UnionWith(tokenDocuments, searchScoreAggregation, DefaultBoost);
                 }
             }
         }
@@ -152,12 +152,12 @@ namespace Clara.Storage
                     {
                         if (isFirst)
                         {
-                            phraseScores.UnionWith(tokenDocuments, this.searchScoreAggregation, DefaultBoost);
+                            phraseScores.UnionWith(tokenDocuments, searchScoreAggregation, DefaultBoost);
                             isFirst = false;
                         }
                         else
                         {
-                            phraseScores.IntersectWith(tokenDocuments, this.searchScoreAggregation, DefaultBoost);
+                            phraseScores.IntersectWith(tokenDocuments, searchScoreAggregation, DefaultBoost);
                         }
 
                         continue;

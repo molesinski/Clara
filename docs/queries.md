@@ -22,9 +22,9 @@ Filters on different fields are combined with AND. For keyword and hierarchy fie
 
 Range filters include both bounds: `from <= value <= to`. A `null` bound leaves that side unbounded; two `null` bounds disable the filter. Reversed ranges or bounds outside the field's declared range throw exceptions. The public builder accepts `from` and `to`; the `RangeFilterExpression<TValue>` constructor uses `valueFrom` and `valueTo`.
 
-`Include` and `Exclude` accept document keys, not objects or internal identifiers. They skip `null` values. An empty `Include` imposes no restriction; a collection containing only a key unknown to the encoder yields an empty result. `Exclude` removes recognized documents. Keys do not undergo keyword label normalization.
+`Include` and `Exclude` accept document keys, not objects or internal identifiers. They skip `null` values. An empty or all-null `Include` imposes no restriction. If at least one non-null value is supplied, only matching document keys from the current index are included; a selection containing no current keys yields an empty result. `Exclude` removes recognized documents. Keys do not undergo keyword label normalization.
 
-The current `Include` implementation resolves values through the shared encoder without checking the document map. A known label or token that is not a document key can therefore create an invalid result entry and cause an exception when read. Until this is fixed, supply keys verified against the current source dataset. See [implementation notes](implementation-notes.md) for a reproduction.
+`Include` checks both the encoder lookup and membership in the current index's document set. Labels, text tokens, unknown values, and keys retained from an older index are ignored unless they are also valid current document keys. Mixed selections retain valid keys and remove duplicates. [IncludeTests.cs](../src/Clara.Tests/IncludeTests.cs) covers these cases and composition with search, filters, facets, and exclusion.
 
 ## Execution order
 

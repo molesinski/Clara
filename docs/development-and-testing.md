@@ -39,11 +39,13 @@ The project uses xUnit 2.9.3, Microsoft.NET.Test.Sdk 18.0.1, and Visual Studio r
 | `AnalysisTests.cs` | Tokenization and English analysis compared with Lucene |
 | `SynonymMapTests.cs` | Synonym matching, position backtracking, and rule parsing |
 | `QueryTests.cs` | Composite queries, search, filters, and some facet behavior |
+| `ScoringTests.cs` | Weighted document lengths, BM25 scores, long documents, synonym aggregation overrides, alternatives, and position boosts |
+| `IncludeTests.cs` | Current document key validation, shared encoder history, empty and mixed selections, and interaction with search and facets |
 | `GettingStartedTests.cs` | Integration and result-reading example |
 
 `Product.json` is an embedded resource; tests do not download products from the network. No coverage threshold or coverage collector is configured. Choose test cases according to behavior, not just line counts.
 
-Verification on October 18, 2026, for `c3073b3`: `dotnet test src/Clara.Tests/Clara.Tests.csproj -c Release --no-restore` succeeded with SDK 10.0.402. All 177 tests passed on each of the four targets, for 708 executions in total, with no failures or skips. Additional small probes confirmed the behavior described in the [implementation notes](implementation-notes.md). This was not a performance measurement.
+Verification on October 18, 2026, after the three fixes: `dotnet build Clara.slnx -c Release --no-restore` succeeded with SDK 10.0.402 and no warnings or errors. `dotnet test src/Clara.Tests/Clara.Tests.csproj -c Release --no-build --no-restore` passed all 212 tests on each of the four targets, for 848 executions in total, with no failures or skips. The 35 new regression cases first ran against the previous implementation on .NET 10: 23 failed and 12 passed. All 35 pass with the fixes. See [implementation notes](implementation-notes.md) for the corrected contracts. These checks are not performance measurements.
 
 ## Benchmarks
 

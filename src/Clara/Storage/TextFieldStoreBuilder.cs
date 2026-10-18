@@ -71,7 +71,7 @@ namespace Clara.Storage
 
                         ref var length = ref this.documentLengths.GetValueRefOrAddDefault(documentId, out _);
 
-                        length += this.field.IndexScoreAggregation.Combine(length, value.Weight);
+                        length = this.field.IndexScoreAggregation.Combine(length, value.Weight);
                     }
                 }
             }

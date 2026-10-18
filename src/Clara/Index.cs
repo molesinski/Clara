@@ -113,7 +113,7 @@ namespace Clara
                     {
                         hasValues = true;
 
-                        if (this.tokenEncoder.TryEncode(includedDocument, out var documentId))
+                        if (this.tokenEncoder.TryEncode(includedDocument, out var documentId) && this.allDocuments.Contains(documentId))
                         {
                             includedDocuments.Instance.Add(documentId);
                         }

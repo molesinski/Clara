@@ -30,6 +30,8 @@ A single text field can collect a title, description, and category, enabling sea
 
 `TextWeight(text, weight, expandSynonyms)` sets a positive weight and controls synonym expansion for a specific value. Plain text receives weight `1` with expansion enabled. Empty and whitespace-only text is skipped. See [scoring](scoring.md) for aggregation details.
 
+Document length uses `IndexScoreAggregation` across the weights of all emitted tokens: `Sum` adds each weight once, while `Max` retains the largest weight. Expanded synonym tokens participate in this calculation; disabling expansion uses the analyzer's original tokens. The resulting length is used by BM25 during finalization.
+
 ### Keywords and hierarchies
 
 Keyword fields do not run an analyzer. Values are trimmed, and empty or `null` values are skipped. Comparisons are case-sensitive: `Alpha` and `alpha` are different values. A repeated label within one document does not increase its facet count.

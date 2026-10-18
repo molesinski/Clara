@@ -6,7 +6,7 @@
 2. `Similarity.Transform` transforms the complete token-to-document map when the index is finalized.
 3. Search combines the precomputed scores through `SearchScoreAggregation` and optional query position boosts.
 
-Scores are `float` values. Changing the analyzer, stopword lists, synonyms, weights, or `Similarity` requires rebuilding the index. Search aggregation itself can be overridden through the `scoreAggregation` parameter of `QueryBuilder.Search`, subject to the limitation described below.
+Scores are `float` values. Changing the analyzer, stopword lists, synonyms, weights, or `Similarity` requires rebuilding the index. Search aggregation itself can be overridden through the `scoreAggregation` parameter of `QueryBuilder.Search`. The effective aggregation applies to individual tokens, tokens within synonym phrases, and the combination of query terms.
 
 ## Weight aggregation
 
@@ -53,13 +53,17 @@ score = s * (k1 + 1)
 
 `avgLen` is the average of the values supplied in `documentLengths`. The constructor rejects negative `k1` and `b`; it does not cap `b` at 1. Choose parameters deliberately and test them against application data.
 
-## Notable behavior in the current code
+## Document length and synonym scoring
 
-[`TextFieldStoreBuilder`](../src/Clara/Storage/TextFieldStoreBuilder.cs) updates length with `length += IndexScoreAggregation.Combine(length, value.Weight)`. With `Sum` and unit weights, this produces `1, 3, 7, 15` instead of the token count. Supplying these lengths to BM25 affects normalization and can substantially lower scores for long text. Do not interpret the current `len` as a simple token count.
+[`TextFieldStoreBuilder`](../src/Clara/Storage/TextFieldStoreBuilder.cs) updates length by assigning `IndexScoreAggregation.Combine(length, value.Weight)` once per emitted token. Length spans all values of the field in a document. With `Sum`, it is the sum of emitted token weights, so unit weights produce the token count. With `Max`, it is the largest emitted token weight, not a token count. For example, `red red` at weight 2 and `blue` at weight 3 produce length 7 under `Sum` and 3 under `Max`.
 
-In [`TextDocumentStore`](../src/Clara/Storage/TextDocumentStore.cs), an aggregation override supplied by the query applies when combining terms. Inside a synonym phrase, the implementation still uses the field's aggregation. Alternatives in `PhraseGroup` always combine through `Max`. With mapping `alias => red blue`, `Similarity.TF`, and document `red blue`, a query override of `Max` produces score 2 under the field's default `Sum`, while a plain `red blue` query with `Max` produces 1.
+Synonym expansion contributes the tokens actually emitted for indexing. `TextWeight.ExpandSynonyms=false` instead contributes the analyzer's original tokens. Empty values and text that emits no tokens do not add an entry to the document length map. Custom index aggregations are applied in token order, starting from zero.
 
-These are verified behaviors of the current implementation that need to be resolved before changing ranking. Reproductions and suggested tests are in the [implementation notes](implementation-notes.md).
+In [`TextDocumentStore`](../src/Clara/Storage/TextDocumentStore.cs), the query's aggregation override takes precedence over the field's setting, including inside synonym phrases. If the override is omitted, the field's `SearchScoreAggregation` is used. Alternatives in `PhraseGroup` always combine through `Max`, preventing multiple matching representations from adding their scores. A position boost is applied when the completed term score is combined into the query result.
+
+With mapping `alias => red blue`, `Similarity.TF`, and document `red blue`, a query override of `Max` produces score 1 even when the field uses `Sum`. Conversely, an override of `Sum` produces score 2 when the field uses `Max`. [ScoringTests.cs](../src/Clara.Tests/ScoringTests.cs) covers these cases, default fallback, alternative phrases, and position boosts.
+
+Earlier code added the aggregated length to its previous value and ignored query overrides inside phrases. Correcting those behaviors changes BM25 scores and affected synonym rankings. Rebuild existing indexes to use corrected lengths. See the [implementation notes](implementation-notes.md) for the regression coverage.
 
 ## Extending ranking
 
