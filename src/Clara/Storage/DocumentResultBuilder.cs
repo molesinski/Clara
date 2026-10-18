@@ -189,7 +189,7 @@ namespace Clara.Storage
             }
         }
 
-        public void Dispose()
+        public readonly void Dispose()
         {
             if (this.facets is not null)
             {

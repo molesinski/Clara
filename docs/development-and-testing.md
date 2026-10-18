@@ -36,11 +36,16 @@ The project uses xUnit 2.9.3, Microsoft.NET.Test.Sdk 18.11.0, and Visual Studio 
 | File under `src/Clara.Tests` | Coverage |
 | --- | --- |
 | `TokenTests.cs` | Token buffer editing operations and invalid arguments |
+| `TokenizerLifetimeTests.cs` | Releasing source text after enumeration disposal and returning pooled query sources |
 | `AnalysisTests.cs` | Tokenization and English analysis compared with Lucene |
 | `SnowballTests.cs` | Snowball 3.2.0 rules, pooled buffer reuse, empty and long tokens, and allocation budgets |
 | `MorfologikTests.cs` | Preferred lemmas ending in `y`, dictionary fallbacks, context limitations, related forms, and buffer reuse |
 | `SynonymMapTests.cs` | Synonym matching, position backtracking, and rule parsing |
 | `QueryTests.cs` | Composite queries, search, filters, and some facet behavior |
+| `RangeFilterTests.cs` | Inclusive and extreme bounds, multivalued fields, missing values, and invalid ranges |
+| `RangeSortTests.cs` | Custom comparers, document extrema, and placement of missing values in both sort directions |
+| `FacetTests.cs` | Keyword and range facet filtering, distinct document counts, selected values, and search/include/exclude interactions |
+| `HierarchyFacetTests.cs` | Root and descendant counts, selected branches, filter interactions, empty results, and path identity |
 | `ScoringTests.cs` | Weighted document lengths, BM25 scores, long documents, synonym aggregation overrides, alternatives, and position boosts |
 | `IncludeTests.cs` | Current document key validation, shared encoder history, empty and mixed selections, and interaction with search and facets |
 | `PoolOwnershipTests.cs` | Relevant buffer identities after exceptions and result disposal, partial facet cleanup, and filter replacement |
@@ -131,7 +136,7 @@ dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*TokenizationB
 | New field type | Definition in `Mapping`, builder and store in `Storage`, expressions and results in `Querying`; test every capability flag |
 | Slim structure changes | Test empty and growing collections, reset behavior, and lifetimes; benchmark allocations |
 
-Follow [AGENTS.md](../AGENTS.md) and [.editorconfig](../.editorconfig), including the local exceptions for generated Snowball code.
+Follow [AGENTS.md](../AGENTS.md) and [.editorconfig](../.editorconfig), including the local exceptions for generated Snowball code. Naming conventions, block-scoped namespaces, and required braces are enforced as build warnings, which fail CI because warnings are treated as errors. Other rules configured as suggestions remain advisory.
 
 ## Packaging and CI
 

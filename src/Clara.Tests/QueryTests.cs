@@ -72,7 +72,7 @@ namespace Clara.Tests
             var brandFacet = result.Facets.Field(this.mapper.Brand);
 
             Assert.True(brandFacet.Values.Count > 1);
-            Assert.True(brandFacet.Values.Count(x => x.IsSelected) == 1);
+            Assert.Equal(1, brandFacet.Values.Count(x => x.IsSelected));
             Assert.True(brandFacet.Values.Single(x => x.IsSelected).Value == this.topBrands[0]);
 
             var priceFacet = result.Facets.Field(this.mapper.Price);
@@ -122,7 +122,7 @@ namespace Clara.Tests
             var values =
                 count switch
                 {
-                    -2 => default(IEnumerable<string>),
+                    -2 => default,
                     -1 => new[] { default(string) },
                     0 => Array.Empty<string>(),
                     _ => this.topBrands.Take(count),
