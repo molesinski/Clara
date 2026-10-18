@@ -7,6 +7,8 @@
 
 Simple, yet feature complete, in memory search engine.
 
+Developer documentation: [architecture, API, development, and implementation notes](docs/README.md).
+
 ## Highlights
 
 This library is meant for relatively small document sets (up to tenths of thousands) while maintaining

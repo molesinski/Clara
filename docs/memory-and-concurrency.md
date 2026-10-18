@@ -1,0 +1,48 @@
+﻿# Memory and Concurrency
+
+## Object ownership
+
+| Object | Usage rule |
+| --- | --- |
+| `Index<TDocument>` | Structures ready for reading; no `Dispose` or update operations |
+| `QueryBuilder` | Stateful and single-use; dispose it if it has not transferred its query through `ToQuery()` |
+| `Query` | Holds pooled collections and filters; its direct owner calls `Dispose()` |
+| `QueryResult<TDocument>` | Owns document and facet results; always use `using` |
+| Collections, enumerators, and facet children | Views valid during the result's lifetime |
+| `ITokenTermSource` | Stateful analysis; one enumeration at a time |
+| `ObjectPoolSlimLease<T>` | A lease that must be returned exactly once |
+
+`Index.Query(QueryBuilder)` consumes the builder and disposes the resulting `Query`. `Index.Query(Action<QueryBuilder>)` manages both objects. `Index.Query(Query)` leaves ownership of the supplied query with the caller. In every variant, the returned result must be disposed.
+
+Do not return `result.Documents.Select(...)` from a method that exits the result's `using` block. Materialize the result with `ToArray()` inside the block. For facets, copy scalar values and children into your own DTOs; copying a view object does not transfer ownership of its buffer.
+
+## Pools and Slim collections
+
+[`SharedObjectPools`](../src/Clara/SharedObjectPools.cs) leases identifier sets, score dictionaries, result lists, and facet values, among other structures. `DocumentSet`, `DocumentList`, and `DocumentScoring` abstract the distinction between reading existing structures and owning leased temporary structures.
+
+`DictionarySlim` provides `ref` access to values, reducing repeated lookups during increments. Do not retain such a reference across an operation that can resize the dictionary. These collections are working data structures; do not treat them as general-purpose concurrent collections.
+
+[`ObjectPoolSlim`](../src/Clara/Utils/ObjectPoolSlim.cs) has `Environment.ProcessorCount * 5 * sizeFactor` slots. An empty pool creates a new object, and a full pool may discard a returned object. This is not a limit on concurrent queries. Resetting typically clears contents while allowing allocated capacity to be reused.
+
+`ObjectPoolSlimLease<T>` is a struct without protection against repeated returns. Do not copy a lease into independent owners or call `Dispose` twice. The higher-level `Query` and `QueryResult` types have their own protection against repeated disposal.
+
+## Choosing an encoder store
+
+| Store | Behavior | Consequence |
+| --- | --- | --- |
+| `SharedTokenEncoderStore.Default` | Retains a shared builder and copies encoder structures during finalization | Reuses the vocabulary but retains historical values and serializes builds through a shared lock |
+| `new InstanceTokenEncoderStore()` | Creates a separate builder and transfers its structures to the index | The vocabulary belongs to the current build; useful for independent indexes and controlling retention |
+
+The shared store does not remove tokens belonging to documents that disappear from subsequent indexes. When rebuilding frequently with new identifiers, measure vocabulary size and memory use. Shared encoder identifiers do not imply shared document lists or field weights.
+
+Sources: [SharedTokenEncoderStore.cs](../src/Clara/Storage/SharedTokenEncoderStore.cs), [InstanceTokenEncoderStore.cs](../src/Clara/Storage/InstanceTokenEncoderStore.cs).
+
+## Concurrent use and rebuilding
+
+Queries read the completed index's stores, while working collections and phrase sources are leased separately. The application should create a separate builder, query, and result for each invocation. Do not concurrently modify `Include`/`Exclude` sources, callback state, or result objects. Custom analyzers and filters must provide independent processing state or synchronization.
+
+A safe application refresh pattern is to build a new index in the background, then atomically replace the reference. If this also creates new field instances, replace the index and mapper together as one state object. Each query should capture one index–mapper pair and use it throughout execution.
+
+Do not transfer an old `Query` to a new index. The index does not deep-copy `TDocument`, so changing a domain object can alter the displayed data without updating search structures. Use immutable projections or manage their ownership explicitly.
+
+Exception paths involving callbacks need a separate review of buffer returns; see the [implementation notes](implementation-notes.md).
