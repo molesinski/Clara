@@ -35,7 +35,11 @@ Follow existing `*Tests.cs` classes and PascalCase test methods. Use `[Fact]` fo
 
 ## Commit & Pull Request Guidelines
 
-Use short, imperative commit subjects, following history: `Rename ObjectPool to ObjectPoolSlim` or `Fix Azure Pipelines definition`. Keep changes focused. PR descriptions should explain behavior changes, link relevant issues, and report build/test results and applicable benchmark comparisons.
+Make repository changes on a dedicated branch and merge them into `master` through a pull request. Do not commit or push directly to `master`. Use the `codex/` prefix for agent-created branches. Merge only after the required CI checks pass.
+
+Write repository documentation, code comments, commit messages, PR titles and descriptions, issue text, and release notes in English. Preserve language-specific test data, stop-word lists, and upstream content in their original language. Conversation with the user may follow the user's preferred language.
+
+Use short, imperative commit subjects, following history: `Rename ObjectPool to ObjectPoolSlim` or `Move CI and NuGet publishing to GitHub Actions`. Keep changes focused. PR descriptions should explain behavior changes, link relevant issues, and report build/test results and applicable benchmark comparisons.
 
 ## Architecture Constraints
 

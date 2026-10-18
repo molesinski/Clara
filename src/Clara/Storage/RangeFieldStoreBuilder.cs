@@ -54,10 +54,7 @@ namespace Clara.Storage
                 {
                     hadValues = true;
 
-                    if (this.documentValues is not null)
-                    {
-                        this.documentValues.Add(new DocumentValue<TValue>(documentId, value));
-                    }
+                    this.documentValues?.Add(new DocumentValue<TValue>(documentId, value));
 
                     if (this.documentValueMinMax is not null)
                     {

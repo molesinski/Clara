@@ -222,7 +222,13 @@ namespace Clara.Tests
 
             public int[]? Values { get; }
 
-            public int? Value => this.Values is { Length: > 0 } ? this.Values[0] : null;
+            public int? Value
+            {
+                get
+                {
+                    return this.Values is { Length: > 0 } ? this.Values[0] : null;
+                }
+            }
         }
 
         private sealed class RangeMapper : IIndexMapper<RangeDocument>

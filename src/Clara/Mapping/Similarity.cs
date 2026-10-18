@@ -53,7 +53,7 @@ namespace Clara.Mapping
 
                         ref var score = ref documentScores.GetValueRefOrAddDefault(documentId, out _);
 
-                        score = score * idf;
+                        score *= idf;
                     }
                 }
             }

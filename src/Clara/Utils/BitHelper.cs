@@ -22,7 +22,7 @@
             return n > 0 ? (((n - 1) / IntSize) + 1) : 0;
         }
 
-        internal void MarkBit(int bitPosition)
+        internal readonly void MarkBit(int bitPosition)
         {
             var bitArrayIndex = (uint)bitPosition / IntSize;
             var span = this.span;

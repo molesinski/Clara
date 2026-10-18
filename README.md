@@ -3,11 +3,11 @@
 [![CI](https://github.com/molesinski/Clara/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/molesinski/Clara/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/dt/clara.svg)](https://www.nuget.org/packages/clara)
 [![NuGet](https://img.shields.io/nuget/v/clara.svg)](https://www.nuget.org/packages/clara)
-[![License](https://img.shields.io/github/license/molesinski/clara.svg)](https://github.com/molesinski/clara/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/molesinski/Clara.svg)](https://github.com/molesinski/Clara/blob/master/LICENSE)
 
 Simple, yet feature complete, in memory search engine.
 
-Developer documentation: [architecture, API, development, and implementation notes](docs/README.md).
+Developer documentation: [architecture, API, development, and implementation notes](https://github.com/molesinski/Clara/blob/master/docs/README.md).
 
 ## Highlights
 
@@ -68,7 +68,7 @@ using Clara.Querying;
 ## A Quick Example
 
 The repository includes a sample product dataset originally obtained from
-[dummyjson.com](https://dummyjson.com/products), saved in [Product.json](src/Clara.Tests/Product.json).
+[dummyjson.com](https://dummyjson.com/products), saved in [Product.json](https://github.com/molesinski/Clara/blob/master/src/Clara.Tests/Product.json).
 The following is one record; load the full fixture into `products` to run the catalog query below.
 
 ```json
@@ -263,7 +263,7 @@ Non-text fields require at least one capability flag; enable only the operations
 | `RangeField<TSource, TValue>` | Comparable value types | Filtering, min/max facets, and sorting |
 
 Include every field in `GetFields()` and query with the same field instances used to build the index.
-See [indexing and field storage](docs/indexing.md) for the build lifecycle and encoder options.
+See [indexing and field storage](https://github.com/molesinski/Clara/blob/master/docs/indexing.md) for the build lifecycle and encoder options.
 
 ### Text Fields
 
@@ -287,7 +287,7 @@ var weightedText = new TextField<Product>(
 Plain strings use weight 1 and enable synonym expansion. Empty text is ignored. By default, BM25 scores
 the indexed terms, and `ScoreAggregation.Sum` combines weights during indexing and scores during search.
 `ScoreAggregation.Max`, `Similarity.TF`, and `Similarity.TFIDF` are also available. A larger input weight
-does not imply a proportional final BM25 score. See [scoring](docs/scoring.md) for the calculation stages.
+does not imply a proportional final BM25 score. See [scoring](https://github.com/molesinski/Clara/blob/master/docs/scoring.md) for the calculation stages.
 
 `SearchMode.Any` accepts documents matching any query term; `SearchMode.All` requires every term.
 Search uses analyzed tokens, without fuzzy matching or quoted phrase adjacency checks.
@@ -332,7 +332,7 @@ root in source paths. A mapper may return multiple paths per document.
 
 Filtering `womens` includes its descendants. Hierarchy facets expose selected nodes and their immediate
 `Children`; with no selection, navigation starts at the root. Fetch another facet result to navigate deeper.
-Counts represent documents, not the number of paths. See [query and facet semantics](docs/queries.md).
+Counts represent documents, not the number of paths. See [query and facet semantics](https://github.com/molesinski/Clara/blob/master/docs/queries.md).
 
 ### Range Fields
 
@@ -447,7 +447,7 @@ at that pipeline stage, typically lowercase.
 
 A token source reuses its character buffer. Convert tokens to strings during enumeration if you need to
 retain them, and use separate sources for concurrent or nested enumerations. Morfologik emits one selected
-lemma rather than performing contextual disambiguation; see [text analysis](docs/text-analysis.md) for details.
+lemma rather than performing contextual disambiguation; see [text analysis](https://github.com/molesinski/Clara/blob/master/docs/text-analysis.md) for details.
 
 ### Synonym Maps
 
@@ -472,7 +472,7 @@ invalid lines can be skipped, so validate externally supplied rules.
 During indexing, replacement tokens are emitted unless a `TextWeight` is constructed with `expandSynonyms: false`.
 During querying, all tokens of a synonym phrase must match, while alternative phrases are combined using
 the maximum score. This does not enforce adjacency in the document. Disabling expansion for an indexed
-value does not disable query-side synonyms. See [synonym processing](docs/text-analysis.md#synonyms).
+value does not disable query-side synonyms. See [synonym processing](https://github.com/molesinski/Clara/blob/master/docs/text-analysis.md#synonyms).
 
 ### Extending Analysis Pipeline
 
@@ -511,54 +511,63 @@ Implement `ITokenizer` or `IAnalyzer` when an entirely different token source is
 
 ## Benchmarks
 
-The tables below are historical measurements from the environment shown. They predate the recent scoring,
-Snowball, and pool ownership changes. See [current targeted comparisons](docs/development-and-testing.md#benchmarks)
-for recorded update measurements and commands to benchmark your own workload.
+The tables below were measured on 2026-10-18 at commit `cfe5c12`, using BenchmarkDotNet's default job
+in Release configuration. Timings depend on the runtime, hardware, and workload. See
+[targeted comparisons](https://github.com/molesinski/Clara/blob/master/docs/development-and-testing.md#benchmarks) for measurements of individual changes.
 
-Index and query benchmarks and tests are performed using sample 100 product data set. Benchmark
-variants with `x100` suffix are based on data set multiplied 100 times.
+Index and query benchmarks use the bundled 100-product dataset. Variants with the `x100` suffix repeat
+that dataset 100 times, assigning distinct document IDs, for a total of 10,000 products.
+
+To reproduce all 19 measurements:
+
+```powershell
+dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*TokenizationBenchmarks*' '*IndexingBenchmarks*' '*QueryingBenchmarks*' --artifacts artifacts/readme-benchmarks-2026-10-18
+```
+
+`Error` is half of the 99.9% confidence interval, `StdDev` is the standard deviation, and `Allocated`
+is managed memory allocated per operation. A dash indicates no measured managed allocation.
 
 ```
-BenchmarkDotNet v0.15.6, Windows 11 (10.0.26200.7171)
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26300.9711)
 Intel Core i9-14900K 3.20GHz, 1 CPU, 32 logical and 24 physical cores
-.NET SDK 10.0.100
-  [Host]     : .NET 10.0.0 (10.0.0, 10.0.25.52411), X64 RyuJIT x86-64-v3
-  DefaultJob : .NET 10.0.0 (10.0.0, 10.0.25.52411), X64 RyuJIT x86-64-v3
+.NET SDK 10.0.402
+  [Host]     : .NET 10.0.13 (10.0.13, 10.0.1326.50504), X64 RyuJIT x86-64-v3
+  DefaultJob : .NET 10.0.13 (10.0.13, 10.0.1326.50504), X64 RyuJIT x86-64-v3
 ```
 
 ### Tokenization Benchmarks
 
 | Method               | Mean       | Error    | StdDev   | Allocated |
 |--------------------- |-----------:|---------:|---------:|----------:|
-| StandardTokenizer    |   102.6 ns |  1.07 ns |  0.95 ns |         - |
-| StandardAnalyzer     |   162.7 ns |  0.97 ns |  0.91 ns |         - |
-| PorterAnalyzer       |   362.7 ns |  4.02 ns |  3.76 ns |         - |
-| SynonymMap           |   453.3 ns |  2.89 ns |  2.70 ns |         - |
-| EnglishAnalyzer      |   908.1 ns |  2.48 ns |  2.32 ns |         - |
-| PolishAnalyzer       |   477.5 ns |  6.79 ns |  6.35 ns |         - |
-| MorfologikAnalyzer   | 3,319.5 ns | 11.43 ns | 10.69 ns |     944 B |
-| LucenePolishAnalyzer | 1,594.3 ns | 31.20 ns | 47.65 ns |    1808 B |
+| StandardTokenizer    |   107.7 ns |  1.10 ns |  0.92 ns |         - |
+| StandardAnalyzer     |   170.3 ns |  0.80 ns |  0.74 ns |         - |
+| PorterAnalyzer       |   372.3 ns |  1.98 ns |  1.65 ns |         - |
+| SynonymMap           |   470.4 ns |  1.99 ns |  1.76 ns |         - |
+| EnglishAnalyzer      |   957.6 ns |  8.80 ns |  8.23 ns |         - |
+| PolishAnalyzer       |   520.1 ns |  4.29 ns |  4.01 ns |         - |
+| MorfologikAnalyzer   | 3,639.9 ns | 22.47 ns | 21.02 ns |     976 B |
+| LucenePolishAnalyzer | 1,800.6 ns | 15.02 ns | 14.05 ns |    1808 B |
 
 ### Indexing Benchmarks
 
-| Method             | Mean        | Error     | StdDev      | Allocated   |
-|------------------- |------------:|----------:|------------:|------------:|
-| IndexInstance_x100 | 47,068.7 μs | 739.07 μs |   577.02 μs | 25791.01 KB |
-| IndexInstance      |    434.3 μs |   4.19 μs |     3.92 μs |   598.65 KB |
-| IndexShared_x100   | 45,486.0 μs | 899.20 μs | 1,104.29 μs | 24509.18 KB |
-| IndexShared        |    406.5 μs |   2.25 μs |     2.10 μs |   485.86 KB |
+| Method             | Mean        | Error       | StdDev      | Allocated   |
+|------------------- |------------:|------------:|------------:|------------:|
+| IndexInstance_x100 | 54,347.4 μs | 1,081.23 μs | 2,548.59 μs | 25791.01 KB |
+| IndexInstance      |    493.4 μs |     3.18 μs |     2.66 μs |   598.66 KB |
+| IndexShared_x100   | 51,474.0 μs | 1,002.97 μs | 1,501.20 μs | 24508.83 KB |
+| IndexShared        |    443.6 μs |     5.00 μs |     4.68 μs |   485.87 KB |
 
 ### Querying Benchmarks
 
-| Method            | Mean         | Error       | StdDev       | Allocated |
-|------------------ |-------------:|------------:|-------------:|----------:|
-| QueryComplex_x100 | 248,025.7 ns | 4,936.41 ns | 10,412.57 ns |     856 B |
-| QueryComplex      |   6,046.9 ns |    94.14 ns |     88.06 ns |     856 B |
-| QuerySearch       |   2,311.9 ns |    33.06 ns |     30.92 ns |     344 B |
-| QueryFilter       |     577.7 ns |     3.96 ns |      3.70 ns |     448 B |
-| QueryFacet        |   5,170.8 ns |    21.16 ns |     16.52 ns |     624 B |
-| QuerySort         |   1,181.3 ns |    10.64 ns |      9.95 ns |     328 B |
-| Query             |     383.8 ns |     1.54 ns |      1.44 ns |     296 B |
+| Method            | Mean         | Error       | StdDev      | Allocated |
+|------------------ |-------------:|------------:|------------:|----------:|
+| QueryComplex_x100 | 261,269.3 ns | 2,085.80 ns | 1,849.01 ns |     864 B |
+| QueryComplex      |   6,425.9 ns |    41.74 ns |    37.01 ns |     864 B |
+| QuerySearch       |   2,675.9 ns |    30.09 ns |    26.67 ns |     352 B |
+| QueryFilter       |     668.0 ns |     4.31 ns |     4.03 ns |     448 B |
+| QueryFacet        |   5,503.2 ns |    79.47 ns |    74.33 ns |     624 B |
+| QuerySort         |   1,316.3 ns |    16.69 ns |    15.62 ns |     328 B |
+| Query             |     448.1 ns |     3.25 ns |     2.88 ns |     296 B |
 
 ### Memory Allocations
 
@@ -568,10 +577,10 @@ and concurrent queries can still cause allocations. `Query`, `QueryResult`, and 
 
 Always dispose query results and materialize any data that must outlive them. Each acquired pool lease must
 be disposed exactly once, including across copies; accessing a buffer after disposal is invalid.
-See [memory and concurrency](docs/memory-and-concurrency.md) for ownership rules.
+See [memory and concurrency](https://github.com/molesinski/Clara/blob/master/docs/memory-and-concurrency.md) for ownership rules.
 
 ## License
 
-- Clara, [MIT License](LICENSE)
+- Clara, [MIT License](https://github.com/molesinski/Clara/blob/master/LICENSE)
 - [snowball](https://github.com/snowballstem/snowball), [BSD 3-Clause License](https://github.com/snowballstem/snowball/blob/master/COPYING)
 - [Morfologik.Stemming](https://github.com/NightOwl888/Morfologik.Stemming), [Apache License 2.0](https://github.com/NightOwl888/Morfologik.Stemming/blob/main/LICENSE.txt)
