@@ -167,6 +167,80 @@ namespace Clara.Tests
             Assert.Equal(expected, searchActual);
         }
 
+        [Theory]
+        [InlineData("new york city => nyc\nyork road => yr", "new york road tail", "new yr tail", "0:0 1:2 3:3")]
+        [InlineData("new york city => nyc\nyork road => yr", "new york city", "nyc", "0:2")]
+        [InlineData("new york road city => nyrc\nyork road => yr", "new york road", "new yr", "0:0 1:2")]
+        [InlineData("new york city => nyc\nyork road => yr\nnew => fresh", "new york road", "fresh yr", "0:0 1:2")]
+        [InlineData("a b c d => x\nb c e => y\nc => z", "a b c q", "a b z q", "0:0 1:1 2:2 3:3")]
+        [InlineData("a b c d => x\nb c e => y\nc => z", "a b c", "a b z", "0:0 1:1 2:2")]
+        [InlineData("new york city => nyc", "new york", "new york", "0:0 1:1")]
+        [InlineData("new york => york road\nyork road => yr", "new york", "york road", "0:1 0:1")]
+        [InlineData("new york city => nyc\nyork road => yr, avenue", "new york road", "new yr avenue", "0:0 1:2 1:2")]
+        public void IndexBacktrackingReconsidersUnconsumedTokens(string rules, string text, string expectedTokens, string expectedPositions)
+        {
+            var map = new SynonymMap(new StandardAnalyzer(), Synonym.Parse(rules));
+            var source = map.CreateTokenTermSource();
+
+            using (var interrupted = source.GetTerms(text).GetEnumerator())
+            {
+                Assert.True(interrupted.MoveNext());
+            }
+
+            for (var i = 0; i < 2; i++)
+            {
+                var terms = source.GetTerms(text).Select(x => new { Token = x.Token.ToString(), x.Position }).ToArray();
+
+                Assert.Equal(expectedTokens, string.Join(" ", terms.Select(x => x.Token)));
+                Assert.Equal(expectedPositions, string.Join(" ", terms.Select(x => $"{x.Position.Start}:{x.Position.End}")));
+            }
+        }
+
+        [Theory]
+        [InlineData("new york city => nyc\nyork road => yr", "new york road tail", "new yr tail", "0:0 1:2 3:3")]
+        [InlineData("new york city => nyc\nyork road => yr", "new york city", "nyc", "0:2")]
+        [InlineData("new york road city => nyrc\nyork road => yr", "new york road", "new yr", "0:0 1:2")]
+        [InlineData("new york city => nyc\nyork road => yr\nnew => fresh", "new york road", "fresh yr", "0:0 1:2")]
+        [InlineData("a b c d => x\nb c e => y\nc => z", "a b c q", "a b z q", "0:0 1:1 2:2 3:3")]
+        [InlineData("a b c d => x\nb c e => y\nc => z", "a b c", "a b z", "0:0 1:1 2:2")]
+        [InlineData("new york city => nyc", "new york", "new york", "0:0 1:1")]
+        [InlineData("new york => york road\nyork road => yr", "new york", "york road", "0:1")]
+        [InlineData("new york city => nyc\nyork road => yr, avenue", "new york road", "new yr|avenue", "0:0 1:2")]
+        public void QueryBacktrackingReconsidersUnconsumedTokens(string rules, string text, string expectedTerms, string expectedPositions)
+        {
+            var map = new SynonymMap(new StandardAnalyzer(), Synonym.Parse(rules));
+            var source = map.CreatePhraseTermSource();
+
+            using (var interrupted = source.GetTerms(text).GetEnumerator())
+            {
+                Assert.True(interrupted.MoveNext());
+            }
+
+            for (var i = 0; i < 2; i++)
+            {
+                var terms = source.GetTerms(text).Select(x => new
+                {
+                    Term = x.Token is Token token ? token.ToString() : string.Join("|", x.Phrases!.Value.Select(p => string.Join(" ", p))),
+                    x.Position,
+                }).ToArray();
+
+                Assert.Equal(expectedTerms, string.Join(" ", terms.Select(x => x.Term)));
+                Assert.Equal(expectedPositions, string.Join(" ", terms.Select(x => $"{x.Position.Start}:{x.Position.End}")));
+            }
+        }
+
+        [Theory]
+        [InlineData("yr", SearchMode.All, "new york road")]
+        [InlineData("yr", SearchMode.Any, "new york road")]
+        [InlineData("new york road", SearchMode.All, "new yr")]
+        [InlineData("new york road", SearchMode.Any, "yr")]
+        public void BacktrackingPreservesSearchMatches(string search, SearchMode mode, string document)
+        {
+            var map = new SynonymMap(new StandardAnalyzer(), Synonym.Parse("new york city => nyc\nyork road => yr"));
+
+            Assert.True(IsMatching(map, search, mode, document));
+        }
+
         [Fact]
         public void TextParsing()
         {

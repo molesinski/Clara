@@ -15,9 +15,8 @@ namespace Clara.Analysis.Synonyms
             private TokenTerm current;
             private IEnumerator<TokenTerm>? enumerator;
             private bool isEnumerated;
-            private TokenTerm? peekedTerm;
-            private int backtrackingState;
-            private int backtrackingIndex;
+            private bool isBacktracking;
+            private readonly ListSlim<TokenTerm> pendingTerms = new();
             private readonly ListSlim<BacktrackingEntry> backtrackingEntries = new();
             private IReadOnlyList<string>? replacementTokens;
             private int replacementIndex;
@@ -81,9 +80,9 @@ namespace Clara.Analysis.Synonyms
             {
                 this.enumerator ??= this.tokenTermSource.GetTerms(this.text).GetEnumerator();
 
-                while (this.backtrackingState > 0 || this.replacementTokens is not null || !this.isEnumerated)
+                while (this.isBacktracking || this.replacementTokens is not null || this.pendingTerms.Count > 0 || !this.isEnumerated || !this.currentNode.IsRoot)
                 {
-                    if (this.backtrackingState == 1)
+                    if (this.isBacktracking)
                     {
                         var lastIndex = this.backtrackingEntries.Count - 1;
                         var index = lastIndex;
@@ -91,16 +90,13 @@ namespace Clara.Analysis.Synonyms
                         while (index >= 0)
                         {
                             var entry = this.backtrackingEntries[index];
+                            var replacements = entry.Node.TokenReplacements;
 
-                            var replacementTokens = entry.Node.TokenReplacements;
-
-                            if (replacementTokens.Count > 0)
+                            if (replacements.Count > 0)
                             {
-                                var position = CombinePositions(this.backtrackingEntries, 0, index + 1);
-
-                                this.replacementTokens = replacementTokens;
+                                this.replacementTokens = replacements;
                                 this.replacementIndex = 0;
-                                this.replacementPosition = position;
+                                this.replacementPosition = CombinePositions(this.backtrackingEntries, 0, index + 1);
 
                                 break;
                             }
@@ -108,15 +104,27 @@ namespace Clara.Analysis.Synonyms
                             index--;
                         }
 
-                        if (index < lastIndex)
+                        var first = this.backtrackingEntries[0];
+                        var consumedCount = index >= 0 ? index + 1 : 1;
+
+                        // Replay only unconsumed input, before the token that failed to extend the match.
+                        // Node tokens are immutable, unlike the analyzer's reusable token buffer.
+                        for (var i = lastIndex; i >= consumedCount; i--)
                         {
-                            this.backtrackingState = 2;
-                            this.backtrackingIndex = index + 1;
+                            var entry = this.backtrackingEntries[i];
+
+                            this.pendingTerms.Add(new TokenTerm(new Token(entry.Node.Token), entry.Position));
                         }
-                        else
+
+                        this.backtrackingEntries.Clear();
+                        this.isBacktracking = false;
+                        this.currentNode = this.root;
+
+                        if (index < 0)
                         {
-                            this.backtrackingState = 0;
-                            this.backtrackingEntries.Clear();
+                            this.current = new TokenTerm(new Token(first.Node.Token), first.Position);
+
+                            return true;
                         }
                     }
 
@@ -134,68 +142,49 @@ namespace Clara.Analysis.Synonyms
                         return true;
                     }
 
-                    if (this.backtrackingState == 2)
+                    TokenTerm currentTerm;
+
+                    if (this.pendingTerms.Count > 0)
                     {
-                        var entry = this.backtrackingEntries[this.backtrackingIndex++];
+                        var lastIndex = this.pendingTerms.Count - 1;
 
-                        this.current = new TokenTerm(new Token(entry.Node.Token), entry.Position);
-
-                        if (this.backtrackingIndex == this.backtrackingEntries.Count)
-                        {
-                            this.backtrackingState = 0;
-                            this.backtrackingEntries.Clear();
-                        }
-
-                        return true;
+                        currentTerm = this.pendingTerms[lastIndex];
+                        this.pendingTerms.RemoveAt(lastIndex);
                     }
-
-                    if (this.peekedTerm is not null || (!this.isEnumerated && this.enumerator.MoveNext()))
+                    else if (!this.isEnumerated && this.enumerator.MoveNext())
                     {
-                        var currentTerm = this.peekedTerm ?? this.enumerator.Current;
-
-                        this.peekedTerm = null;
-
-                        if (this.stringPool.TryGet(currentTerm.Token, out var value))
-                        {
-                            if (this.currentNode.Children.TryGetValue(value, out var node))
-                            {
-                                this.backtrackingEntries.Add(new BacktrackingEntry(node, currentTerm.Position));
-
-                                this.currentNode = node;
-
-                                continue;
-                            }
-                        }
-
-                        if (!this.currentNode.IsRoot)
-                        {
-                            this.peekedTerm = currentTerm;
-                            this.backtrackingState = 1;
-                            this.currentNode = this.root;
-
-                            continue;
-                        }
-
-                        this.current = new TokenTerm(currentTerm.Token, currentTerm.Position);
-
-                        return true;
+                        currentTerm = this.enumerator.Current;
                     }
                     else
                     {
-                        if (!this.isEnumerated)
+                        this.isEnumerated = true;
+                        this.isBacktracking = !this.currentNode.IsRoot;
+
+                        continue;
+                    }
+
+                    if (this.stringPool.TryGet(currentTerm.Token, out var value))
+                    {
+                        if (this.currentNode.Children.TryGetValue(value, out var node))
                         {
-                            this.isEnumerated = true;
+                            this.backtrackingEntries.Add(new BacktrackingEntry(node, currentTerm.Position));
+                            this.currentNode = node;
 
-                            if (!this.currentNode.IsRoot)
-                            {
-                                this.peekedTerm = null;
-                                this.backtrackingState = 1;
-                                this.currentNode = this.root;
-
-                                continue;
-                            }
+                            continue;
                         }
                     }
+
+                    if (!this.currentNode.IsRoot)
+                    {
+                        this.pendingTerms.Add(currentTerm);
+                        this.isBacktracking = true;
+
+                        continue;
+                    }
+
+                    this.current = new TokenTerm(currentTerm.Token, currentTerm.Position);
+
+                    return true;
                 }
 
                 this.current = default;
@@ -209,9 +198,8 @@ namespace Clara.Analysis.Synonyms
                 this.enumerator?.Dispose();
                 this.enumerator = default;
                 this.isEnumerated = default;
-                this.peekedTerm = default;
-                this.backtrackingState = default;
-                this.backtrackingIndex = default;
+                this.isBacktracking = default;
+                this.pendingTerms.Clear();
                 this.backtrackingEntries.Clear();
                 this.replacementTokens = default;
                 this.replacementIndex = default;
