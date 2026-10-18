@@ -63,8 +63,6 @@ In [`TextDocumentStore`](../src/Clara/Storage/TextDocumentStore.cs), the query's
 
 With mapping `alias => red blue`, `Similarity.TF`, and document `red blue`, a query override of `Max` produces score 1 even when the field uses `Sum`. Conversely, an override of `Sum` produces score 2 when the field uses `Max`. [ScoringTests.cs](../src/Clara.Tests/ScoringTests.cs) covers these cases, default fallback, alternative phrases, and position boosts.
 
-Earlier code added the aggregated length to its previous value and ignored query overrides inside phrases. Correcting those behaviors changes BM25 scores and affected synonym rankings. Rebuild existing indexes to use corrected lengths. See the [implementation notes](implementation-notes.md) for the regression coverage.
-
 ## Extending ranking
 
 A custom `Similarity` class implements `Transform`, modifying weights in the supplied dictionaries. A custom `ScoreAggregation` implements `Combine`. Check token weights, normalization, hit ordering, repetitions, multivalued fields, and synonyms separately. Testing only whether a document appears will not detect scoring regressions.

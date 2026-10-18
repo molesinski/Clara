@@ -65,20 +65,20 @@ The embedded algorithms use Snowball 3.2.0 from a pinned upstream commit. See [U
 
 ### Morfologik lemma selection
 
-[`MorfologikStemTokenFilter`](../src/Clara.Analysis.Morfologik/Analysis/MorfologikStemTokenFilter.cs) emits one selected lemma. The heuristic introduced in commit `c3073b3ada911cdf1f3e8e463e8769d69dbf9244` prefers dictionary lemmas ending in `y` to bring related forms together for search. This is useful for product attributes, colors, and some nouns: previously, choosing only the first dictionary result could put `mielone` and `mielony`, or `lodów` and `lody`, under different index terms.
+[`MorfologikStemTokenFilter`](../src/Clara.Analysis.Morfologik/Analysis/MorfologikStemTokenFilter.cs) emits one selected lemma. It prefers dictionary lemmas ending in `y` to bring related forms such as `mielone` and `mielony`, or `lodów` and `lody`, together for search.
 
-The filter traverses lookup results from last to first and stops at the first valid lemma ending in `y` (ordinal, case-insensitive comparison). If several qualify, the last in dictionary order wins. If none qualifies, the first valid lemma in dictionary order remains the result; when all results are valid, this preserves the previous `lemmas[0]` fallback. A valid decoded lemma is nonempty and no longer than `Token.MaximumLength`. No lookup results leave the input unchanged, including empty and unknown words.
+The filter traverses lookup results from last to first and stops at the first valid lemma ending in `y` (ordinal, case-insensitive comparison). If several qualify, the last in dictionary order wins. If none qualifies, the first valid lemma in dictionary order remains the result. A valid decoded lemma is nonempty and no longer than `Token.MaximumLength`. No lookup results leave the input unchanged, including empty and unknown words.
 
 These examples are pinned by [MorfologikTests.cs](../src/Clara.Tests/MorfologikTests.cs) against `Morfologik.Polish 2.1.7`:
 
-| Input | Previous first-result selection | Current selection |
-| --- | --- | --- |
-| `mielone` | `mielone` | `mielony` |
-| `czerwone` | `czerwone` | `czerwony` |
-| `mała` | `mała` | `mały` |
-| `białe` | `biała` | `biały` |
-| `lodów` | `lodówa` | `lody` |
-| `dane` | `dane` | `dany` |
+| Input | Selected lemma |
+| --- | --- |
+| `mielone` | `mielony` |
+| `czerwone` | `czerwony` |
+| `mała` | `mały` |
+| `białe` | `biały` |
+| `lodów` | `lody` |
+| `dane` | `dany` |
 
 Limitations:
 

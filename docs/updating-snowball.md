@@ -2,9 +2,9 @@
 
 ## Source and scope
 
-The 33 algorithms in `src/Clara.Analysis.Snowball/Snowball/Algorithms` were generated with Snowball 3.2.0 from [upstream commit 6389c79](https://github.com/snowballstem/snowball/commit/6389c79f91cd67ed2de3ebdcf84ec8c2d2d23c11), whose subject is `Update for 3.2.0`. No `v3.2.0` tag was available when this update was prepared on October 18, 2026; the exact main-branch commit is pinned instead.
+The 33 algorithms in `src/Clara.Analysis.Snowball/Snowball/Algorithms` use Snowball 3.2.0 from [upstream commit 6389c79](https://github.com/snowballstem/snowball/commit/6389c79f91cd67ed2de3ebdcf84ec8c2d2d23c11). The exact revision is pinned for reproducible generation.
 
-The update retains the existing language selection, public analyzers, stopword lists, and namespaces. New upstream languages are not imported automatically. `Among.cs` is still identical after adapting its visibility; `Stemmer.cs` incorporates the newer runtime, including resetting both slice boundaries to zero.
+Generation preserves the existing language selection, public analyzers, stopword lists, and namespaces. New upstream languages are not imported automatically.
 
 ## Generate with Docker
 
@@ -39,18 +39,7 @@ The updater reapplies visibility and the token entry point explicitly. The filte
 
 The verifier is separate from the normal solution and tests; normal builds need neither Docker nor downloaded corpora. Corpus files and their licenses remain in the ignored checkout. Analyzer suppression applies to this verifier, which compiles unmodified upstream code; the library and tests retain their normal checks.
 
-Verification of this update:
-
-- All **11,397,598** words across **33** algorithms match upstream 3.2.0 and the corpus, through both string and token entry points.
-- Compared with the previous embedded version, 2,358 vocabulary outputs change. For example, Polish `billy'emu` now yields `billy`, and Italian `all'acqua` yields `acqua`. Rebuild indexes after updating analyzers so indexed and queried terms use the same stemming rules.
-- [`SnowballTests.cs`](../src/Clara.Tests/SnowballTests.cs) covers changed rules, empty and maximum-length inputs, buffer reuse, and allocation budgets. The full suite passes 226 cases on `net472` and 228 on each of `net8.0`, `net9.0`, and `net10.0`: **910 executions**. Allocation tests use APIs available only on modern .NET.
-- BenchmarkDotNet ShortRun on .NET 10.0.13 reports no managed allocation per operation for the existing English and Polish analyzer phrases, both before and after the update. English means were 889.5/895.0 ns; Polish means were 526.2/581.9 ns. The short run has wide timing uncertainty, particularly for Polish; these numbers do not establish a speed improvement or regression.
-
-Reproduce the focused benchmarks with:
-
-```powershell
-dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*TokenizationBenchmarks.EnglishAnalyzer' '*TokenizationBenchmarks.PolishAnalyzer' --job short
-```
+Rebuild indexes after changing stemming rules so indexed and queried terms use the same analysis. See [the test map](development-and-testing.md#test-map) for unit coverage and [Benchmarks](development-and-testing.md#snowball-320) for analyzer measurements and commands.
 
 ## Next upstream update
 

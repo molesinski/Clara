@@ -50,15 +50,11 @@ The project uses xUnit 2.9.3, Microsoft.NET.Test.Sdk 18.11.0, and Visual Studio 
 
 `Product.json` is an embedded resource; tests do not download products from the network. No coverage threshold or coverage collector is configured. Choose test cases according to behavior, not just line counts.
 
-The Morfologik heuristic is covered by 28 regression cases using the bundled `Morfologik.Polish 2.1.7` dictionary. See [lemma selection](text-analysis.md#morfologik-lemma-selection) for the search policy and its limitations.
+`PoolOwnershipTests` inspects pooled object identities through reflection and disables collection parallelization so other tests cannot borrow a buffer during a snapshot. Allocation checks run only on modern .NET.
 
-After the exception-path and atomic return fixes, the suite passed 1,102 executions. Of the 20 added pool cases, 16 failed before those fixes on .NET 10. The subsequent copied-lease fix adds eight cases on every target and one allocation case on modern .NET: all 282 tests on `net472` and 285 on each of `net8.0`, `net9.0`, and `net10.0` pass (1,137 executions), with no failures or skips. The Release solution build passes without warnings or errors. All seven cases initially ported from Implicit failed against the previous Clara implementation on .NET 10. `PoolOwnershipTests` uses reflection only in tests to compare pooled object identities and disables collection parallelization so another test cannot borrow a buffer during a snapshot.
-
-Verification on October 18, 2026, after the three fixes: `dotnet build Clara.slnx -c Release --no-restore` succeeded with SDK 10.0.402 and no warnings or errors. `dotnet test src/Clara.Tests/Clara.Tests.csproj -c Release --no-build --no-restore` passed all 212 tests on each of the four targets, for 848 executions in total, with no failures or skips. The 35 new regression cases first ran against the previous implementation on .NET 10: 23 failed and 12 passed. All 35 pass with the fixes. See [implementation notes](implementation-notes.md) for the corrected contracts. These checks are not performance measurements.
+The [Snowball maintenance guide](updating-snowball.md) describes generation and full upstream corpus verification.
 
 ## Benchmarks
-
-After the Snowball update, the full suite passes 226 cases on `net472` and 228 on each modern .NET target (910 executions). The additional allocation checks require modern .NET. The [Snowball maintenance guide](updating-snowball.md) describes the separate Docker generator and full upstream corpus verifier retained under `tools/`.
 
 ```powershell
 dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*Querying*'
@@ -68,7 +64,11 @@ dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*Tokenization*
 
 BenchmarkDotNet 0.15.8 reports time and memory. `IndexingBenchmarks` compares shared and instance encoder stores; `QueryingBenchmarks` covers search, filters, facets, sorting, and `x100` dataset variants; `TokenizationBenchmarks` compares analyzers. The program configures Markdown export. Results are written to the ignored `BenchmarkDotNet.Artifacts/` directory.
 
+The index and query benchmarks use the bundled 100-product dataset. Variants with an `x100` suffix repeat it 100 times.
+
 Compare before-and-after results on the same machine, runtime, and data. The number of unique tokens, result size, and number of facet values may affect cost more than document count alone. Do not infer performance from unit test duration.
+
+### Pool ownership and atomic returns
 
 For the pool ownership and atomic return changes, BenchmarkDotNet `ShortRun` on .NET 10.0.13 / Intel Core i9-14900K produced:
 
@@ -83,7 +83,7 @@ These are three measured iterations after three warmups, with one launch. Alloca
 dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*QueryingBenchmarks.QuerySearch' '*QueryingBenchmarks.QueryComplex' --job short --artifacts artifacts/pool-after
 ```
 
-### Copied-lease protection measurements
+### Copied-lease protection
 
 The versioned lease change was measured separately against `0b77af9` using the same benchmark harness, machine, and .NET 10.0.13 runtime. Each benchmark used one launch, five warmup iterations, and ten measured iterations. The retained [ObjectPoolSlimBenchmarks.cs](../src/Clara.Benchmarks/ObjectPoolSlimBenchmarks.cs) isolates one warmed, uncontended lease/return cycle.
 
@@ -101,6 +101,21 @@ Reports are retained locally under ignored `artifacts/lease-before/` and `artifa
 dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*QueryingBenchmarks.QuerySearch' '*QueryingBenchmarks.QueryComplex' '*ObjectPoolSlimBenchmarks*' --job short --warmupCount 5 --iterationCount 10 --artifacts artifacts/lease-after
 ```
 
+### Snowball 3.2.0
+
+BenchmarkDotNet ShortRun on .NET 10.0.13 measured the existing English and Polish analyzer phrases before and after the Snowball 3.2.0 update:
+
+| Analyzer | Before | After | Allocated before / after |
+| --- | --- | --- | --- |
+| English | 889.5 ns | 895.0 ns | 0 B / 0 B |
+| Polish | 526.2 ns | 581.9 ns | 0 B / 0 B |
+
+The short run has wide timing uncertainty, particularly for Polish; these numbers do not establish a speed improvement or regression.
+
+```powershell
+dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*TokenizationBenchmarks.EnglishAnalyzer' '*TokenizationBenchmarks.PolishAnalyzer' --job short
+```
+
 ## Extending the project
 
 | Change | Location and verification |
@@ -112,7 +127,7 @@ dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*QueryingBench
 | New field type | Definition in `Mapping`, builder and store in `Storage`, expressions and results in `Querying`; test every capability flag |
 | Slim structure changes | Test empty and growing collections, reset behavior, and lifetimes; benchmark allocations |
 
-Style is defined in [AGENTS.md](../AGENTS.md) and [.editorconfig](../.editorconfig): four spaces in C#, block-scoped namespaces, `this.`, `var`, and PascalCase for types and methods. Preserve local exceptions for generated Snowball code.
+Follow [AGENTS.md](../AGENTS.md) and [.editorconfig](../.editorconfig), including the local exceptions for generated Snowball code.
 
 ## Packaging and CI
 
@@ -125,5 +140,3 @@ dotnet pack src/Clara/Clara.csproj -c Release --no-build -o artifacts/packages
 ```
 
 [`Package.props`](../Package.props) defines metadata, the MIT license, and inclusion of the main README. `docs/` is not currently included in NuGet packages. Publishing packages is a separate release operation; ordinary change validation does not require a push.
-
-Commit history uses short imperative subjects, such as `Separate indexing and search score aggregations`. In a PR, describe the behavior change, verification, test targets, and benchmark results when performance is affected.
