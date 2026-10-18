@@ -10,7 +10,7 @@
 | `QueryResult<TDocument>` | Owns document and facet results; always use `using` |
 | Collections, enumerators, and facet children | Views valid during the result's lifetime |
 | `ITokenTermSource` | Stateful analysis; one enumeration at a time |
-| `ObjectPoolSlimLease<T>` | A lease that must be returned exactly once |
+| `ObjectPoolSlimLease<T>` | Dispose when finished; copies share one return claim per lease |
 
 `Index.Query(QueryBuilder)` consumes the builder and disposes the resulting `Query`. `Index.Query(Action<QueryBuilder>)` manages both objects. `Index.Query(Query)` leaves ownership of the supplied query with the caller. In every variant, the returned result must be disposed.
 
@@ -26,9 +26,13 @@ Do not return `result.Documents.Select(...)` from a method that exits the result
 
 [`ObjectPoolSlim`](../src/Clara/Utils/ObjectPoolSlim.cs) has `Environment.ProcessorCount * 5 * sizeFactor` slots. An empty pool creates a new object, and a full pool may discard a returned object. This is not a limit on concurrent queries. Resetting typically clears contents while allowing allocated capacity to be reused.
 
-Both leasing and returning use atomic compare-and-exchange operations. A return resets the instance before publishing it into an empty slot; competing returns cannot overwrite one another's occupied slots. This protects the pool, not concurrent access to an individual leased collection. Custom resetters must not throw.
+Both leasing and returning use atomic compare-and-exchange operations. A return resets the instance before publishing it into an empty slot; competing returns cannot overwrite one another's occupied slots. This protects the pool, not concurrent access to an individual leased collection.
 
-`ObjectPoolSlimLease<T>` is a struct without protection against repeated returns. Do not copy a lease into independent owners or call `Dispose` twice. The higher-level `Query` and `QueryResult` types have their own protection against repeated disposal.
+`ObjectPoolSlimLease<T>` remains a readonly struct. Each pooled instance has shared metadata with its owning pool and a 64-bit version. A new lease records the next odd version; `Dispose` atomically advances that version to even before resetting the instance. Copies, including boxed copies, can therefore return it at most once. An old copy cannot close a subsequent lease. Disposing a default lease is a no-op. If resetting throws, the original exception propagates, the instance is discarded, and further disposal attempts do not retry the reset. Prefer non-throwing resetters so cleanup can finish normally.
+
+Metadata is allocated with a new pooled instance and retained with it; ordinary unboxed reuse adds no per-lease allocation. The version increment and return claim add two atomic operations per complete lease cycle. Pool capacity, `sizeFactor`, default `IResettable` handling, and custom resetters retain their existing behavior.
+
+Keep one logical owner and use `using`. Do not access `Instance` after any copy is disposed: it still exposes the underlying reference without validating the version. Idempotent disposal does not make simultaneous use and disposal safe. The higher-level `Query` and `QueryResult` types retain their own disposal guards.
 
 ## Choosing an encoder store
 

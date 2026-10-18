@@ -45,13 +45,14 @@ The project uses xUnit 2.9.3, Microsoft.NET.Test.Sdk 18.11.0, and Visual Studio 
 | `IncludeTests.cs` | Current document key validation, shared encoder history, empty and mixed selections, and interaction with search and facets |
 | `PoolOwnershipTests.cs` | Buffer identities after repeated exceptions, partial facet cleanup, filter replacement, and successful result ownership |
 | `ObjectPoolSlimTests.cs` | Concurrent returns without overwritten instances and reset before reuse |
+| `ObjectPoolSlimLeaseTests.cs` | Copied, boxed, stale, and concurrent disposal; default leases; reset failures; full pools; allocation-free warmed reuse |
 | `GettingStartedTests.cs` | Integration and result-reading example |
 
 `Product.json` is an embedded resource; tests do not download products from the network. No coverage threshold or coverage collector is configured. Choose test cases according to behavior, not just line counts.
 
 The Morfologik heuristic is covered by 28 regression cases using the bundled `Morfologik.Polish 2.1.7` dictionary. See [lemma selection](text-analysis.md#morfologik-lemma-selection) for the search policy and its limitations.
 
-After the pool fixes, the full suite passes 274 tests on `net472` and 276 on each of `net8.0`, `net9.0`, and `net10.0` (1,102 executions), with no failures or skips. The Release solution build passes without warnings or errors. Of the 20 added pool cases, 16 failed before the fixes on .NET 10. `PoolOwnershipTests` uses reflection only in tests to compare pooled object identities and disables collection parallelization so another test cannot borrow a buffer during a snapshot.
+After the exception-path and atomic return fixes, the suite passed 1,102 executions. Of the 20 added pool cases, 16 failed before those fixes on .NET 10. The subsequent copied-lease fix adds eight cases on every target and one allocation case on modern .NET: all 282 tests on `net472` and 285 on each of `net8.0`, `net9.0`, and `net10.0` pass (1,137 executions), with no failures or skips. The Release solution build passes without warnings or errors. All seven cases initially ported from Implicit failed against the previous Clara implementation on .NET 10. `PoolOwnershipTests` uses reflection only in tests to compare pooled object identities and disables collection parallelization so another test cannot borrow a buffer during a snapshot.
 
 Verification on October 18, 2026, after the three fixes: `dotnet build Clara.slnx -c Release --no-restore` succeeded with SDK 10.0.402 and no warnings or errors. `dotnet test src/Clara.Tests/Clara.Tests.csproj -c Release --no-build --no-restore` passed all 212 tests on each of the four targets, for 848 executions in total, with no failures or skips. The 35 new regression cases first ran against the previous implementation on .NET 10: 23 failed and 12 passed. All 35 pass with the fixes. See [implementation notes](implementation-notes.md) for the corrected contracts. These checks are not performance measurements.
 
@@ -80,6 +81,24 @@ These are three measured iterations after three warmups, with one launch. Alloca
 
 ```powershell
 dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*QueryingBenchmarks.QuerySearch' '*QueryingBenchmarks.QueryComplex' --job short --artifacts artifacts/pool-after
+```
+
+### Copied-lease protection measurements
+
+The versioned lease change was measured separately against `0b77af9` using the same benchmark harness, machine, and .NET 10.0.13 runtime. Each benchmark used one launch, five warmup iterations, and ten measured iterations. The retained [ObjectPoolSlimBenchmarks.cs](../src/Clara.Benchmarks/ObjectPoolSlimBenchmarks.cs) isolates one warmed, uncontended lease/return cycle.
+
+| Benchmark | Before | After | Mean change | Allocated before / after |
+| --- | --- | --- | --- | --- |
+| `LeaseAndReturn` | 10.38 ns | 16.71 ns | +61.0% (+6.33 ns) | 0 B / 0 B |
+| `QueryComplex` | 6.485 us | 6.659 us | +2.7% | 864 B / 864 B |
+| `QuerySearch` | 2.554 us | 2.719 us | +6.5% | 352 B / 352 B |
+
+The additional atomic version operations have a measurable cost in the isolated pool cycle and search scenario. `QueryComplex` has overlapping 99.9% confidence intervals (before: 6.372–6.598 us; after: 6.512–6.807 us). These are local, single-thread measurements, not a contention or production-throughput assessment. Warmed allocations remain unchanged; creating a new pooled instance additionally allocates its metadata object, which these warmed measurements exclude.
+
+Reports are retained locally under ignored `artifacts/lease-before/` and `artifacts/lease-after/`. Reproduce with:
+
+```powershell
+dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*QueryingBenchmarks.QuerySearch' '*QueryingBenchmarks.QueryComplex' '*ObjectPoolSlimBenchmarks*' --job short --warmupCount 5 --iterationCount 10 --artifacts artifacts/lease-after
 ```
 
 ## Extending the project

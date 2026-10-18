@@ -4,28 +4,26 @@
     public readonly struct ObjectPoolSlimLease<TItem> : IDisposable
         where TItem : class
     {
-        private readonly ObjectPoolSlim<TItem> pool;
-        private readonly TItem instance;
+        private readonly ObjectPoolSlim<TItem>.Item? item;
+        private readonly long version;
 
-        internal ObjectPoolSlimLease(
-            ObjectPoolSlim<TItem> pool,
-            TItem target)
+        internal ObjectPoolSlimLease(ObjectPoolSlim<TItem>.Item item)
         {
-            this.pool = pool;
-            this.instance = target;
+            this.item = item;
+            this.version = item.NextLeaseVersion();
         }
 
         public readonly TItem Instance
         {
             get
             {
-                return this.instance;
+                return this.item is null ? default! : this.item.Instance;
             }
         }
 
         public readonly void Dispose()
         {
-            this.pool.Return(this.instance);
+            this.item?.Return(this.version);
         }
     }
 }

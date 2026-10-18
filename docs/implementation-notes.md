@@ -57,7 +57,15 @@ Direct `Query.AddFilter` replacement now disposes the previous filter for that f
 
 [ObjectPoolSlim.Return](../src/Clara/Utils/ObjectPoolSlim.cs) uses `Interlocked.CompareExchange` to publish a reset instance only into an empty slot. If another return claims that slot first, the loop tries the next slot. The previous check followed by plain assignment could overwrite another returned object and lose its reuse even when capacity remained.
 
-[ObjectPoolSlimTests.cs](../src/Clara.Tests/ObjectPoolSlimTests.cs) synchronizes four returners for 1,000 rounds, verifies that all four original instances remain reusable without replacement allocations, and checks reset behavior. Full pools may still discard returned instances; leases must still be disposed exactly once.
+[ObjectPoolSlimTests.cs](../src/Clara.Tests/ObjectPoolSlimTests.cs) synchronizes four returners for 1,000 rounds, verifies that all four original instances remain reusable without replacement allocations, and checks reset behavior. Full pools may still discard returned instances.
+
+## Copied lease disposal
+
+The shared-state/version approach from Implicit commit `f2ea517` is also applied to [ObjectPoolSlimLease.cs](../src/Clara/Utils/ObjectPoolSlimLease.cs). Copies of the readonly struct share metadata, while each subsequent lease receives a new version. Only the first matching atomic return claim resets and publishes the instance. This prevents duplicate entries in the pool and stale copies resetting an instance already borrowed by another caller. A default lease can be disposed safely; a failing resetter closes the lease and discards the instance without retrying on later disposal.
+
+Clara retains all constructor overloads, `sizeFactor`, and default `IResettable` support. The extra metadata object is created only with a new pooled instance, then reused. Access through `Instance` after disposal remains unsupported; the getter does not validate ownership.
+
+[ObjectPoolSlimLeaseTests.cs](../src/Clara.Tests/ObjectPoolSlimLeaseTests.cs) covers repeated, copied, boxed, and concurrent disposal; stale copies across later leases; default leases; reset failures; and discarded returns when a pool with `sizeFactor = 2` is full. On modern .NET, it also checks that 100,000 warmed lease/return cycles allocate zero bytes. Existing exception-path tests still compare the underlying buffer identities through the new metadata representation. See [development and testing](development-and-testing.md) for benchmark results.
 
 ## Other behavior relevant to integration
 
@@ -70,6 +78,8 @@ Direct `Query.AddFilter` replacement now disposes the previous filter for that f
 
 The original 35 scoring/Include regression cases ran on .NET 10 before those fixes: 23 failed and 12 passed. After those fixes, all 212 tests passed on each of the four targets (848 executions).
 
-For the pool fixes, 16 of 20 new cases failed against the previous implementation on .NET 10; all 20 pass after the changes. The complete suite now passes 274 tests on `net472` and 276 on each of `net8.0`, `net9.0`, and `net10.0` (1,102 executions). The Release solution build passes with no warnings or errors.
+For the exception-path and atomic return fixes, 16 of 20 new cases failed against the previous implementation on .NET 10; all 20 passed after the changes (1,102 complete-suite executions).
+
+For copied-lease disposal, all seven initially ported Implicit cases failed against the previous Clara implementation on .NET 10. The completed change includes eight new cases on every target plus an allocation check on modern .NET. The complete suite passes 282 tests on `net472` and 285 on each of `net8.0`, `net9.0`, and `net10.0` (1,137 executions). The Release solution build passes with no warnings or errors.
 
 Further test priorities include concurrent queries with custom analyzers and broader facet semantics for each mode. Add assertions for new contracts before changing the engine.

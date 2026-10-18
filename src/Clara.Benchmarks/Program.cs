@@ -21,6 +21,7 @@ namespace Clara.Benchmarks
                     typeof(TokenizationBenchmarks),
                     typeof(IndexingBenchmarks),
                     typeof(QueryingBenchmarks),
+                    typeof(ObjectPoolSlimBenchmarks),
                 });
 
             switcher.Run(args, config);
