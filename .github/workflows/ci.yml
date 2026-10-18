@@ -1,0 +1,52 @@
+﻿name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  build:
+    name: Build, test and pack
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+          dotnet-version: |
+            8.0.x
+            9.0.x
+      - name: Build, test and validate packages
+        run: ./tools/Build-Packages.ps1 -Version '0.0.0-ci'
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: ci-test-results-${{ github.run_attempt }}
+          path: artifacts/ci/test-results/**/*.trx
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload packages for inspection
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: ci-packages-${{ github.run_attempt }}
+          path: artifacts/ci/packages/*.nupkg
+          if-no-files-found: error
+          retention-days: 14

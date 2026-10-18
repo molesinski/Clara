@@ -14,6 +14,7 @@ Clara is a C# library for searching an index held in process memory. It combines
 | [Scoring](scoring.md) | Weights, aggregation, TF, TFIDF, and BM25 |
 | [Memory and concurrency](memory-and-concurrency.md) | Result ownership, pooling, and index replacement |
 | [Development and testing](development-and-testing.md) | Environment, commands, benchmarks, extensions, and publishing |
+| [GitHub Actions and releases](github-actions-and-releases.md) | CI, shared package versions, NuGet Trusted Publishing setup, and release recovery |
 | [Updating Snowball](updating-snowball.md) | Reproducible Docker generation, allocation adaptations, and corpus verification |
 
 For library integration, start with the example, field model, and queries. Before changing the engine, also read the memory chapter and scoring notes.

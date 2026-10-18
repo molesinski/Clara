@@ -135,7 +135,7 @@ Follow [AGENTS.md](../AGENTS.md) and [.editorconfig](../.editorconfig), includin
 
 ## Packaging and CI
 
-[`azure-pipelines.yml`](../azure-pipelines.yml) runs on Windows, restores and builds the libraries and tests, runs tests with TRX output, packages the core, Morfologik, and Snowball, then publishes to NuGet through a configured connection. The pipeline does not run benchmarks. `trigger: none` and `pr: none` disable YAML push and PR triggers; do not assume every change is automatically validated.
+The [CI workflow](../.github/workflows/ci.yml) validates pull requests and pushes to `master` on Windows: it builds the solution, runs all test targets with TRX output, and validates packages for core, Morfologik, and Snowball. Benchmarks are built but not run. The separate [release workflow](../.github/workflows/release.yml) publishes all three packages at the version specified by a `v*` tag, using NuGet Trusted Publishing. See [GitHub Actions and releases](github-actions-and-releases.md) for the required GitHub/NuGet configuration, version rules, and recovery procedure.
 
 To prepare a package locally after building:
 

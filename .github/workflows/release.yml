@@ -1,0 +1,128 @@
+﻿name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+# Do not cancel an in-progress publication when another tag is pushed.
+concurrency:
+  group: nuget-release
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  build:
+    name: Build release packages
+    if: github.repository == 'molesinski/Clara'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      artifact-id: ${{ steps.packages.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate release tag and check version availability
+        id: version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if ($env:RELEASE_TAG -cnotmatch '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9a-z-]+(\.[0-9a-z-]+)*)?$') {
+            throw 'Use vMAJOR.MINOR.PATCH with an optional lowercase SemVer prerelease suffix.'
+          }
+          $version = $env:RELEASE_TAG.Substring(1)
+          if ($version.Contains('-')) {
+            foreach ($identifier in $version.Split('-', 2)[1].Split('.')) {
+              if ($identifier -match '^0[0-9]+$') { throw 'Numeric prerelease identifiers cannot have leading zeroes.' }
+            }
+          }
+          git merge-base --is-ancestor HEAD origin/master
+          if ($LASTEXITCODE -ne 0) { throw 'The release commit must belong to master.' }
+          foreach ($id in @('clara', 'clara.analysis.morfologik', 'clara.analysis.snowball')) {
+            $index = Invoke-RestMethod -Uri "https://api.nuget.org/v3-flatcontainer/$id/index.json"
+            if ($version -in $index.versions) {
+              throw "$id $version already exists. For a partial publication, re-run only the failed publish job to reuse its original artifact."
+            }
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+          dotnet-version: |
+            8.0.x
+            9.0.x
+      - name: Build, test and validate packages
+        env:
+          PACKAGE_VERSION: ${{ steps.version.outputs.version }}
+        run: ./tools/Build-Packages.ps1 -Version $env:PACKAGE_VERSION
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-test-results-${{ github.run_attempt }}
+          path: artifacts/ci/test-results/**/*.trx
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload release packages
+        id: packages
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-packages-${{ steps.version.outputs.version }}-${{ github.run_attempt }}
+          path: artifacts/ci/packages/*.nupkg
+          if-no-files-found: error
+          retention-days: 90
+
+  publish:
+    name: Publish to NuGet
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 15
+    environment: nuget
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact-id }}
+          path: artifacts/ci/packages
+          merge-multiple: true
+      - name: Validate downloaded packages and configuration
+        env:
+          PACKAGE_VERSION: ${{ needs.build.outputs.version }}
+          NUGET_USER: ${{ vars.NUGET_USER }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_USER)) { throw 'Set the NUGET_USER variable in the nuget environment.' }
+          $commit = git rev-parse HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve the release commit.' }
+          ./tools/Test-Packages.ps1 -Version $env:PACKAGE_VERSION -RepositoryCommit $commit
+      - name: Obtain a short-lived NuGet API key
+        id: login
+        uses: NuGet/login@ebc737b6fc418a6ca0073cf116ec8dc156d8b81e # v1
+        with:
+          user: ${{ vars.NUGET_USER }}
+      - name: Publish core and analyzers
+        env:
+          PACKAGE_VERSION: ${{ needs.build.outputs.version }}
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: |
+          $retryArguments = @()
+          if ([int]$env:GITHUB_RUN_ATTEMPT -gt 1) { $retryArguments += '--skip-duplicate' }
+          foreach ($id in @('Clara', 'Clara.Analysis.Morfologik', 'Clara.Analysis.Snowball')) {
+            dotnet nuget push "artifacts/ci/packages/$id.$env:PACKAGE_VERSION.nupkg" --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY @retryArguments
+            if ($LASTEXITCODE -ne 0) { throw "Publication of $id failed. Re-run only failed jobs to reuse these packages." }
+          }

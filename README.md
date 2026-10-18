@@ -1,6 +1,6 @@
 ﻿# Clara
 
-[![CI](https://dev.azure.com/molesinski/Clara/_apis/build/status/Clara?branchName=master)](https://dev.azure.com/molesinski/Clara/_build/latest?definitionId=1&branchName=master)
+[![CI](https://github.com/molesinski/Clara/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/molesinski/Clara/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/dt/clara.svg)](https://www.nuget.org/packages/clara)
 [![NuGet](https://img.shields.io/nuget/v/clara.svg)](https://www.nuget.org/packages/clara)
 [![License](https://img.shields.io/github/license/molesinski/clara.svg)](https://github.com/molesinski/clara/blob/master/LICENSE)
