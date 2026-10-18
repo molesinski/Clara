@@ -29,7 +29,7 @@ namespace Clara.Tests
             {
             }
 
-            var before = SnapshotPools();
+            var before = SnapshotPools("DocumentScores", "DocumentSets");
             var error = new InvalidOperationException("Position boost failed.");
 
             for (var attempt = 0; attempt < 3; attempt++)
@@ -61,7 +61,7 @@ namespace Clara.Tests
             {
             }
 
-            var before = SnapshotPools();
+            var before = SnapshotPools("DocumentScores");
             var error = new InvalidOperationException("Aggregation failed.");
             query.Search = new TextSearchExpression(mapper.Text, mode, synonyms ? "alias" : "red blue", searchScoreAggregation: new ThrowingAggregation(error));
 
@@ -84,7 +84,7 @@ namespace Clara.Tests
             {
             }
 
-            var before = SnapshotPools();
+            var before = SnapshotPools("DocumentSets", "DocumentScores", "QueryResultBuilderFacets");
             var error = new InvalidOperationException("Selection failed.");
 
             if (exclude)
@@ -126,7 +126,7 @@ namespace Clara.Tests
                 query.AddFacet(new KeywordFacetExpression(foreignMapper.Brand));
             }
 
-            var before = SnapshotPools();
+            var before = SnapshotPools("DocumentScores", "DocumentSets", "QueryResultBuilderFacets", "FacetResults", "KeywordFacetValues", "HierarchyFacetValues");
 
             for (var attempt = 0; attempt < 3; attempt++)
             {
@@ -145,7 +145,7 @@ namespace Clara.Tests
             {
             }
 
-            var before = SnapshotPools();
+            var before = SnapshotPools("FilterValues");
             var error = new InvalidOperationException("Filter values failed.");
 
             for (var attempt = 0; attempt < 3; attempt++)
@@ -184,7 +184,7 @@ namespace Clara.Tests
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void SuccessfulResultOwnsBuffersUntilDisposed(bool sorted)
+        public void SuccessfulResultReturnsOutputBuffersWhenDisposed(bool sorted)
         {
             var mapper = CreateMapper();
             var index = CreateIndex(mapper);
@@ -199,22 +199,12 @@ namespace Clara.Tests
             {
             }
 
-            var before = SnapshotPools();
-            using var result = index.Query(query);
-            var documents = result.Documents.Select(x => (x.Key, x.Score)).ToArray();
-            var brands = result.Facets.Field(mapper.Brand).Values.Select(x => (x.Value, x.Count)).ToArray();
-            Assert.NotEmpty(documents);
-            Assert.NotEmpty(brands);
-
-            using (var other = index.Query(q => q.Search(mapper.Text, SearchMode.Any, "blue").Facet(mapper.Brand).Facet(mapper.Category)))
+            var before = SnapshotPools("DocumentScores", "Documents", "FacetResults", "KeywordFacetValues", "HierarchyFacetValues");
+            using (var result = index.Query(query))
             {
-                Assert.Equal(2, other.Documents.Count);
-                Assert.Equal(documents, result.Documents.Select(x => (x.Key, x.Score)));
-                Assert.Equal(brands, result.Facets.Field(mapper.Brand).Values.Select(x => (x.Value, x.Count)));
+                Assert.Equal("1", Assert.Single(result.Documents).Key);
             }
 
-            result.Dispose();
-            result.Dispose();
             AssertPoolsReturned(before);
         }
 
@@ -253,14 +243,15 @@ namespace Clara.Tests
             throw error;
         }
 
-        private static Dictionary<string, object[]> SnapshotPools()
+        private static Dictionary<string, object[]> SnapshotPools(params string[] poolNames)
         {
-            // Inspect identities without changing production visibility or adding pool instrumentation.
+            // Inspect only pools relevant to the ownership regression being tested.
             var pools = typeof(IndexBuilder).Assembly.GetType("Clara.SharedObjectPools", throwOnError: true)!;
             var snapshot = new Dictionary<string, object[]>(StringComparer.Ordinal);
 
-            foreach (var property in pools.GetProperties(BindingFlags.Public | BindingFlags.Static))
+            foreach (var name in poolNames)
             {
+                var property = pools.GetProperty(name, BindingFlags.Public | BindingFlags.Static)!;
                 var pool = property.GetValue(null)!;
                 var slots = (Array)pool.GetType().GetField("items", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(pool)!;
                 var valueField = slots.GetType().GetElementType()!.GetField("Value")!;
@@ -272,7 +263,7 @@ namespace Clara.Tests
 
         private static void AssertPoolsReturned(Dictionary<string, object[]> before)
         {
-            var after = SnapshotPools();
+            var after = SnapshotPools(before.Keys.ToArray());
 
             foreach (var pool in before)
             {

@@ -16,6 +16,7 @@ namespace Clara.Tests
 
 #if NET8_0_OR_GREATER
         [Fact]
+        [Trait("Category", "Performance")]
         public void RetainedLeasesDoNotAllocateAfterWarmup()
         {
             var created = 0;

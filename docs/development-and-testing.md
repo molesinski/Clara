@@ -43,14 +43,18 @@ The project uses xUnit 2.9.3, Microsoft.NET.Test.Sdk 18.11.0, and Visual Studio 
 | `QueryTests.cs` | Composite queries, search, filters, and some facet behavior |
 | `ScoringTests.cs` | Weighted document lengths, BM25 scores, long documents, synonym aggregation overrides, alternatives, and position boosts |
 | `IncludeTests.cs` | Current document key validation, shared encoder history, empty and mixed selections, and interaction with search and facets |
-| `PoolOwnershipTests.cs` | Buffer identities after repeated exceptions, partial facet cleanup, filter replacement, and successful result ownership |
+| `PoolOwnershipTests.cs` | Relevant buffer identities after exceptions and result disposal, partial facet cleanup, and filter replacement |
+| `QueryResultLifetimeTests.cs` | Independent result lifetimes, disposal guards, query reuse, and concurrent queries with failure isolation |
 | `ObjectPoolSlimTests.cs` | Concurrent returns without overwritten instances and reset before reuse |
 | `ObjectPoolSlimLeaseTests.cs` | Default lease disposal and allocation-free warmed reuse |
-| `GettingStartedTests.cs` | Integration and result-reading example |
 
 `Product.json` is an embedded resource; tests do not download products from the network. No coverage threshold or coverage collector is configured. Choose test cases according to behavior, not just line counts.
 
-`PoolOwnershipTests` inspects pooled object identities through reflection and disables collection parallelization so other tests cannot borrow a buffer during a snapshot. Allocation checks run only on modern .NET.
+`PoolOwnershipTests` inspects only the pools relevant to each ownership regression through reflection and disables collection parallelization so other tests cannot borrow a buffer during a snapshot. Result independence and repeated disposal are tested through the public API in `QueryResultLifetimeTests`.
+
+Allocation checks run only on modern .NET and carry the `Category=Performance` trait. The default test command still includes them. To run functional tests separately, use `--filter "Category!=Performance"`; to run allocation checks alone, use `--filter "Category=Performance"` with `-f net10.0` (or .NET 8/9). These checks guard allocation budgets; timing measurements belong in the benchmarks below.
+
+The [quick start](quick-start.md) and [README](../README.md) retain the introductory query and result-reading examples. Behavioral coverage lives in the query, facet, and result lifetime tests.
 
 The [Snowball maintenance guide](updating-snowball.md) describes generation and full upstream corpus verification.
 

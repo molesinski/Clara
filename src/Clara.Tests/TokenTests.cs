@@ -10,35 +10,15 @@ namespace Clara.Tests
         [InlineData("abc", "", "abc")]
         [InlineData("", "abc", "abc")]
         [InlineData("abc", "def", "abcdef")]
-        public void Append(string input, string chars, object expected)
+        public void Append(string input, string chars, string expected)
         {
-            if (expected is Type exceptionType)
-            {
-                Assert.Throws(
-                    exceptionType,
-                    () =>
-                    {
-                        var token = new Token(new char[Token.MaximumLength], 0);
-                        token.Set(input);
-                        token.Append(chars);
-                    });
-            }
-            else if (expected is string expectedString)
-            {
-                var token = new Token(new char[Token.MaximumLength], 0);
-                token.Set(input);
-                token.Append(chars);
+            var token = CreateToken(input);
+            token.Append(chars);
 
-                Assert.Equal(new Token(expectedString), token);
-            }
-            else
-            {
-                throw new InvalidOperationException("Invalid inline data expected value type.");
-            }
+            Assert.Equal(expected, token.ToString());
         }
 
         [Theory]
-        [InlineData("", 1, "", typeof(ArgumentOutOfRangeException))]
         [InlineData("", 0, "", "")]
         [InlineData("abc", 0, "", "")]
         [InlineData("abc", 1, "", "a")]
@@ -46,35 +26,23 @@ namespace Clara.Tests
         [InlineData("abc", 3, "", "abc")]
         [InlineData("", 0, "abc", "abc")]
         [InlineData("abc", 3, "def", "abcdef")]
-        public void Write(string input, int startIndex, string chars, object expected)
+        public void Write(string input, int startIndex, string chars, string expected)
         {
-            if (expected is Type exceptionType)
-            {
-                Assert.Throws(
-                    exceptionType,
-                    () =>
-                    {
-                        var token = new Token(new char[Token.MaximumLength], 0);
-                        token.Set(input);
-                        token.Write(startIndex, chars);
-                    });
-            }
-            else if (expected is string expectedString)
-            {
-                var token = new Token(new char[Token.MaximumLength], 0);
-                token.Set(input);
-                token.Write(startIndex, chars);
+            var token = CreateToken(input);
+            token.Write(startIndex, chars);
 
-                Assert.Equal(new Token(expectedString), token);
-            }
-            else
-            {
-                throw new InvalidOperationException("Invalid inline data expected value type.");
-            }
+            Assert.Equal(expected, token.ToString());
+        }
+
+        [Fact]
+        public void WriteRejectsStartBeyondLength()
+        {
+            var token = CreateToken(string.Empty);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => token.Write(1, string.Empty));
         }
 
         [Theory]
-        [InlineData("", 1, "", typeof(ArgumentOutOfRangeException))]
         [InlineData("", 0, "", "")]
         [InlineData("abc", 0, "", "abc")]
         [InlineData("abc", 1, "", "abc")]
@@ -82,36 +50,23 @@ namespace Clara.Tests
         [InlineData("", 0, "abc", "abc")]
         [InlineData("abc", 3, "def", "abcdef")]
         [InlineData("abc", 1, "def", "adefbc")]
-        public void Insert(string input, int startIndex, string chars, object expected)
+        public void Insert(string input, int startIndex, string chars, string expected)
         {
-            if (expected is Type exceptionType)
-            {
-                Assert.Throws(
-                    exceptionType,
-                    () =>
-                    {
-                        var token = new Token(new char[Token.MaximumLength], 0);
-                        token.Set(input);
-                        token.Insert(startIndex, chars);
-                    });
-            }
-            else if (expected is string expectedString)
-            {
-                var token = new Token(new char[Token.MaximumLength], 0);
-                token.Set(input);
-                token.Insert(startIndex, chars);
+            var token = CreateToken(input);
+            token.Insert(startIndex, chars);
 
-                Assert.Equal(new Token(expectedString), token);
-            }
-            else
-            {
-                throw new InvalidOperationException("Invalid inline data expected value type.");
-            }
+            Assert.Equal(expected, token.ToString());
+        }
+
+        [Fact]
+        public void InsertRejectsStartBeyondLength()
+        {
+            var token = CreateToken(string.Empty);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => token.Insert(1, string.Empty));
         }
 
         [Theory]
-        [InlineData("", 1, 0, typeof(ArgumentOutOfRangeException))]
-        [InlineData("", 0, 1, typeof(ArgumentOutOfRangeException))]
         [InlineData("", 0, 0, "")]
         [InlineData("abc", 0, 3, "")]
         [InlineData("abc", 0, 1, "bc")]
@@ -121,65 +76,51 @@ namespace Clara.Tests
         [InlineData("abc", 1, 0, "abc")]
         [InlineData("abc", 2, 1, "ab")]
         [InlineData("abc", 3, 0, "abc")]
-        public void Delete(string input, int startIndex, int count, object expected)
+        public void Delete(string input, int startIndex, int count, string expected)
         {
-            if (expected is Type exceptionType)
-            {
-                Assert.Throws(
-                    exceptionType,
-                    () =>
-                    {
-                        var token = new Token(new char[Token.MaximumLength], 0);
-                        token.Set(input);
-                        token.Delete(startIndex, count);
-                    });
-            }
-            else if (expected is string expectedString)
-            {
-                var token = new Token(new char[Token.MaximumLength], 0);
-                token.Set(input);
-                token.Delete(startIndex, count);
+            var token = CreateToken(input);
+            token.Delete(startIndex, count);
 
-                Assert.Equal(new Token(expectedString), token);
-            }
-            else
-            {
-                throw new InvalidOperationException("Invalid inline data expected value type.");
-            }
+            Assert.Equal(expected, token.ToString());
         }
 
         [Theory]
-        [InlineData("", 1, typeof(ArgumentOutOfRangeException))]
+        [InlineData(1, 0)]
+        [InlineData(0, 1)]
+        public void DeleteRejectsRangeBeyondLength(int startIndex, int count)
+        {
+            var token = CreateToken(string.Empty);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => token.Delete(startIndex, count));
+        }
+
+        [Theory]
         [InlineData("", 0, "")]
         [InlineData("abc", 0, "")]
         [InlineData("abc", 1, "a")]
         [InlineData("abc", 2, "ab")]
         [InlineData("abc", 3, "abc")]
-        public void Remove(string input, int startIndex, object expected)
+        public void Remove(string input, int startIndex, string expected)
         {
-            if (expected is Type exceptionType)
-            {
-                Assert.Throws(
-                    exceptionType,
-                    () =>
-                    {
-                        var token = new Token(new char[Token.MaximumLength], 0);
-                        token.Set(input);
-                        token.Remove(startIndex);
-                    });
-            }
-            else if (expected is string expectedString)
-            {
-                var token = new Token(new char[Token.MaximumLength], 0);
-                token.Set(input);
-                token.Remove(startIndex);
+            var token = CreateToken(input);
+            token.Remove(startIndex);
 
-                Assert.Equal(new Token(expectedString), token);
-            }
-            else
-            {
-                throw new InvalidOperationException("Invalid inline data expected value type.");
-            }
+            Assert.Equal(expected, token.ToString());
+        }
+
+        [Fact]
+        public void RemoveRejectsStartBeyondLength()
+        {
+            var token = CreateToken(string.Empty);
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => token.Remove(1));
+        }
+
+        private static Token CreateToken(string input)
+        {
+            var token = new Token(new char[Token.MaximumLength], 0);
+            token.Set(input);
+            return token;
         }
     }
 }

@@ -47,6 +47,7 @@ namespace Clara.Tests
 
 #if NET8_0_OR_GREATER
         [Theory]
+        [Trait("Category", "Performance")]
         [InlineData(typeof(EnglishStemTokenFilter), "running", 0)]
         [InlineData(typeof(PolishStemTokenFilter), "domami", 64)]
         public void WarmedStemmingPreservesAllocationBudget(Type filterType, string word, int bytesPerToken)

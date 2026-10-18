@@ -112,4 +112,4 @@ The document list contains only `1: Red mug`. The brand facet shows `Alpha: 1` a
 
 `Take(10)` only limits reading from the completed result. The engine has already computed all matching documents and facets. Objects copied into `page` can be used after `result` is disposed; do not retain a lazy enumeration or facet views in the same way.
 
-For a larger repository example, see [GettingStartedTests.cs](../src/Clara.Tests/GettingStartedTests.cs) and [ProductMapper.cs](../src/Clara.Tests/ProductMapper.cs).
+For a larger repository example with assertions, see `ComplexQuery` in [QueryTests.cs](../src/Clara.Tests/QueryTests.cs) and [ProductMapper.cs](../src/Clara.Tests/ProductMapper.cs).
