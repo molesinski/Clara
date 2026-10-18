@@ -11,7 +11,6 @@ namespace Clara.Tests
         private const string AllNoneTextPhrase = "__ALL __NONE";
 
         private readonly string?[] topBrands;
-        private readonly decimal? maxPrice;
         private readonly ProductMapper mapper;
         private readonly Index<Product> index;
 
@@ -24,9 +23,6 @@ namespace Clara.Tests
                 .OrderByDescending(x => x.Count())
                 .Select(x => x.Key)
                 .ToArray();
-
-            this.maxPrice = Product.Items
-                .Max(x => x.Price);
 
             var synonyms =
                 new Synonym[]
@@ -41,20 +37,26 @@ namespace Clara.Tests
         [Fact]
         public void ComplexQuery()
         {
+            var brandProducts = Product.Items.Where(x => x.Brand == this.topBrands[0]).ToArray();
+            var minBrandPrice = brandProducts.Min(x => x.Price);
+            var maxBrandPrice = brandProducts.Max(x => x.Price);
+            var priceTo = (minBrandPrice + maxBrandPrice) / 2;
+
+            // Exclude the brand's most expensive product so applying the facet's own filter is observable.
+            Assert.True(minBrandPrice < maxBrandPrice);
+
             using var result = this.index.Query(
                 this.index.QueryBuilder()
                     .Search(this.mapper.Text, SearchMode.Any, AllNoneTextPhrase)
                     .Filter(this.mapper.Brand, FilterMode.Any, this.topBrands[0])
-                    .Filter(this.mapper.Price, from: 1, to: this.maxPrice - 1)
+                    .Filter(this.mapper.Price, from: 1, to: priceTo)
                     .Facet(this.mapper.Brand)
                     .Facet(this.mapper.Category)
                     .Facet(this.mapper.Price)
                     .Sort(this.mapper.Price, SortDirection.Descending));
 
             var input = new HashSet<Product>(
-                Product.Items
-                    .Where(x => x.Brand == this.topBrands[0])
-                    .Where(x => x.Price >= 1 && x.Price <= this.maxPrice - 1));
+                brandProducts.Where(x => x.Price >= 1 && x.Price <= priceTo));
 
             var output = new HashSet<Product>(
                 result.Documents
@@ -75,16 +77,9 @@ namespace Clara.Tests
 
             var priceFacet = result.Facets.Field(this.mapper.Price);
 
-            var minBrandPrice = input
-                .Where(x => x.Brand == this.topBrands[0])
-                .Min(x => x.Price);
-
-            var maxBrandPrice = input
-                .Where(x => x.Brand == this.topBrands[0])
-                .Max(x => x.Price);
-
-            Assert.True(priceFacet.MinValue == minBrandPrice);
-            Assert.True(priceFacet.MaxValue == maxBrandPrice);
+            Assert.Equal(minBrandPrice, priceFacet.MinValue);
+            Assert.Equal(maxBrandPrice, priceFacet.MaxValue);
+            Assert.True(result.Documents.Max(x => x.Document.Price) < priceFacet.MaxValue);
         }
 
         [Theory]
