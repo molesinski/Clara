@@ -27,6 +27,9 @@ namespace Clara.Analysis
 
             var lemmas = stemmer.Lookup(input);
 
+            // Prefer a dictionary lemma ending in 'y' to conflate forms such as mielone/mielony and lodów/lody.
+            // Reverse traversal preserves the first valid dictionary lemma as the fallback.
+            // This is a search heuristic, not grammatical disambiguation; see docs/text-analysis.md.
             for (var i = lemmas.Count - 1; i >= 0; i--)
             {
                 var lemma = lemmas[i];

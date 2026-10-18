@@ -63,7 +63,32 @@ Snowball includes algorithms under `Snowball/Algorithms` and public analyzers un
 
 The embedded algorithms use Snowball 3.2.0 from a pinned upstream commit. See [Updating Snowball](updating-snowball.md) for Docker generation, preserved allocation optimizations, and full vocabulary verification. Rebuild indexes when upgrading stemming rules.
 
-Morfologik emits one selected lemma rather than every possible interpretation. The filter traverses dictionary results in reverse and prefers the first valid lemma it encounters that ends in `y`; otherwise, it retains the last valid lemma assigned. If there are no matches, the input token remains unchanged. Source: [MorfologikStemTokenFilter.cs](../src/Clara.Analysis.Morfologik/Analysis/MorfologikStemTokenFilter.cs).
+### Morfologik lemma selection
+
+[`MorfologikStemTokenFilter`](../src/Clara.Analysis.Morfologik/Analysis/MorfologikStemTokenFilter.cs) emits one selected lemma. The heuristic introduced in commit `c3073b3ada911cdf1f3e8e463e8769d69dbf9244` prefers dictionary lemmas ending in `y` to bring related forms together for search. This is useful for product attributes, colors, and some nouns: previously, choosing only the first dictionary result could put `mielone` and `mielony`, or `lodów` and `lody`, under different index terms.
+
+The filter traverses lookup results from last to first and stops at the first valid lemma ending in `y` (ordinal, case-insensitive comparison). If several qualify, the last in dictionary order wins. If none qualifies, the first valid lemma in dictionary order remains the result; when all results are valid, this preserves the previous `lemmas[0]` fallback. A valid decoded lemma is nonempty and no longer than `Token.MaximumLength`. No lookup results leave the input unchanged, including empty and unknown words.
+
+These examples are pinned by [MorfologikTests.cs](../src/Clara.Tests/MorfologikTests.cs) against `Morfologik.Polish 2.1.7`:
+
+| Input | Previous first-result selection | Current selection |
+| --- | --- | --- |
+| `mielone` | `mielone` | `mielony` |
+| `czerwone` | `czerwone` | `czerwony` |
+| `mała` | `mała` | `mały` |
+| `białe` | `biała` | `biały` |
+| `lodów` | `lodówa` | `lody` |
+| `dane` | `dane` | `dany` |
+
+Limitations:
+
+- The suffix check does not inspect grammatical tags or sentence context. For example, `dane osobowe` still becomes `dany osobowy`, conflating noun and adjective interpretations.
+- Ending in `y` does not imply an adjective: `lody` is also preferred. Adjectives ending in `i` receive no special preference; `tanie` happens to fall back to `tani` with this dictionary.
+- Only existing dictionary lemmas can be selected. The filter does not invent a `y` form: `suszone` remains `suszyć`, and `pieczone` remains `piec`.
+- Ambiguity without a qualifying lemma remains unresolved: `rady` selects `rad`, not `rada`. Dictionary ordering still affects fallbacks and ties, so package updates can change search behavior.
+- Processing may decode and copy several candidates instead of one. Existing pooled buffers are retained, but the heuristic can require more work than first-result selection.
+
+Tests also cover analyzer lowercasing, related forms mapping to the same term, and buffer reuse across preferred, fallback, unknown, and empty inputs. They protect the chosen search policy rather than claiming contextually correct lemmatization. Revisit these cases when updating the dictionary; if stemming results change, rebuild indexes so documents and queries use the same rules.
 
 ## Synonyms
 
