@@ -1,7 +1,7 @@
-﻿using System.Text;
+using System.Text;
 using Clara.Utils;
 
-namespace Clara.Analysis
+namespace Clara.Analysis.Synonyms
 {
     public sealed class ExplicitMappingSynonym : Synonym
     {

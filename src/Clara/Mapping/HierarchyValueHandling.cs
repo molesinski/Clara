@@ -1,4 +1,4 @@
-﻿namespace Clara.Mapping
+namespace Clara.Mapping
 {
     public enum HierarchyValueHandling
     {

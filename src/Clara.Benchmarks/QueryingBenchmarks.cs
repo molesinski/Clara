@@ -1,8 +1,9 @@
-﻿#pragma warning disable CA1707 // Identifiers should not contain underscores
+#pragma warning disable CA1707 // Identifiers should not contain underscores
 #pragma warning disable SA1310 // Field names should not contain underscore
 
 using BenchmarkDotNet.Attributes;
 using Clara.Analysis;
+using Clara.Analysis.Synonyms;
 using Clara.Querying;
 
 namespace Clara.Benchmarks

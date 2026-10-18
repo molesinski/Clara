@@ -1,4 +1,4 @@
-﻿namespace Clara.Utils
+namespace Clara.Utils
 {
     internal static class HashHelper
     {

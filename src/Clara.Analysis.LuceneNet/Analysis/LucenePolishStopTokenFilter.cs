@@ -1,4 +1,4 @@
-﻿using Lucene.Net.Analysis.Pl;
+using Lucene.Net.Analysis.Pl;
 
 namespace Clara.Analysis
 {

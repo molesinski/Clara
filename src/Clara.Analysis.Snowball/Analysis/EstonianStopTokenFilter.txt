@@ -1,4 +1,4 @@
-﻿# Estonian stopwords list
+# Estonian stopwords list
 all
 alla
 allapoole

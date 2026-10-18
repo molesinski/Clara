@@ -1,4 +1,4 @@
-﻿namespace Clara.Analysis
+namespace Clara.Analysis.Synonyms
 {
     public readonly struct PhraseTerm : IEquatable<PhraseTerm>
     {

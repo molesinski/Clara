@@ -1,4 +1,4 @@
-﻿using Clara.Utils;
+using Clara.Utils;
 using Lucene.Net.Analysis.Pl;
 using Lucene.Net.Analysis.Stempel;
 

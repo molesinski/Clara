@@ -1,4 +1,4 @@
-﻿using Clara.Analysis;
+using Clara.Analysis;
 using Clara.Analysis.Synonyms;
 using Clara.Mapping;
 using Clara.Querying;

@@ -1,4 +1,4 @@
-﻿# From https://github.com/apache/lucene/blob/main/lucene/analysis/stempel/src/resources/org/apache/lucene/analysis/pl/stopwords.txt
+# From https://github.com/apache/lucene/blob/main/lucene/analysis/stempel/src/resources/org/apache/lucene/analysis/pl/stopwords.txt
 
 # This file was created from the carrot2 project and is distributed under the BSD license.
 # See https://project.carrot2.org/license.html

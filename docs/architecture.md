@@ -1,4 +1,4 @@
-﻿# Clara Architecture
+# Clara Architecture
 
 ## Operating model
 

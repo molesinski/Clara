@@ -1,4 +1,4 @@
-﻿# Indexing and the Field Model
+# Indexing and the Field Model
 
 ## Mapper contract
 

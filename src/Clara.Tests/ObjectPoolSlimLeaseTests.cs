@@ -1,4 +1,4 @@
-﻿using Clara.Utils;
+using Clara.Utils;
 using Xunit;
 
 namespace Clara.Tests

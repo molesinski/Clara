@@ -1,4 +1,5 @@
-﻿using Clara.Analysis;
+using Clara.Analysis;
+using Clara.Analysis.Synonyms;
 
 namespace Clara.Storage
 {

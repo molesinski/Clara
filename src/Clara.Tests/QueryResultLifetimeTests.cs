@@ -1,6 +1,7 @@
-﻿#pragma warning disable CA1861 // Avoid constant arrays as arguments
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
 
 using Clara.Analysis;
+using Clara.Analysis.Synonyms;
 using Clara.Querying;
 using Clara.Storage;
 using Xunit;

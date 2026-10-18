@@ -1,4 +1,4 @@
-﻿# Memory and Concurrency
+# Memory and Concurrency
 
 ## Object ownership
 

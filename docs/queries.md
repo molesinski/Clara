@@ -1,4 +1,4 @@
-﻿# Queries and Facets
+# Queries and Facets
 
 ## Building a query
 

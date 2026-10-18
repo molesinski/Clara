@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
 
   <ItemGroup>
     <Using Remove="System.Net.Http" />

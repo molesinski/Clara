@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [ValidatePattern('^[0-9a-f]{40}$')]
     [string]$SnowballRevision = '6389c79f91cd67ed2de3ebdcf84ec8c2d2d23c11',
