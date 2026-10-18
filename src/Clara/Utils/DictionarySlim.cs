@@ -168,7 +168,7 @@ namespace Clara.Utils
         public bool TryGetValue(TKey key, out TValue value)
         {
             var entries = this.entries;
-            var i = this.buckets[Comparer.GetHashCode(key) & this.size - 1] - 1;
+            var i = this.buckets[Comparer.GetHashCode(key) & (this.size - 1)] - 1;
             var collisionCount = 0;
 
             while (i >= 0)
@@ -205,7 +205,7 @@ namespace Clara.Utils
         public bool Remove(TKey key)
         {
             var entries = this.entries;
-            var bucketIndex = Comparer.GetHashCode(key) & this.size - 1;
+            var bucketIndex = Comparer.GetHashCode(key) & (this.size - 1);
             var i = this.buckets[bucketIndex] - 1;
             var last = -1;
             var collisionCount = 0;
@@ -257,7 +257,7 @@ namespace Clara.Utils
         public ref TValue GetValueRefOrAddDefault(TKey key, out bool exists)
         {
             var entries = this.entries;
-            var bucketIndex = Comparer.GetHashCode(key) & this.size - 1;
+            var bucketIndex = Comparer.GetHashCode(key) & (this.size - 1);
             var i = this.buckets[bucketIndex] - 1;
             var collisionCount = 0;
 
@@ -577,7 +577,7 @@ namespace Clara.Utils
                     this.EnsureCapacity(this.count + 1);
 
                     entries = this.entries;
-                    bucketIndex = Comparer.GetHashCode(key) & this.size - 1;
+                    bucketIndex = Comparer.GetHashCode(key) & (this.size - 1);
                 }
 
                 entryIndex = this.count;
@@ -599,7 +599,7 @@ namespace Clara.Utils
         private int FindEntry(TKey key)
         {
             var entries = this.entries;
-            var i = this.buckets[Comparer.GetHashCode(key) & this.size - 1] - 1;
+            var i = this.buckets[Comparer.GetHashCode(key) & (this.size - 1)] - 1;
             var collisionCount = 0;
 
             while (i >= 0)
@@ -645,7 +645,7 @@ namespace Clara.Utils
 
                 if (entry.Next >= -1)
                 {
-                    var bucketIndex = Comparer.GetHashCode(entry.Key) & newSize - 1;
+                    var bucketIndex = Comparer.GetHashCode(entry.Key) & (newSize - 1);
 
                     entry.Next = newBuckets[bucketIndex] - 1;
                     newBuckets[bucketIndex] = lastIndex + 1;

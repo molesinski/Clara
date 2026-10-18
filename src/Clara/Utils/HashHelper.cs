@@ -6,7 +6,7 @@
 
         internal static int PowerOf2(int value)
         {
-            if ((value & value - 1) == 0)
+            if ((value & (value - 1)) == 0)
             {
                 return value;
             }

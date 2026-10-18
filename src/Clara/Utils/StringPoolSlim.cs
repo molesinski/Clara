@@ -59,7 +59,7 @@ namespace Clara.Utils
         {
             var entries = this.entries;
             var hashCode = SpanHelper.GetHashCode(span);
-            var i = this.buckets[hashCode & this.size - 1] - 1;
+            var i = this.buckets[hashCode & (this.size - 1)] - 1;
             var collisionCount = 0;
 
             while (i >= 0)
@@ -90,7 +90,7 @@ namespace Clara.Utils
         {
             var entries = this.entries;
             var hashCode = SpanHelper.GetHashCode(span);
-            var bucketIndex = hashCode & this.size - 1;
+            var bucketIndex = hashCode & (this.size - 1);
             var i = this.buckets[bucketIndex] - 1;
             var collisionCount = 0;
 
@@ -129,7 +129,7 @@ namespace Clara.Utils
 
             var entries = this.entries;
             var hashCode = SpanHelper.GetHashCode(value.AsSpan());
-            var bucketIndex = hashCode & this.size - 1;
+            var bucketIndex = hashCode & (this.size - 1);
             var i = this.buckets[bucketIndex] - 1;
             var collisionCount = 0;
 
@@ -175,7 +175,7 @@ namespace Clara.Utils
                     this.EnsureCapacity(this.count + 1);
 
                     entries = this.entries;
-                    bucketIndex = hashCode & this.size - 1;
+                    bucketIndex = hashCode & (this.size - 1);
                 }
 
                 entryIndex = this.count;
@@ -213,7 +213,7 @@ namespace Clara.Utils
 
                 if (entry.Next >= -1)
                 {
-                    var bucketIndex = entry.HashCode & newSize - 1;
+                    var bucketIndex = entry.HashCode & (newSize - 1);
 
                     entry.Next = newBuckets[bucketIndex] - 1;
                     newBuckets[bucketIndex] = lastIndex + 1;

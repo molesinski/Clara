@@ -129,7 +129,7 @@ namespace Clara.Utils
         public bool Add(TItem item)
         {
             var entries = this.entries;
-            var bucketIndex = Comparer.GetHashCode(item) & this.size - 1;
+            var bucketIndex = Comparer.GetHashCode(item) & (this.size - 1);
             var i = this.buckets[bucketIndex] - 1;
             var collisionCount = 0;
 
@@ -160,7 +160,7 @@ namespace Clara.Utils
         public bool Remove(TItem item)
         {
             var entries = this.entries;
-            var bucketIndex = Comparer.GetHashCode(item) & this.size - 1;
+            var bucketIndex = Comparer.GetHashCode(item) & (this.size - 1);
             var i = this.buckets[bucketIndex] - 1;
             var last = -1;
             var collisionCount = 0;
@@ -462,7 +462,7 @@ namespace Clara.Utils
                     this.EnsureCapacity(this.count + 1);
 
                     entries = this.entries;
-                    bucketIndex = Comparer.GetHashCode(item) & this.size - 1;
+                    bucketIndex = Comparer.GetHashCode(item) & (this.size - 1);
                 }
 
                 entryIndex = this.count;
@@ -481,7 +481,7 @@ namespace Clara.Utils
         private int FindItem(TItem item)
         {
             var entries = this.entries;
-            var i = this.buckets[Comparer.GetHashCode(item) & this.size - 1] - 1;
+            var i = this.buckets[Comparer.GetHashCode(item) & (this.size - 1)] - 1;
             var collisionCount = 0;
 
             while (i >= 0)
@@ -527,7 +527,7 @@ namespace Clara.Utils
 
                 if (entry.Next >= -1)
                 {
-                    var bucketIndex = Comparer.GetHashCode(entry.Item) & newSize - 1;
+                    var bucketIndex = Comparer.GetHashCode(entry.Item) & (newSize - 1);
 
                     entry.Next = newBuckets[bucketIndex] - 1;
                     newBuckets[bucketIndex] = lastIndex + 1;

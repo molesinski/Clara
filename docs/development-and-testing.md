@@ -31,7 +31,7 @@ Use `--no-build` after a current build in the same configuration; `--no-restore`
 
 ## Test map
 
-The project uses xUnit 2.9.3, Microsoft.NET.Test.Sdk 18.0.1, and Visual Studio runner 3.1.5.
+The project uses xUnit 2.9.3, Microsoft.NET.Test.Sdk 18.11.0, and Visual Studio runner 4.0.1.
 
 | File under `src/Clara.Tests` | Coverage |
 | --- | --- |
