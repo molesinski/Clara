@@ -14,6 +14,8 @@
 
 `Index.Query(QueryBuilder)` consumes the builder and disposes the resulting `Query`. `Index.Query(Action<QueryBuilder>)` manages both objects. `Index.Query(Query)` leaves ownership of the supplied query with the caller. In every variant, the returned result must be disposed.
 
+`Query.AddFilter` takes ownership of an added filter. Replacing it for the same field disposes the previous filter; re-adding the identical instance does not dispose it. Do not share filter instances between queries. The higher-level builder rejects duplicate filters.
+
 Do not return `result.Documents.Select(...)` from a method that exits the result's `using` block. Materialize the result with `ToArray()` inside the block. For facets, copy scalar values and children into your own DTOs; copying a view object does not transfer ownership of its buffer.
 
 ## Pools and Slim collections
@@ -23,6 +25,8 @@ Do not return `result.Documents.Select(...)` from a method that exits the result
 `DictionarySlim` provides `ref` access to values, reducing repeated lookups during increments. Do not retain such a reference across an operation that can resize the dictionary. These collections are working data structures; do not treat them as general-purpose concurrent collections.
 
 [`ObjectPoolSlim`](../src/Clara/Utils/ObjectPoolSlim.cs) has `Environment.ProcessorCount * 5 * sizeFactor` slots. An empty pool creates a new object, and a full pool may discard a returned object. This is not a limit on concurrent queries. Resetting typically clears contents while allowing allocated capacity to be reused.
+
+Both leasing and returning use atomic compare-and-exchange operations. A return resets the instance before publishing it into an empty slot; competing returns cannot overwrite one another's occupied slots. This protects the pool, not concurrent access to an individual leased collection. Custom resetters must not throw.
 
 `ObjectPoolSlimLease<T>` is a struct without protection against repeated returns. Do not copy a lease into independent owners or call `Dispose` twice. The higher-level `Query` and `QueryResult` types have their own protection against repeated disposal.
 
@@ -45,4 +49,8 @@ A safe application refresh pattern is to build a new index in the background, th
 
 Do not transfer an old `Query` to a new index. The index does not deep-copy `TDocument`, so changing a domain object can alter the displayed data without updating search structures. Use immutable projections or manage their ownership explicitly.
 
-Exception paths involving callbacks need a separate review of buffer returns; see the [implementation notes](implementation-notes.md).
+## Exceptions and ownership transfer
+
+Query execution always disposes its document result builder. Before a successful result is constructed, it also owns the output scores, document list, and facets: a failure returns those buffers, disposing completed facets before their containing list. Text search separately returns its destination score dictionary if analysis or a scoring callback throws. A filter value collection returns its set if construction fails during enumeration.
+
+Successful execution transfers output ownership to `QueryResult`; these buffers remain leased until that result is disposed. Do not put a transferring lease in an unconditional `using` scope that ends before the consumer finishes. Keep mutable `DocumentResultBuilder` cleanup in `finally` on the original variable, avoiding copies of its ownership state. See the [implementation notes](implementation-notes.md) for regression coverage.

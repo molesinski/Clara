@@ -43,11 +43,15 @@ The project uses xUnit 2.9.3, Microsoft.NET.Test.Sdk 18.11.0, and Visual Studio 
 | `QueryTests.cs` | Composite queries, search, filters, and some facet behavior |
 | `ScoringTests.cs` | Weighted document lengths, BM25 scores, long documents, synonym aggregation overrides, alternatives, and position boosts |
 | `IncludeTests.cs` | Current document key validation, shared encoder history, empty and mixed selections, and interaction with search and facets |
+| `PoolOwnershipTests.cs` | Buffer identities after repeated exceptions, partial facet cleanup, filter replacement, and successful result ownership |
+| `ObjectPoolSlimTests.cs` | Concurrent returns without overwritten instances and reset before reuse |
 | `GettingStartedTests.cs` | Integration and result-reading example |
 
 `Product.json` is an embedded resource; tests do not download products from the network. No coverage threshold or coverage collector is configured. Choose test cases according to behavior, not just line counts.
 
-The Morfologik heuristic is covered by 28 regression cases using the bundled `Morfologik.Polish 2.1.7` dictionary. With these cases, the full suite passes 254 tests on `net472` and 256 on each of `net8.0`, `net9.0`, and `net10.0` (1,022 executions). See [lemma selection](text-analysis.md#morfologik-lemma-selection) for the search policy and its limitations.
+The Morfologik heuristic is covered by 28 regression cases using the bundled `Morfologik.Polish 2.1.7` dictionary. See [lemma selection](text-analysis.md#morfologik-lemma-selection) for the search policy and its limitations.
+
+After the pool fixes, the full suite passes 274 tests on `net472` and 276 on each of `net8.0`, `net9.0`, and `net10.0` (1,102 executions), with no failures or skips. The Release solution build passes without warnings or errors. Of the 20 added pool cases, 16 failed before the fixes on .NET 10. `PoolOwnershipTests` uses reflection only in tests to compare pooled object identities and disables collection parallelization so another test cannot borrow a buffer during a snapshot.
 
 Verification on October 18, 2026, after the three fixes: `dotnet build Clara.slnx -c Release --no-restore` succeeded with SDK 10.0.402 and no warnings or errors. `dotnet test src/Clara.Tests/Clara.Tests.csproj -c Release --no-build --no-restore` passed all 212 tests on each of the four targets, for 848 executions in total, with no failures or skips. The 35 new regression cases first ran against the previous implementation on .NET 10: 23 failed and 12 passed. All 35 pass with the fixes. See [implementation notes](implementation-notes.md) for the corrected contracts. These checks are not performance measurements.
 
@@ -64,6 +68,19 @@ dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*Tokenization*
 BenchmarkDotNet 0.15.8 reports time and memory. `IndexingBenchmarks` compares shared and instance encoder stores; `QueryingBenchmarks` covers search, filters, facets, sorting, and `x100` dataset variants; `TokenizationBenchmarks` compares analyzers. The program configures Markdown export. Results are written to the ignored `BenchmarkDotNet.Artifacts/` directory.
 
 Compare before-and-after results on the same machine, runtime, and data. The number of unique tokens, result size, and number of facet values may affect cost more than document count alone. Do not infer performance from unit test duration.
+
+For the pool ownership and atomic return changes, BenchmarkDotNet `ShortRun` on .NET 10.0.13 / Intel Core i9-14900K produced:
+
+| Benchmark | Before | After | Allocated before / after |
+| --- | --- | --- | --- |
+| `QueryComplex` | 6.311 us | 6.480 us | 864 B / 864 B |
+| `QuerySearch` | 2.470 us | 2.580 us | 352 B / 352 B |
+
+These are three measured iterations after three warmups, with one launch. Allocations are unchanged; observed mean times increased by about 2.7% and 4.5%, respectively. The 99.9% confidence intervals overlap, so this short run does not establish a precise throughput change. Reports are retained locally under ignored `artifacts/pool-before/` and `artifacts/pool-after/`. Reproduce with:
+
+```powershell
+dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*QueryingBenchmarks.QuerySearch' '*QueryingBenchmarks.QueryComplex' --job short --artifacts artifacts/pool-after
+```
 
 ## Extending the project
 

@@ -100,190 +100,212 @@ namespace Clara
             var documentResultBuilder = new DocumentResultBuilder(this.allDocuments);
             var documentScoring = default(DocumentScoring);
             var documentList = default(DocumentList);
+            var facetResults = default(ObjectPoolSlimLease<ListSlim<FacetResult>>?);
 
-            if (query.IncludeDocuments is not null)
+            try
             {
-                using var includedDocuments = SharedObjectPools.DocumentSets.Lease();
-
-                var hasValues = false;
-
-                foreach (var includedDocument in query.IncludeDocuments)
+                if (query.IncludeDocuments is not null)
                 {
-                    if (includedDocument is not null)
-                    {
-                        hasValues = true;
+                    using var includedDocuments = SharedObjectPools.DocumentSets.Lease();
 
-                        if (this.tokenEncoder.TryEncode(includedDocument, out var documentId) && this.allDocuments.Contains(documentId))
+                    var hasValues = false;
+
+                    foreach (var includedDocument in query.IncludeDocuments)
+                    {
+                        if (includedDocument is not null)
                         {
-                            includedDocuments.Instance.Add(documentId);
+                            hasValues = true;
+
+                            if (this.tokenEncoder.TryEncode(includedDocument, out var documentId) && this.allDocuments.Contains(documentId))
+                            {
+                                includedDocuments.Instance.Add(documentId);
+                            }
+                        }
+                    }
+
+                    if (hasValues)
+                    {
+                        documentResultBuilder.IntersectWith(includedDocuments.Instance);
+                    }
+                }
+
+                if (query.Search is SearchExpression searchExpression)
+                {
+                    if (!searchExpression.IsEmpty)
+                    {
+                        documentScoring = searchExpression.Search(this);
+
+                        documentResultBuilder.IntersectWith(documentScoring.Value);
+                    }
+                }
+
+                if (query.Filters.Count > 0)
+                {
+                    using var facetFields = SharedObjectPools.FieldSets.Lease();
+
+                    for (var i = 0; i < query.Facets.Count; i++)
+                    {
+                        facetFields.Instance.Add(query.Facets[i].Field);
+                    }
+
+                    using var filterExpressions = SharedObjectPools.FilterExpressions.Lease();
+
+                    for (var i = 0; i < query.Filters.Count; i++)
+                    {
+                        var filterExpression = query.Filters[i];
+
+                        if (!filterExpression.IsEmpty)
+                        {
+                            filterExpressions.Instance.Add(filterExpression);
+                        }
+                    }
+
+                    if (filterExpressions.Instance.Count > 0)
+                    {
+                        if (filterExpressions.Instance.Count > 1)
+                        {
+                            using var comparer = SharedObjectPools.FilterExpressionComparers.Lease();
+
+                            comparer.Instance.Initialize(facetFields.Instance, this.fieldStores);
+
+                            filterExpressions.Instance.Sort(comparer.Instance);
+                        }
+
+                        foreach (var filterExpression in filterExpressions.Instance)
+                        {
+                            var field = filterExpression.Field;
+                            var store = this.GetFieldStore(field);
+
+                            if (filterExpression.HasPersistedFacets)
+                            {
+                                if (facetFields.Instance.Contains(field))
+                                {
+                                    documentResultBuilder.PersistFacets(field);
+                                }
+                            }
+
+                            using var documents = store.Filter(filterExpression);
+
+                            documentResultBuilder.IntersectWith(field, documents.Value);
                         }
                     }
                 }
 
-                if (hasValues)
+                if (query.ExcludeDocuments is not null)
                 {
-                    documentResultBuilder.IntersectWith(includedDocuments.Instance);
+                    using var excludeDocuments = SharedObjectPools.DocumentSets.Lease();
+
+                    foreach (var excludeDocument in query.ExcludeDocuments)
+                    {
+                        if (excludeDocument is not null)
+                        {
+                            if (this.tokenEncoder.TryEncode(excludeDocument, out var documentId))
+                            {
+                                excludeDocuments.Instance.Add(documentId);
+                            }
+                        }
+                    }
+
+                    if (excludeDocuments.Instance.Count > 0)
+                    {
+                        documentResultBuilder.ExceptWith(excludeDocuments.Instance);
+                    }
                 }
-            }
 
-            if (query.Search is SearchExpression searchExpression)
-            {
-                if (!searchExpression.IsEmpty)
-                {
-                    documentScoring = searchExpression.Search(this);
-
-                    documentResultBuilder.IntersectWith(documentScoring.Value);
-                }
-            }
-
-            if (query.Filters.Count > 0)
-            {
-                using var facetFields = SharedObjectPools.FieldSets.Lease();
+                facetResults = SharedObjectPools.FacetResults.Lease();
 
                 for (var i = 0; i < query.Facets.Count; i++)
                 {
-                    facetFields.Instance.Add(query.Facets[i].Field);
-                }
+                    var facetExpression = query.Facets[i];
+                    var field = facetExpression.Field;
+                    var store = this.GetFieldStore(field);
+                    var fieldFilterExpression = default(FilterExpression);
 
-                using var filterExpressions = SharedObjectPools.FilterExpressions.Lease();
-
-                for (var i = 0; i < query.Filters.Count; i++)
-                {
-                    var filterExpression = query.Filters[i];
-
-                    if (!filterExpression.IsEmpty)
+                    for (var j = 0; j < query.Filters.Count; j++)
                     {
-                        filterExpressions.Instance.Add(filterExpression);
-                    }
-                }
+                        var filterExpression = query.Filters[j];
 
-                if (filterExpressions.Instance.Count > 0)
-                {
-                    if (filterExpressions.Instance.Count > 1)
-                    {
-                        using var comparer = SharedObjectPools.FilterExpressionComparers.Lease();
-
-                        comparer.Instance.Initialize(facetFields.Instance, this.fieldStores);
-
-                        filterExpressions.Instance.Sort(comparer.Instance);
-                    }
-
-                    foreach (var filterExpression in filterExpressions.Instance)
-                    {
-                        var field = filterExpression.Field;
-                        var store = this.GetFieldStore(field);
-
-                        if (filterExpression.HasPersistedFacets)
+                        if (!filterExpression.IsEmpty)
                         {
-                            if (facetFields.Instance.Contains(field))
+                            if (filterExpression.Field == field)
                             {
-                                documentResultBuilder.PersistFacets(field);
+                                fieldFilterExpression = filterExpression;
+                                break;
                             }
                         }
-
-                        using var documents = store.Filter(filterExpression);
-
-                        documentResultBuilder.IntersectWith(field, documents.Value);
                     }
+
+                    facetResults.Value.Instance.Add(store.Facet(facetExpression, fieldFilterExpression, documentResultBuilder.GetFacetDocuments(field)));
                 }
-            }
 
-            if (query.ExcludeDocuments is not null)
-            {
-                using var excludeDocuments = SharedObjectPools.DocumentSets.Lease();
-
-                foreach (var excludeDocument in query.ExcludeDocuments)
+                if (documentResultBuilder.Documents.Count > 0)
                 {
-                    if (excludeDocument is not null)
+                    if (query.Sort is SortExpression sortExpression)
                     {
-                        if (this.tokenEncoder.TryEncode(excludeDocument, out var documentId))
+                        var field = sortExpression.Field;
+                        var store = this.GetFieldStore(field);
+
+                        documentList = store.Sort(sortExpression, documentResultBuilder.Documents);
+                    }
+                    else if (documentScoring.Value.Count > 0)
+                    {
+                        using var sortedDocuments = SharedObjectPools.ScoredDocuments.Lease();
+
+                        var scores = documentScoring.Value;
+
+                        foreach (var documentId in documentResultBuilder.Documents)
                         {
-                            excludeDocuments.Instance.Add(documentId);
+                            scores.TryGetValue(documentId, out var score);
+
+                            sortedDocuments.Instance.Add(new DocumentValue<float>(documentId, score));
+                        }
+
+                        sortedDocuments.Instance.Sort(DocumentValueComparer<float>.Descending);
+
+                        var documents = SharedObjectPools.Documents.Lease();
+                        documentList = new DocumentList(documents);
+
+                        foreach (var documentValue in sortedDocuments.Instance)
+                        {
+                            documents.Instance.Add(documentValue.DocumentId);
+                        }
+                    }
+                    else
+                    {
+                        var documents = SharedObjectPools.Documents.Lease();
+                        documentList = new DocumentList(documents);
+
+                        foreach (var documentId in documentResultBuilder.Documents)
+                        {
+                            documents.Instance.Add(documentId);
                         }
                     }
                 }
 
-                if (excludeDocuments.Instance.Count > 0)
-                {
-                    documentResultBuilder.ExceptWith(excludeDocuments.Instance);
-                }
+                return new QueryResult<TDocument>(this.tokenEncoder, this.documentMap, documentScoring, documentList, facetResults.Value);
             }
-
-            var facetResults = SharedObjectPools.FacetResults.Lease();
-
-            for (var i = 0; i < query.Facets.Count; i++)
+            catch
             {
-                var facetExpression = query.Facets[i];
-                var field = facetExpression.Field;
-                var store = this.GetFieldStore(field);
-                var fieldFilterExpression = default(FilterExpression);
+                // Until a result is returned, this method owns all output buffers.
+                documentScoring.Dispose();
+                documentList.Dispose();
 
-                for (var j = 0; j < query.Filters.Count; j++)
+                if (facetResults is { } facets)
                 {
-                    var filterExpression = query.Filters[j];
-
-                    if (!filterExpression.IsEmpty)
+                    foreach (var facet in facets.Instance)
                     {
-                        if (filterExpression.Field == field)
-                        {
-                            fieldFilterExpression = filterExpression;
-                            break;
-                        }
+                        facet.Dispose();
                     }
+
+                    facets.Dispose();
                 }
 
-                facetResults.Instance.Add(store.Facet(facetExpression, fieldFilterExpression, documentResultBuilder.GetFacetDocuments(field)));
+                throw;
             }
-
-            if (documentResultBuilder.Documents.Count > 0)
+            finally
             {
-                if (query.Sort is SortExpression sortExpression)
-                {
-                    var field = sortExpression.Field;
-                    var store = this.GetFieldStore(field);
-
-                    documentList = store.Sort(sortExpression, documentResultBuilder.Documents);
-                }
-                else if (documentScoring.Value.Count > 0)
-                {
-                    using var sortedDocuments = SharedObjectPools.ScoredDocuments.Lease();
-
-                    var scores = documentScoring.Value;
-
-                    foreach (var documentId in documentResultBuilder.Documents)
-                    {
-                        scores.TryGetValue(documentId, out var score);
-
-                        sortedDocuments.Instance.Add(new DocumentValue<float>(documentId, score));
-                    }
-
-                    sortedDocuments.Instance.Sort(DocumentValueComparer<float>.Descending);
-
-                    var documents = SharedObjectPools.Documents.Lease();
-
-                    foreach (var documentValue in sortedDocuments.Instance)
-                    {
-                        documents.Instance.Add(documentValue.DocumentId);
-                    }
-
-                    documentList = new DocumentList(documents);
-                }
-                else
-                {
-                    var documents = SharedObjectPools.Documents.Lease();
-
-                    foreach (var documentId in documentResultBuilder.Documents)
-                    {
-                        documents.Instance.Add(documentId);
-                    }
-
-                    documentList = new DocumentList(documents);
-                }
+                documentResultBuilder.Dispose();
             }
-
-            documentResultBuilder.Dispose();
-
-            return new QueryResult<TDocument>(this.tokenEncoder, this.documentMap, documentScoring, documentList, facetResults);
         }
 
         internal override FieldStore GetFieldStore(Field field)

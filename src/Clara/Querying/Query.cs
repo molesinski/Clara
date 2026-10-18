@@ -153,7 +153,13 @@ namespace Clara.Querying
             {
                 if (filters[i].Field == filterExpression.Field)
                 {
+                    var previous = filters[i];
                     filters[i] = filterExpression;
+
+                    if (!ReferenceEquals(previous, filterExpression))
+                    {
+                        previous.Dispose();
+                    }
 
                     return;
                 }

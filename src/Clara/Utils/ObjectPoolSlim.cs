@@ -75,8 +75,10 @@
             {
                 if (this.items[i].Value is null)
                 {
-                    this.items[i].Value = instance;
-                    break;
+                    if (Interlocked.CompareExchange(ref this.items[i].Value!, instance, null) is null)
+                    {
+                        break;
+                    }
                 }
             }
         }

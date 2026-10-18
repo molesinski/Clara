@@ -1,6 +1,6 @@
 ﻿# Current Implementation Notes
 
-The three confirmed defects found in revision `c3073b3` are corrected: document length accumulation, synonym search aggregation overrides, and `Include` key validation. The sections below describe the resulting contracts and regression coverage. The remaining exception-path concern is separate from these fixes.
+The three confirmed defects found in revision `c3073b3` are corrected: document length accumulation, synonym search aggregation overrides, and `Include` key validation. The subsequently identified pool ownership and concurrent return problems are also corrected. The sections below describe the resulting contracts and regression coverage.
 
 ## Corrected document lengths
 
@@ -43,13 +43,21 @@ An empty, null, or all-null selection remains unrestricted. Once a non-null valu
 
 [IncludeTests.cs](../src/Clara.Tests/IncludeTests.cs) covers labels, text tokens, unknown and blank values, historical keys with shared and instance stores, mixed selections, duplicate keys, empty selections, and composition with search, filters, facets, and exclusion.
 
-## Remaining concern with leases on exception paths
+## Corrected pool ownership on exception paths
 
-**Conclusion from the code.** In [Index.cs](../src/Clara/Index.cs), some leases are protected by `using`, but `documentResultBuilder.Dispose()` runs at the end of the normal path. `documentScoring`, the result list, and facets transfer to a new owner only when `QueryResult` is created. Similarly, the destination `documentScores` in `TextDocumentStore.Search` is not protected against an exception before the result is returned.
+[Index.cs](../src/Clara/Index.cs) disposes the mutable document result builder in `finally`. Until a `QueryResult` is constructed successfully, the method owns the scoring dictionary, document list, and facet results. Its exception handler disposes these outputs, including each completed facet's nested buffers before returning the facet list. On success, ownership transfers to `QueryResult`; callers must still dispose the result.
 
-An exception from the `positionBoost` callback or a later operation can bypass returning some objects to the pool. This does not establish a permanent managed-memory leak, but it risks losing buffer reuse and increasing allocations. When fixing it, identify when ownership transfers and use `try/finally` where an object has not yet been transferred. Check repeated failing calls as well as a single successful result.
+[TextDocumentStore.Search](../src/Clara/Storage/TextDocumentStore.cs) returns its destination score dictionary if term enumeration, position boosting, or aggregation throws before ownership transfers to `DocumentScoring`. Existing `using` scopes return temporary term and phrase buffers. Filter value constructors also return their set if enumeration fails. Cleanup rethrows the original exception.
 
-Direct `Query.AddFilter` calls replace a previous filter without disposing it. `QueryBuilder` prevents duplicate filters, so this issue concerns manual use of the lower-level API.
+Previously, these exceptions could lose pooled buffers, increasing allocations on subsequent queries. This was a loss of reuse, not a permanent managed-memory leak. [PoolOwnershipTests.cs](../src/Clara.Tests/PoolOwnershipTests.cs) snapshots pooled object identities and verifies their return after repeated failures in boosts, aggregation, selections, filter construction, and later facet/sort stages. It also checks that a live successful result retains its buffers and that repeated result disposal does not return buffers twice. These tests run without parallel access to the shared pools.
+
+Direct `Query.AddFilter` replacement now disposes the previous filter for that field. Re-adding the same instance keeps it alive. Once added, a filter belongs to the query; do not share it between queries. `QueryBuilder` continues to reject duplicate filters.
+
+## Corrected concurrent pool returns
+
+[ObjectPoolSlim.Return](../src/Clara/Utils/ObjectPoolSlim.cs) uses `Interlocked.CompareExchange` to publish a reset instance only into an empty slot. If another return claims that slot first, the loop tries the next slot. The previous check followed by plain assignment could overwrite another returned object and lose its reuse even when capacity remained.
+
+[ObjectPoolSlimTests.cs](../src/Clara.Tests/ObjectPoolSlimTests.cs) synchronizes four returners for 1,000 rounds, verifies that all four original instances remain reusable without replacement allocations, and checks reset behavior. Full pools may still discard returned instances; leases must still be disposed exactly once.
 
 ## Other behavior relevant to integration
 
@@ -60,6 +68,8 @@ Direct `Query.AddFilter` calls replace a previous filter without disposing it. `
 
 ## Regression verification and further tests
 
-The 35 new regression cases ran on .NET 10 before the fixes: 23 failed and 12 passed. With the fixes, all 212 tests pass on each of `net472`, `net8.0`, `net9.0`, and `net10.0`, for 848 successful executions. The Release solution build also passes with no warnings or errors.
+The original 35 scoring/Include regression cases ran on .NET 10 before those fixes: 23 failed and 12 passed. After those fixes, all 212 tests passed on each of the four targets (848 executions).
 
-Remaining test priorities include concurrent use, callback exceptions, broader facet semantics for each mode, and result ownership after `Dispose`. Add assertions for new contracts before changing the engine.
+For the pool fixes, 16 of 20 new cases failed against the previous implementation on .NET 10; all 20 pass after the changes. The complete suite now passes 274 tests on `net472` and 276 on each of `net8.0`, `net9.0`, and `net10.0` (1,102 executions). The Release solution build passes with no warnings or errors.
+
+Further test priorities include concurrent queries with custom analyzers and broader facet semantics for each mode. Add assertions for new contracts before changing the engine.

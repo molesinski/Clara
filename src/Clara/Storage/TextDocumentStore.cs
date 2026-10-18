@@ -58,61 +58,70 @@ namespace Clara.Storage
             using var termScores = SharedObjectPools.DocumentScores.Lease();
 
             var documentScores = SharedObjectPools.DocumentScores.Lease();
-            var isFirst = true;
 
-            searchScoreAggregation ??= this.searchScoreAggregation;
-
-            foreach (var term in source.Instance.GetTerms(text))
+            try
             {
-                termScores.Instance.Clear();
+                var isFirst = true;
 
-                if (term.Token is Token token)
+                searchScoreAggregation ??= this.searchScoreAggregation;
+
+                foreach (var term in source.Instance.GetTerms(text))
                 {
-                    if (this.tokenEncoder.ToReadOnly(token) is string value)
+                    termScores.Instance.Clear();
+
+                    if (term.Token is Token token)
                     {
-                        this.Search(value, termScores.Instance, searchScoreAggregation);
+                        if (this.tokenEncoder.ToReadOnly(token) is string value)
+                        {
+                            this.Search(value, termScores.Instance, searchScoreAggregation);
+                        }
                     }
-                }
-                else if (term.Phrases is PhraseGroup phrases)
-                {
-                    this.Search(phrases, termScores.Instance, searchScoreAggregation);
-                }
-                else
-                {
-                    throw new InvalidOperationException("Unsupported phrase term value encountered.");
-                }
-
-                var boost = DefaultBoost;
-
-                if (positionBoost is not null)
-                {
-                    boost = positionBoost(term.Position);
-                }
-
-                if (searchMode == SearchMode.All)
-                {
-                    if (isFirst)
+                    else if (term.Phrases is PhraseGroup phrases)
                     {
-                        documentScores.Instance.UnionWith(termScores.Instance, searchScoreAggregation, boost);
-                        isFirst = false;
+                        this.Search(phrases, termScores.Instance, searchScoreAggregation);
                     }
                     else
                     {
-                        documentScores.Instance.IntersectWith(termScores.Instance, searchScoreAggregation, boost);
+                        throw new InvalidOperationException("Unsupported phrase term value encountered.");
                     }
 
-                    if (documentScores.Instance.Count == 0)
+                    var boost = DefaultBoost;
+
+                    if (positionBoost is not null)
                     {
-                        break;
+                        boost = positionBoost(term.Position);
+                    }
+
+                    if (searchMode == SearchMode.All)
+                    {
+                        if (isFirst)
+                        {
+                            documentScores.Instance.UnionWith(termScores.Instance, searchScoreAggregation, boost);
+                            isFirst = false;
+                        }
+                        else
+                        {
+                            documentScores.Instance.IntersectWith(termScores.Instance, searchScoreAggregation, boost);
+                        }
+
+                        if (documentScores.Instance.Count == 0)
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        documentScores.Instance.UnionWith(termScores.Instance, searchScoreAggregation, boost);
                     }
                 }
-                else
-                {
-                    documentScores.Instance.UnionWith(termScores.Instance, searchScoreAggregation, boost);
-                }
-            }
 
-            return new DocumentScoring(documentScores);
+                return new DocumentScoring(documentScores);
+            }
+            catch
+            {
+                documentScores.Dispose();
+                throw;
+            }
         }
 
         private void Search(string value, DictionarySlim<int, float> termScores, ScoreAggregation searchScoreAggregation)

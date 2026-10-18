@@ -12,9 +12,17 @@ namespace Clara.Querying
         {
             this.lease = SharedObjectPools.FilterValues.Lease();
 
-            foreach (var item in new StringEnumerable(value, trim: true))
+            try
             {
-                this.lease.Instance.Add(item);
+                foreach (var item in new StringEnumerable(value, trim: true))
+                {
+                    this.lease.Instance.Add(item);
+                }
+            }
+            catch
+            {
+                this.lease.Dispose();
+                throw;
             }
         }
 
@@ -22,9 +30,17 @@ namespace Clara.Querying
         {
             this.lease = SharedObjectPools.FilterValues.Lease();
 
-            foreach (var item in new StringEnumerable(values, trim: true))
+            try
             {
-                this.lease.Instance.Add(item);
+                foreach (var item in new StringEnumerable(values, trim: true))
+                {
+                    this.lease.Instance.Add(item);
+                }
+            }
+            catch
+            {
+                this.lease.Dispose();
+                throw;
             }
         }
 
