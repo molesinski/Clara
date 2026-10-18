@@ -61,6 +61,8 @@ When adding a custom filter, explicitly decide when to call `next(token)`. A tok
 
 Snowball includes algorithms under `Snowball/Algorithms` and public analyzers under `Analysis/`. An algorithm file alone does not imply a public analyzer exists. The generated Snowball directory has a local `.editorconfig`; preserve code provenance when updating it.
 
+The embedded algorithms use Snowball 3.2.0 from a pinned upstream commit. See [Updating Snowball](updating-snowball.md) for Docker generation, preserved allocation optimizations, and full vocabulary verification. Rebuild indexes when upgrading stemming rules.
+
 Morfologik emits one selected lemma rather than every possible interpretation. The filter traverses dictionary results in reverse and prefers the first valid lemma it encounters that ends in `y`; otherwise, it retains the last valid lemma assigned. If there are no matches, the input token remains unchanged. Source: [MorfologikStemTokenFilter.cs](../src/Clara.Analysis.Morfologik/Analysis/MorfologikStemTokenFilter.cs).
 
 ## Synonyms

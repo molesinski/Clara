@@ -1,4 +1,4 @@
-﻿// Generated from arabic.sbl by Snowball 3.0.0 - https://snowballstem.org/
+﻿// Generated from arabic.sbl by Snowball 3.2.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,16 +10,12 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from arabic.sbl by Snowball 3.0.0 - https://snowballstem.org/
+    ///  Generated from arabic.sbl by Snowball 3.2.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.2.0")]
     internal partial class ArabicStemmer : Stemmer
     {
-        private bool B_is_defined;
-        private bool B_is_verb;
-        private bool B_is_noun;
-
 
         private static readonly Among[] a_0 = new[]
         {
@@ -282,7 +278,7 @@ namespace Snowball
         {
             new Among("\u0627", -1, 1, 0),
             new Among("\u062A\u0627", 0, 2, 0),
-            new Among("\u062A\u0645\u0627", 0, 4, 0),
+            new Among("\u062A\u0645\u0627", 0, 3, 0),
             new Among("\u0646\u0627", 0, 2, 0),
             new Among("\u062A", -1, 1, 0),
             new Among("\u0646", -1, 1, 0),
@@ -306,21 +302,148 @@ namespace Snowball
         };
 
 
-        private bool r_Normalize_pre()
+        private bool r_Suffix_Noun_Step2a()
+        {
+            ket = cursor;
+            if (find_among_b(a_11, null) == 0)
+            {
+                return false;
+            }
+            bra = cursor;
+            if (current.Length < 5)
+            {
+                return false;
+            }
+            slice_del();
+            return true;
+        }
+
+        private bool r_Suffix_Noun_Step2b()
+        {
+            ket = cursor;
+            if (!(eq_s_b("\u0627\u062A")))
+            {
+                return false;
+            }
+            bra = cursor;
+            if (current.Length < 5)
+            {
+                return false;
+            }
+            slice_del();
+            return true;
+        }
+
+        private bool r_Suffix_Noun_Step2c1()
+        {
+            ket = cursor;
+            if (!(eq_s_b("\u062A")))
+            {
+                return false;
+            }
+            bra = cursor;
+            if (current.Length < 4)
+            {
+                return false;
+            }
+            slice_del();
+            return true;
+        }
+
+        private bool r_Suffix_Verb_Step2a()
         {
             int among_var;
+            ket = cursor;
+            among_var = find_among_b(a_13, null);
+            if (among_var == 0)
+            {
+                return false;
+            }
+            bra = cursor;
+            switch (among_var) {
+                case 1: {
+                    if (current.Length < 4)
+                    {
+                        return false;
+                    }
+                    slice_del();
+                    break;
+                }
+                case 2: {
+                    if (current.Length < 5)
+                    {
+                        return false;
+                    }
+                    slice_del();
+                    break;
+                }
+                case 3: {
+                    if (current.Length < 6)
+                    {
+                        return false;
+                    }
+                    slice_del();
+                    break;
+                }
+            }
+            return true;
+        }
+
+        protected override bool stem()
+        {
+            int among_var;
+            bool B_is_defined;
+            bool B_is_verb;
+            bool B_is_noun;
+            B_is_noun = true;
+            B_is_verb = true;
+            B_is_defined = false;
             {
                 int c1 = cursor;
+                bra = cursor;
+                among_var = find_among(a_3, null);
+                if (among_var == 0)
+                {
+                    goto lab0;
+                }
+                ket = cursor;
+                switch (among_var) {
+                    case 1: {
+                        if (current.Length < 5)
+                        {
+                            goto lab0;
+                        }
+                        B_is_noun = true;
+                        B_is_verb = false;
+                        B_is_defined = true;
+                        break;
+                    }
+                    case 2: {
+                        if (current.Length < 4)
+                        {
+                            goto lab0;
+                        }
+                        B_is_noun = true;
+                        B_is_verb = false;
+                        B_is_defined = true;
+                        break;
+                    }
+                }
+            lab0: ;
+                cursor = c1;
+            }
+            {
+                int c2 = cursor;
                 while (true)
                 {
-                    int c2 = cursor;
+                    int c3 = cursor;
                     {
-                        int c3 = cursor;
+                        int c4 = cursor;
                         bra = cursor;
                         among_var = find_among(a_0, null);
                         if (among_var == 0)
                         {
-                            goto lab3;
+                            goto lab5;
                         }
                         ket = cursor;
                         switch (among_var) {
@@ -529,56 +652,582 @@ namespace Snowball
                                 break;
                             }
                         }
-                        goto lab2;
-                    lab3: ;
-                        cursor = c3;
+                        goto lab4;
+                    lab5: ;
+                        cursor = c4;
                         if (cursor >= limit)
                         {
-                            goto lab1;
+                            goto lab3;
                         }
                         cursor++;
                     }
-                lab2: ;
+                lab4: ;
                     continue;
-                lab1: ;
-                    cursor = c2;
+                lab3: ;
+                    cursor = c3;
                     break;
                 }
-                cursor = c1;
+                cursor = c2;
             }
-            return true;
-        }
-
-        private bool r_Normalize_post()
-        {
-            int among_var;
+            limit_backward = cursor;
+            cursor = limit;
             {
-                int c1 = cursor;
+                int c5 = limit - cursor;
+                {
+                    int c6 = limit - cursor;
+                    if (!B_is_verb)
+                    {
+                        goto lab8;
+                    }
+                    {
+                        int c7 = limit - cursor;
+                        {
+                            int c8 = 1;
+                            while (true)
+                            {
+                                int c9 = limit - cursor;
+                                ket = cursor;
+                                among_var = find_among_b(a_12, null);
+                                if (among_var == 0)
+                                {
+                                    goto lab11;
+                                }
+                                bra = cursor;
+                                switch (among_var) {
+                                    case 1: {
+                                        if (current.Length < 4)
+                                        {
+                                            goto lab11;
+                                        }
+                                        slice_del();
+                                        break;
+                                    }
+                                    case 2: {
+                                        if (current.Length < 5)
+                                        {
+                                            goto lab11;
+                                        }
+                                        slice_del();
+                                        break;
+                                    }
+                                    case 3: {
+                                        if (current.Length < 6)
+                                        {
+                                            goto lab11;
+                                        }
+                                        slice_del();
+                                        break;
+                                    }
+                                }
+                                c8--;
+                                continue;
+                            lab11: ;
+                                cursor = limit - c9;
+                                break;
+                            }
+                            if (c8 > 0)
+                            {
+                                goto lab10;
+                            }
+                        }
+                        {
+                            int c10 = limit - cursor;
+                            if (!r_Suffix_Verb_Step2a())
+                                goto lab13;
+                            goto lab12;
+                        lab13: ;
+                            cursor = limit - c10;
+                            ket = cursor;
+                            among_var = find_among_b(a_15, null);
+                            if (among_var == 0)
+                            {
+                                goto lab14;
+                            }
+                            bra = cursor;
+                            switch (among_var) {
+                                case 1: {
+                                    if (current.Length < 4)
+                                    {
+                                        goto lab14;
+                                    }
+                                    slice_del();
+                                    break;
+                                }
+                                case 2: {
+                                    if (current.Length < 6)
+                                    {
+                                        goto lab14;
+                                    }
+                                    slice_del();
+                                    break;
+                                }
+                            }
+                            goto lab12;
+                        lab14: ;
+                            cursor = limit - c10;
+                            if (cursor <= limit_backward)
+                            {
+                                goto lab10;
+                            }
+                            cursor--;
+                        }
+                    lab12: ;
+                        goto lab9;
+                    lab10: ;
+                        cursor = limit - c7;
+                        ket = cursor;
+                        if (find_among_b(a_14, null) == 0)
+                        {
+                            goto lab15;
+                        }
+                        bra = cursor;
+                        if (current.Length < 5)
+                        {
+                            goto lab15;
+                        }
+                        slice_del();
+                        goto lab9;
+                    lab15: ;
+                        cursor = limit - c7;
+                        if (!r_Suffix_Verb_Step2a())
+                            goto lab8;
+                    }
+                lab9: ;
+                    goto lab7;
+                lab8: ;
+                    cursor = limit - c6;
+                    if (!B_is_noun)
+                    {
+                        goto lab16;
+                    }
+                    {
+                        int c11 = limit - cursor;
+                        {
+                            int c12 = limit - cursor;
+                            ket = cursor;
+                            if (!(eq_s_b("\u0629")))
+                            {
+                                goto lab19;
+                            }
+                            bra = cursor;
+                            if (current.Length < 4)
+                            {
+                                goto lab19;
+                            }
+                            slice_del();
+                            goto lab18;
+                        lab19: ;
+                            cursor = limit - c12;
+                            if (B_is_defined)
+                            {
+                                goto lab20;
+                            }
+                            ket = cursor;
+                            among_var = find_among_b(a_10, null);
+                            if (among_var == 0)
+                            {
+                                goto lab20;
+                            }
+                            bra = cursor;
+                            switch (among_var) {
+                                case 1: {
+                                    if (current.Length < 4)
+                                    {
+                                        goto lab20;
+                                    }
+                                    slice_del();
+                                    break;
+                                }
+                                case 2: {
+                                    if (current.Length < 5)
+                                    {
+                                        goto lab20;
+                                    }
+                                    slice_del();
+                                    break;
+                                }
+                                case 3: {
+                                    if (current.Length < 6)
+                                    {
+                                        goto lab20;
+                                    }
+                                    slice_del();
+                                    break;
+                                }
+                            }
+                            {
+                                int c13 = limit - cursor;
+                                if (!r_Suffix_Noun_Step2a())
+                                    goto lab22;
+                                goto lab21;
+                            lab22: ;
+                                cursor = limit - c13;
+                                if (!r_Suffix_Noun_Step2b())
+                                    goto lab23;
+                                goto lab21;
+                            lab23: ;
+                                cursor = limit - c13;
+                                if (!r_Suffix_Noun_Step2c1())
+                                    goto lab24;
+                                goto lab21;
+                            lab24: ;
+                                cursor = limit - c13;
+                                if (cursor <= limit_backward)
+                                {
+                                    goto lab20;
+                                }
+                                cursor--;
+                            }
+                        lab21: ;
+                            goto lab18;
+                        lab20: ;
+                            cursor = limit - c12;
+                            ket = cursor;
+                            if (!(eq_s_b("\u0646")))
+                            {
+                                goto lab25;
+                            }
+                            bra = cursor;
+                            if (current.Length < 6)
+                            {
+                                goto lab25;
+                            }
+                            slice_del();
+                            {
+                                int c14 = limit - cursor;
+                                if (!r_Suffix_Noun_Step2a())
+                                    goto lab27;
+                                goto lab26;
+                            lab27: ;
+                                cursor = limit - c14;
+                                if (!r_Suffix_Noun_Step2b())
+                                    goto lab28;
+                                goto lab26;
+                            lab28: ;
+                                cursor = limit - c14;
+                                if (!r_Suffix_Noun_Step2c1())
+                                    goto lab25;
+                            }
+                        lab26: ;
+                            goto lab18;
+                        lab25: ;
+                            cursor = limit - c12;
+                            if (B_is_defined)
+                            {
+                                goto lab29;
+                            }
+                            if (!r_Suffix_Noun_Step2a())
+                                goto lab29;
+                            goto lab18;
+                        lab29: ;
+                            cursor = limit - c12;
+                            if (!r_Suffix_Noun_Step2b())
+                                {
+                                    cursor = limit - c11;
+                                    goto lab17;
+                                }
+                        }
+                    lab18: ;
+                    lab17: ;
+                    }
+                    ket = cursor;
+                    if (!(eq_s_b("\u064A")))
+                    {
+                        goto lab16;
+                    }
+                    bra = cursor;
+                    if (current.Length < 3)
+                    {
+                        goto lab16;
+                    }
+                    slice_del();
+                    goto lab7;
+                lab16: ;
+                    cursor = limit - c6;
+                    ket = cursor;
+                    if (!(eq_s_b("\u0649")))
+                    {
+                        goto lab6;
+                    }
+                    bra = cursor;
+                    slice_from("\u064A");
+                }
+            lab7: ;
+            lab6: ;
+                cursor = limit - c5;
+            }
+            cursor = limit_backward;
+            {
+                int c15 = cursor;
+                {
+                    int c16 = cursor;
+                    bra = cursor;
+                    among_var = find_among(a_4, null);
+                    if (among_var == 0)
+                    {
+                        {
+                            cursor = c16;
+                            goto lab31;
+                        }
+                    }
+                    ket = cursor;
+                    switch (among_var) {
+                        case 1: {
+                            if (current.Length < 4)
+                            {
+                                {
+                                    cursor = c16;
+                                    goto lab31;
+                                }
+                            }
+                            slice_from("\u0623");
+                            break;
+                        }
+                        case 2: {
+                            if (current.Length < 4)
+                            {
+                                {
+                                    cursor = c16;
+                                    goto lab31;
+                                }
+                            }
+                            slice_from("\u0622");
+                            break;
+                        }
+                        case 3: {
+                            if (current.Length < 4)
+                            {
+                                {
+                                    cursor = c16;
+                                    goto lab31;
+                                }
+                            }
+                            slice_from("\u0627");
+                            break;
+                        }
+                        case 4: {
+                            if (current.Length < 4)
+                            {
+                                {
+                                    cursor = c16;
+                                    goto lab31;
+                                }
+                            }
+                            slice_from("\u0625");
+                            break;
+                        }
+                    }
+                lab31: ;
+                }
+                {
+                    int c17 = cursor;
+                    bra = cursor;
+                    if (find_among(a_5, null) == 0)
+                    {
+                        {
+                            cursor = c17;
+                            goto lab32;
+                        }
+                    }
+                    ket = cursor;
+                    if (current.Length < 4)
+                    {
+                        {
+                            cursor = c17;
+                            goto lab32;
+                        }
+                    }
+                    if (!(eq_s("\u0627")))
+                    {
+                        goto lab33;
+                    }
+                    {
+                        cursor = c17;
+                        goto lab32;
+                    }
+                lab33: ;
+                    slice_del();
+                lab32: ;
+                }
+                {
+                    int c18 = cursor;
+                    bra = cursor;
+                    among_var = find_among(a_6, null);
+                    if (among_var == 0)
+                    {
+                        goto lab35;
+                    }
+                    ket = cursor;
+                    switch (among_var) {
+                        case 1: {
+                            if (current.Length < 6)
+                            {
+                                goto lab35;
+                            }
+                            slice_del();
+                            break;
+                        }
+                        case 2: {
+                            if (current.Length < 5)
+                            {
+                                goto lab35;
+                            }
+                            slice_del();
+                            break;
+                        }
+                    }
+                    goto lab34;
+                lab35: ;
+                    cursor = c18;
+                    if (!B_is_noun)
+                    {
+                        goto lab36;
+                    }
+                    bra = cursor;
+                    among_var = find_among(a_7, null);
+                    if (among_var == 0)
+                    {
+                        goto lab36;
+                    }
+                    ket = cursor;
+                    switch (among_var) {
+                        case 1: {
+                            if (current.Length < 4)
+                            {
+                                goto lab36;
+                            }
+                            slice_del();
+                            break;
+                        }
+                        case 2: {
+                            if (current.Length < 4)
+                            {
+                                goto lab36;
+                            }
+                            slice_from("\u0628");
+                            break;
+                        }
+                        case 3: {
+                            if (current.Length < 4)
+                            {
+                                goto lab36;
+                            }
+                            slice_from("\u0643");
+                            break;
+                        }
+                    }
+                    goto lab34;
+                lab36: ;
+                    cursor = c18;
+                    if (!B_is_verb)
+                    {
+                        goto lab30;
+                    }
+                    {
+                        int c19 = cursor;
+                        bra = cursor;
+                        among_var = find_among(a_8, null);
+                        if (among_var == 0)
+                        {
+                            {
+                                cursor = c19;
+                                goto lab37;
+                            }
+                        }
+                        ket = cursor;
+                        switch (among_var) {
+                            case 1: {
+                                if (current.Length < 5)
+                                {
+                                    {
+                                        cursor = c19;
+                                        goto lab37;
+                                    }
+                                }
+                                slice_from("\u064A");
+                                break;
+                            }
+                            case 2: {
+                                if (current.Length < 5)
+                                {
+                                    {
+                                        cursor = c19;
+                                        goto lab37;
+                                    }
+                                }
+                                slice_from("\u062A");
+                                break;
+                            }
+                            case 3: {
+                                if (current.Length < 5)
+                                {
+                                    {
+                                        cursor = c19;
+                                        goto lab37;
+                                    }
+                                }
+                                slice_from("\u0646");
+                                break;
+                            }
+                            case 4: {
+                                if (current.Length < 5)
+                                {
+                                    {
+                                        cursor = c19;
+                                        goto lab37;
+                                    }
+                                }
+                                slice_from("\u0623");
+                                break;
+                            }
+                        }
+                    lab37: ;
+                    }
+                    bra = cursor;
+                    if (find_among(a_9, null) == 0)
+                    {
+                        goto lab30;
+                    }
+                    ket = cursor;
+                    if (current.Length < 5)
+                    {
+                        goto lab30;
+                    }
+                    B_is_verb = true;
+                    B_is_noun = false;
+                    slice_from("\u0627\u0633\u062A");
+                }
+            lab34: ;
+            lab30: ;
+                cursor = c15;
+            }
+            {
+                int c20 = cursor;
                 limit_backward = cursor;
                 cursor = limit;
                 ket = cursor;
                 if (find_among_b(a_1, null) == 0)
                 {
-                    goto lab0;
+                    goto lab39;
                 }
                 bra = cursor;
                 slice_from("\u0621");
                 cursor = limit_backward;
-            lab0: ;
-                cursor = c1;
+            lab39: ;
+                cursor = c20;
             }
             {
-                int c2 = cursor;
+                int c21 = cursor;
                 while (true)
                 {
-                    int c3 = cursor;
+                    int c22 = cursor;
                     {
-                        int c4 = cursor;
+                        int c23 = cursor;
                         bra = cursor;
                         among_var = find_among(a_2, null);
                         if (among_var == 0)
                         {
-                            goto lab4;
+                            goto lab43;
                         }
                         ket = cursor;
                         switch (among_var) {
@@ -595,779 +1244,23 @@ namespace Snowball
                                 break;
                             }
                         }
-                        goto lab3;
-                    lab4: ;
-                        cursor = c4;
+                        goto lab42;
+                    lab43: ;
+                        cursor = c23;
                         if (cursor >= limit)
                         {
-                            goto lab2;
+                            goto lab41;
                         }
                         cursor++;
                     }
-                lab3: ;
+                lab42: ;
                     continue;
-                lab2: ;
-                    cursor = c3;
+                lab41: ;
+                    cursor = c22;
                     break;
                 }
-                cursor = c2;
+                cursor = c21;
             }
-            return true;
-        }
-
-        private bool r_Checks1()
-        {
-            int among_var;
-            bra = cursor;
-            among_var = find_among(a_3, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            ket = cursor;
-            switch (among_var) {
-                case 1: {
-                    if (current.Length <= 4)
-                    {
-                        return false;
-                    }
-                    B_is_noun = true;
-                    B_is_verb = false;
-                    B_is_defined = true;
-                    break;
-                }
-                case 2: {
-                    if (current.Length <= 3)
-                    {
-                        return false;
-                    }
-                    B_is_noun = true;
-                    B_is_verb = false;
-                    B_is_defined = true;
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_Prefix_Step1()
-        {
-            int among_var;
-            bra = cursor;
-            among_var = find_among(a_4, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            ket = cursor;
-            switch (among_var) {
-                case 1: {
-                    if (current.Length <= 3)
-                    {
-                        return false;
-                    }
-                    slice_from("\u0623");
-                    break;
-                }
-                case 2: {
-                    if (current.Length <= 3)
-                    {
-                        return false;
-                    }
-                    slice_from("\u0622");
-                    break;
-                }
-                case 3: {
-                    if (current.Length <= 3)
-                    {
-                        return false;
-                    }
-                    slice_from("\u0627");
-                    break;
-                }
-                case 4: {
-                    if (current.Length <= 3)
-                    {
-                        return false;
-                    }
-                    slice_from("\u0625");
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_Prefix_Step2()
-        {
-            bra = cursor;
-            if (find_among(a_5, null) == 0)
-            {
-                return false;
-            }
-            ket = cursor;
-            if (current.Length <= 3)
-            {
-                return false;
-            }
-            {
-                int c1 = cursor;
-                if (!(eq_s("\u0627")))
-                {
-                    goto lab0;
-                }
-                return false;
-            lab0: ;
-                cursor = c1;
-            }
-            slice_del();
-            return true;
-        }
-
-        private bool r_Prefix_Step3a_Noun()
-        {
-            int among_var;
-            bra = cursor;
-            among_var = find_among(a_6, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            ket = cursor;
-            switch (among_var) {
-                case 1: {
-                    if (current.Length <= 5)
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    if (current.Length <= 4)
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_Prefix_Step3b_Noun()
-        {
-            int among_var;
-            bra = cursor;
-            among_var = find_among(a_7, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            ket = cursor;
-            switch (among_var) {
-                case 1: {
-                    if (current.Length <= 3)
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    if (current.Length <= 3)
-                    {
-                        return false;
-                    }
-                    slice_from("\u0628");
-                    break;
-                }
-                case 3: {
-                    if (current.Length <= 3)
-                    {
-                        return false;
-                    }
-                    slice_from("\u0643");
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_Prefix_Step3_Verb()
-        {
-            int among_var;
-            bra = cursor;
-            among_var = find_among(a_8, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            ket = cursor;
-            switch (among_var) {
-                case 1: {
-                    if (current.Length <= 4)
-                    {
-                        return false;
-                    }
-                    slice_from("\u064A");
-                    break;
-                }
-                case 2: {
-                    if (current.Length <= 4)
-                    {
-                        return false;
-                    }
-                    slice_from("\u062A");
-                    break;
-                }
-                case 3: {
-                    if (current.Length <= 4)
-                    {
-                        return false;
-                    }
-                    slice_from("\u0646");
-                    break;
-                }
-                case 4: {
-                    if (current.Length <= 4)
-                    {
-                        return false;
-                    }
-                    slice_from("\u0623");
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_Prefix_Step4_Verb()
-        {
-            bra = cursor;
-            if (find_among(a_9, null) == 0)
-            {
-                return false;
-            }
-            ket = cursor;
-            if (current.Length <= 4)
-            {
-                return false;
-            }
-            B_is_verb = true;
-            B_is_noun = false;
-            slice_from("\u0627\u0633\u062A");
-            return true;
-        }
-
-        private bool r_Suffix_Noun_Step1a()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_10, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            switch (among_var) {
-                case 1: {
-                    if (current.Length < 4)
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    if (current.Length < 5)
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-                case 3: {
-                    if (current.Length < 6)
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_Suffix_Noun_Step1b()
-        {
-            ket = cursor;
-            if (!(eq_s_b("\u0646")))
-            {
-                return false;
-            }
-            bra = cursor;
-            if (current.Length <= 5)
-            {
-                return false;
-            }
-            slice_del();
-            return true;
-        }
-
-        private bool r_Suffix_Noun_Step2a()
-        {
-            ket = cursor;
-            if (find_among_b(a_11, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (current.Length <= 4)
-            {
-                return false;
-            }
-            slice_del();
-            return true;
-        }
-
-        private bool r_Suffix_Noun_Step2b()
-        {
-            ket = cursor;
-            if (!(eq_s_b("\u0627\u062A")))
-            {
-                return false;
-            }
-            bra = cursor;
-            if (current.Length < 5)
-            {
-                return false;
-            }
-            slice_del();
-            return true;
-        }
-
-        private bool r_Suffix_Noun_Step2c1()
-        {
-            ket = cursor;
-            if (!(eq_s_b("\u062A")))
-            {
-                return false;
-            }
-            bra = cursor;
-            if (current.Length < 4)
-            {
-                return false;
-            }
-            slice_del();
-            return true;
-        }
-
-        private bool r_Suffix_Noun_Step2c2()
-        {
-            ket = cursor;
-            if (!(eq_s_b("\u0629")))
-            {
-                return false;
-            }
-            bra = cursor;
-            if (current.Length < 4)
-            {
-                return false;
-            }
-            slice_del();
-            return true;
-        }
-
-        private bool r_Suffix_Noun_Step3()
-        {
-            ket = cursor;
-            if (!(eq_s_b("\u064A")))
-            {
-                return false;
-            }
-            bra = cursor;
-            if (current.Length < 3)
-            {
-                return false;
-            }
-            slice_del();
-            return true;
-        }
-
-        private bool r_Suffix_Verb_Step1()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_12, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            switch (among_var) {
-                case 1: {
-                    if (current.Length < 4)
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    if (current.Length < 5)
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-                case 3: {
-                    if (current.Length < 6)
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_Suffix_Verb_Step2a()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_13, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            switch (among_var) {
-                case 1: {
-                    if (current.Length < 4)
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    if (current.Length < 5)
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-                case 3: {
-                    if (current.Length <= 5)
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-                case 4: {
-                    if (current.Length < 6)
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_Suffix_Verb_Step2b()
-        {
-            ket = cursor;
-            if (find_among_b(a_14, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (current.Length < 5)
-            {
-                return false;
-            }
-            slice_del();
-            return true;
-        }
-
-        private bool r_Suffix_Verb_Step2c()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_15, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            switch (among_var) {
-                case 1: {
-                    if (current.Length < 4)
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    if (current.Length < 6)
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_Suffix_All_alef_maqsura()
-        {
-            ket = cursor;
-            if (!(eq_s_b("\u0649")))
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_from("\u064A");
-            return true;
-        }
-
-        protected override bool stem()
-        {
-            B_is_noun = true;
-            B_is_verb = true;
-            B_is_defined = false;
-            {
-                int c1 = cursor;
-                r_Checks1();
-                cursor = c1;
-            }
-            r_Normalize_pre();
-            limit_backward = cursor;
-            cursor = limit;
-            {
-                int c2 = limit - cursor;
-                {
-                    int c3 = limit - cursor;
-                    if (!B_is_verb)
-                    {
-                        goto lab2;
-                    }
-                    {
-                        int c4 = limit - cursor;
-                        {
-                            int c5 = 1;
-                            while (true)
-                            {
-                                int c6 = limit - cursor;
-                                if (!r_Suffix_Verb_Step1())
-                                    goto lab5;
-                                c5--;
-                                continue;
-                            lab5: ;
-                                cursor = limit - c6;
-                                break;
-                            }
-                            if (c5 > 0)
-                            {
-                                goto lab4;
-                            }
-                        }
-                        {
-                            int c7 = limit - cursor;
-                            if (!r_Suffix_Verb_Step2a())
-                                goto lab7;
-                            goto lab6;
-                        lab7: ;
-                            cursor = limit - c7;
-                            if (!r_Suffix_Verb_Step2c())
-                                goto lab8;
-                            goto lab6;
-                        lab8: ;
-                            cursor = limit - c7;
-                            if (cursor <= limit_backward)
-                            {
-                                goto lab4;
-                            }
-                            cursor--;
-                        }
-                    lab6: ;
-                        goto lab3;
-                    lab4: ;
-                        cursor = limit - c4;
-                        if (!r_Suffix_Verb_Step2b())
-                            goto lab9;
-                        goto lab3;
-                    lab9: ;
-                        cursor = limit - c4;
-                        if (!r_Suffix_Verb_Step2a())
-                            goto lab2;
-                    }
-                lab3: ;
-                    goto lab1;
-                lab2: ;
-                    cursor = limit - c3;
-                    if (!B_is_noun)
-                    {
-                        goto lab10;
-                    }
-                    {
-                        int c8 = limit - cursor;
-                        {
-                            int c9 = limit - cursor;
-                            if (!r_Suffix_Noun_Step2c2())
-                                goto lab13;
-                            goto lab12;
-                        lab13: ;
-                            cursor = limit - c9;
-                            if (B_is_defined)
-                            {
-                                goto lab14;
-                            }
-                            if (!r_Suffix_Noun_Step1a())
-                                goto lab14;
-                            {
-                                int c10 = limit - cursor;
-                                if (!r_Suffix_Noun_Step2a())
-                                    goto lab16;
-                                goto lab15;
-                            lab16: ;
-                                cursor = limit - c10;
-                                if (!r_Suffix_Noun_Step2b())
-                                    goto lab17;
-                                goto lab15;
-                            lab17: ;
-                                cursor = limit - c10;
-                                if (!r_Suffix_Noun_Step2c1())
-                                    goto lab18;
-                                goto lab15;
-                            lab18: ;
-                                cursor = limit - c10;
-                                if (cursor <= limit_backward)
-                                {
-                                    goto lab14;
-                                }
-                                cursor--;
-                            }
-                        lab15: ;
-                            goto lab12;
-                        lab14: ;
-                            cursor = limit - c9;
-                            if (!r_Suffix_Noun_Step1b())
-                                goto lab19;
-                            {
-                                int c11 = limit - cursor;
-                                if (!r_Suffix_Noun_Step2a())
-                                    goto lab21;
-                                goto lab20;
-                            lab21: ;
-                                cursor = limit - c11;
-                                if (!r_Suffix_Noun_Step2b())
-                                    goto lab22;
-                                goto lab20;
-                            lab22: ;
-                                cursor = limit - c11;
-                                if (!r_Suffix_Noun_Step2c1())
-                                    goto lab19;
-                            }
-                        lab20: ;
-                            goto lab12;
-                        lab19: ;
-                            cursor = limit - c9;
-                            if (B_is_defined)
-                            {
-                                goto lab23;
-                            }
-                            if (!r_Suffix_Noun_Step2a())
-                                goto lab23;
-                            goto lab12;
-                        lab23: ;
-                            cursor = limit - c9;
-                            if (!r_Suffix_Noun_Step2b())
-                                {
-                                    cursor = limit - c8;
-                                    goto lab11;
-                                }
-                        }
-                    lab12: ;
-                    lab11: ;
-                    }
-                    if (!r_Suffix_Noun_Step3())
-                        goto lab10;
-                    goto lab1;
-                lab10: ;
-                    cursor = limit - c3;
-                    if (!r_Suffix_All_alef_maqsura())
-                        goto lab0;
-                }
-            lab1: ;
-            lab0: ;
-                cursor = limit - c2;
-            }
-            cursor = limit_backward;
-            {
-                int c12 = cursor;
-                {
-                    int c13 = cursor;
-                    if (!r_Prefix_Step1())
-                        {
-                            cursor = c13;
-                            goto lab25;
-                        }
-                lab25: ;
-                }
-                {
-                    int c14 = cursor;
-                    if (!r_Prefix_Step2())
-                        {
-                            cursor = c14;
-                            goto lab26;
-                        }
-                lab26: ;
-                }
-                {
-                    int c15 = cursor;
-                    if (!r_Prefix_Step3a_Noun())
-                        goto lab28;
-                    goto lab27;
-                lab28: ;
-                    cursor = c15;
-                    if (!B_is_noun)
-                    {
-                        goto lab29;
-                    }
-                    if (!r_Prefix_Step3b_Noun())
-                        goto lab29;
-                    goto lab27;
-                lab29: ;
-                    cursor = c15;
-                    if (!B_is_verb)
-                    {
-                        goto lab24;
-                    }
-                    {
-                        int c16 = cursor;
-                        if (!r_Prefix_Step3_Verb())
-                            {
-                                cursor = c16;
-                                goto lab30;
-                            }
-                    lab30: ;
-                    }
-                    if (!r_Prefix_Step4_Verb())
-                        goto lab24;
-                }
-            lab27: ;
-            lab24: ;
-                cursor = c12;
-            }
-            r_Normalize_post();
             return true;
         }
 

@@ -37,6 +37,7 @@ The project uses xUnit 2.9.3, Microsoft.NET.Test.Sdk 18.11.0, and Visual Studio 
 | --- | --- |
 | `TokenTests.cs` | Token buffer editing operations and invalid arguments |
 | `AnalysisTests.cs` | Tokenization and English analysis compared with Lucene |
+| `SnowballTests.cs` | Snowball 3.2.0 rules, pooled buffer reuse, empty and long tokens, and allocation budgets |
 | `SynonymMapTests.cs` | Synonym matching, position backtracking, and rule parsing |
 | `QueryTests.cs` | Composite queries, search, filters, and some facet behavior |
 | `ScoringTests.cs` | Weighted document lengths, BM25 scores, long documents, synonym aggregation overrides, alternatives, and position boosts |
@@ -48,6 +49,8 @@ The project uses xUnit 2.9.3, Microsoft.NET.Test.Sdk 18.11.0, and Visual Studio 
 Verification on October 18, 2026, after the three fixes: `dotnet build Clara.slnx -c Release --no-restore` succeeded with SDK 10.0.402 and no warnings or errors. `dotnet test src/Clara.Tests/Clara.Tests.csproj -c Release --no-build --no-restore` passed all 212 tests on each of the four targets, for 848 executions in total, with no failures or skips. The 35 new regression cases first ran against the previous implementation on .NET 10: 23 failed and 12 passed. All 35 pass with the fixes. See [implementation notes](implementation-notes.md) for the corrected contracts. These checks are not performance measurements.
 
 ## Benchmarks
+
+After the Snowball update, the full suite passes 226 cases on `net472` and 228 on each modern .NET target (910 executions). The additional allocation checks require modern .NET. The [Snowball maintenance guide](updating-snowball.md) describes the separate Docker generator and full upstream corpus verifier retained under `tools/`.
 
 ```powershell
 dotnet run --project src/Clara.Benchmarks -c Release -- --filter '*Querying*'

@@ -1,4 +1,4 @@
-﻿// Generated from serbian.sbl by Snowball 3.0.0 - https://snowballstem.org/
+﻿// Generated from serbian.sbl by Snowball 3.2.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,15 +10,12 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from serbian.sbl by Snowball 3.0.0 - https://snowballstem.org/
+    ///  Generated from serbian.sbl by Snowball 3.2.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.2.0")]
     internal partial class SerbianStemmer : Stemmer
     {
-        private int I_p1;
-        private bool B_no_diacritics;
-
         private const string g_v = "aeiou";
         private const string g_sa = "ćčđšž";
         private const string g_ca = "bcdfghjklmnprstvzćčđšž";
@@ -2262,9 +2259,11 @@ namespace Snowball
         };
 
 
-        private bool r_cyr_to_lat()
+        protected override bool stem()
         {
             int among_var;
+            int I_p1;
+            bool B_no_diacritics;
             {
                 int c1 = cursor;
                 while (true)
@@ -2277,7 +2276,7 @@ namespace Snowball
                         among_var = find_among(a_0, null);
                         if (among_var == 0)
                         {
-                            goto lab2;
+                            goto lab3;
                         }
                         ket = cursor;
                         switch (among_var) {
@@ -2404,61 +2403,16 @@ namespace Snowball
                         }
                         cursor = c3;
                         break;
-                    lab2: ;
+                    lab3: ;
                         cursor = c3;
                         if (cursor >= limit)
                         {
-                            goto lab1;
+                            goto lab2;
                         }
                         cursor++;
                     }
                     continue;
-                lab1: ;
-                    cursor = c2;
-                    break;
-                }
-                cursor = c1;
-            }
-            return true;
-        }
-
-        private bool r_prelude()
-        {
-            {
-                int c1 = cursor;
-                while (true)
-                {
-                    int c2 = cursor;
-                    while (true)
-                    {
-                        int c3 = cursor;
-                        if (in_grouping(g_ca, 98, 382, false) != 0)
-                        {
-                            goto lab2;
-                        }
-                        bra = cursor;
-                        if (!(eq_s("ije")))
-                        {
-                            goto lab2;
-                        }
-                        ket = cursor;
-                        if (in_grouping(g_ca, 98, 382, false) != 0)
-                        {
-                            goto lab2;
-                        }
-                        slice_from("e");
-                        cursor = c3;
-                        break;
-                    lab2: ;
-                        cursor = c3;
-                        if (cursor >= limit)
-                        {
-                            goto lab1;
-                        }
-                        cursor++;
-                    }
-                    continue;
-                lab1: ;
+                lab2: ;
                     cursor = c2;
                     break;
                 }
@@ -2474,31 +2428,31 @@ namespace Snowball
                         int c6 = cursor;
                         if (in_grouping(g_ca, 98, 382, false) != 0)
                         {
-                            goto lab5;
+                            goto lab7;
                         }
                         bra = cursor;
-                        if (!(eq_s("je")))
+                        if (!(eq_s("ije")))
                         {
-                            goto lab5;
+                            goto lab7;
                         }
                         ket = cursor;
                         if (in_grouping(g_ca, 98, 382, false) != 0)
                         {
-                            goto lab5;
+                            goto lab7;
                         }
                         slice_from("e");
                         cursor = c6;
                         break;
-                    lab5: ;
+                    lab7: ;
                         cursor = c6;
                         if (cursor >= limit)
                         {
-                            goto lab4;
+                            goto lab6;
                         }
                         cursor++;
                     }
                     continue;
-                lab4: ;
+                lab6: ;
                     cursor = c5;
                     break;
                 }
@@ -2512,1438 +2466,1439 @@ namespace Snowball
                     while (true)
                     {
                         int c9 = cursor;
-                        bra = cursor;
-                        if (!(eq_s("dj")))
+                        if (in_grouping(g_ca, 98, 382, false) != 0)
                         {
-                            goto lab8;
+                            goto lab10;
+                        }
+                        bra = cursor;
+                        if (!(eq_s("je")))
+                        {
+                            goto lab10;
                         }
                         ket = cursor;
-                        slice_from("đ");
+                        if (in_grouping(g_ca, 98, 382, false) != 0)
+                        {
+                            goto lab10;
+                        }
+                        slice_from("e");
                         cursor = c9;
                         break;
-                    lab8: ;
+                    lab10: ;
                         cursor = c9;
                         if (cursor >= limit)
                         {
-                            goto lab7;
+                            goto lab9;
                         }
                         cursor++;
                     }
                     continue;
-                lab7: ;
+                lab9: ;
                     cursor = c8;
                     break;
                 }
                 cursor = c7;
             }
-            return true;
-        }
-
-        private bool r_mark_regions()
-        {
+            {
+                int c10 = cursor;
+                while (true)
+                {
+                    int c11 = cursor;
+                    while (true)
+                    {
+                        int c12 = cursor;
+                        bra = cursor;
+                        if (!(eq_s("dj")))
+                        {
+                            goto lab13;
+                        }
+                        ket = cursor;
+                        slice_from("đ");
+                        cursor = c12;
+                        break;
+                    lab13: ;
+                        cursor = c12;
+                        if (cursor >= limit)
+                        {
+                            goto lab12;
+                        }
+                        cursor++;
+                    }
+                    continue;
+                lab12: ;
+                    cursor = c11;
+                    break;
+                }
+                cursor = c10;
+            }
             B_no_diacritics = true;
             {
-                int c1 = cursor;
+                int c13 = cursor;
                 {
 
                     int ret = out_grouping(g_sa, 263, 382, true);
                     if (ret < 0)
                     {
-                        goto lab0;
+                        goto lab15;
                     }
 
                     cursor += ret;
                 }
                 B_no_diacritics = false;
-            lab0: ;
-                cursor = c1;
+            lab15: ;
+                cursor = c13;
             }
             I_p1 = limit;
             {
-                int c2 = cursor;
+                int c14 = cursor;
                 {
 
                     int ret = out_grouping(g_v, 97, 117, true);
                     if (ret < 0)
                     {
-                        goto lab1;
+                        goto lab16;
                     }
 
                     cursor += ret;
                 }
                 I_p1 = cursor;
-                if (I_p1 >= 2)
+                if (I_p1 > 1)
                 {
-                    goto lab1;
+                    goto lab16;
                 }
                 {
 
                     int ret = in_grouping(g_v, 97, 117, true);
                     if (ret < 0)
                     {
-                        goto lab1;
+                        goto lab16;
                     }
 
                     cursor += ret;
                 }
                 I_p1 = cursor;
-            lab1: ;
-                cursor = c2;
+            lab16: ;
+                cursor = c14;
             }
             {
-                int c3 = cursor;
+                int c15 = cursor;
                 while (true)
                 {
                     if (!(eq_s("r")))
                     {
-                        goto lab3;
+                        goto lab18;
                     }
                     break;
-                lab3: ;
+                lab18: ;
                     if (cursor >= limit)
                     {
-                        goto lab2;
+                        goto lab17;
                     }
                     cursor++;
                 }
+                if (cursor < 2)
                 {
-                    int c4 = cursor;
-                    if (cursor < 2)
-                    {
-                        goto lab5;
-                    }
-                    goto lab4;
-                lab5: ;
-                    cursor = c4;
-                    {
-
-                        int ret = in_grouping(g_rg, 114, 114, true);
-                        if (ret < 0)
-                        {
-                            goto lab2;
-                        }
-
-                        cursor += ret;
-                    }
+                    goto lab20;
                 }
-            lab4: ;
-                if ((I_p1 - cursor) <= 1)
+                goto lab19;
+            lab20: ;
                 {
-                    goto lab2;
+
+                    int ret = in_grouping(g_rg, 114, 114, true);
+                    if (ret < 0)
+                    {
+                        goto lab17;
+                    }
+
+                    cursor += ret;
+                }
+            lab19: ;
+                if ((I_p1 - cursor) < 2)
+                {
+                    goto lab17;
                 }
                 I_p1 = cursor;
-            lab2: ;
-                cursor = c3;
+            lab17: ;
+                cursor = c15;
             }
-            return true;
-        }
-
-        private bool r_R1()
-        {
-            return I_p1 <= cursor;
-        }
-
-        private bool r_Step_1()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_1, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            switch (among_var) {
-                case 1: {
-                    slice_from("loga");
-                    break;
-                }
-                case 2: {
-                    slice_from("peh");
-                    break;
-                }
-                case 3: {
-                    slice_from("vojka");
-                    break;
-                }
-                case 4: {
-                    slice_from("bojka");
-                    break;
-                }
-                case 5: {
-                    slice_from("jak");
-                    break;
-                }
-                case 6: {
-                    slice_from("čajni");
-                    break;
-                }
-                case 7: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("cajni");
-                    break;
-                }
-                case 8: {
-                    slice_from("erni");
-                    break;
-                }
-                case 9: {
-                    slice_from("larni");
-                    break;
-                }
-                case 10: {
-                    slice_from("esni");
-                    break;
-                }
-                case 11: {
-                    slice_from("anjca");
-                    break;
-                }
-                case 12: {
-                    slice_from("ajca");
-                    break;
-                }
-                case 13: {
-                    slice_from("ljca");
-                    break;
-                }
-                case 14: {
-                    slice_from("ejca");
-                    break;
-                }
-                case 15: {
-                    slice_from("ojca");
-                    break;
-                }
-                case 16: {
-                    slice_from("ajka");
-                    break;
-                }
-                case 17: {
-                    slice_from("ojka");
-                    break;
-                }
-                case 18: {
-                    slice_from("šca");
-                    break;
-                }
-                case 19: {
-                    slice_from("ing");
-                    break;
-                }
-                case 20: {
-                    slice_from("tvenik");
-                    break;
-                }
-                case 21: {
-                    slice_from("tetika");
-                    break;
-                }
-                case 22: {
-                    slice_from("nstva");
-                    break;
-                }
-                case 23: {
-                    slice_from("nik");
-                    break;
-                }
-                case 24: {
-                    slice_from("tik");
-                    break;
-                }
-                case 25: {
-                    slice_from("zik");
-                    break;
-                }
-                case 26: {
-                    slice_from("snik");
-                    break;
-                }
-                case 27: {
-                    slice_from("kusi");
-                    break;
-                }
-                case 28: {
-                    slice_from("kusni");
-                    break;
-                }
-                case 29: {
-                    slice_from("kustva");
-                    break;
-                }
-                case 30: {
-                    slice_from("dušni");
-                    break;
-                }
-                case 31: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("dusni");
-                    break;
-                }
-                case 32: {
-                    slice_from("antni");
-                    break;
-                }
-                case 33: {
-                    slice_from("bilni");
-                    break;
-                }
-                case 34: {
-                    slice_from("tilni");
-                    break;
-                }
-                case 35: {
-                    slice_from("avilni");
-                    break;
-                }
-                case 36: {
-                    slice_from("silni");
-                    break;
-                }
-                case 37: {
-                    slice_from("gilni");
-                    break;
-                }
-                case 38: {
-                    slice_from("rilni");
-                    break;
-                }
-                case 39: {
-                    slice_from("nilni");
-                    break;
-                }
-                case 40: {
-                    slice_from("alni");
-                    break;
-                }
-                case 41: {
-                    slice_from("ozni");
-                    break;
-                }
-                case 42: {
-                    slice_from("ravi");
-                    break;
-                }
-                case 43: {
-                    slice_from("stavni");
-                    break;
-                }
-                case 44: {
-                    slice_from("pravni");
-                    break;
-                }
-                case 45: {
-                    slice_from("tivni");
-                    break;
-                }
-                case 46: {
-                    slice_from("sivni");
-                    break;
-                }
-                case 47: {
-                    slice_from("atni");
-                    break;
-                }
-                case 48: {
-                    slice_from("enta");
-                    break;
-                }
-                case 49: {
-                    slice_from("tetni");
-                    break;
-                }
-                case 50: {
-                    slice_from("pletni");
-                    break;
-                }
-                case 51: {
-                    slice_from("šavi");
-                    break;
-                }
-                case 52: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("savi");
-                    break;
-                }
-                case 53: {
-                    slice_from("anta");
-                    break;
-                }
-                case 54: {
-                    slice_from("ačka");
-                    break;
-                }
-                case 55: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("acka");
-                    break;
-                }
-                case 56: {
-                    slice_from("uška");
-                    break;
-                }
-                case 57: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("uska");
-                    break;
-                }
-                case 58: {
-                    slice_from("atka");
-                    break;
-                }
-                case 59: {
-                    slice_from("etka");
-                    break;
-                }
-                case 60: {
-                    slice_from("itka");
-                    break;
-                }
-                case 61: {
-                    slice_from("otka");
-                    break;
-                }
-                case 62: {
-                    slice_from("utka");
-                    break;
-                }
-                case 63: {
-                    slice_from("eskna");
-                    break;
-                }
-                case 64: {
-                    slice_from("tični");
-                    break;
-                }
-                case 65: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("ticni");
-                    break;
-                }
-                case 66: {
-                    slice_from("ojska");
-                    break;
-                }
-                case 67: {
-                    slice_from("esma");
-                    break;
-                }
-                case 68: {
-                    slice_from("metra");
-                    break;
-                }
-                case 69: {
-                    slice_from("centra");
-                    break;
-                }
-                case 70: {
-                    slice_from("istra");
-                    break;
-                }
-                case 71: {
-                    slice_from("osti");
-                    break;
-                }
-                case 72: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("osti");
-                    break;
-                }
-                case 73: {
-                    slice_from("dba");
-                    break;
-                }
-                case 74: {
-                    slice_from("čka");
-                    break;
-                }
-                case 75: {
-                    slice_from("mca");
-                    break;
-                }
-                case 76: {
-                    slice_from("nca");
-                    break;
-                }
-                case 77: {
-                    slice_from("voljni");
-                    break;
-                }
-                case 78: {
-                    slice_from("anki");
-                    break;
-                }
-                case 79: {
-                    slice_from("vca");
-                    break;
-                }
-                case 80: {
-                    slice_from("sca");
-                    break;
-                }
-                case 81: {
-                    slice_from("rca");
-                    break;
-                }
-                case 82: {
-                    slice_from("alca");
-                    break;
-                }
-                case 83: {
-                    slice_from("elca");
-                    break;
-                }
-                case 84: {
-                    slice_from("olca");
-                    break;
-                }
-                case 85: {
-                    slice_from("njca");
-                    break;
-                }
-                case 86: {
-                    slice_from("ekta");
-                    break;
-                }
-                case 87: {
-                    slice_from("izma");
-                    break;
-                }
-                case 88: {
-                    slice_from("jebi");
-                    break;
-                }
-                case 89: {
-                    slice_from("baci");
-                    break;
-                }
-                case 90: {
-                    slice_from("ašni");
-                    break;
-                }
-                case 91: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("asni");
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_Step_2()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_2, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (!r_R1())
-                return false;
-            switch (among_var) {
-                case 1: {
-                    slice_from("sk");
-                    break;
-                }
-                case 2: {
-                    slice_from("šk");
-                    break;
-                }
-                case 3: {
-                    slice_from("stv");
-                    break;
-                }
-                case 4: {
-                    slice_from("štv");
-                    break;
-                }
-                case 5: {
-                    slice_from("tanij");
-                    break;
-                }
-                case 6: {
-                    slice_from("manij");
-                    break;
-                }
-                case 7: {
-                    slice_from("panij");
-                    break;
-                }
-                case 8: {
-                    slice_from("ranij");
-                    break;
-                }
-                case 9: {
-                    slice_from("ganij");
-                    break;
-                }
-                case 10: {
-                    slice_from("an");
-                    break;
-                }
-                case 11: {
-                    slice_from("in");
-                    break;
-                }
-                case 12: {
-                    slice_from("on");
-                    break;
-                }
-                case 13: {
-                    slice_from("n");
-                    break;
-                }
-                case 14: {
-                    slice_from("ać");
-                    break;
-                }
-                case 15: {
-                    slice_from("eć");
-                    break;
-                }
-                case 16: {
-                    slice_from("uć");
-                    break;
-                }
-                case 17: {
-                    slice_from("ugov");
-                    break;
-                }
-                case 18: {
-                    slice_from("ug");
-                    break;
-                }
-                case 19: {
-                    slice_from("log");
-                    break;
-                }
-                case 20: {
-                    slice_from("g");
-                    break;
-                }
-                case 21: {
-                    slice_from("rari");
-                    break;
-                }
-                case 22: {
-                    slice_from("oti");
-                    break;
-                }
-                case 23: {
-                    slice_from("si");
-                    break;
-                }
-                case 24: {
-                    slice_from("li");
-                    break;
-                }
-                case 25: {
-                    slice_from("uj");
-                    break;
-                }
-                case 26: {
-                    slice_from("caj");
-                    break;
-                }
-                case 27: {
-                    slice_from("čaj");
-                    break;
-                }
-                case 28: {
-                    slice_from("ćaj");
-                    break;
-                }
-                case 29: {
-                    slice_from("đaj");
-                    break;
-                }
-                case 30: {
-                    slice_from("laj");
-                    break;
-                }
-                case 31: {
-                    slice_from("raj");
-                    break;
-                }
-                case 32: {
-                    slice_from("bij");
-                    break;
-                }
-                case 33: {
-                    slice_from("cij");
-                    break;
-                }
-                case 34: {
-                    slice_from("dij");
-                    break;
-                }
-                case 35: {
-                    slice_from("lij");
-                    break;
-                }
-                case 36: {
-                    slice_from("nij");
-                    break;
-                }
-                case 37: {
-                    slice_from("mij");
-                    break;
-                }
-                case 38: {
-                    slice_from("žij");
-                    break;
-                }
-                case 39: {
-                    slice_from("gij");
-                    break;
-                }
-                case 40: {
-                    slice_from("fij");
-                    break;
-                }
-                case 41: {
-                    slice_from("pij");
-                    break;
-                }
-                case 42: {
-                    slice_from("rij");
-                    break;
-                }
-                case 43: {
-                    slice_from("sij");
-                    break;
-                }
-                case 44: {
-                    slice_from("tij");
-                    break;
-                }
-                case 45: {
-                    slice_from("zij");
-                    break;
-                }
-                case 46: {
-                    slice_from("nal");
-                    break;
-                }
-                case 47: {
-                    slice_from("ijal");
-                    break;
-                }
-                case 48: {
-                    slice_from("ozil");
-                    break;
-                }
-                case 49: {
-                    slice_from("olov");
-                    break;
-                }
-                case 50: {
-                    slice_from("ol");
-                    break;
-                }
-                case 51: {
-                    slice_from("lem");
-                    break;
-                }
-                case 52: {
-                    slice_from("ram");
-                    break;
-                }
-                case 53: {
-                    slice_from("ar");
-                    break;
-                }
-                case 54: {
-                    slice_from("dr");
-                    break;
-                }
-                case 55: {
-                    slice_from("er");
-                    break;
-                }
-                case 56: {
-                    slice_from("or");
-                    break;
-                }
-                case 57: {
-                    slice_from("es");
-                    break;
-                }
-                case 58: {
-                    slice_from("is");
-                    break;
-                }
-                case 59: {
-                    slice_from("taš");
-                    break;
-                }
-                case 60: {
-                    slice_from("naš");
-                    break;
-                }
-                case 61: {
-                    slice_from("jaš");
-                    break;
-                }
-                case 62: {
-                    slice_from("kaš");
-                    break;
-                }
-                case 63: {
-                    slice_from("baš");
-                    break;
-                }
-                case 64: {
-                    slice_from("gaš");
-                    break;
-                }
-                case 65: {
-                    slice_from("vaš");
-                    break;
-                }
-                case 66: {
-                    slice_from("eš");
-                    break;
-                }
-                case 67: {
-                    slice_from("iš");
-                    break;
-                }
-                case 68: {
-                    slice_from("ikat");
-                    break;
-                }
-                case 69: {
-                    slice_from("lat");
-                    break;
-                }
-                case 70: {
-                    slice_from("et");
-                    break;
-                }
-                case 71: {
-                    slice_from("est");
-                    break;
-                }
-                case 72: {
-                    slice_from("ist");
-                    break;
-                }
-                case 73: {
-                    slice_from("kst");
-                    break;
-                }
-                case 74: {
-                    slice_from("ost");
-                    break;
-                }
-                case 75: {
-                    slice_from("išt");
-                    break;
-                }
-                case 76: {
-                    slice_from("ova");
-                    break;
-                }
-                case 77: {
-                    slice_from("av");
-                    break;
-                }
-                case 78: {
-                    slice_from("ev");
-                    break;
-                }
-                case 79: {
-                    slice_from("iv");
-                    break;
-                }
-                case 80: {
-                    slice_from("ov");
-                    break;
-                }
-                case 81: {
-                    slice_from("mov");
-                    break;
-                }
-                case 82: {
-                    slice_from("lov");
-                    break;
-                }
-                case 83: {
-                    slice_from("el");
-                    break;
-                }
-                case 84: {
-                    slice_from("anj");
-                    break;
-                }
-                case 85: {
-                    slice_from("enj");
-                    break;
-                }
-                case 86: {
-                    slice_from("šnj");
-                    break;
-                }
-                case 87: {
-                    slice_from("en");
-                    break;
-                }
-                case 88: {
-                    slice_from("šn");
-                    break;
-                }
-                case 89: {
-                    slice_from("čin");
-                    break;
-                }
-                case 90: {
-                    slice_from("roši");
-                    break;
-                }
-                case 91: {
-                    slice_from("oš");
-                    break;
-                }
-                case 92: {
-                    slice_from("evit");
-                    break;
-                }
-                case 93: {
-                    slice_from("ovit");
-                    break;
-                }
-                case 94: {
-                    slice_from("ast");
-                    break;
-                }
-                case 95: {
-                    slice_from("k");
-                    break;
-                }
-                case 96: {
-                    slice_from("eva");
-                    break;
-                }
-                case 97: {
-                    slice_from("ava");
-                    break;
-                }
-                case 98: {
-                    slice_from("iva");
-                    break;
-                }
-                case 99: {
-                    slice_from("uva");
-                    break;
-                }
-                case 100: {
-                    slice_from("ir");
-                    break;
-                }
-                case 101: {
-                    slice_from("ač");
-                    break;
-                }
-                case 102: {
-                    slice_from("ača");
-                    break;
-                }
-                case 103: {
-                    slice_from("ni");
-                    break;
-                }
-                case 104: {
-                    slice_from("a");
-                    break;
-                }
-                case 105: {
-                    slice_from("ur");
-                    break;
-                }
-                case 106: {
-                    slice_from("astaj");
-                    break;
-                }
-                case 107: {
-                    slice_from("istaj");
-                    break;
-                }
-                case 108: {
-                    slice_from("ostaj");
-                    break;
-                }
-                case 109: {
-                    slice_from("aj");
-                    break;
-                }
-                case 110: {
-                    slice_from("asta");
-                    break;
-                }
-                case 111: {
-                    slice_from("ista");
-                    break;
-                }
-                case 112: {
-                    slice_from("osta");
-                    break;
-                }
-                case 113: {
-                    slice_from("ta");
-                    break;
-                }
-                case 114: {
-                    slice_from("inj");
-                    break;
-                }
-                case 115: {
-                    slice_from("as");
-                    break;
-                }
-                case 116: {
-                    slice_from("i");
-                    break;
-                }
-                case 117: {
-                    slice_from("luč");
-                    break;
-                }
-                case 118: {
-                    slice_from("jeti");
-                    break;
-                }
-                case 119: {
-                    slice_from("e");
-                    break;
-                }
-                case 120: {
-                    slice_from("at");
-                    break;
-                }
-                case 121: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("luc");
-                    break;
-                }
-                case 122: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("snj");
-                    break;
-                }
-                case 123: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("os");
-                    break;
-                }
-                case 124: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("ac");
-                    break;
-                }
-                case 125: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("ec");
-                    break;
-                }
-                case 126: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("uc");
-                    break;
-                }
-                case 127: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("rosi");
-                    break;
-                }
-                case 128: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("aca");
-                    break;
-                }
-                case 129: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("jas");
-                    break;
-                }
-                case 130: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("tas");
-                    break;
-                }
-                case 131: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("gas");
-                    break;
-                }
-                case 132: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("nas");
-                    break;
-                }
-                case 133: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("kas");
-                    break;
-                }
-                case 134: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("vas");
-                    break;
-                }
-                case 135: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("bas");
-                    break;
-                }
-                case 136: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("as");
-                    break;
-                }
-                case 137: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("cin");
-                    break;
-                }
-                case 138: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("astaj");
-                    break;
-                }
-                case 139: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("istaj");
-                    break;
-                }
-                case 140: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("ostaj");
-                    break;
-                }
-                case 141: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("asta");
-                    break;
-                }
-                case 142: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("ista");
-                    break;
-                }
-                case 143: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("osta");
-                    break;
-                }
-                case 144: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("ava");
-                    break;
-                }
-                case 145: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("eva");
-                    break;
-                }
-                case 146: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("iva");
-                    break;
-                }
-                case 147: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("uva");
-                    break;
-                }
-                case 148: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("ova");
-                    break;
-                }
-                case 149: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("jeti");
-                    break;
-                }
-                case 150: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("inj");
-                    break;
-                }
-                case 151: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("ist");
-                    break;
-                }
-                case 152: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("es");
-                    break;
-                }
-                case 153: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("et");
-                    break;
-                }
-                case 154: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("is");
-                    break;
-                }
-                case 155: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("ir");
-                    break;
-                }
-                case 156: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("ur");
-                    break;
-                }
-                case 157: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("uj");
-                    break;
-                }
-                case 158: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("ni");
-                    break;
-                }
-                case 159: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("sn");
-                    break;
-                }
-                case 160: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("ta");
-                    break;
-                }
-                case 161: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("a");
-                    break;
-                }
-                case 162: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("i");
-                    break;
-                }
-                case 163: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("e");
-                    break;
-                }
-                case 164: {
-                    if (!B_no_diacritics)
-                    {
-                        return false;
-                    }
-                    slice_from("n");
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_Step_3()
-        {
-            ket = cursor;
-            if (find_among_b(a_3, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (!r_R1())
-                return false;
-            slice_from("");
-            return true;
-        }
-
-        protected override bool stem()
-        {
-            r_cyr_to_lat();
-            r_prelude();
-            r_mark_regions();
             limit_backward = cursor;
             cursor = limit;
             {
-                int c1 = limit - cursor;
-                r_Step_1();
-                cursor = limit - c1;
+                int c16 = limit - cursor;
+                ket = cursor;
+                among_var = find_among_b(a_1, null);
+                if (among_var == 0)
+                {
+                    goto lab21;
+                }
+                bra = cursor;
+                switch (among_var) {
+                    case 1: {
+                        slice_from("loga");
+                        break;
+                    }
+                    case 2: {
+                        slice_from("peh");
+                        break;
+                    }
+                    case 3: {
+                        slice_from("vojka");
+                        break;
+                    }
+                    case 4: {
+                        slice_from("bojka");
+                        break;
+                    }
+                    case 5: {
+                        slice_from("jak");
+                        break;
+                    }
+                    case 6: {
+                        slice_from("čajni");
+                        break;
+                    }
+                    case 7: {
+                        if (!B_no_diacritics)
+                        {
+                            goto lab21;
+                        }
+                        slice_from("cajni");
+                        break;
+                    }
+                    case 8: {
+                        slice_from("erni");
+                        break;
+                    }
+                    case 9: {
+                        slice_from("larni");
+                        break;
+                    }
+                    case 10: {
+                        slice_from("esni");
+                        break;
+                    }
+                    case 11: {
+                        slice_from("anjca");
+                        break;
+                    }
+                    case 12: {
+                        slice_from("ajca");
+                        break;
+                    }
+                    case 13: {
+                        slice_from("ljca");
+                        break;
+                    }
+                    case 14: {
+                        slice_from("ejca");
+                        break;
+                    }
+                    case 15: {
+                        slice_from("ojca");
+                        break;
+                    }
+                    case 16: {
+                        slice_from("ajka");
+                        break;
+                    }
+                    case 17: {
+                        slice_from("ojka");
+                        break;
+                    }
+                    case 18: {
+                        slice_from("šca");
+                        break;
+                    }
+                    case 19: {
+                        slice_from("ing");
+                        break;
+                    }
+                    case 20: {
+                        slice_from("tvenik");
+                        break;
+                    }
+                    case 21: {
+                        slice_from("tetika");
+                        break;
+                    }
+                    case 22: {
+                        slice_from("nstva");
+                        break;
+                    }
+                    case 23: {
+                        slice_from("nik");
+                        break;
+                    }
+                    case 24: {
+                        slice_from("tik");
+                        break;
+                    }
+                    case 25: {
+                        slice_from("zik");
+                        break;
+                    }
+                    case 26: {
+                        slice_from("snik");
+                        break;
+                    }
+                    case 27: {
+                        slice_from("kusi");
+                        break;
+                    }
+                    case 28: {
+                        slice_from("kusni");
+                        break;
+                    }
+                    case 29: {
+                        slice_from("kustva");
+                        break;
+                    }
+                    case 30: {
+                        slice_from("dušni");
+                        break;
+                    }
+                    case 31: {
+                        if (!B_no_diacritics)
+                        {
+                            goto lab21;
+                        }
+                        slice_from("dusni");
+                        break;
+                    }
+                    case 32: {
+                        slice_from("antni");
+                        break;
+                    }
+                    case 33: {
+                        slice_from("bilni");
+                        break;
+                    }
+                    case 34: {
+                        slice_from("tilni");
+                        break;
+                    }
+                    case 35: {
+                        slice_from("avilni");
+                        break;
+                    }
+                    case 36: {
+                        slice_from("silni");
+                        break;
+                    }
+                    case 37: {
+                        slice_from("gilni");
+                        break;
+                    }
+                    case 38: {
+                        slice_from("rilni");
+                        break;
+                    }
+                    case 39: {
+                        slice_from("nilni");
+                        break;
+                    }
+                    case 40: {
+                        slice_from("alni");
+                        break;
+                    }
+                    case 41: {
+                        slice_from("ozni");
+                        break;
+                    }
+                    case 42: {
+                        slice_from("ravi");
+                        break;
+                    }
+                    case 43: {
+                        slice_from("stavni");
+                        break;
+                    }
+                    case 44: {
+                        slice_from("pravni");
+                        break;
+                    }
+                    case 45: {
+                        slice_from("tivni");
+                        break;
+                    }
+                    case 46: {
+                        slice_from("sivni");
+                        break;
+                    }
+                    case 47: {
+                        slice_from("atni");
+                        break;
+                    }
+                    case 48: {
+                        slice_from("enta");
+                        break;
+                    }
+                    case 49: {
+                        slice_from("tetni");
+                        break;
+                    }
+                    case 50: {
+                        slice_from("pletni");
+                        break;
+                    }
+                    case 51: {
+                        slice_from("šavi");
+                        break;
+                    }
+                    case 52: {
+                        if (!B_no_diacritics)
+                        {
+                            goto lab21;
+                        }
+                        slice_from("savi");
+                        break;
+                    }
+                    case 53: {
+                        slice_from("anta");
+                        break;
+                    }
+                    case 54: {
+                        slice_from("ačka");
+                        break;
+                    }
+                    case 55: {
+                        if (!B_no_diacritics)
+                        {
+                            goto lab21;
+                        }
+                        slice_from("acka");
+                        break;
+                    }
+                    case 56: {
+                        slice_from("uška");
+                        break;
+                    }
+                    case 57: {
+                        if (!B_no_diacritics)
+                        {
+                            goto lab21;
+                        }
+                        slice_from("uska");
+                        break;
+                    }
+                    case 58: {
+                        slice_from("atka");
+                        break;
+                    }
+                    case 59: {
+                        slice_from("etka");
+                        break;
+                    }
+                    case 60: {
+                        slice_from("itka");
+                        break;
+                    }
+                    case 61: {
+                        slice_from("otka");
+                        break;
+                    }
+                    case 62: {
+                        slice_from("utka");
+                        break;
+                    }
+                    case 63: {
+                        slice_from("eskna");
+                        break;
+                    }
+                    case 64: {
+                        slice_from("tični");
+                        break;
+                    }
+                    case 65: {
+                        if (!B_no_diacritics)
+                        {
+                            goto lab21;
+                        }
+                        slice_from("ticni");
+                        break;
+                    }
+                    case 66: {
+                        slice_from("ojska");
+                        break;
+                    }
+                    case 67: {
+                        slice_from("esma");
+                        break;
+                    }
+                    case 68: {
+                        slice_from("metra");
+                        break;
+                    }
+                    case 69: {
+                        slice_from("centra");
+                        break;
+                    }
+                    case 70: {
+                        slice_from("istra");
+                        break;
+                    }
+                    case 71: {
+                        slice_from("osti");
+                        break;
+                    }
+                    case 72: {
+                        if (!B_no_diacritics)
+                        {
+                            goto lab21;
+                        }
+                        slice_from("osti");
+                        break;
+                    }
+                    case 73: {
+                        slice_from("dba");
+                        break;
+                    }
+                    case 74: {
+                        slice_from("čka");
+                        break;
+                    }
+                    case 75: {
+                        slice_from("mca");
+                        break;
+                    }
+                    case 76: {
+                        slice_from("nca");
+                        break;
+                    }
+                    case 77: {
+                        slice_from("voljni");
+                        break;
+                    }
+                    case 78: {
+                        slice_from("anki");
+                        break;
+                    }
+                    case 79: {
+                        slice_from("vca");
+                        break;
+                    }
+                    case 80: {
+                        slice_from("sca");
+                        break;
+                    }
+                    case 81: {
+                        slice_from("rca");
+                        break;
+                    }
+                    case 82: {
+                        slice_from("alca");
+                        break;
+                    }
+                    case 83: {
+                        slice_from("elca");
+                        break;
+                    }
+                    case 84: {
+                        slice_from("olca");
+                        break;
+                    }
+                    case 85: {
+                        slice_from("njca");
+                        break;
+                    }
+                    case 86: {
+                        slice_from("ekta");
+                        break;
+                    }
+                    case 87: {
+                        slice_from("izma");
+                        break;
+                    }
+                    case 88: {
+                        slice_from("jebi");
+                        break;
+                    }
+                    case 89: {
+                        slice_from("baci");
+                        break;
+                    }
+                    case 90: {
+                        slice_from("ašni");
+                        break;
+                    }
+                    case 91: {
+                        if (!B_no_diacritics)
+                        {
+                            goto lab21;
+                        }
+                        slice_from("asni");
+                        break;
+                    }
+                }
+            lab21: ;
+                cursor = limit - c16;
             }
             {
-                int c2 = limit - cursor;
+                int c17 = limit - cursor;
                 {
-                    int c3 = limit - cursor;
-                    if (!r_Step_2())
-                        goto lab2;
-                    goto lab1;
-                lab2: ;
-                    cursor = limit - c3;
-                    if (!r_Step_3())
-                        goto lab0;
+                    int c18 = limit - cursor;
+                    ket = cursor;
+                    among_var = find_among_b(a_2, null);
+                    if (among_var == 0)
+                    {
+                        goto lab24;
+                    }
+                    bra = cursor;
+                    if (I_p1 > cursor)
+                    {
+                        goto lab24;
+                    }
+                    switch (among_var) {
+                        case 1: {
+                            slice_from("sk");
+                            break;
+                        }
+                        case 2: {
+                            slice_from("šk");
+                            break;
+                        }
+                        case 3: {
+                            slice_from("stv");
+                            break;
+                        }
+                        case 4: {
+                            slice_from("štv");
+                            break;
+                        }
+                        case 5: {
+                            slice_from("tanij");
+                            break;
+                        }
+                        case 6: {
+                            slice_from("manij");
+                            break;
+                        }
+                        case 7: {
+                            slice_from("panij");
+                            break;
+                        }
+                        case 8: {
+                            slice_from("ranij");
+                            break;
+                        }
+                        case 9: {
+                            slice_from("ganij");
+                            break;
+                        }
+                        case 10: {
+                            slice_from("an");
+                            break;
+                        }
+                        case 11: {
+                            slice_from("in");
+                            break;
+                        }
+                        case 12: {
+                            slice_from("on");
+                            break;
+                        }
+                        case 13: {
+                            slice_from("n");
+                            break;
+                        }
+                        case 14: {
+                            slice_from("ać");
+                            break;
+                        }
+                        case 15: {
+                            slice_from("eć");
+                            break;
+                        }
+                        case 16: {
+                            slice_from("uć");
+                            break;
+                        }
+                        case 17: {
+                            slice_from("ugov");
+                            break;
+                        }
+                        case 18: {
+                            slice_from("ug");
+                            break;
+                        }
+                        case 19: {
+                            slice_from("log");
+                            break;
+                        }
+                        case 20: {
+                            slice_from("g");
+                            break;
+                        }
+                        case 21: {
+                            slice_from("rari");
+                            break;
+                        }
+                        case 22: {
+                            slice_from("oti");
+                            break;
+                        }
+                        case 23: {
+                            slice_from("si");
+                            break;
+                        }
+                        case 24: {
+                            slice_from("li");
+                            break;
+                        }
+                        case 25: {
+                            slice_from("uj");
+                            break;
+                        }
+                        case 26: {
+                            slice_from("caj");
+                            break;
+                        }
+                        case 27: {
+                            slice_from("čaj");
+                            break;
+                        }
+                        case 28: {
+                            slice_from("ćaj");
+                            break;
+                        }
+                        case 29: {
+                            slice_from("đaj");
+                            break;
+                        }
+                        case 30: {
+                            slice_from("laj");
+                            break;
+                        }
+                        case 31: {
+                            slice_from("raj");
+                            break;
+                        }
+                        case 32: {
+                            slice_from("bij");
+                            break;
+                        }
+                        case 33: {
+                            slice_from("cij");
+                            break;
+                        }
+                        case 34: {
+                            slice_from("dij");
+                            break;
+                        }
+                        case 35: {
+                            slice_from("lij");
+                            break;
+                        }
+                        case 36: {
+                            slice_from("nij");
+                            break;
+                        }
+                        case 37: {
+                            slice_from("mij");
+                            break;
+                        }
+                        case 38: {
+                            slice_from("žij");
+                            break;
+                        }
+                        case 39: {
+                            slice_from("gij");
+                            break;
+                        }
+                        case 40: {
+                            slice_from("fij");
+                            break;
+                        }
+                        case 41: {
+                            slice_from("pij");
+                            break;
+                        }
+                        case 42: {
+                            slice_from("rij");
+                            break;
+                        }
+                        case 43: {
+                            slice_from("sij");
+                            break;
+                        }
+                        case 44: {
+                            slice_from("tij");
+                            break;
+                        }
+                        case 45: {
+                            slice_from("zij");
+                            break;
+                        }
+                        case 46: {
+                            slice_from("nal");
+                            break;
+                        }
+                        case 47: {
+                            slice_from("ijal");
+                            break;
+                        }
+                        case 48: {
+                            slice_from("ozil");
+                            break;
+                        }
+                        case 49: {
+                            slice_from("olov");
+                            break;
+                        }
+                        case 50: {
+                            slice_from("ol");
+                            break;
+                        }
+                        case 51: {
+                            slice_from("lem");
+                            break;
+                        }
+                        case 52: {
+                            slice_from("ram");
+                            break;
+                        }
+                        case 53: {
+                            slice_from("ar");
+                            break;
+                        }
+                        case 54: {
+                            slice_from("dr");
+                            break;
+                        }
+                        case 55: {
+                            slice_from("er");
+                            break;
+                        }
+                        case 56: {
+                            slice_from("or");
+                            break;
+                        }
+                        case 57: {
+                            slice_from("es");
+                            break;
+                        }
+                        case 58: {
+                            slice_from("is");
+                            break;
+                        }
+                        case 59: {
+                            slice_from("taš");
+                            break;
+                        }
+                        case 60: {
+                            slice_from("naš");
+                            break;
+                        }
+                        case 61: {
+                            slice_from("jaš");
+                            break;
+                        }
+                        case 62: {
+                            slice_from("kaš");
+                            break;
+                        }
+                        case 63: {
+                            slice_from("baš");
+                            break;
+                        }
+                        case 64: {
+                            slice_from("gaš");
+                            break;
+                        }
+                        case 65: {
+                            slice_from("vaš");
+                            break;
+                        }
+                        case 66: {
+                            slice_from("eš");
+                            break;
+                        }
+                        case 67: {
+                            slice_from("iš");
+                            break;
+                        }
+                        case 68: {
+                            slice_from("ikat");
+                            break;
+                        }
+                        case 69: {
+                            slice_from("lat");
+                            break;
+                        }
+                        case 70: {
+                            slice_from("et");
+                            break;
+                        }
+                        case 71: {
+                            slice_from("est");
+                            break;
+                        }
+                        case 72: {
+                            slice_from("ist");
+                            break;
+                        }
+                        case 73: {
+                            slice_from("kst");
+                            break;
+                        }
+                        case 74: {
+                            slice_from("ost");
+                            break;
+                        }
+                        case 75: {
+                            slice_from("išt");
+                            break;
+                        }
+                        case 76: {
+                            slice_from("ova");
+                            break;
+                        }
+                        case 77: {
+                            slice_from("av");
+                            break;
+                        }
+                        case 78: {
+                            slice_from("ev");
+                            break;
+                        }
+                        case 79: {
+                            slice_from("iv");
+                            break;
+                        }
+                        case 80: {
+                            slice_from("ov");
+                            break;
+                        }
+                        case 81: {
+                            slice_from("mov");
+                            break;
+                        }
+                        case 82: {
+                            slice_from("lov");
+                            break;
+                        }
+                        case 83: {
+                            slice_from("el");
+                            break;
+                        }
+                        case 84: {
+                            slice_from("anj");
+                            break;
+                        }
+                        case 85: {
+                            slice_from("enj");
+                            break;
+                        }
+                        case 86: {
+                            slice_from("šnj");
+                            break;
+                        }
+                        case 87: {
+                            slice_from("en");
+                            break;
+                        }
+                        case 88: {
+                            slice_from("šn");
+                            break;
+                        }
+                        case 89: {
+                            slice_from("čin");
+                            break;
+                        }
+                        case 90: {
+                            slice_from("roši");
+                            break;
+                        }
+                        case 91: {
+                            slice_from("oš");
+                            break;
+                        }
+                        case 92: {
+                            slice_from("evit");
+                            break;
+                        }
+                        case 93: {
+                            slice_from("ovit");
+                            break;
+                        }
+                        case 94: {
+                            slice_from("ast");
+                            break;
+                        }
+                        case 95: {
+                            slice_from("k");
+                            break;
+                        }
+                        case 96: {
+                            slice_from("eva");
+                            break;
+                        }
+                        case 97: {
+                            slice_from("ava");
+                            break;
+                        }
+                        case 98: {
+                            slice_from("iva");
+                            break;
+                        }
+                        case 99: {
+                            slice_from("uva");
+                            break;
+                        }
+                        case 100: {
+                            slice_from("ir");
+                            break;
+                        }
+                        case 101: {
+                            slice_from("ač");
+                            break;
+                        }
+                        case 102: {
+                            slice_from("ača");
+                            break;
+                        }
+                        case 103: {
+                            slice_from("ni");
+                            break;
+                        }
+                        case 104: {
+                            slice_from("a");
+                            break;
+                        }
+                        case 105: {
+                            slice_from("ur");
+                            break;
+                        }
+                        case 106: {
+                            slice_from("astaj");
+                            break;
+                        }
+                        case 107: {
+                            slice_from("istaj");
+                            break;
+                        }
+                        case 108: {
+                            slice_from("ostaj");
+                            break;
+                        }
+                        case 109: {
+                            slice_from("aj");
+                            break;
+                        }
+                        case 110: {
+                            slice_from("asta");
+                            break;
+                        }
+                        case 111: {
+                            slice_from("ista");
+                            break;
+                        }
+                        case 112: {
+                            slice_from("osta");
+                            break;
+                        }
+                        case 113: {
+                            slice_from("ta");
+                            break;
+                        }
+                        case 114: {
+                            slice_from("inj");
+                            break;
+                        }
+                        case 115: {
+                            slice_from("as");
+                            break;
+                        }
+                        case 116: {
+                            slice_from("i");
+                            break;
+                        }
+                        case 117: {
+                            slice_from("luč");
+                            break;
+                        }
+                        case 118: {
+                            slice_from("jeti");
+                            break;
+                        }
+                        case 119: {
+                            slice_from("e");
+                            break;
+                        }
+                        case 120: {
+                            slice_from("at");
+                            break;
+                        }
+                        case 121: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("luc");
+                            break;
+                        }
+                        case 122: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("snj");
+                            break;
+                        }
+                        case 123: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("os");
+                            break;
+                        }
+                        case 124: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("ac");
+                            break;
+                        }
+                        case 125: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("ec");
+                            break;
+                        }
+                        case 126: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("uc");
+                            break;
+                        }
+                        case 127: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("rosi");
+                            break;
+                        }
+                        case 128: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("aca");
+                            break;
+                        }
+                        case 129: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("jas");
+                            break;
+                        }
+                        case 130: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("tas");
+                            break;
+                        }
+                        case 131: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("gas");
+                            break;
+                        }
+                        case 132: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("nas");
+                            break;
+                        }
+                        case 133: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("kas");
+                            break;
+                        }
+                        case 134: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("vas");
+                            break;
+                        }
+                        case 135: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("bas");
+                            break;
+                        }
+                        case 136: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("as");
+                            break;
+                        }
+                        case 137: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("cin");
+                            break;
+                        }
+                        case 138: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("astaj");
+                            break;
+                        }
+                        case 139: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("istaj");
+                            break;
+                        }
+                        case 140: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("ostaj");
+                            break;
+                        }
+                        case 141: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("asta");
+                            break;
+                        }
+                        case 142: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("ista");
+                            break;
+                        }
+                        case 143: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("osta");
+                            break;
+                        }
+                        case 144: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("ava");
+                            break;
+                        }
+                        case 145: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("eva");
+                            break;
+                        }
+                        case 146: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("iva");
+                            break;
+                        }
+                        case 147: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("uva");
+                            break;
+                        }
+                        case 148: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("ova");
+                            break;
+                        }
+                        case 149: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("jeti");
+                            break;
+                        }
+                        case 150: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("inj");
+                            break;
+                        }
+                        case 151: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("ist");
+                            break;
+                        }
+                        case 152: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("es");
+                            break;
+                        }
+                        case 153: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("et");
+                            break;
+                        }
+                        case 154: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("is");
+                            break;
+                        }
+                        case 155: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("ir");
+                            break;
+                        }
+                        case 156: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("ur");
+                            break;
+                        }
+                        case 157: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("uj");
+                            break;
+                        }
+                        case 158: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("ni");
+                            break;
+                        }
+                        case 159: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("sn");
+                            break;
+                        }
+                        case 160: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("ta");
+                            break;
+                        }
+                        case 161: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("a");
+                            break;
+                        }
+                        case 162: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("i");
+                            break;
+                        }
+                        case 163: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("e");
+                            break;
+                        }
+                        case 164: {
+                            if (!B_no_diacritics)
+                            {
+                                goto lab24;
+                            }
+                            slice_from("n");
+                            break;
+                        }
+                    }
+                    goto lab23;
+                lab24: ;
+                    cursor = limit - c18;
+                    ket = cursor;
+                    if (find_among_b(a_3, null) == 0)
+                    {
+                        goto lab22;
+                    }
+                    bra = cursor;
+                    if (I_p1 > cursor)
+                    {
+                        goto lab22;
+                    }
+                    slice_del();
                 }
-            lab1: ;
-            lab0: ;
-                cursor = limit - c2;
+            lab23: ;
+            lab22: ;
+                cursor = limit - c17;
             }
             cursor = limit_backward;
             return true;

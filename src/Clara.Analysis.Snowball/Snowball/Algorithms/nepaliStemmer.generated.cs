@@ -1,4 +1,4 @@
-﻿// Generated from nepali.sbl by Snowball 3.0.0 - https://snowballstem.org/
+﻿// Generated from nepali.sbl by Snowball 3.2.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,10 +10,10 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from nepali.sbl by Snowball 3.0.0 - https://snowballstem.org/
+    ///  Generated from nepali.sbl by Snowball 3.2.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.2.0")]
     internal partial class NepaliStemmer : Stemmer
     {
 
@@ -141,122 +141,44 @@ namespace Snowball
         };
 
 
-        private bool r_remove_category_1()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_0, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            switch (among_var) {
-                case 1: {
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    {
-                        int c1 = limit - cursor;
-                        if (!(eq_s_b("\u090F")))
-                        {
-                            goto lab1;
-                        }
-                        goto lab0;
-                    lab1: ;
-                        cursor = limit - c1;
-                        if (!(eq_s_b("\u0947")))
-                        {
-                            goto lab2;
-                        }
-                        goto lab0;
-                    lab2: ;
-                        cursor = limit - c1;
-                        slice_del();
-                    }
-                lab0: ;
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_remove_category_2()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_1, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            switch (among_var) {
-                case 1: {
-                    {
-                        int c1 = limit - cursor;
-                        if (!(eq_s_b("\u092F\u094C")))
-                        {
-                            goto lab1;
-                        }
-                        goto lab0;
-                    lab1: ;
-                        cursor = limit - c1;
-                        if (!(eq_s_b("\u091B\u094C")))
-                        {
-                            goto lab2;
-                        }
-                        goto lab0;
-                    lab2: ;
-                        cursor = limit - c1;
-                        if (!(eq_s_b("\u0928\u094C")))
-                        {
-                            goto lab3;
-                        }
-                        goto lab0;
-                    lab3: ;
-                        cursor = limit - c1;
-                        if (!(eq_s_b("\u0925\u0947")))
-                        {
-                            return false;
-                        }
-                    }
-                lab0: ;
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    if (!(eq_s_b("\u0924\u094D\u0930")))
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_remove_category_3()
-        {
-            ket = cursor;
-            if (find_among_b(a_2, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            return true;
-        }
-
         protected override bool stem()
         {
+            int among_var;
             limit_backward = cursor;
             cursor = limit;
             {
                 int c1 = limit - cursor;
-                r_remove_category_1();
+                ket = cursor;
+                among_var = find_among_b(a_0, null);
+                if (among_var == 0)
+                {
+                    goto lab0;
+                }
+                bra = cursor;
+                switch (among_var) {
+                    case 1: {
+                        slice_del();
+                        break;
+                    }
+                    case 2: {
+                        if (!(eq_s_b("\u090F")))
+                        {
+                            goto lab2;
+                        }
+                        goto lab1;
+                    lab2: ;
+                        if (!(eq_s_b("\u0947")))
+                        {
+                            goto lab3;
+                        }
+                        goto lab1;
+                    lab3: ;
+                        slice_del();
+                    lab1: ;
+                        break;
+                    }
+                }
+            lab0: ;
                 cursor = limit - c1;
             }
             while (true)
@@ -264,13 +186,62 @@ namespace Snowball
                 int c2 = limit - cursor;
                 {
                     int c3 = limit - cursor;
-                    r_remove_category_2();
+                    ket = cursor;
+                    among_var = find_among_b(a_1, null);
+                    if (among_var == 0)
+                    {
+                        goto lab5;
+                    }
+                    bra = cursor;
+                    switch (among_var) {
+                        case 1: {
+                            if (!(eq_s_b("\u092F\u094C")))
+                            {
+                                goto lab7;
+                            }
+                            goto lab6;
+                        lab7: ;
+                            if (!(eq_s_b("\u091B\u094C")))
+                            {
+                                goto lab8;
+                            }
+                            goto lab6;
+                        lab8: ;
+                            if (!(eq_s_b("\u0928\u094C")))
+                            {
+                                goto lab9;
+                            }
+                            goto lab6;
+                        lab9: ;
+                            if (!(eq_s_b("\u0925\u0947")))
+                            {
+                                goto lab5;
+                            }
+                        lab6: ;
+                            slice_del();
+                            break;
+                        }
+                        case 2: {
+                            if (!(eq_s_b("\u0924\u094D\u0930")))
+                            {
+                                goto lab5;
+                            }
+                            slice_del();
+                            break;
+                        }
+                    }
+                lab5: ;
                     cursor = limit - c3;
                 }
-                if (!r_remove_category_3())
-                    goto lab0;
+                ket = cursor;
+                if (find_among_b(a_2, null) == 0)
+                {
+                    goto lab4;
+                }
+                bra = cursor;
+                slice_del();
                 continue;
-            lab0: ;
+            lab4: ;
                 cursor = limit - c2;
                 break;
             }

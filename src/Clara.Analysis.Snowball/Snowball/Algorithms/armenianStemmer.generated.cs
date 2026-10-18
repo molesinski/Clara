@@ -1,4 +1,4 @@
-﻿// Generated from armenian.sbl by Snowball 3.0.0 - https://snowballstem.org/
+﻿// Generated from armenian.sbl by Snowball 3.2.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,15 +10,12 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from armenian.sbl by Snowball 3.0.0 - https://snowballstem.org/
+    ///  Generated from armenian.sbl by Snowball 3.2.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.2.0")]
     internal partial class ArmenianStemmer : Stemmer
     {
-        private int I_p2;
-        private int I_pV;
-
         private const string g_v = "աեէըիուօ";
 
         private static readonly Among[] a_0 = new[]
@@ -229,8 +226,10 @@ namespace Snowball
         };
 
 
-        private bool r_mark_regions()
+        protected override bool stem()
         {
+            int I_p2;
+            int I_pV;
             I_pV = limit;
             I_p2 = limit;
             {
@@ -240,7 +239,7 @@ namespace Snowball
                     int ret = out_grouping(g_v, 1377, 1413, true);
                     if (ret < 0)
                     {
-                        goto lab0;
+                        goto lab1;
                     }
 
                     cursor += ret;
@@ -251,7 +250,7 @@ namespace Snowball
                     int ret = in_grouping(g_v, 1377, 1413, true);
                     if (ret < 0)
                     {
-                        goto lab0;
+                        goto lab1;
                     }
 
                     cursor += ret;
@@ -261,7 +260,7 @@ namespace Snowball
                     int ret = out_grouping(g_v, 1377, 1413, true);
                     if (ret < 0)
                     {
-                        goto lab0;
+                        goto lab1;
                     }
 
                     cursor += ret;
@@ -271,105 +270,76 @@ namespace Snowball
                     int ret = in_grouping(g_v, 1377, 1413, true);
                     if (ret < 0)
                     {
-                        goto lab0;
+                        goto lab1;
                     }
 
                     cursor += ret;
                 }
                 I_p2 = cursor;
-            lab0: ;
+            lab1: ;
                 cursor = c1;
             }
-            return true;
-        }
-
-        private bool r_R2()
-        {
-            return I_p2 <= cursor;
-        }
-
-        private bool r_adjective()
-        {
-            ket = cursor;
-            if (find_among_b(a_0, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            return true;
-        }
-
-        private bool r_verb()
-        {
-            ket = cursor;
-            if (find_among_b(a_1, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            return true;
-        }
-
-        private bool r_noun()
-        {
-            ket = cursor;
-            if (find_among_b(a_2, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            return true;
-        }
-
-        private bool r_ending()
-        {
-            ket = cursor;
-            if (find_among_b(a_3, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (!r_R2())
-                return false;
-            slice_del();
-            return true;
-        }
-
-        protected override bool stem()
-        {
-            r_mark_regions();
             limit_backward = cursor;
             cursor = limit;
             if (cursor < I_pV)
             {
                 return false;
             }
-            int c1 = limit_backward;
+            int c2 = limit_backward;
             limit_backward = I_pV;
             {
-                int c2 = limit - cursor;
-                r_ending();
-                cursor = limit - c2;
-            }
-            {
                 int c3 = limit - cursor;
-                r_verb();
+                ket = cursor;
+                if (find_among_b(a_3, null) == 0)
+                {
+                    goto lab2;
+                }
+                bra = cursor;
+                if (I_p2 > cursor)
+                {
+                    goto lab2;
+                }
+                slice_del();
+            lab2: ;
                 cursor = limit - c3;
             }
             {
                 int c4 = limit - cursor;
-                r_adjective();
+                ket = cursor;
+                if (find_among_b(a_1, null) == 0)
+                {
+                    goto lab3;
+                }
+                bra = cursor;
+                slice_del();
+            lab3: ;
                 cursor = limit - c4;
             }
             {
                 int c5 = limit - cursor;
-                r_noun();
+                ket = cursor;
+                if (find_among_b(a_0, null) == 0)
+                {
+                    goto lab4;
+                }
+                bra = cursor;
+                slice_del();
+            lab4: ;
                 cursor = limit - c5;
             }
-            limit_backward = c1;
+            {
+                int c6 = limit - cursor;
+                ket = cursor;
+                if (find_among_b(a_2, null) == 0)
+                {
+                    goto lab5;
+                }
+                bra = cursor;
+                slice_del();
+            lab5: ;
+                cursor = limit - c6;
+            }
+            limit_backward = c2;
             cursor = limit_backward;
             return true;
         }

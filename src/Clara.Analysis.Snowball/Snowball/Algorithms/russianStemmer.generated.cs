@@ -1,4 +1,4 @@
-﻿// Generated from russian.sbl by Snowball 3.0.0 - https://snowballstem.org/
+﻿// Generated from russian.sbl by Snowball 3.2.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,15 +10,12 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from russian.sbl by Snowball 3.0.0 - https://snowballstem.org/
+    ///  Generated from russian.sbl by Snowball 3.2.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.2.0")]
     internal partial class RussianStemmer : Stemmer
     {
-        private int I_p2;
-        private int I_pV;
-
         private const string g_v = "аеиоуыэюя";
 
         private static readonly Among[] a_0 = new[]
@@ -187,285 +184,11 @@ namespace Snowball
         };
 
 
-        private bool r_mark_regions()
-        {
-            I_pV = limit;
-            I_p2 = limit;
-            {
-                int c1 = cursor;
-                {
-
-                    int ret = out_grouping(g_v, 1072, 1103, true);
-                    if (ret < 0)
-                    {
-                        goto lab0;
-                    }
-
-                    cursor += ret;
-                }
-                I_pV = cursor;
-                {
-
-                    int ret = in_grouping(g_v, 1072, 1103, true);
-                    if (ret < 0)
-                    {
-                        goto lab0;
-                    }
-
-                    cursor += ret;
-                }
-                {
-
-                    int ret = out_grouping(g_v, 1072, 1103, true);
-                    if (ret < 0)
-                    {
-                        goto lab0;
-                    }
-
-                    cursor += ret;
-                }
-                {
-
-                    int ret = in_grouping(g_v, 1072, 1103, true);
-                    if (ret < 0)
-                    {
-                        goto lab0;
-                    }
-
-                    cursor += ret;
-                }
-                I_p2 = cursor;
-            lab0: ;
-                cursor = c1;
-            }
-            return true;
-        }
-
-        private bool r_R2()
-        {
-            return I_p2 <= cursor;
-        }
-
-        private bool r_perfective_gerund()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_0, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            switch (among_var) {
-                case 1: {
-                    {
-                        int c1 = limit - cursor;
-                        if (!(eq_s_b("а")))
-                        {
-                            goto lab1;
-                        }
-                        goto lab0;
-                    lab1: ;
-                        cursor = limit - c1;
-                        if (!(eq_s_b("я")))
-                        {
-                            return false;
-                        }
-                    }
-                lab0: ;
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    slice_del();
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_adjective()
-        {
-            ket = cursor;
-            if (find_among_b(a_1, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            return true;
-        }
-
-        private bool r_adjectival()
-        {
-            int among_var;
-            if (!r_adjective())
-                return false;
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                among_var = find_among_b(a_2, null);
-                if (among_var == 0)
-                {
-                    {
-                        cursor = limit - c1;
-                        goto lab0;
-                    }
-                }
-                bra = cursor;
-                switch (among_var) {
-                    case 1: {
-                        {
-                            int c2 = limit - cursor;
-                            if (!(eq_s_b("а")))
-                            {
-                                goto lab2;
-                            }
-                            goto lab1;
-                        lab2: ;
-                            cursor = limit - c2;
-                            if (!(eq_s_b("я")))
-                            {
-                                {
-                                    cursor = limit - c1;
-                                    goto lab0;
-                                }
-                            }
-                        }
-                    lab1: ;
-                        slice_del();
-                        break;
-                    }
-                    case 2: {
-                        slice_del();
-                        break;
-                    }
-                }
-            lab0: ;
-            }
-            return true;
-        }
-
-        private bool r_reflexive()
-        {
-            ket = cursor;
-            if (find_among_b(a_3, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            return true;
-        }
-
-        private bool r_verb()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_4, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            switch (among_var) {
-                case 1: {
-                    {
-                        int c1 = limit - cursor;
-                        if (!(eq_s_b("а")))
-                        {
-                            goto lab1;
-                        }
-                        goto lab0;
-                    lab1: ;
-                        cursor = limit - c1;
-                        if (!(eq_s_b("я")))
-                        {
-                            return false;
-                        }
-                    }
-                lab0: ;
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    slice_del();
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_noun()
-        {
-            ket = cursor;
-            if (find_among_b(a_5, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            return true;
-        }
-
-        private bool r_derivational()
-        {
-            ket = cursor;
-            if (find_among_b(a_6, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (!r_R2())
-                return false;
-            slice_del();
-            return true;
-        }
-
-        private bool r_tidy_up()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_7, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            switch (among_var) {
-                case 1: {
-                    slice_del();
-                    ket = cursor;
-                    if (!(eq_s_b("н")))
-                    {
-                        return false;
-                    }
-                    bra = cursor;
-                    if (!(eq_s_b("н")))
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    if (!(eq_s_b("н")))
-                    {
-                        return false;
-                    }
-                    slice_del();
-                    break;
-                }
-                case 3: {
-                    slice_del();
-                    break;
-                }
-            }
-            return true;
-        }
-
         protected override bool stem()
         {
+            int among_var;
+            int I_p2;
+            int I_pV;
             {
                 int c1 = cursor;
                 while (true)
@@ -498,79 +221,279 @@ namespace Snowball
                 }
                 cursor = c1;
             }
-            r_mark_regions();
+            I_pV = limit;
+            I_p2 = limit;
+            {
+                int c4 = cursor;
+                {
+
+                    int ret = out_grouping(g_v, 1072, 1103, true);
+                    if (ret < 0)
+                    {
+                        goto lab4;
+                    }
+
+                    cursor += ret;
+                }
+                I_pV = cursor;
+                {
+
+                    int ret = in_grouping(g_v, 1072, 1103, true);
+                    if (ret < 0)
+                    {
+                        goto lab4;
+                    }
+
+                    cursor += ret;
+                }
+                {
+
+                    int ret = out_grouping(g_v, 1072, 1103, true);
+                    if (ret < 0)
+                    {
+                        goto lab4;
+                    }
+
+                    cursor += ret;
+                }
+                {
+
+                    int ret = in_grouping(g_v, 1072, 1103, true);
+                    if (ret < 0)
+                    {
+                        goto lab4;
+                    }
+
+                    cursor += ret;
+                }
+                I_p2 = cursor;
+            lab4: ;
+                cursor = c4;
+            }
             limit_backward = cursor;
             cursor = limit;
             if (cursor < I_pV)
             {
                 return false;
             }
-            int c4 = limit_backward;
+            int c5 = limit_backward;
             limit_backward = I_pV;
             {
-                int c5 = limit - cursor;
+                int c6 = limit - cursor;
                 {
-                    int c6 = limit - cursor;
-                    if (!r_perfective_gerund())
-                        goto lab5;
-                    goto lab4;
-                lab5: ;
-                    cursor = limit - c6;
+                    int c7 = limit - cursor;
+                    ket = cursor;
+                    among_var = find_among_b(a_0, null);
+                    if (among_var == 0)
                     {
-                        int c7 = limit - cursor;
-                        if (!r_reflexive())
-                            {
-                                cursor = limit - c7;
-                                goto lab6;
-                            }
-                    lab6: ;
+                        goto lab7;
                     }
+                    bra = cursor;
+                    switch (among_var) {
+                        case 1: {
+                            if (!(eq_s_b("а")))
+                            {
+                                goto lab9;
+                            }
+                            goto lab8;
+                        lab9: ;
+                            if (!(eq_s_b("я")))
+                            {
+                                goto lab7;
+                            }
+                        lab8: ;
+                            slice_del();
+                            break;
+                        }
+                        case 2: {
+                            slice_del();
+                            break;
+                        }
+                    }
+                    goto lab6;
+                lab7: ;
+                    cursor = limit - c7;
                     {
                         int c8 = limit - cursor;
-                        if (!r_adjectival())
-                            goto lab8;
-                        goto lab7;
-                    lab8: ;
-                        cursor = limit - c8;
-                        if (!r_verb())
-                            goto lab9;
-                        goto lab7;
-                    lab9: ;
-                        cursor = limit - c8;
-                        if (!r_noun())
-                            goto lab3;
+                        ket = cursor;
+                        if (find_among_b(a_3, null) == 0)
+                        {
+                            {
+                                cursor = limit - c8;
+                                goto lab10;
+                            }
+                        }
+                        bra = cursor;
+                        slice_del();
+                    lab10: ;
                     }
-                lab7: ;
+                    {
+                        int c9 = limit - cursor;
+                        ket = cursor;
+                        if (find_among_b(a_1, null) == 0)
+                        {
+                            goto lab12;
+                        }
+                        bra = cursor;
+                        slice_del();
+                        {
+                            int c10 = limit - cursor;
+                            ket = cursor;
+                            among_var = find_among_b(a_2, null);
+                            if (among_var == 0)
+                            {
+                                {
+                                    cursor = limit - c10;
+                                    goto lab13;
+                                }
+                            }
+                            bra = cursor;
+                            switch (among_var) {
+                                case 1: {
+                                    if (!(eq_s_b("а")))
+                                    {
+                                        goto lab15;
+                                    }
+                                    goto lab14;
+                                lab15: ;
+                                    if (!(eq_s_b("я")))
+                                    {
+                                        {
+                                            cursor = limit - c10;
+                                            goto lab13;
+                                        }
+                                    }
+                                lab14: ;
+                                    slice_del();
+                                    break;
+                                }
+                                case 2: {
+                                    slice_del();
+                                    break;
+                                }
+                            }
+                        lab13: ;
+                        }
+                        goto lab11;
+                    lab12: ;
+                        cursor = limit - c9;
+                        ket = cursor;
+                        among_var = find_among_b(a_4, null);
+                        if (among_var == 0)
+                        {
+                            goto lab16;
+                        }
+                        bra = cursor;
+                        switch (among_var) {
+                            case 1: {
+                                if (!(eq_s_b("а")))
+                                {
+                                    goto lab18;
+                                }
+                                goto lab17;
+                            lab18: ;
+                                if (!(eq_s_b("я")))
+                                {
+                                    goto lab16;
+                                }
+                            lab17: ;
+                                slice_del();
+                                break;
+                            }
+                            case 2: {
+                                slice_del();
+                                break;
+                            }
+                        }
+                        goto lab11;
+                    lab16: ;
+                        cursor = limit - c9;
+                        ket = cursor;
+                        if (find_among_b(a_5, null) == 0)
+                        {
+                            goto lab5;
+                        }
+                        bra = cursor;
+                        slice_del();
+                    }
+                lab11: ;
                 }
-            lab4: ;
-            lab3: ;
-                cursor = limit - c5;
+            lab6: ;
+            lab5: ;
+                cursor = limit - c6;
             }
             {
-                int c9 = limit - cursor;
+                int c11 = limit - cursor;
                 ket = cursor;
                 if (!(eq_s_b("и")))
                 {
                     {
-                        cursor = limit - c9;
-                        goto lab10;
+                        cursor = limit - c11;
+                        goto lab19;
                     }
                 }
                 bra = cursor;
                 slice_del();
-            lab10: ;
+            lab19: ;
             }
             {
-                int c10 = limit - cursor;
-                r_derivational();
-                cursor = limit - c10;
+                int c12 = limit - cursor;
+                ket = cursor;
+                if (find_among_b(a_6, null) == 0)
+                {
+                    goto lab20;
+                }
+                bra = cursor;
+                if (I_p2 > cursor)
+                {
+                    goto lab20;
+                }
+                slice_del();
+            lab20: ;
+                cursor = limit - c12;
             }
             {
-                int c11 = limit - cursor;
-                r_tidy_up();
-                cursor = limit - c11;
+                int c13 = limit - cursor;
+                ket = cursor;
+                among_var = find_among_b(a_7, null);
+                if (among_var == 0)
+                {
+                    goto lab21;
+                }
+                bra = cursor;
+                switch (among_var) {
+                    case 1: {
+                        slice_del();
+                        ket = cursor;
+                        if (!(eq_s_b("н")))
+                        {
+                            goto lab21;
+                        }
+                        bra = cursor;
+                        if (!(eq_s_b("н")))
+                        {
+                            goto lab21;
+                        }
+                        slice_del();
+                        break;
+                    }
+                    case 2: {
+                        if (!(eq_s_b("н")))
+                        {
+                            goto lab21;
+                        }
+                        slice_del();
+                        break;
+                    }
+                    case 3: {
+                        slice_del();
+                        break;
+                    }
+                }
+            lab21: ;
+                cursor = limit - c13;
             }
-            limit_backward = c4;
+            limit_backward = c5;
             cursor = limit_backward;
             return true;
         }

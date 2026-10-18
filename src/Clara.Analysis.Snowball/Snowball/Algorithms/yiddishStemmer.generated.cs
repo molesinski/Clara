@@ -1,4 +1,4 @@
-﻿// Generated from yiddish.sbl by Snowball 3.0.0 - https://snowballstem.org/
+﻿// Generated from yiddish.sbl by Snowball 3.2.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,14 +10,12 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from yiddish.sbl by Snowball 3.0.0 - https://snowballstem.org/
+    ///  Generated from yiddish.sbl by Snowball 3.2.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.2.0")]
     internal partial class YiddishStemmer : Stemmer
     {
-        private int I_p1;
-
         private const string g_niked = "\u05B0\u05B1\u05B2\u05B3\u05B4\u05B5\u05B6\u05B7\u05B8\u05B9\u05BB\u05BC\u05BF\u05C1\u05C2";
         private const string g_vowel = "\u05D0\u05D5\u05D9\u05E2\u05F1\u05F2";
         private const string g_consonant = "\u05D1\u05D2\u05D3\u05D4\u05D6\u05D7\u05D8\u05DA\u05DB\u05DC\u05DD\u05DE\u05DF\u05E0\u05E1\u05E3\u05E4\u05E5\u05E6\u05E7\u05E8\u05E9\u05EA\u05F0";
@@ -223,9 +221,11 @@ namespace Snowball
         };
 
 
-        private bool r_prelude()
+        protected override bool stem()
         {
             int among_var;
+            int I_x;
+            int I_p1;
             {
                 int c1 = cursor;
                 while (true)
@@ -238,49 +238,37 @@ namespace Snowball
                         among_var = find_among(a_0, null);
                         if (among_var == 0)
                         {
-                            goto lab2;
+                            goto lab3;
                         }
                         ket = cursor;
                         switch (among_var) {
                             case 1: {
+                                if (!(eq_s("\u05BC")))
                                 {
-                                    int c4 = cursor;
-                                    if (!(eq_s("\u05BC")))
-                                    {
-                                        goto lab3;
-                                    }
-                                    goto lab2;
-                                lab3: ;
-                                    cursor = c4;
+                                    goto lab4;
                                 }
+                                goto lab3;
+                            lab4: ;
                                 slice_from("\u05F0");
                                 break;
                             }
                             case 2: {
+                                if (!(eq_s("\u05B4")))
                                 {
-                                    int c5 = cursor;
-                                    if (!(eq_s("\u05B4")))
-                                    {
-                                        goto lab4;
-                                    }
-                                    goto lab2;
-                                lab4: ;
-                                    cursor = c5;
+                                    goto lab5;
                                 }
+                                goto lab3;
+                            lab5: ;
                                 slice_from("\u05F1");
                                 break;
                             }
                             case 3: {
+                                if (!(eq_s("\u05B4")))
                                 {
-                                    int c6 = cursor;
-                                    if (!(eq_s("\u05B4")))
-                                    {
-                                        goto lab5;
-                                    }
-                                    goto lab2;
-                                lab5: ;
-                                    cursor = c6;
+                                    goto lab6;
                                 }
+                                goto lab3;
+                            lab6: ;
                                 slice_from("\u05F2");
                                 break;
                             }
@@ -307,296 +295,277 @@ namespace Snowball
                         }
                         cursor = c3;
                         break;
-                    lab2: ;
+                    lab3: ;
                         cursor = c3;
                         if (cursor >= limit)
                         {
-                            goto lab1;
+                            goto lab2;
                         }
                         cursor++;
                     }
                     continue;
-                lab1: ;
+                lab2: ;
                     cursor = c2;
                     break;
                 }
                 cursor = c1;
             }
             {
-                int c7 = cursor;
+                int c4 = cursor;
                 while (true)
                 {
-                    int c8 = cursor;
+                    int c5 = cursor;
                     while (true)
                     {
-                        int c9 = cursor;
+                        int c6 = cursor;
                         bra = cursor;
                         if (in_grouping(g_niked, 1456, 1474, false) != 0)
                         {
-                            goto lab8;
+                            goto lab9;
                         }
                         ket = cursor;
                         slice_del();
-                        cursor = c9;
+                        cursor = c6;
                         break;
-                    lab8: ;
-                        cursor = c9;
+                    lab9: ;
+                        cursor = c6;
                         if (cursor >= limit)
                         {
-                            goto lab7;
+                            goto lab8;
                         }
                         cursor++;
                     }
                     continue;
-                lab7: ;
-                    cursor = c8;
+                lab8: ;
+                    cursor = c5;
                     break;
                 }
-                cursor = c7;
-            }
-            return true;
-        }
-
-        private bool r_mark_regions()
-        {
-            int I_x;
-            I_p1 = limit;
-            {
-                int c1 = cursor;
-                bra = cursor;
-                if (!(eq_s("\u05D2\u05E2")))
-                {
-                    {
-                        cursor = c1;
-                        goto lab0;
-                    }
-                }
-                ket = cursor;
-                {
-                    int c2 = cursor;
-                    {
-                        int c3 = cursor;
-                        if (!(eq_s("\u05DC\u05D8")))
-                        {
-                            goto lab3;
-                        }
-                        goto lab2;
-                    lab3: ;
-                        cursor = c3;
-                        if (!(eq_s("\u05D1\u05E0")))
-                        {
-                            goto lab4;
-                        }
-                        goto lab2;
-                    lab4: ;
-                        cursor = c3;
-                        if (cursor < limit)
-                        {
-                            goto lab1;
-                        }
-                    }
-                lab2: ;
-                    {
-                        cursor = c1;
-                        goto lab0;
-                    }
-                lab1: ;
-                    cursor = c2;
-                }
-                slice_from("GE");
-            lab0: ;
+                cursor = c4;
             }
             {
-                int c4 = cursor;
-                if (find_among(a_1, null) == 0)
+                int c7 = cursor;
+                I_p1 = limit;
                 {
-                    {
-                        cursor = c4;
-                        goto lab5;
-                    }
-                }
-                {
-                    int c5 = cursor;
-                    {
-                        int c6 = cursor;
-                        {
-                            int c7 = cursor;
-                            if (!(eq_s("\u05E6\u05D5\u05D2\u05E0")))
-                            {
-                                goto lab9;
-                            }
-                            goto lab8;
-                        lab9: ;
-                            cursor = c7;
-                            if (!(eq_s("\u05E6\u05D5\u05E7\u05D8")))
-                            {
-                                goto lab10;
-                            }
-                            goto lab8;
-                        lab10: ;
-                            cursor = c7;
-                            if (!(eq_s("\u05E6\u05D5\u05E7\u05E0")))
-                            {
-                                goto lab7;
-                            }
-                        }
-                    lab8: ;
-                        if (cursor < limit)
-                        {
-                            goto lab7;
-                        }
-                        cursor = c6;
-                    }
-                    goto lab6;
-                lab7: ;
-                    cursor = c5;
-                    {
-                        int c8 = cursor;
-                        if (!(eq_s("\u05D2\u05E2\u05D1\u05E0")))
-                        {
-                            goto lab11;
-                        }
-                        cursor = c8;
-                    }
-                    goto lab6;
-                lab11: ;
-                    cursor = c5;
+                    int c8 = cursor;
                     bra = cursor;
                     if (!(eq_s("\u05D2\u05E2")))
                     {
-                        goto lab12;
-                    }
-                    ket = cursor;
-                    slice_from("GE");
-                    goto lab6;
-                lab12: ;
-                    cursor = c5;
-                    bra = cursor;
-                    if (!(eq_s("\u05E6\u05D5")))
-                    {
                         {
-                            cursor = c4;
-                            goto lab5;
+                            cursor = c8;
+                            goto lab11;
                         }
                     }
                     ket = cursor;
-                    slice_from("TSU");
-                }
-            lab6: ;
-            lab5: ;
-            }
-            {
-                int c9 = cursor;
-                {
-                    int c = cursor + 3;
-                    if (c > limit)
                     {
-                        return false;
-                    }
-                    cursor = c;
-                }
-                I_x = cursor;
-                cursor = c9;
-            }
-            {
-                int c10 = cursor;
-                if (find_among(a_2, null) == 0)
-                {
-                    {
-                        cursor = c10;
+                        int c9 = cursor;
+                        if (!(eq_s("\u05DC\u05D8")))
+                        {
+                            goto lab14;
+                        }
                         goto lab13;
+                    lab14: ;
+                        if (!(eq_s("\u05D1\u05E0")))
+                        {
+                            goto lab15;
+                        }
+                        goto lab13;
+                    lab15: ;
+                        if (cursor < limit)
+                        {
+                            goto lab12;
+                        }
+                    lab13: ;
+                        {
+                            cursor = c8;
+                            goto lab11;
+                        }
+                    lab12: ;
+                        cursor = c9;
                     }
+                    slice_from("GE");
+                lab11: ;
                 }
-            lab13: ;
-            }
-            {
-                int c11 = cursor;
-                if (in_grouping(g_consonant, 1489, 1520, false) != 0)
                 {
-                    goto lab14;
+                    int c10 = cursor;
+                    if (find_among(a_1, null) == 0)
+                    {
+                        {
+                            cursor = c10;
+                            goto lab16;
+                        }
+                    }
+                    {
+                        int c11 = cursor;
+                        {
+                            int c12 = cursor;
+                            if (!(eq_s("\u05E6\u05D5\u05D2\u05E0")))
+                            {
+                                goto lab20;
+                            }
+                            goto lab19;
+                        lab20: ;
+                            if (!(eq_s("\u05E6\u05D5\u05E7\u05D8")))
+                            {
+                                goto lab21;
+                            }
+                            goto lab19;
+                        lab21: ;
+                            if (!(eq_s("\u05E6\u05D5\u05E7\u05E0")))
+                            {
+                                goto lab18;
+                            }
+                        lab19: ;
+                            if (cursor < limit)
+                            {
+                                goto lab18;
+                            }
+                            cursor = c12;
+                        }
+                        goto lab17;
+                    lab18: ;
+                        cursor = c11;
+                        {
+                            int c13 = cursor;
+                            if (!(eq_s("\u05D2\u05E2\u05D1\u05E0")))
+                            {
+                                goto lab22;
+                            }
+                            cursor = c13;
+                        }
+                        goto lab17;
+                    lab22: ;
+                        cursor = c11;
+                        bra = cursor;
+                        if (!(eq_s("\u05D2\u05E2")))
+                        {
+                            goto lab23;
+                        }
+                        ket = cursor;
+                        slice_from("GE");
+                        goto lab17;
+                    lab23: ;
+                        cursor = c11;
+                        bra = cursor;
+                        if (!(eq_s("\u05E6\u05D5")))
+                        {
+                            {
+                                cursor = c10;
+                                goto lab16;
+                            }
+                        }
+                        ket = cursor;
+                        slice_from("TSU");
+                    }
+                lab17: ;
+                lab16: ;
                 }
-                if (in_grouping(g_consonant, 1489, 1520, false) != 0)
                 {
-                    goto lab14;
+                    int c14 = cursor;
+                    {
+                        int c = cursor + 3;
+                        if (c > limit)
+                        {
+                            goto lab10;
+                        }
+                        cursor = c;
+                    }
+                    I_x = cursor;
+                    cursor = c14;
                 }
-                if (in_grouping(g_consonant, 1489, 1520, false) != 0)
                 {
-                    goto lab14;
+                    int c15 = cursor;
+                    if (find_among(a_2, null) == 0)
+                    {
+                        {
+                            cursor = c15;
+                            goto lab24;
+                        }
+                    }
+                lab24: ;
                 }
+                {
+                    int c16 = cursor;
+                    if (in_grouping(g_consonant, 1489, 1520, false) != 0)
+                    {
+                        goto lab25;
+                    }
+                    if (in_grouping(g_consonant, 1489, 1520, false) != 0)
+                    {
+                        goto lab25;
+                    }
+                    if (in_grouping(g_consonant, 1489, 1520, false) != 0)
+                    {
+                        goto lab25;
+                    }
+                    I_p1 = cursor;
+                    goto lab10;
+                lab25: ;
+                    cursor = c16;
+                }
+                {
+
+                    int ret = out_grouping(g_vowel, 1488, 1522, true);
+                    if (ret < 0)
+                    {
+                        goto lab10;
+                    }
+
+                    cursor += ret;
+                }
+                if (in_grouping(g_vowel, 1488, 1522, true) < 0)
+                {
+                    goto lab10;
+                }
+
                 I_p1 = cursor;
-                return false;
-            lab14: ;
-                cursor = c11;
-            }
-            {
-
-                int ret = out_grouping(g_vowel, 1488, 1522, true);
-                if (ret < 0)
+                if (I_p1 >= I_x)
                 {
-                    return false;
+                    goto lab26;
                 }
-
-                cursor += ret;
+                I_p1 = I_x;
+            lab26: ;
+            lab10: ;
+                cursor = c7;
             }
-            if (in_grouping(g_vowel, 1488, 1522, true) < 0)
+            limit_backward = cursor;
+            cursor = limit;
             {
-                return false;
-            }
-
-            I_p1 = cursor;
-            if (I_p1 >= I_x)
-            {
-                goto lab15;
-            }
-            I_p1 = I_x;
-        lab15: ;
-            return true;
-        }
-
-        private bool r_R1()
-        {
-            return I_p1 <= cursor;
-        }
-
-        private bool r_R1plus3()
-        {
-            return I_p1 <= (cursor + 3);
-        }
-
-        private bool r_standard_suffix()
-        {
-            int among_var;
-            {
-                int c1 = limit - cursor;
+                int c17 = limit - cursor;
                 ket = cursor;
                 among_var = find_among_b(a_4, null);
                 if (among_var == 0)
                 {
-                    goto lab0;
+                    goto lab28;
                 }
                 bra = cursor;
                 switch (among_var) {
                     case 1: {
-                        if (!r_R1())
-                            goto lab0;
+                        if (I_p1 > cursor)
+                        {
+                            goto lab28;
+                        }
                         slice_del();
                         break;
                     }
                     case 2: {
-                        if (!r_R1())
-                            goto lab0;
+                        if (I_p1 > cursor)
+                        {
+                            goto lab28;
+                        }
                         slice_from("\u05D9\u05E2");
                         break;
                     }
                     case 3: {
-                        if (!r_R1())
-                            goto lab0;
+                        if (I_p1 > cursor)
+                        {
+                            goto lab28;
+                        }
                         slice_del();
                         ket = cursor;
                         among_var = find_among_b(a_3, null);
                         if (among_var == 0)
                         {
-                            goto lab0;
+                            goto lab28;
                         }
                         bra = cursor;
                         switch (among_var) {
@@ -709,31 +678,33 @@ namespace Snowball
                     }
                     case 4: {
                         {
-                            int c2 = limit - cursor;
-                            if (!r_R1())
-                                goto lab2;
+                            int c18 = limit - cursor;
+                            if (I_p1 > cursor)
+                            {
+                                goto lab30;
+                            }
                             slice_del();
-                            goto lab1;
-                        lab2: ;
-                            cursor = limit - c2;
+                            goto lab29;
+                        lab30: ;
+                            cursor = limit - c18;
                             slice_from("\u05D8");
                         }
-                    lab1: ;
+                    lab29: ;
                         ket = cursor;
                         if (!(eq_s_b("\u05D1\u05E8\u05D0\u05DB")))
                         {
-                            goto lab0;
+                            goto lab28;
                         }
                         {
-                            int c3 = limit - cursor;
+                            int c19 = limit - cursor;
                             if (!(eq_s_b("\u05D2\u05E2")))
                             {
                                 {
-                                    cursor = limit - c3;
-                                    goto lab3;
+                                    cursor = limit - c19;
+                                    goto lab31;
                                 }
                             }
-                        lab3: ;
+                        lab31: ;
                         }
                         bra = cursor;
                         slice_from("\u05D1\u05E8\u05E2\u05E0\u05D2");
@@ -848,160 +819,150 @@ namespace Snowball
                         break;
                     }
                     case 32: {
-                        if (!r_R1())
-                            goto lab0;
+                        if (I_p1 > cursor)
+                        {
+                            goto lab28;
+                        }
                         slice_from("\u05D4");
                         break;
                     }
                     case 33: {
                         {
-                            int c4 = limit - cursor;
+                            int c20 = limit - cursor;
+                            if (!(eq_s_b("\u05D2")))
                             {
-                                int c5 = limit - cursor;
-                                if (!(eq_s_b("\u05D2")))
-                                {
-                                    goto lab7;
-                                }
-                                goto lab6;
-                            lab7: ;
-                                cursor = limit - c5;
-                                if (!(eq_s_b("\u05E9")))
-                                {
-                                    goto lab5;
-                                }
+                                goto lab35;
                             }
-                        lab6: ;
+                            goto lab34;
+                        lab35: ;
+                            if (!(eq_s_b("\u05E9")))
                             {
-                                int c6 = limit - cursor;
-                                if (!r_R1plus3())
+                                goto lab33;
+                            }
+                        lab34: ;
+                            {
+                                int c21 = limit - cursor;
+                                if (I_p1 > (cursor + 3))
+                                {
                                     {
-                                        cursor = limit - c6;
-                                        goto lab8;
+                                        cursor = limit - c21;
+                                        goto lab36;
                                     }
+                                }
                                 slice_from("\u05D9\u05E1");
-                            lab8: ;
+                            lab36: ;
                             }
-                            goto lab4;
-                        lab5: ;
-                            cursor = limit - c4;
-                            if (!r_R1())
-                                goto lab0;
+                            goto lab32;
+                        lab33: ;
+                            cursor = limit - c20;
+                            if (I_p1 > cursor)
+                            {
+                                goto lab28;
+                            }
                             slice_del();
                         }
-                    lab4: ;
+                    lab32: ;
                         break;
                     }
                 }
-            lab0: ;
-                cursor = limit - c1;
+            lab28: ;
+                cursor = limit - c17;
             }
             {
-                int c7 = limit - cursor;
+                int c22 = limit - cursor;
                 ket = cursor;
                 among_var = find_among_b(a_5, null);
                 if (among_var == 0)
                 {
-                    goto lab9;
+                    goto lab37;
                 }
                 bra = cursor;
                 switch (among_var) {
                     case 1: {
-                        if (!r_R1())
-                            goto lab9;
+                        if (I_p1 > cursor)
+                        {
+                            goto lab37;
+                        }
                         slice_del();
                         break;
                     }
                     case 2: {
-                        if (!r_R1())
-                            goto lab9;
+                        if (I_p1 > cursor)
+                        {
+                            goto lab37;
+                        }
                         if (in_grouping_b(g_consonant, 1489, 1520, false) != 0)
                         {
-                            goto lab9;
+                            goto lab37;
                         }
                         slice_del();
                         break;
                     }
                 }
-            lab9: ;
-                cursor = limit - c7;
+            lab37: ;
+                cursor = limit - c22;
             }
             {
-                int c8 = limit - cursor;
+                int c23 = limit - cursor;
                 ket = cursor;
                 among_var = find_among_b(a_6, null);
                 if (among_var == 0)
                 {
-                    goto lab10;
+                    goto lab38;
                 }
                 bra = cursor;
                 switch (among_var) {
                     case 1: {
-                        if (!r_R1())
-                            goto lab10;
+                        if (I_p1 > cursor)
+                        {
+                            goto lab38;
+                        }
                         slice_del();
                         break;
                     }
                 }
-            lab10: ;
-                cursor = limit - c8;
+            lab38: ;
+                cursor = limit - c23;
             }
             {
-                int c9 = limit - cursor;
+                int c24 = limit - cursor;
                 while (true)
                 {
-                    int c10 = limit - cursor;
+                    int c25 = limit - cursor;
                     while (true)
                     {
-                        int c11 = limit - cursor;
+                        int c26 = limit - cursor;
                         ket = cursor;
+                        if (!(eq_s_b("GE")))
                         {
-                            int c12 = limit - cursor;
-                            if (!(eq_s_b("GE")))
-                            {
-                                goto lab15;
-                            }
-                            goto lab14;
-                        lab15: ;
-                            cursor = limit - c12;
-                            if (!(eq_s_b("TSU")))
-                            {
-                                goto lab13;
-                            }
+                            goto lab43;
                         }
-                    lab14: ;
+                        goto lab42;
+                    lab43: ;
+                        if (!(eq_s_b("TSU")))
+                        {
+                            goto lab41;
+                        }
+                    lab42: ;
                         bra = cursor;
                         slice_del();
-                        cursor = limit - c11;
+                        cursor = limit - c26;
                         break;
-                    lab13: ;
-                        cursor = limit - c11;
+                    lab41: ;
+                        cursor = limit - c26;
                         if (cursor <= limit_backward)
                         {
-                            goto lab12;
+                            goto lab40;
                         }
                         cursor--;
                     }
                     continue;
-                lab12: ;
-                    cursor = limit - c10;
+                lab40: ;
+                    cursor = limit - c25;
                     break;
                 }
-                cursor = limit - c9;
+                cursor = limit - c24;
             }
-            return true;
-        }
-
-        protected override bool stem()
-        {
-            r_prelude();
-            {
-                int c1 = cursor;
-                r_mark_regions();
-                cursor = c1;
-            }
-            limit_backward = cursor;
-            cursor = limit;
-            r_standard_suffix();
             cursor = limit_backward;
             return true;
         }

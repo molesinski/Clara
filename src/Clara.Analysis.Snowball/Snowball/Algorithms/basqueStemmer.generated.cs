@@ -1,4 +1,4 @@
-﻿// Generated from basque.sbl by Snowball 3.0.0 - https://snowballstem.org/
+﻿// Generated from basque.sbl by Snowball 3.2.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,16 +10,12 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from basque.sbl by Snowball 3.0.0 - https://snowballstem.org/
+    ///  Generated from basque.sbl by Snowball 3.2.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.2.0")]
     internal partial class BasqueStemmer : Stemmer
     {
-        private int I_p2;
-        private int I_p1;
-        private int I_pV;
-
         private const string g_v = "aeiou";
 
         private static readonly Among[] a_0 = new[]
@@ -458,8 +454,12 @@ namespace Snowball
         };
 
 
-        private bool r_mark_regions()
+        protected override bool stem()
         {
+            int among_var;
+            int I_p2;
+            int I_p1;
+            int I_pV;
             I_pV = limit;
             I_p1 = limit;
             I_p2 = limit;
@@ -469,84 +469,84 @@ namespace Snowball
                     int c2 = cursor;
                     if (in_grouping(g_v, 97, 117, false) != 0)
                     {
-                        goto lab2;
+                        goto lab3;
                     }
                     {
                         int c3 = cursor;
                         if (out_grouping(g_v, 97, 117, false) != 0)
                         {
-                            goto lab4;
+                            goto lab5;
                         }
                         {
 
                             int ret = out_grouping(g_v, 97, 117, true);
                             if (ret < 0)
                             {
-                                goto lab4;
+                                goto lab5;
                             }
 
                             cursor += ret;
                         }
-                        goto lab3;
-                    lab4: ;
+                        goto lab4;
+                    lab5: ;
                         cursor = c3;
                         if (in_grouping(g_v, 97, 117, false) != 0)
                         {
-                            goto lab2;
+                            goto lab3;
                         }
                         {
 
                             int ret = in_grouping(g_v, 97, 117, true);
                             if (ret < 0)
                             {
-                                goto lab2;
+                                goto lab3;
                             }
 
                             cursor += ret;
                         }
                     }
+                lab4: ;
+                    goto lab2;
                 lab3: ;
-                    goto lab1;
-                lab2: ;
                     cursor = c2;
                     if (out_grouping(g_v, 97, 117, false) != 0)
                     {
-                        goto lab0;
+                        goto lab1;
                     }
                     {
                         int c4 = cursor;
                         if (out_grouping(g_v, 97, 117, false) != 0)
                         {
-                            goto lab6;
+                            goto lab7;
                         }
                         {
 
                             int ret = out_grouping(g_v, 97, 117, true);
                             if (ret < 0)
                             {
-                                goto lab6;
+                                goto lab7;
                             }
 
                             cursor += ret;
                         }
-                        goto lab5;
-                    lab6: ;
+                        goto lab6;
+                    lab7: ;
                         cursor = c4;
                         if (in_grouping(g_v, 97, 117, false) != 0)
                         {
-                            goto lab0;
+                            goto lab1;
                         }
                         if (cursor >= limit)
                         {
-                            goto lab0;
+                            goto lab1;
                         }
                         cursor++;
                     }
-                lab5: ;
+                lab6: ;
                 }
-            lab1: ;
+            lab2: ;
                 I_pV = cursor;
-            lab0: ;
+            lab1: ;
                 cursor = c1;
             }
             {
@@ -556,7 +556,7 @@ namespace Snowball
                     int ret = out_grouping(g_v, 97, 117, true);
                     if (ret < 0)
                     {
-                        goto lab7;
+                        goto lab8;
                     }
 
                     cursor += ret;
@@ -566,7 +566,7 @@ namespace Snowball
                     int ret = in_grouping(g_v, 97, 117, true);
                     if (ret < 0)
                     {
-                        goto lab7;
+                        goto lab8;
                     }
 
                     cursor += ret;
@@ -577,7 +577,7 @@ namespace Snowball
                     int ret = out_grouping(g_v, 97, 117, true);
                     if (ret < 0)
                     {
-                        goto lab7;
+                        goto lab8;
                     }
 
                     cursor += ret;
@@ -587,159 +587,128 @@ namespace Snowball
                     int ret = in_grouping(g_v, 97, 117, true);
                     if (ret < 0)
                     {
-                        goto lab7;
+                        goto lab8;
                     }
 
                     cursor += ret;
                 }
                 I_p2 = cursor;
-            lab7: ;
+            lab8: ;
                 cursor = c5;
             }
-            return true;
-        }
-
-        private bool r_RV()
-        {
-            return I_pV <= cursor;
-        }
-
-        private bool r_R2()
-        {
-            return I_p2 <= cursor;
-        }
-
-        private bool r_R1()
-        {
-            return I_p1 <= cursor;
-        }
-
-        private bool r_aditzak()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_0, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            switch (among_var) {
-                case 1: {
-                    if (!r_RV())
-                        return false;
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    if (!r_R2())
-                        return false;
-                    slice_del();
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_izenak()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_1, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            switch (among_var) {
-                case 1: {
-                    if (!r_RV())
-                        return false;
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    if (!r_R2())
-                        return false;
-                    slice_del();
-                    break;
-                }
-                case 3: {
-                    slice_from("jok");
-                    break;
-                }
-                case 4: {
-                    if (!r_R1())
-                        return false;
-                    slice_del();
-                    break;
-                }
-                case 5: {
-                    slice_from("tra");
-                    break;
-                }
-                case 6: {
-                    slice_from("minutu");
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_adjetiboak()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_2, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            switch (among_var) {
-                case 1: {
-                    if (!r_RV())
-                        return false;
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    slice_from("z");
-                    break;
-                }
-            }
-            return true;
-        }
-
-        protected override bool stem()
-        {
-            r_mark_regions();
             limit_backward = cursor;
             cursor = limit;
             while (true)
             {
-                int c1 = limit - cursor;
-                if (!r_aditzak())
-                    goto lab0;
+                int c6 = limit - cursor;
+                ket = cursor;
+                among_var = find_among_b(a_0, null);
+                if (among_var == 0)
+                {
+                    goto lab9;
+                }
+                bra = cursor;
+                switch (among_var) {
+                    case 1: {
+                        if (I_pV > cursor)
+                        {
+                            goto lab9;
+                        }
+                        slice_del();
+                        break;
+                    }
+                    case 2: {
+                        if (I_p2 > cursor)
+                        {
+                            goto lab9;
+                        }
+                        slice_del();
+                        break;
+                    }
+                }
                 continue;
-            lab0: ;
-                cursor = limit - c1;
+            lab9: ;
+                cursor = limit - c6;
                 break;
             }
             while (true)
             {
-                int c2 = limit - cursor;
-                if (!r_izenak())
-                    goto lab1;
+                int c7 = limit - cursor;
+                ket = cursor;
+                among_var = find_among_b(a_1, null);
+                if (among_var == 0)
+                {
+                    goto lab10;
+                }
+                bra = cursor;
+                switch (among_var) {
+                    case 1: {
+                        if (I_pV > cursor)
+                        {
+                            goto lab10;
+                        }
+                        slice_del();
+                        break;
+                    }
+                    case 2: {
+                        if (I_p2 > cursor)
+                        {
+                            goto lab10;
+                        }
+                        slice_del();
+                        break;
+                    }
+                    case 3: {
+                        slice_from("jok");
+                        break;
+                    }
+                    case 4: {
+                        if (I_p1 > cursor)
+                        {
+                            goto lab10;
+                        }
+                        slice_del();
+                        break;
+                    }
+                    case 5: {
+                        slice_from("tra");
+                        break;
+                    }
+                    case 6: {
+                        slice_from("minutu");
+                        break;
+                    }
+                }
                 continue;
-            lab1: ;
-                cursor = limit - c2;
+            lab10: ;
+                cursor = limit - c7;
                 break;
             }
             {
-                int c3 = limit - cursor;
-                r_adjetiboak();
-                cursor = limit - c3;
+                int c8 = limit - cursor;
+                ket = cursor;
+                among_var = find_among_b(a_2, null);
+                if (among_var == 0)
+                {
+                    goto lab11;
+                }
+                bra = cursor;
+                switch (among_var) {
+                    case 1: {
+                        if (I_pV > cursor)
+                        {
+                            goto lab11;
+                        }
+                        slice_del();
+                        break;
+                    }
+                    case 2: {
+                        slice_from("z");
+                        break;
+                    }
+                }
+            lab11: ;
+                cursor = limit - c8;
             }
             cursor = limit_backward;
             return true;

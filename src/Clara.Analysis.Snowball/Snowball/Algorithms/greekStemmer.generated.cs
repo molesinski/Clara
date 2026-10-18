@@ -1,4 +1,4 @@
-﻿// Generated from greek.sbl by Snowball 3.0.0 - https://snowballstem.org/
+﻿// Generated from greek.sbl by Snowball 3.2.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,14 +10,12 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from greek.sbl by Snowball 3.0.0 - https://snowballstem.org/
+    ///  Generated from greek.sbl by Snowball 3.2.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.2.0")]
     internal partial class GreekStemmer : Stemmer
     {
-        private bool B_test1;
-
         private const string g_v = "αεηιουω";
         private const string g_v2 = "αεηιοω";
 
@@ -1192,1479 +1190,1304 @@ namespace Snowball
         };
 
 
-        private bool r_has_min_length()
-        {
-            return current.Length >= 3;
-        }
-
-        private bool r_tolower()
-        {
-            int among_var;
-            while (true)
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                among_var = find_among_b(a_0, null);
-                bra = cursor;
-                switch (among_var) {
-                    case 1: {
-                        slice_from("α");
-                        break;
-                    }
-                    case 2: {
-                        slice_from("β");
-                        break;
-                    }
-                    case 3: {
-                        slice_from("γ");
-                        break;
-                    }
-                    case 4: {
-                        slice_from("δ");
-                        break;
-                    }
-                    case 5: {
-                        slice_from("ε");
-                        break;
-                    }
-                    case 6: {
-                        slice_from("ζ");
-                        break;
-                    }
-                    case 7: {
-                        slice_from("η");
-                        break;
-                    }
-                    case 8: {
-                        slice_from("θ");
-                        break;
-                    }
-                    case 9: {
-                        slice_from("ι");
-                        break;
-                    }
-                    case 10: {
-                        slice_from("κ");
-                        break;
-                    }
-                    case 11: {
-                        slice_from("λ");
-                        break;
-                    }
-                    case 12: {
-                        slice_from("μ");
-                        break;
-                    }
-                    case 13: {
-                        slice_from("ν");
-                        break;
-                    }
-                    case 14: {
-                        slice_from("ξ");
-                        break;
-                    }
-                    case 15: {
-                        slice_from("ο");
-                        break;
-                    }
-                    case 16: {
-                        slice_from("π");
-                        break;
-                    }
-                    case 17: {
-                        slice_from("ρ");
-                        break;
-                    }
-                    case 18: {
-                        slice_from("σ");
-                        break;
-                    }
-                    case 19: {
-                        slice_from("τ");
-                        break;
-                    }
-                    case 20: {
-                        slice_from("υ");
-                        break;
-                    }
-                    case 21: {
-                        slice_from("φ");
-                        break;
-                    }
-                    case 22: {
-                        slice_from("χ");
-                        break;
-                    }
-                    case 23: {
-                        slice_from("ψ");
-                        break;
-                    }
-                    case 24: {
-                        slice_from("ω");
-                        break;
-                    }
-                    case 25: {
-                        if (cursor <= limit_backward)
-                        {
-                            goto lab0;
-                        }
-                        cursor--;
-                        break;
-                    }
-                }
-                continue;
-            lab0: ;
-                cursor = limit - c1;
-                break;
-            }
-            return true;
-        }
-
-        private bool r_step_1()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_1, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            switch (among_var) {
-                case 1: {
-                    slice_from("φα");
-                    break;
-                }
-                case 2: {
-                    slice_from("σκα");
-                    break;
-                }
-                case 3: {
-                    slice_from("ολο");
-                    break;
-                }
-                case 4: {
-                    slice_from("σο");
-                    break;
-                }
-                case 5: {
-                    slice_from("τατο");
-                    break;
-                }
-                case 6: {
-                    slice_from("κρε");
-                    break;
-                }
-                case 7: {
-                    slice_from("περ");
-                    break;
-                }
-                case 8: {
-                    slice_from("τερ");
-                    break;
-                }
-                case 9: {
-                    slice_from("φω");
-                    break;
-                }
-                case 10: {
-                    slice_from("καθεστ");
-                    break;
-                }
-                case 11: {
-                    slice_from("γεγον");
-                    break;
-                }
-            }
-            B_test1 = false;
-            return true;
-        }
-
-        private bool r_step_s1()
-        {
-            int among_var;
-            ket = cursor;
-            if (find_among_b(a_3, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            among_var = find_among_b(a_2, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            switch (among_var) {
-                case 1: {
-                    slice_from("ι");
-                    break;
-                }
-                case 2: {
-                    slice_from("ιζ");
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_step_s2()
-        {
-            ket = cursor;
-            if (find_among_b(a_5, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            if (find_among_b(a_4, null) == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            slice_from("ων");
-            return true;
-        }
-
-        private bool r_step_s3()
-        {
-            int among_var;
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                if (!(eq_s_b("ισα")))
-                {
-                    goto lab1;
-                }
-                bra = cursor;
-                if (cursor > limit_backward)
-                {
-                    goto lab1;
-                }
-                slice_from("ισ");
-                goto lab0;
-            lab1: ;
-                cursor = limit - c1;
-                ket = cursor;
-            }
-        lab0: ;
-            if (find_among_b(a_7, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            among_var = find_among_b(a_6, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            switch (among_var) {
-                case 1: {
-                    slice_from("ι");
-                    break;
-                }
-                case 2: {
-                    slice_from("ισ");
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_step_s4()
-        {
-            ket = cursor;
-            if (find_among_b(a_9, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            if (find_among_b(a_8, null) == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            slice_from("ι");
-            return true;
-        }
-
-        private bool r_step_s5()
-        {
-            int among_var;
-            ket = cursor;
-            if (find_among_b(a_11, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            among_var = find_among_b(a_10, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            switch (among_var) {
-                case 1: {
-                    slice_from("ι");
-                    break;
-                }
-                case 2: {
-                    slice_from("ιστ");
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_step_s6()
-        {
-            int among_var;
-            ket = cursor;
-            if (find_among_b(a_14, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                bra = cursor;
-                among_var = find_among_b(a_12, null);
-                if (among_var == 0)
-                {
-                    goto lab1;
-                }
-                if (cursor > limit_backward)
-                {
-                    goto lab1;
-                }
-                switch (among_var) {
-                    case 1: {
-                        slice_from("ισμ");
-                        break;
-                    }
-                    case 2: {
-                        slice_from("ι");
-                        break;
-                    }
-                }
-                goto lab0;
-            lab1: ;
-                cursor = limit - c1;
-                ket = cursor;
-                among_var = find_among_b(a_13, null);
-                if (among_var == 0)
-                {
-                    return false;
-                }
-                bra = cursor;
-                switch (among_var) {
-                    case 1: {
-                        slice_from("αγνωστ");
-                        break;
-                    }
-                    case 2: {
-                        slice_from("ατομ");
-                        break;
-                    }
-                    case 3: {
-                        slice_from("γνωστ");
-                        break;
-                    }
-                    case 4: {
-                        slice_from("εθν");
-                        break;
-                    }
-                    case 5: {
-                        slice_from("εκλεκτ");
-                        break;
-                    }
-                    case 6: {
-                        slice_from("σκεπτ");
-                        break;
-                    }
-                    case 7: {
-                        slice_from("τοπ");
-                        break;
-                    }
-                    case 8: {
-                        slice_from("αλεξανδρ");
-                        break;
-                    }
-                    case 9: {
-                        slice_from("βυζαντ");
-                        break;
-                    }
-                    case 10: {
-                        slice_from("θεατρ");
-                        break;
-                    }
-                }
-            }
-        lab0: ;
-            return true;
-        }
-
-        private bool r_step_s7()
-        {
-            ket = cursor;
-            if (find_among_b(a_16, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            if (find_among_b(a_15, null) == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            slice_from("αρακ");
-            return true;
-        }
-
-        private bool r_step_s8()
-        {
-            int among_var;
-            ket = cursor;
-            if (find_among_b(a_18, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                bra = cursor;
-                among_var = find_among_b(a_17, null);
-                if (among_var == 0)
-                {
-                    goto lab1;
-                }
-                if (cursor > limit_backward)
-                {
-                    goto lab1;
-                }
-                switch (among_var) {
-                    case 1: {
-                        slice_from("ακ");
-                        break;
-                    }
-                    case 2: {
-                        slice_from("ιτσ");
-                        break;
-                    }
-                }
-                goto lab0;
-            lab1: ;
-                cursor = limit - c1;
-                ket = cursor;
-                bra = cursor;
-                if (!(eq_s_b("κορ")))
-                {
-                    return false;
-                }
-                slice_from("ιτσ");
-            }
-        lab0: ;
-            return true;
-        }
-
-        private bool r_step_s9()
-        {
-            ket = cursor;
-            if (find_among_b(a_21, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                bra = cursor;
-                if (find_among_b(a_19, null) == 0)
-                {
-                    goto lab1;
-                }
-                if (cursor > limit_backward)
-                {
-                    goto lab1;
-                }
-                slice_from("ιδ");
-                goto lab0;
-            lab1: ;
-                cursor = limit - c1;
-                ket = cursor;
-                bra = cursor;
-                if (find_among_b(a_20, null) == 0)
-                {
-                    return false;
-                }
-                slice_from("ιδ");
-            }
-        lab0: ;
-            return true;
-        }
-
-        private bool r_step_s10()
-        {
-            ket = cursor;
-            if (find_among_b(a_23, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            if (find_among_b(a_22, null) == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            slice_from("ισκ");
-            return true;
-        }
-
-        private bool r_step_2a()
-        {
-            ket = cursor;
-            if (find_among_b(a_24, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            {
-                int c1 = limit - cursor;
-                if (find_among_b(a_25, null) == 0)
-                {
-                    goto lab0;
-                }
-                return false;
-            lab0: ;
-                cursor = limit - c1;
-            }
-            {
-                int c = cursor;
-                insert(cursor, cursor, "αδ");
-                cursor = c;
-            }
-            return true;
-        }
-
-        private bool r_step_2b()
-        {
-            ket = cursor;
-            if (find_among_b(a_26, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            ket = cursor;
-            bra = cursor;
-            if (find_among_b(a_27, null) == 0)
-            {
-                return false;
-            }
-            slice_from("εδ");
-            return true;
-        }
-
-        private bool r_step_2c()
-        {
-            ket = cursor;
-            if (find_among_b(a_28, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            ket = cursor;
-            bra = cursor;
-            if (find_among_b(a_29, null) == 0)
-            {
-                return false;
-            }
-            slice_from("ουδ");
-            return true;
-        }
-
-        private bool r_step_2d()
-        {
-            ket = cursor;
-            if (find_among_b(a_30, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            if (find_among_b(a_31, null) == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            slice_from("ε");
-            return true;
-        }
-
-        private bool r_step_3()
-        {
-            ket = cursor;
-            if (find_among_b(a_32, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            if (in_grouping_b(g_v, 945, 969, false) != 0)
-            {
-                return false;
-            }
-            slice_from("ι");
-            return true;
-        }
-
-        private bool r_step_4()
-        {
-            ket = cursor;
-            if (find_among_b(a_33, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                bra = cursor;
-                if (in_grouping_b(g_v, 945, 969, false) != 0)
-                {
-                    goto lab1;
-                }
-                slice_from("ικ");
-                goto lab0;
-            lab1: ;
-                cursor = limit - c1;
-                ket = cursor;
-            }
-        lab0: ;
-            bra = cursor;
-            if (find_among_b(a_34, null) == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            slice_from("ικ");
-            return true;
-        }
-
-        private bool r_step_5a()
-        {
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                if (!(eq_s_b("αγαμε")))
-                {
-                    goto lab0;
-                }
-                bra = cursor;
-                if (cursor > limit_backward)
-                {
-                    goto lab0;
-                }
-                slice_from("αγαμ");
-            lab0: ;
-                cursor = limit - c1;
-            }
-            {
-                int c2 = limit - cursor;
-                ket = cursor;
-                if (find_among_b(a_35, null) == 0)
-                {
-                    goto lab1;
-                }
-                bra = cursor;
-                slice_del();
-                B_test1 = false;
-            lab1: ;
-                cursor = limit - c2;
-            }
-            ket = cursor;
-            if (!(eq_s_b("αμε")))
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            if (find_among_b(a_36, null) == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            slice_from("αμ");
-            return true;
-        }
-
-        private bool r_step_5b()
-        {
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                if (find_among_b(a_38, null) == 0)
-                {
-                    goto lab0;
-                }
-                bra = cursor;
-                slice_del();
-                B_test1 = false;
-                ket = cursor;
-                bra = cursor;
-                if (find_among_b(a_37, null) == 0)
-                {
-                    goto lab0;
-                }
-                if (cursor > limit_backward)
-                {
-                    goto lab0;
-                }
-                slice_from("αγαν");
-            lab0: ;
-                cursor = limit - c1;
-            }
-            ket = cursor;
-            if (!(eq_s_b("ανε")))
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            {
-                int c2 = limit - cursor;
-                ket = cursor;
-                bra = cursor;
-                if (in_grouping_b(g_v2, 945, 969, false) != 0)
-                {
-                    goto lab2;
-                }
-                slice_from("αν");
-                goto lab1;
-            lab2: ;
-                cursor = limit - c2;
-                ket = cursor;
-            }
-        lab1: ;
-            bra = cursor;
-            if (find_among_b(a_39, null) == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            slice_from("αν");
-            return true;
-        }
-
-        private bool r_step_5c()
-        {
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                if (!(eq_s_b("ησετε")))
-                {
-                    goto lab0;
-                }
-                bra = cursor;
-                slice_del();
-                B_test1 = false;
-            lab0: ;
-                cursor = limit - c1;
-            }
-            ket = cursor;
-            if (!(eq_s_b("ετε")))
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            {
-                int c2 = limit - cursor;
-                ket = cursor;
-                bra = cursor;
-                if (in_grouping_b(g_v2, 945, 969, false) != 0)
-                {
-                    goto lab2;
-                }
-                slice_from("ετ");
-                goto lab1;
-            lab2: ;
-                cursor = limit - c2;
-                ket = cursor;
-                bra = cursor;
-                if (find_among_b(a_40, null) == 0)
-                {
-                    goto lab3;
-                }
-                slice_from("ετ");
-                goto lab1;
-            lab3: ;
-                cursor = limit - c2;
-                ket = cursor;
-            }
-        lab1: ;
-            bra = cursor;
-            if (find_among_b(a_41, null) == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            slice_from("ετ");
-            return true;
-        }
-
-        private bool r_step_5d()
-        {
-            ket = cursor;
-            if (find_among_b(a_42, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                bra = cursor;
-                if (!(eq_s_b("αρχ")))
-                {
-                    goto lab1;
-                }
-                if (cursor > limit_backward)
-                {
-                    goto lab1;
-                }
-                slice_from("οντ");
-                goto lab0;
-            lab1: ;
-                cursor = limit - c1;
-                ket = cursor;
-                bra = cursor;
-                if (!(eq_s_b("κρε")))
-                {
-                    return false;
-                }
-                slice_from("ωντ");
-            }
-        lab0: ;
-            return true;
-        }
-
-        private bool r_step_5e()
-        {
-            ket = cursor;
-            if (find_among_b(a_43, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            if (!(eq_s_b("ον")))
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            slice_from("ομαστ");
-            return true;
-        }
-
-        private bool r_step_5f()
-        {
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                if (!(eq_s_b("ιεστε")))
-                {
-                    goto lab0;
-                }
-                bra = cursor;
-                slice_del();
-                B_test1 = false;
-                ket = cursor;
-                bra = cursor;
-                if (find_among_b(a_44, null) == 0)
-                {
-                    goto lab0;
-                }
-                if (cursor > limit_backward)
-                {
-                    goto lab0;
-                }
-                slice_from("ιεστ");
-            lab0: ;
-                cursor = limit - c1;
-            }
-            ket = cursor;
-            if (!(eq_s_b("εστε")))
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            if (find_among_b(a_45, null) == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            slice_from("ιεστ");
-            return true;
-        }
-
-        private bool r_step_5g()
-        {
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                if (find_among_b(a_46, null) == 0)
-                {
-                    goto lab0;
-                }
-                bra = cursor;
-                slice_del();
-                B_test1 = false;
-            lab0: ;
-                cursor = limit - c1;
-            }
-            ket = cursor;
-            if (find_among_b(a_49, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            {
-                int c2 = limit - cursor;
-                ket = cursor;
-                bra = cursor;
-                if (find_among_b(a_47, null) == 0)
-                {
-                    goto lab2;
-                }
-                slice_from("ηκ");
-                goto lab1;
-            lab2: ;
-                cursor = limit - c2;
-                ket = cursor;
-                bra = cursor;
-                if (find_among_b(a_48, null) == 0)
-                {
-                    return false;
-                }
-                if (cursor > limit_backward)
-                {
-                    return false;
-                }
-                slice_from("ηκ");
-            }
-        lab1: ;
-            return true;
-        }
-
-        private bool r_step_5h()
-        {
-            ket = cursor;
-            if (find_among_b(a_52, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                bra = cursor;
-                if (find_among_b(a_50, null) == 0)
-                {
-                    goto lab1;
-                }
-                slice_from("ουσ");
-                goto lab0;
-            lab1: ;
-                cursor = limit - c1;
-                ket = cursor;
-                bra = cursor;
-                if (find_among_b(a_51, null) == 0)
-                {
-                    return false;
-                }
-                if (cursor > limit_backward)
-                {
-                    return false;
-                }
-                slice_from("ουσ");
-            }
-        lab0: ;
-            return true;
-        }
-
-        private bool r_step_5i()
-        {
-            int among_var;
-            ket = cursor;
-            if (find_among_b(a_55, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                bra = cursor;
-                if (!(eq_s_b("κολλ")))
-                {
-                    goto lab1;
-                }
-                slice_from("αγ");
-                goto lab0;
-            lab1: ;
-                cursor = limit - c1;
-                {
-                    int c2 = limit - cursor;
-                    ket = cursor;
-                    bra = cursor;
-                    among_var = find_among_b(a_53, null);
-                    if (among_var == 0)
-                    {
-                        goto lab3;
-                    }
-                    switch (among_var) {
-                        case 1: {
-                            slice_from("αγ");
-                            break;
-                        }
-                    }
-                    goto lab2;
-                lab3: ;
-                    cursor = limit - c2;
-                    ket = cursor;
-                    bra = cursor;
-                    if (find_among_b(a_54, null) == 0)
-                    {
-                        return false;
-                    }
-                    if (cursor > limit_backward)
-                    {
-                        return false;
-                    }
-                    slice_from("αγ");
-                }
-            lab2: ;
-            }
-        lab0: ;
-            return true;
-        }
-
-        private bool r_step_5j()
-        {
-            ket = cursor;
-            if (find_among_b(a_56, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            if (find_among_b(a_57, null) == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            slice_from("ησ");
-            return true;
-        }
-
-        private bool r_step_5k()
-        {
-            ket = cursor;
-            if (!(eq_s_b("ηστε")))
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            if (find_among_b(a_58, null) == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            slice_from("ηστ");
-            return true;
-        }
-
-        private bool r_step_5l()
-        {
-            ket = cursor;
-            if (find_among_b(a_59, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            if (find_among_b(a_60, null) == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            slice_from("ουν");
-            return true;
-        }
-
-        private bool r_step_5m()
-        {
-            ket = cursor;
-            if (find_among_b(a_61, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            B_test1 = false;
-            ket = cursor;
-            bra = cursor;
-            if (find_among_b(a_62, null) == 0)
-            {
-                return false;
-            }
-            if (cursor > limit_backward)
-            {
-                return false;
-            }
-            slice_from("ουμ");
-            return true;
-        }
-
-        private bool r_step_6()
-        {
-            {
-                int c1 = limit - cursor;
-                ket = cursor;
-                if (find_among_b(a_63, null) == 0)
-                {
-                    goto lab0;
-                }
-                bra = cursor;
-                slice_from("μα");
-            lab0: ;
-                cursor = limit - c1;
-            }
-            if (!B_test1)
-            {
-                return false;
-            }
-            ket = cursor;
-            if (find_among_b(a_64, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            return true;
-        }
-
-        private bool r_step_7()
-        {
-            ket = cursor;
-            if (find_among_b(a_65, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            slice_del();
-            return true;
-        }
-
         protected override bool stem()
         {
+            int among_var;
+            bool B_test1;
             limit_backward = cursor;
             cursor = limit;
             {
                 int c1 = limit - cursor;
-                r_tolower();
+                while (true)
+                {
+                    int c2 = limit - cursor;
+                    ket = cursor;
+                    among_var = find_among_b(a_0, null);
+                    bra = cursor;
+                    switch (among_var) {
+                        case 1: {
+                            slice_from("α");
+                            break;
+                        }
+                        case 2: {
+                            slice_from("β");
+                            break;
+                        }
+                        case 3: {
+                            slice_from("γ");
+                            break;
+                        }
+                        case 4: {
+                            slice_from("δ");
+                            break;
+                        }
+                        case 5: {
+                            slice_from("ε");
+                            break;
+                        }
+                        case 6: {
+                            slice_from("ζ");
+                            break;
+                        }
+                        case 7: {
+                            slice_from("η");
+                            break;
+                        }
+                        case 8: {
+                            slice_from("θ");
+                            break;
+                        }
+                        case 9: {
+                            slice_from("ι");
+                            break;
+                        }
+                        case 10: {
+                            slice_from("κ");
+                            break;
+                        }
+                        case 11: {
+                            slice_from("λ");
+                            break;
+                        }
+                        case 12: {
+                            slice_from("μ");
+                            break;
+                        }
+                        case 13: {
+                            slice_from("ν");
+                            break;
+                        }
+                        case 14: {
+                            slice_from("ξ");
+                            break;
+                        }
+                        case 15: {
+                            slice_from("ο");
+                            break;
+                        }
+                        case 16: {
+                            slice_from("π");
+                            break;
+                        }
+                        case 17: {
+                            slice_from("ρ");
+                            break;
+                        }
+                        case 18: {
+                            slice_from("σ");
+                            break;
+                        }
+                        case 19: {
+                            slice_from("τ");
+                            break;
+                        }
+                        case 20: {
+                            slice_from("υ");
+                            break;
+                        }
+                        case 21: {
+                            slice_from("φ");
+                            break;
+                        }
+                        case 22: {
+                            slice_from("χ");
+                            break;
+                        }
+                        case 23: {
+                            slice_from("ψ");
+                            break;
+                        }
+                        case 24: {
+                            slice_from("ω");
+                            break;
+                        }
+                        case 25: {
+                            if (cursor <= limit_backward)
+                            {
+                                goto lab1;
+                            }
+                            cursor--;
+                            break;
+                        }
+                    }
+                    continue;
+                lab1: ;
+                    cursor = limit - c2;
+                    break;
+                }
                 cursor = limit - c1;
             }
-            if (!r_has_min_length())
+            if (current.Length < 3)
+            {
                 return false;
+            }
             B_test1 = true;
             {
-                int c2 = limit - cursor;
-                r_step_1();
-                cursor = limit - c2;
-            }
-            {
                 int c3 = limit - cursor;
-                r_step_s1();
+                ket = cursor;
+                among_var = find_among_b(a_1, null);
+                if (among_var == 0)
+                {
+                    goto lab2;
+                }
+                bra = cursor;
+                switch (among_var) {
+                    case 1: {
+                        slice_from("φα");
+                        break;
+                    }
+                    case 2: {
+                        slice_from("σκα");
+                        break;
+                    }
+                    case 3: {
+                        slice_from("ολο");
+                        break;
+                    }
+                    case 4: {
+                        slice_from("σο");
+                        break;
+                    }
+                    case 5: {
+                        slice_from("τατο");
+                        break;
+                    }
+                    case 6: {
+                        slice_from("κρε");
+                        break;
+                    }
+                    case 7: {
+                        slice_from("περ");
+                        break;
+                    }
+                    case 8: {
+                        slice_from("τερ");
+                        break;
+                    }
+                    case 9: {
+                        slice_from("φω");
+                        break;
+                    }
+                    case 10: {
+                        slice_from("καθεστ");
+                        break;
+                    }
+                    case 11: {
+                        slice_from("γεγον");
+                        break;
+                    }
+                }
+                B_test1 = false;
+            lab2: ;
                 cursor = limit - c3;
             }
             {
                 int c4 = limit - cursor;
-                r_step_s2();
+                ket = cursor;
+                if (find_among_b(a_3, null) == 0)
+                {
+                    goto lab3;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                among_var = find_among_b(a_2, null);
+                if (among_var == 0)
+                {
+                    goto lab3;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab3;
+                }
+                switch (among_var) {
+                    case 1: {
+                        slice_from("ι");
+                        break;
+                    }
+                    case 2: {
+                        slice_from("ιζ");
+                        break;
+                    }
+                }
+            lab3: ;
                 cursor = limit - c4;
             }
             {
                 int c5 = limit - cursor;
-                r_step_s3();
+                ket = cursor;
+                if (find_among_b(a_5, null) == 0)
+                {
+                    goto lab4;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                if (find_among_b(a_4, null) == 0)
+                {
+                    goto lab4;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab4;
+                }
+                slice_from("ων");
+            lab4: ;
                 cursor = limit - c5;
             }
             {
                 int c6 = limit - cursor;
-                r_step_s4();
+                {
+                    int c7 = limit - cursor;
+                    ket = cursor;
+                    if (!(eq_s_b("ισα")))
+                    {
+                        goto lab7;
+                    }
+                    bra = cursor;
+                    if (cursor > limit_backward)
+                    {
+                        goto lab7;
+                    }
+                    slice_from("ισ");
+                    goto lab6;
+                lab7: ;
+                    cursor = limit - c7;
+                    ket = cursor;
+                }
+            lab6: ;
+                if (find_among_b(a_7, null) == 0)
+                {
+                    goto lab5;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                among_var = find_among_b(a_6, null);
+                if (among_var == 0)
+                {
+                    goto lab5;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab5;
+                }
+                switch (among_var) {
+                    case 1: {
+                        slice_from("ι");
+                        break;
+                    }
+                    case 2: {
+                        slice_from("ισ");
+                        break;
+                    }
+                }
+            lab5: ;
                 cursor = limit - c6;
             }
             {
-                int c7 = limit - cursor;
-                r_step_s5();
-                cursor = limit - c7;
-            }
-            {
                 int c8 = limit - cursor;
-                r_step_s6();
+                ket = cursor;
+                if (find_among_b(a_9, null) == 0)
+                {
+                    goto lab8;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                if (find_among_b(a_8, null) == 0)
+                {
+                    goto lab8;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab8;
+                }
+                slice_from("ι");
+            lab8: ;
                 cursor = limit - c8;
             }
             {
                 int c9 = limit - cursor;
-                r_step_s7();
+                ket = cursor;
+                if (find_among_b(a_11, null) == 0)
+                {
+                    goto lab9;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                among_var = find_among_b(a_10, null);
+                if (among_var == 0)
+                {
+                    goto lab9;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab9;
+                }
+                switch (among_var) {
+                    case 1: {
+                        slice_from("ι");
+                        break;
+                    }
+                    case 2: {
+                        slice_from("ιστ");
+                        break;
+                    }
+                }
+            lab9: ;
                 cursor = limit - c9;
             }
             {
                 int c10 = limit - cursor;
-                r_step_s8();
+                ket = cursor;
+                if (find_among_b(a_14, null) == 0)
+                {
+                    goto lab10;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                {
+                    int c11 = limit - cursor;
+                    ket = cursor;
+                    bra = cursor;
+                    among_var = find_among_b(a_12, null);
+                    if (among_var == 0)
+                    {
+                        goto lab12;
+                    }
+                    if (cursor > limit_backward)
+                    {
+                        goto lab12;
+                    }
+                    switch (among_var) {
+                        case 1: {
+                            slice_from("ισμ");
+                            break;
+                        }
+                        case 2: {
+                            slice_from("ι");
+                            break;
+                        }
+                    }
+                    goto lab11;
+                lab12: ;
+                    cursor = limit - c11;
+                    ket = cursor;
+                    among_var = find_among_b(a_13, null);
+                    if (among_var == 0)
+                    {
+                        goto lab10;
+                    }
+                    bra = cursor;
+                    switch (among_var) {
+                        case 1: {
+                            slice_from("αγνωστ");
+                            break;
+                        }
+                        case 2: {
+                            slice_from("ατομ");
+                            break;
+                        }
+                        case 3: {
+                            slice_from("γνωστ");
+                            break;
+                        }
+                        case 4: {
+                            slice_from("εθν");
+                            break;
+                        }
+                        case 5: {
+                            slice_from("εκλεκτ");
+                            break;
+                        }
+                        case 6: {
+                            slice_from("σκεπτ");
+                            break;
+                        }
+                        case 7: {
+                            slice_from("τοπ");
+                            break;
+                        }
+                        case 8: {
+                            slice_from("αλεξανδρ");
+                            break;
+                        }
+                        case 9: {
+                            slice_from("βυζαντ");
+                            break;
+                        }
+                        case 10: {
+                            slice_from("θεατρ");
+                            break;
+                        }
+                    }
+                }
+            lab11: ;
+            lab10: ;
                 cursor = limit - c10;
             }
             {
-                int c11 = limit - cursor;
-                r_step_s9();
-                cursor = limit - c11;
-            }
-            {
                 int c12 = limit - cursor;
-                r_step_s10();
+                ket = cursor;
+                if (find_among_b(a_16, null) == 0)
+                {
+                    goto lab13;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                if (find_among_b(a_15, null) == 0)
+                {
+                    goto lab13;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab13;
+                }
+                slice_from("αρακ");
+            lab13: ;
                 cursor = limit - c12;
             }
             {
                 int c13 = limit - cursor;
-                r_step_2a();
+                ket = cursor;
+                if (find_among_b(a_18, null) == 0)
+                {
+                    goto lab14;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                {
+                    int c14 = limit - cursor;
+                    ket = cursor;
+                    bra = cursor;
+                    among_var = find_among_b(a_17, null);
+                    if (among_var == 0)
+                    {
+                        goto lab16;
+                    }
+                    if (cursor > limit_backward)
+                    {
+                        goto lab16;
+                    }
+                    switch (among_var) {
+                        case 1: {
+                            slice_from("ακ");
+                            break;
+                        }
+                        case 2: {
+                            slice_from("ιτσ");
+                            break;
+                        }
+                    }
+                    goto lab15;
+                lab16: ;
+                    cursor = limit - c14;
+                    ket = cursor;
+                    bra = cursor;
+                    if (!(eq_s_b("κορ")))
+                    {
+                        goto lab14;
+                    }
+                    slice_from("ιτσ");
+                }
+            lab15: ;
+            lab14: ;
                 cursor = limit - c13;
             }
             {
-                int c14 = limit - cursor;
-                r_step_2b();
-                cursor = limit - c14;
-            }
-            {
                 int c15 = limit - cursor;
-                r_step_2c();
+                ket = cursor;
+                if (find_among_b(a_21, null) == 0)
+                {
+                    goto lab17;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                {
+                    int c16 = limit - cursor;
+                    ket = cursor;
+                    bra = cursor;
+                    if (find_among_b(a_19, null) == 0)
+                    {
+                        goto lab19;
+                    }
+                    if (cursor > limit_backward)
+                    {
+                        goto lab19;
+                    }
+                    slice_from("ιδ");
+                    goto lab18;
+                lab19: ;
+                    cursor = limit - c16;
+                    ket = cursor;
+                    bra = cursor;
+                    if (find_among_b(a_20, null) == 0)
+                    {
+                        goto lab17;
+                    }
+                    slice_from("ιδ");
+                }
+            lab18: ;
+            lab17: ;
                 cursor = limit - c15;
             }
             {
-                int c16 = limit - cursor;
-                r_step_2d();
-                cursor = limit - c16;
-            }
-            {
                 int c17 = limit - cursor;
-                r_step_3();
+                ket = cursor;
+                if (find_among_b(a_23, null) == 0)
+                {
+                    goto lab20;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                if (find_among_b(a_22, null) == 0)
+                {
+                    goto lab20;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab20;
+                }
+                slice_from("ισκ");
+            lab20: ;
                 cursor = limit - c17;
             }
             {
                 int c18 = limit - cursor;
-                r_step_4();
+                ket = cursor;
+                if (find_among_b(a_24, null) == 0)
+                {
+                    goto lab21;
+                }
+                bra = cursor;
+                slice_del();
+                {
+                    int c19 = limit - cursor;
+                    if (find_among_b(a_25, null) == 0)
+                    {
+                        goto lab22;
+                    }
+                    goto lab21;
+                lab22: ;
+                    cursor = limit - c19;
+                }
+                {
+                    int c = cursor;
+                    insert(cursor, cursor, "αδ");
+                    cursor = c;
+                }
+            lab21: ;
                 cursor = limit - c18;
             }
             {
-                int c19 = limit - cursor;
-                r_step_5a();
-                cursor = limit - c19;
-            }
-            {
                 int c20 = limit - cursor;
-                r_step_5b();
+                ket = cursor;
+                if (find_among_b(a_26, null) == 0)
+                {
+                    goto lab23;
+                }
+                bra = cursor;
+                slice_del();
+                ket = cursor;
+                bra = cursor;
+                if (find_among_b(a_27, null) == 0)
+                {
+                    goto lab23;
+                }
+                slice_from("εδ");
+            lab23: ;
                 cursor = limit - c20;
             }
             {
                 int c21 = limit - cursor;
-                r_step_5c();
+                ket = cursor;
+                if (find_among_b(a_28, null) == 0)
+                {
+                    goto lab24;
+                }
+                bra = cursor;
+                slice_del();
+                ket = cursor;
+                bra = cursor;
+                if (find_among_b(a_29, null) == 0)
+                {
+                    goto lab24;
+                }
+                slice_from("ουδ");
+            lab24: ;
                 cursor = limit - c21;
             }
             {
                 int c22 = limit - cursor;
-                r_step_5d();
+                ket = cursor;
+                if (find_among_b(a_30, null) == 0)
+                {
+                    goto lab25;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                if (find_among_b(a_31, null) == 0)
+                {
+                    goto lab25;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab25;
+                }
+                slice_from("ε");
+            lab25: ;
                 cursor = limit - c22;
             }
             {
                 int c23 = limit - cursor;
-                r_step_5e();
+                ket = cursor;
+                if (find_among_b(a_32, null) == 0)
+                {
+                    goto lab26;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                if (in_grouping_b(g_v, 945, 969, false) != 0)
+                {
+                    goto lab26;
+                }
+                slice_from("ι");
+            lab26: ;
                 cursor = limit - c23;
             }
             {
                 int c24 = limit - cursor;
-                r_step_5f();
+                ket = cursor;
+                if (find_among_b(a_33, null) == 0)
+                {
+                    goto lab27;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                {
+                    int c25 = limit - cursor;
+                    ket = cursor;
+                    bra = cursor;
+                    if (in_grouping_b(g_v, 945, 969, false) != 0)
+                    {
+                        goto lab29;
+                    }
+                    slice_from("ικ");
+                    goto lab28;
+                lab29: ;
+                    cursor = limit - c25;
+                    ket = cursor;
+                }
+            lab28: ;
+                bra = cursor;
+                if (find_among_b(a_34, null) == 0)
+                {
+                    goto lab27;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab27;
+                }
+                slice_from("ικ");
+            lab27: ;
                 cursor = limit - c24;
             }
             {
-                int c25 = limit - cursor;
-                r_step_5g();
-                cursor = limit - c25;
-            }
-            {
                 int c26 = limit - cursor;
-                r_step_5h();
+                {
+                    int c27 = limit - cursor;
+                    ket = cursor;
+                    if (!(eq_s_b("αγαμε")))
+                    {
+                        goto lab31;
+                    }
+                    bra = cursor;
+                    if (cursor > limit_backward)
+                    {
+                        goto lab31;
+                    }
+                    slice_from("αγαμ");
+                lab31: ;
+                    cursor = limit - c27;
+                }
+                {
+                    int c28 = limit - cursor;
+                    ket = cursor;
+                    if (find_among_b(a_35, null) == 0)
+                    {
+                        goto lab32;
+                    }
+                    bra = cursor;
+                    slice_del();
+                    B_test1 = false;
+                lab32: ;
+                    cursor = limit - c28;
+                }
+                ket = cursor;
+                if (!(eq_s_b("αμε")))
+                {
+                    goto lab30;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                if (find_among_b(a_36, null) == 0)
+                {
+                    goto lab30;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab30;
+                }
+                slice_from("αμ");
+            lab30: ;
                 cursor = limit - c26;
             }
             {
-                int c27 = limit - cursor;
-                r_step_5j();
-                cursor = limit - c27;
-            }
-            {
-                int c28 = limit - cursor;
-                r_step_5i();
-                cursor = limit - c28;
-            }
-            {
                 int c29 = limit - cursor;
-                r_step_5k();
+                {
+                    int c30 = limit - cursor;
+                    ket = cursor;
+                    if (find_among_b(a_38, null) == 0)
+                    {
+                        goto lab34;
+                    }
+                    bra = cursor;
+                    slice_del();
+                    B_test1 = false;
+                    ket = cursor;
+                    bra = cursor;
+                    if (find_among_b(a_37, null) == 0)
+                    {
+                        goto lab34;
+                    }
+                    if (cursor > limit_backward)
+                    {
+                        goto lab34;
+                    }
+                    slice_from("αγαν");
+                lab34: ;
+                    cursor = limit - c30;
+                }
+                ket = cursor;
+                if (!(eq_s_b("ανε")))
+                {
+                    goto lab33;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                {
+                    int c31 = limit - cursor;
+                    ket = cursor;
+                    bra = cursor;
+                    if (in_grouping_b(g_v2, 945, 969, false) != 0)
+                    {
+                        goto lab36;
+                    }
+                    slice_from("αν");
+                    goto lab35;
+                lab36: ;
+                    cursor = limit - c31;
+                    ket = cursor;
+                }
+            lab35: ;
+                bra = cursor;
+                if (find_among_b(a_39, null) == 0)
+                {
+                    goto lab33;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab33;
+                }
+                slice_from("αν");
+            lab33: ;
                 cursor = limit - c29;
             }
             {
-                int c30 = limit - cursor;
-                r_step_5l();
-                cursor = limit - c30;
-            }
-            {
-                int c31 = limit - cursor;
-                r_step_5m();
-                cursor = limit - c31;
-            }
-            {
                 int c32 = limit - cursor;
-                r_step_6();
+                {
+                    int c33 = limit - cursor;
+                    ket = cursor;
+                    if (!(eq_s_b("ησετε")))
+                    {
+                        goto lab38;
+                    }
+                    bra = cursor;
+                    slice_del();
+                    B_test1 = false;
+                lab38: ;
+                    cursor = limit - c33;
+                }
+                ket = cursor;
+                if (!(eq_s_b("ετε")))
+                {
+                    goto lab37;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                {
+                    int c34 = limit - cursor;
+                    ket = cursor;
+                    bra = cursor;
+                    if (in_grouping_b(g_v2, 945, 969, false) != 0)
+                    {
+                        goto lab40;
+                    }
+                    slice_from("ετ");
+                    goto lab39;
+                lab40: ;
+                    cursor = limit - c34;
+                    ket = cursor;
+                    bra = cursor;
+                    if (find_among_b(a_40, null) == 0)
+                    {
+                        goto lab41;
+                    }
+                    slice_from("ετ");
+                    goto lab39;
+                lab41: ;
+                    cursor = limit - c34;
+                    ket = cursor;
+                }
+            lab39: ;
+                bra = cursor;
+                if (find_among_b(a_41, null) == 0)
+                {
+                    goto lab37;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab37;
+                }
+                slice_from("ετ");
+            lab37: ;
                 cursor = limit - c32;
             }
             {
-                int c33 = limit - cursor;
-                r_step_7();
-                cursor = limit - c33;
+                int c35 = limit - cursor;
+                ket = cursor;
+                if (find_among_b(a_42, null) == 0)
+                {
+                    goto lab42;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                {
+                    int c36 = limit - cursor;
+                    ket = cursor;
+                    bra = cursor;
+                    if (!(eq_s_b("αρχ")))
+                    {
+                        goto lab44;
+                    }
+                    if (cursor > limit_backward)
+                    {
+                        goto lab44;
+                    }
+                    slice_from("οντ");
+                    goto lab43;
+                lab44: ;
+                    cursor = limit - c36;
+                    ket = cursor;
+                    bra = cursor;
+                    if (!(eq_s_b("κρε")))
+                    {
+                        goto lab42;
+                    }
+                    slice_from("ωντ");
+                }
+            lab43: ;
+            lab42: ;
+                cursor = limit - c35;
+            }
+            {
+                int c37 = limit - cursor;
+                ket = cursor;
+                if (find_among_b(a_43, null) == 0)
+                {
+                    goto lab45;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                if (!(eq_s_b("ον")))
+                {
+                    goto lab45;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab45;
+                }
+                slice_from("ομαστ");
+            lab45: ;
+                cursor = limit - c37;
+            }
+            {
+                int c38 = limit - cursor;
+                {
+                    int c39 = limit - cursor;
+                    ket = cursor;
+                    if (!(eq_s_b("ιεστε")))
+                    {
+                        goto lab47;
+                    }
+                    bra = cursor;
+                    slice_del();
+                    B_test1 = false;
+                    ket = cursor;
+                    bra = cursor;
+                    if (find_among_b(a_44, null) == 0)
+                    {
+                        goto lab47;
+                    }
+                    if (cursor > limit_backward)
+                    {
+                        goto lab47;
+                    }
+                    slice_from("ιεστ");
+                lab47: ;
+                    cursor = limit - c39;
+                }
+                ket = cursor;
+                if (!(eq_s_b("εστε")))
+                {
+                    goto lab46;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                if (find_among_b(a_45, null) == 0)
+                {
+                    goto lab46;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab46;
+                }
+                slice_from("ιεστ");
+            lab46: ;
+                cursor = limit - c38;
+            }
+            {
+                int c40 = limit - cursor;
+                {
+                    int c41 = limit - cursor;
+                    ket = cursor;
+                    if (find_among_b(a_46, null) == 0)
+                    {
+                        goto lab49;
+                    }
+                    bra = cursor;
+                    slice_del();
+                    B_test1 = false;
+                lab49: ;
+                    cursor = limit - c41;
+                }
+                ket = cursor;
+                if (find_among_b(a_49, null) == 0)
+                {
+                    goto lab48;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                {
+                    int c42 = limit - cursor;
+                    ket = cursor;
+                    bra = cursor;
+                    if (find_among_b(a_47, null) == 0)
+                    {
+                        goto lab51;
+                    }
+                    slice_from("ηκ");
+                    goto lab50;
+                lab51: ;
+                    cursor = limit - c42;
+                    ket = cursor;
+                    bra = cursor;
+                    if (find_among_b(a_48, null) == 0)
+                    {
+                        goto lab48;
+                    }
+                    if (cursor > limit_backward)
+                    {
+                        goto lab48;
+                    }
+                    slice_from("ηκ");
+                }
+            lab50: ;
+            lab48: ;
+                cursor = limit - c40;
+            }
+            {
+                int c43 = limit - cursor;
+                ket = cursor;
+                if (find_among_b(a_52, null) == 0)
+                {
+                    goto lab52;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                {
+                    int c44 = limit - cursor;
+                    ket = cursor;
+                    bra = cursor;
+                    if (find_among_b(a_50, null) == 0)
+                    {
+                        goto lab54;
+                    }
+                    slice_from("ουσ");
+                    goto lab53;
+                lab54: ;
+                    cursor = limit - c44;
+                    ket = cursor;
+                    bra = cursor;
+                    if (find_among_b(a_51, null) == 0)
+                    {
+                        goto lab52;
+                    }
+                    if (cursor > limit_backward)
+                    {
+                        goto lab52;
+                    }
+                    slice_from("ουσ");
+                }
+            lab53: ;
+            lab52: ;
+                cursor = limit - c43;
+            }
+            {
+                int c45 = limit - cursor;
+                ket = cursor;
+                if (find_among_b(a_56, null) == 0)
+                {
+                    goto lab55;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                if (find_among_b(a_57, null) == 0)
+                {
+                    goto lab55;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab55;
+                }
+                slice_from("ησ");
+            lab55: ;
+                cursor = limit - c45;
+            }
+            {
+                int c46 = limit - cursor;
+                ket = cursor;
+                if (find_among_b(a_55, null) == 0)
+                {
+                    goto lab56;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                {
+                    int c47 = limit - cursor;
+                    ket = cursor;
+                    bra = cursor;
+                    if (!(eq_s_b("κολλ")))
+                    {
+                        goto lab58;
+                    }
+                    slice_from("αγ");
+                    goto lab57;
+                lab58: ;
+                    cursor = limit - c47;
+                    {
+                        int c48 = limit - cursor;
+                        ket = cursor;
+                        bra = cursor;
+                        among_var = find_among_b(a_53, null);
+                        if (among_var == 0)
+                        {
+                            goto lab60;
+                        }
+                        switch (among_var) {
+                            case 1: {
+                                slice_from("αγ");
+                                break;
+                            }
+                        }
+                        goto lab59;
+                    lab60: ;
+                        cursor = limit - c48;
+                        ket = cursor;
+                        bra = cursor;
+                        if (find_among_b(a_54, null) == 0)
+                        {
+                            goto lab56;
+                        }
+                        if (cursor > limit_backward)
+                        {
+                            goto lab56;
+                        }
+                        slice_from("αγ");
+                    }
+                lab59: ;
+                }
+            lab57: ;
+            lab56: ;
+                cursor = limit - c46;
+            }
+            {
+                int c49 = limit - cursor;
+                ket = cursor;
+                if (!(eq_s_b("ηστε")))
+                {
+                    goto lab61;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                if (find_among_b(a_58, null) == 0)
+                {
+                    goto lab61;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab61;
+                }
+                slice_from("ηστ");
+            lab61: ;
+                cursor = limit - c49;
+            }
+            {
+                int c50 = limit - cursor;
+                ket = cursor;
+                if (find_among_b(a_59, null) == 0)
+                {
+                    goto lab62;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                if (find_among_b(a_60, null) == 0)
+                {
+                    goto lab62;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab62;
+                }
+                slice_from("ουν");
+            lab62: ;
+                cursor = limit - c50;
+            }
+            {
+                int c51 = limit - cursor;
+                ket = cursor;
+                if (find_among_b(a_61, null) == 0)
+                {
+                    goto lab63;
+                }
+                bra = cursor;
+                slice_del();
+                B_test1 = false;
+                ket = cursor;
+                bra = cursor;
+                if (find_among_b(a_62, null) == 0)
+                {
+                    goto lab63;
+                }
+                if (cursor > limit_backward)
+                {
+                    goto lab63;
+                }
+                slice_from("ουμ");
+            lab63: ;
+                cursor = limit - c51;
+            }
+            {
+                int c52 = limit - cursor;
+                {
+                    int c53 = limit - cursor;
+                    ket = cursor;
+                    if (find_among_b(a_63, null) == 0)
+                    {
+                        goto lab65;
+                    }
+                    bra = cursor;
+                    slice_from("μα");
+                lab65: ;
+                    cursor = limit - c53;
+                }
+                if (!B_test1)
+                {
+                    goto lab64;
+                }
+                ket = cursor;
+                if (find_among_b(a_64, null) == 0)
+                {
+                    goto lab64;
+                }
+                bra = cursor;
+                slice_del();
+            lab64: ;
+                cursor = limit - c52;
+            }
+            {
+                int c54 = limit - cursor;
+                ket = cursor;
+                if (find_among_b(a_65, null) == 0)
+                {
+                    goto lab66;
+                }
+                bra = cursor;
+                slice_del();
+            lab66: ;
+                cursor = limit - c54;
             }
             cursor = limit_backward;
             return true;

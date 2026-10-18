@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2001, Dr Martin Porter
 // Copyright (c) 2002, Richard Boulton
 // Copyright (c) 2015, Cesar Souza
-// Copyright (c) 2018-2025, Olly Betts
+// Copyright (c) 2018-2026, Olly Betts
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ namespace Snowball
         }
 
         /// <summary>
-        ///   Gets the current string.
+        ///   The current string.
         /// </summary>
         ///
         protected StringBuilder current;
@@ -74,13 +74,13 @@ namespace Snowball
         protected int limit_backward;
 
         /// <summary>
-        ///   Starting bracket position.
+        ///   Start of the slice.
         /// </summary>
         ///
         protected int bra;
 
         /// <summary>
-        ///   Ending bracket position.
+        ///   End of the slice.
         /// </summary>
         ///
         protected int ket;
@@ -186,16 +186,14 @@ namespace Snowball
             set { setBufferContents(value); }
         }
 
+        // Clara: copy directly into the pooled stemmer's reusable buffer.
         public void SetBufferContents(Token token)
         {
             current.Clear();
             token.CopyTo(current);
 
-            cursor = 0;
+            limit_backward = bra = ket = cursor = 0;
             limit = current.Length;
-            limit_backward = 0;
-            bra = cursor;
-            ket = limit;
         }
 
         private void setBufferContents(string value)
@@ -203,11 +201,8 @@ namespace Snowball
             current.Clear();
             current.Insert(0, value);
 
-            cursor = 0;
+            limit_backward = bra = ket = cursor = 0;
             limit = current.Length;
-            limit_backward = 0;
-            bra = cursor;
-            ket = limit;
         }
 
 
@@ -624,10 +619,10 @@ namespace Snowball
         }
 
         /// <summary>
-        ///   Replaces the contents of the bracket with the string s.
+        ///   Replaces the contents of the slice with the string s.
         /// </summary>
         ///
-        /// <param name="s">The s.</param>
+        /// <param name="s">The string.</param>
         protected void slice_from(String s)
         {
             slice_check();
@@ -636,7 +631,7 @@ namespace Snowball
         }
 
         /// <summary>
-        ///   Removes the current bracket contents.
+        ///   Removes the current slice contents.
         /// </summary>
         ///
         protected void slice_del()
@@ -656,18 +651,7 @@ namespace Snowball
         }
 
         /// <summary>
-        ///   Replaces the contents of the bracket with the string s.
-        /// </summary>
-        ///
-        protected void insert(int c_bra, int c_ket, StringBuilder s)
-        {
-            int adjustment = replace_s(c_bra, c_ket, s.ToString());
-            if (c_bra <= bra) bra += adjustment;
-            if (c_bra <= ket) ket += adjustment;
-        }
-
-        /// <summary>
-        ///   Replaces the contents of the bracket with the string s.
+        ///   Replaces the contents of s with the slice.
         /// </summary>
         ///
         protected void slice_to(StringBuilder s)

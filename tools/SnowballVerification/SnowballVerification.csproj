@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <!-- Compile the pristine upstream sources without imposing Clara's style rules. -->
+    <Nullable>disable</Nullable>
+    <RunAnalyzers>false</RunAnalyzers>
+    <SnowballRevision Condition="'$(SnowballRevision)' == ''">6389c79f91cd67ed2de3ebdcf84ec8c2d2d23c11</SnowballRevision>
+    <SnowballSource>$(MSBuildThisFileDirectory)../../artifacts/snowball/$(SnowballRevision)/output</SnowballSource>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Clara.Analysis.Snowball/Clara.Analysis.Snowball.csproj" />
+    <Compile Include="$(SnowballSource)/Stemmer.cs" />
+    <Compile Include="$(SnowballSource)/Among.cs" />
+    <Compile Include="$(SnowballSource)/Algorithms/*.generated.cs" />
+  </ItemGroup>
+</Project>

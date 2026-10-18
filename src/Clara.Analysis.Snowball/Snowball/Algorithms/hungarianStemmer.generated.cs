@@ -1,4 +1,4 @@
-﻿// Generated from hungarian.sbl by Snowball 3.0.0 - https://snowballstem.org/
+﻿// Generated from hungarian.sbl by Snowball 3.2.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162
@@ -10,14 +10,12 @@ namespace Snowball
 
     ///<summary>
     ///  This class implements the stemming algorithm defined by a snowball script.
-    ///  Generated from hungarian.sbl by Snowball 3.0.0 - https://snowballstem.org/
+    ///  Generated from hungarian.sbl by Snowball 3.2.0 - https://snowballstem.org/
     ///</summary>
     ///
-    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.0.0")]
+    [System.CodeDom.Compiler.GeneratedCode("Snowball", "3.2.0")]
     internal partial class HungarianStemmer : Stemmer
     {
-        private int I_p1;
-
         private const string g_v = "aeiouáéíóöúüőű";
 
         private static readonly Among[] a_0 = new[]
@@ -239,80 +237,6 @@ namespace Snowball
         };
 
 
-        private bool r_mark_regions()
-        {
-            I_p1 = limit;
-            {
-                int c1 = cursor;
-                if (in_grouping(g_v, 97, 369, false) != 0)
-                {
-                    goto lab1;
-                }
-                {
-                    int c2 = cursor;
-                    {
-
-                        int ret = in_grouping(g_v, 97, 369, true);
-                        if (ret < 0)
-                        {
-                            goto lab2;
-                        }
-
-                        cursor += ret;
-                    }
-                    I_p1 = cursor;
-                lab2: ;
-                    cursor = c2;
-                }
-                goto lab0;
-            lab1: ;
-                cursor = c1;
-                {
-
-                    int ret = out_grouping(g_v, 97, 369, true);
-                    if (ret < 0)
-                    {
-                        return false;
-                    }
-
-                    cursor += ret;
-                }
-                I_p1 = cursor;
-            }
-        lab0: ;
-            return true;
-        }
-
-        private bool r_R1()
-        {
-            return I_p1 <= cursor;
-        }
-
-        private bool r_v_ending()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_0, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (!r_R1())
-                return false;
-            switch (among_var) {
-                case 1: {
-                    slice_from("a");
-                    break;
-                }
-                case 2: {
-                    slice_from("e");
-                    break;
-                }
-            }
-            return true;
-        }
-
         private bool r_double()
         {
             {
@@ -344,275 +268,308 @@ namespace Snowball
             return true;
         }
 
-        private bool r_instrum()
-        {
-            ket = cursor;
-            if (find_among_b(a_2, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (!r_R1())
-                return false;
-            if (!r_double())
-                return false;
-            slice_del();
-            return r_undouble();
-        }
-
-        private bool r_case()
-        {
-            ket = cursor;
-            if (find_among_b(a_3, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (!r_R1())
-                return false;
-            slice_del();
-            return r_v_ending();
-        }
-
-        private bool r_case_special()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_4, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (!r_R1())
-                return false;
-            switch (among_var) {
-                case 1: {
-                    slice_from("e");
-                    break;
-                }
-                case 2: {
-                    slice_from("a");
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_case_other()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_5, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (!r_R1())
-                return false;
-            switch (among_var) {
-                case 1: {
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    slice_from("a");
-                    break;
-                }
-                case 3: {
-                    slice_from("e");
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_factive()
-        {
-            ket = cursor;
-            if (find_among_b(a_6, null) == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (!r_R1())
-                return false;
-            if (!r_double())
-                return false;
-            slice_del();
-            return r_undouble();
-        }
-
-        private bool r_plural()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_7, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (!r_R1())
-                return false;
-            switch (among_var) {
-                case 1: {
-                    slice_from("a");
-                    break;
-                }
-                case 2: {
-                    slice_from("e");
-                    break;
-                }
-                case 3: {
-                    slice_del();
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_owned()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_8, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (!r_R1())
-                return false;
-            switch (among_var) {
-                case 1: {
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    slice_from("e");
-                    break;
-                }
-                case 3: {
-                    slice_from("a");
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_sing_owner()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_9, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (!r_R1())
-                return false;
-            switch (among_var) {
-                case 1: {
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    slice_from("a");
-                    break;
-                }
-                case 3: {
-                    slice_from("e");
-                    break;
-                }
-            }
-            return true;
-        }
-
-        private bool r_plur_owner()
-        {
-            int among_var;
-            ket = cursor;
-            among_var = find_among_b(a_10, null);
-            if (among_var == 0)
-            {
-                return false;
-            }
-            bra = cursor;
-            if (!r_R1())
-                return false;
-            switch (among_var) {
-                case 1: {
-                    slice_del();
-                    break;
-                }
-                case 2: {
-                    slice_from("a");
-                    break;
-                }
-                case 3: {
-                    slice_from("e");
-                    break;
-                }
-            }
-            return true;
-        }
-
         protected override bool stem()
         {
+            int among_var;
+            int I_p1;
             {
                 int c1 = cursor;
-                r_mark_regions();
+                I_p1 = limit;
+                {
+                    int c2 = cursor;
+                    if (in_grouping(g_v, 97, 369, false) != 0)
+                    {
+                        goto lab2;
+                    }
+                    {
+                        int c3 = cursor;
+                        {
+
+                            int ret = in_grouping(g_v, 97, 369, true);
+                            if (ret < 0)
+                            {
+                                goto lab3;
+                            }
+
+                            cursor += ret;
+                        }
+                        I_p1 = cursor;
+                    lab3: ;
+                        cursor = c3;
+                    }
+                    goto lab1;
+                lab2: ;
+                    cursor = c2;
+                    {
+
+                        int ret = out_grouping(g_v, 97, 369, true);
+                        if (ret < 0)
+                        {
+                            goto lab0;
+                        }
+
+                        cursor += ret;
+                    }
+                    I_p1 = cursor;
+                }
+            lab1: ;
+            lab0: ;
                 cursor = c1;
             }
             limit_backward = cursor;
             cursor = limit;
             {
-                int c2 = limit - cursor;
-                r_instrum();
-                cursor = limit - c2;
-            }
-            {
-                int c3 = limit - cursor;
-                r_case();
-                cursor = limit - c3;
-            }
-            {
                 int c4 = limit - cursor;
-                r_case_special();
+                ket = cursor;
+                if (find_among_b(a_2, null) == 0)
+                {
+                    goto lab4;
+                }
+                bra = cursor;
+                if (I_p1 > cursor)
+                {
+                    goto lab4;
+                }
+                if (!r_double())
+                    goto lab4;
+                slice_del();
+                if (!r_undouble())
+                    goto lab4;
+            lab4: ;
                 cursor = limit - c4;
             }
             {
                 int c5 = limit - cursor;
-                r_case_other();
+                ket = cursor;
+                if (find_among_b(a_3, null) == 0)
+                {
+                    goto lab5;
+                }
+                bra = cursor;
+                if (I_p1 > cursor)
+                {
+                    goto lab5;
+                }
+                slice_del();
+                ket = cursor;
+                among_var = find_among_b(a_0, null);
+                if (among_var == 0)
+                {
+                    goto lab5;
+                }
+                bra = cursor;
+                if (I_p1 > cursor)
+                {
+                    goto lab5;
+                }
+                switch (among_var) {
+                    case 1: {
+                        slice_from("a");
+                        break;
+                    }
+                    case 2: {
+                        slice_from("e");
+                        break;
+                    }
+                }
+            lab5: ;
                 cursor = limit - c5;
             }
             {
                 int c6 = limit - cursor;
-                r_factive();
+                ket = cursor;
+                among_var = find_among_b(a_4, null);
+                if (among_var == 0)
+                {
+                    goto lab6;
+                }
+                bra = cursor;
+                if (I_p1 > cursor)
+                {
+                    goto lab6;
+                }
+                switch (among_var) {
+                    case 1: {
+                        slice_from("e");
+                        break;
+                    }
+                    case 2: {
+                        slice_from("a");
+                        break;
+                    }
+                }
+            lab6: ;
                 cursor = limit - c6;
             }
             {
                 int c7 = limit - cursor;
-                r_owned();
+                ket = cursor;
+                among_var = find_among_b(a_5, null);
+                if (among_var == 0)
+                {
+                    goto lab7;
+                }
+                bra = cursor;
+                if (I_p1 > cursor)
+                {
+                    goto lab7;
+                }
+                switch (among_var) {
+                    case 1: {
+                        slice_del();
+                        break;
+                    }
+                    case 2: {
+                        slice_from("a");
+                        break;
+                    }
+                    case 3: {
+                        slice_from("e");
+                        break;
+                    }
+                }
+            lab7: ;
                 cursor = limit - c7;
             }
             {
                 int c8 = limit - cursor;
-                r_sing_owner();
+                ket = cursor;
+                if (find_among_b(a_6, null) == 0)
+                {
+                    goto lab8;
+                }
+                bra = cursor;
+                if (I_p1 > cursor)
+                {
+                    goto lab8;
+                }
+                if (!r_double())
+                    goto lab8;
+                slice_del();
+                if (!r_undouble())
+                    goto lab8;
+            lab8: ;
                 cursor = limit - c8;
             }
             {
                 int c9 = limit - cursor;
-                r_plur_owner();
+                ket = cursor;
+                among_var = find_among_b(a_8, null);
+                if (among_var == 0)
+                {
+                    goto lab9;
+                }
+                bra = cursor;
+                if (I_p1 > cursor)
+                {
+                    goto lab9;
+                }
+                switch (among_var) {
+                    case 1: {
+                        slice_del();
+                        break;
+                    }
+                    case 2: {
+                        slice_from("e");
+                        break;
+                    }
+                    case 3: {
+                        slice_from("a");
+                        break;
+                    }
+                }
+            lab9: ;
                 cursor = limit - c9;
             }
             {
                 int c10 = limit - cursor;
-                r_plural();
+                ket = cursor;
+                among_var = find_among_b(a_9, null);
+                if (among_var == 0)
+                {
+                    goto lab10;
+                }
+                bra = cursor;
+                if (I_p1 > cursor)
+                {
+                    goto lab10;
+                }
+                switch (among_var) {
+                    case 1: {
+                        slice_del();
+                        break;
+                    }
+                    case 2: {
+                        slice_from("a");
+                        break;
+                    }
+                    case 3: {
+                        slice_from("e");
+                        break;
+                    }
+                }
+            lab10: ;
                 cursor = limit - c10;
+            }
+            {
+                int c11 = limit - cursor;
+                ket = cursor;
+                among_var = find_among_b(a_10, null);
+                if (among_var == 0)
+                {
+                    goto lab11;
+                }
+                bra = cursor;
+                if (I_p1 > cursor)
+                {
+                    goto lab11;
+                }
+                switch (among_var) {
+                    case 1: {
+                        slice_del();
+                        break;
+                    }
+                    case 2: {
+                        slice_from("a");
+                        break;
+                    }
+                    case 3: {
+                        slice_from("e");
+                        break;
+                    }
+                }
+            lab11: ;
+                cursor = limit - c11;
+            }
+            {
+                int c12 = limit - cursor;
+                ket = cursor;
+                among_var = find_among_b(a_7, null);
+                if (among_var == 0)
+                {
+                    goto lab12;
+                }
+                bra = cursor;
+                if (I_p1 > cursor)
+                {
+                    goto lab12;
+                }
+                switch (among_var) {
+                    case 1: {
+                        slice_from("a");
+                        break;
+                    }
+                    case 2: {
+                        slice_from("e");
+                        break;
+                    }
+                    case 3: {
+                        slice_del();
+                        break;
+                    }
+                }
+            lab12: ;
+                cursor = limit - c12;
             }
             cursor = limit_backward;
             return true;
