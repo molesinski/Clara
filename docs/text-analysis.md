@@ -1,4 +1,4 @@
-﻿# Text Analysis and Synonyms
+# Text Analysis and Synonyms
 
 ## Token flow
 
@@ -92,9 +92,15 @@ Tests also cover analyzer lowercasing, related forms mapping to the same term, a
 
 ## Synonyms
 
-`SynonymMap` is in `Clara.Analysis.Synonyms`; `Synonym`, `EquivalencySynonym`, and `ExplicitMappingSynonym` are in `Clara.Analysis`. The map normalizes rules with the same analyzer used for documents. The text field checks analyzer instance identity.
+All synonym and phrase types are in `Clara.Analysis.Synonyms`. The map normalizes rules with the same analyzer used for documents. The text field checks analyzer instance identity.
+
+When upgrading from the previous API, add `using Clara.Analysis.Synonyms;` and update fully qualified references for `Synonym`, `EquivalencySynonym`, `ExplicitMappingSynonym`, `ISynonymMap`, `IPhraseTermSource`, `Phrase`, `PhraseGroup`, and `PhraseTerm`, which previously lived in `Clara.Analysis`. Recompile consumers against the updated packages; the namespace change breaks binary compatibility.
 
 ```csharp
+using Clara.Analysis;
+using Clara.Analysis.Synonyms;
+using Clara.Mapping;
+
 var analyzer = new StandardAnalyzer();
 var rules = Synonym.Parse("mug, cup\ni phone, i-phone => iphone");
 var synonyms = new SynonymMap(analyzer, rules);

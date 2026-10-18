@@ -1,4 +1,4 @@
-﻿# Development and Testing
+# Development and Testing
 
 ## Environment
 

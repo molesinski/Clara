@@ -1,4 +1,4 @@
-﻿using Clara.Mapping;
+using Clara.Mapping;
 
 namespace Clara.Querying
 {

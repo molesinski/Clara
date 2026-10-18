@@ -1,4 +1,4 @@
-﻿#pragma warning disable CA1861 // Avoid constant arrays as arguments
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
 
 using Clara.Mapping;
 using Clara.Storage;

@@ -1,4 +1,4 @@
-﻿namespace Clara.Analysis
+namespace Clara.Analysis
 {
     public readonly struct Position : IEquatable<Position>, IComparable<Position>
     {

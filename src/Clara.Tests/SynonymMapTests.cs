@@ -1,4 +1,4 @@
-﻿#pragma warning disable CA1861 // Avoid constant arrays as arguments
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
 
 using Clara.Analysis;
 using Clara.Analysis.Synonyms;
@@ -241,8 +241,10 @@ namespace Clara.Tests
             Assert.True(IsMatching(map, search, mode, document));
         }
 
-        [Fact]
-        public void TextParsing()
+        [Theory]
+        [InlineData("\n")]
+        [InlineData("\r\n")]
+        public void TextParsing(string lineEnding)
         {
             var synonyms =
                 new Synonym[]
@@ -253,15 +255,16 @@ namespace Clara.Tests
                     new ExplicitMappingSynonym(new[] { "imac" }, new[] { "i mac", "i-mac", "imac" }),
                 };
 
-            var synonymsText = string.Join(Environment.NewLine, synonyms.Select(x => x.ToString()));
+            var synonymsText = string.Join(lineEnding, synonyms.Select(x => x.ToString()));
 
             Assert.Equal(
-                """
-                i pad, i-pad, ipad
-                i phone, i-phone => iphone
-                i pod, i-pod, ipod => i pod, i-pod, ipod
-                imac => i mac, i-mac, imac
-                """,
+                string.Join(lineEnding, new[]
+                {
+                    "i pad, i-pad, ipad",
+                    "i phone, i-phone => iphone",
+                    "i pod, i-pod, ipod => i pod, i-pod, ipod",
+                    "imac => i mac, i-mac, imac",
+                }),
                 synonymsText);
 
             var parsed = Synonym.Parse(synonymsText);

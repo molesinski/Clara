@@ -1,4 +1,4 @@
-﻿namespace Clara.Mapping
+namespace Clara.Mapping
 {
     public sealed class Int32Field<TSource> : RangeField<TSource, int>
     {

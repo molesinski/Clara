@@ -1,6 +1,6 @@
-﻿using Clara.Utils;
+using Clara.Utils;
 
-namespace Clara.Analysis
+namespace Clara.Analysis.Synonyms
 {
     public abstract class Synonym
     {

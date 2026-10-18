@@ -1,4 +1,4 @@
-﻿namespace Clara.Querying
+namespace Clara.Querying
 {
     public enum SearchMode
     {

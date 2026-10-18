@@ -1,4 +1,4 @@
-﻿# Document Scoring
+# Document Scoring
 
 ## Three calculation stages
 

@@ -1,4 +1,4 @@
-﻿// Based on https://github.com/gustf/js-levenshtein
+// Based on https://github.com/gustf/js-levenshtein
 
 using System.Buffers;
 

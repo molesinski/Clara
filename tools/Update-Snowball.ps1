@@ -1,4 +1,4 @@
-﻿# Requires Git, Docker with Linux containers, and PowerShell. No local C toolchain is needed.
+# Requires Git, Docker with Linux containers, and PowerShell. No local C toolchain is needed.
 [CmdletBinding()]
 param(
     [ValidatePattern('^[0-9a-f]{40}$')]
@@ -23,7 +23,7 @@ function Invoke-Checked {
 
 function Convert-ToRepositoryText {
     param([string]$Text)
-    return ($Text -replace '\r?\n', "`r`n")
+    return ($Text -replace '\r\n?', "`n")
 }
 
 New-Item -ItemType Directory -Force $source, $output | Out-Null
@@ -83,8 +83,8 @@ $tokenEntryPoint = @'
 $stemmer = $stemmer.Replace('        private void setBufferContents(string value)', $tokenEntryPoint.Replace("`r`n", "`n") + "`n        private void setBufferContents(string value)")
 $pending[(Join-Path $destination 'Stemmer.cs')] = $stemmer
 
-# Validate all inputs before replacing repository files; keep BOM and CRLF.
+# Validate all inputs before writing UTF-8 without BOM and LF line endings.
 foreach ($path in $pending.Keys) {
-    [IO.File]::WriteAllText($path, (Convert-ToRepositoryText $pending[$path]), [Text.UTF8Encoding]::new($true))
+    [IO.File]::WriteAllText($path, (Convert-ToRepositoryText $pending[$path]), [Text.UTF8Encoding]::new($false))
 }
 Write-Host "Updated $($files.Count) algorithms and the runtime from $revision. Run the build and tests next."

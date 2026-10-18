@@ -1,4 +1,4 @@
-﻿# Updating the Embedded Snowball Stemmers
+# Updating the Embedded Snowball Stemmers
 
 ## Source and scope
 
@@ -22,7 +22,7 @@ dotnet test src/Clara.Tests/Clara.Tests.csproj -c Release --no-build --no-restor
 
 [`Update-Snowball.ps1`](../tools/Update-Snowball.ps1) fetches the pinned commit into ignored `artifacts/snowball/`, checks that the checkout is clean, and builds `dist_libstemmer_csharp` using the official GCC 14 Bookworm image pinned by digest. The source mount is read-only; compilation runs inside the disposable container without network access. Only the generated output mount is writable. Git downloads and the first Docker image pull require network access.
 
-The script validates all expected source files before writing repository files as UTF-8 with BOM and CRLF. Repeating it with the same inputs produces identical files. Keep the generated-code `.editorconfig` and upstream copyright notices.
+The script validates all expected source files before writing repository files as UTF-8 without BOM and with LF line endings. Repeating it with the same inputs produces identical files. Keep the generated-code `.editorconfig` and upstream copyright notices.
 
 ## Preserve Clara's allocation optimizations
 

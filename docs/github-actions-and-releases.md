@@ -1,4 +1,4 @@
-﻿# GitHub Actions and NuGet releases
+# GitHub Actions and NuGet releases
 
 Clara releases `Clara`, `Clara.Analysis.Morfologik`, and `Clara.Analysis.Snowball` together, with one version. `Clara.Analysis.LuceneNet` is built and tested but remains non-packable.
 

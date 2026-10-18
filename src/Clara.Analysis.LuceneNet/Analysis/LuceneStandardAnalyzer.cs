@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using Lucene.Net.Util;
 
 namespace Clara.Analysis

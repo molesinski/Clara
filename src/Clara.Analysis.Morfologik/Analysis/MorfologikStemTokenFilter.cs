@@ -1,4 +1,4 @@
-﻿using Clara.Utils;
+using Clara.Utils;
 using J2N.IO;
 using Morfologik.Stemming.Polish;
 

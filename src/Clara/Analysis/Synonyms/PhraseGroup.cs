@@ -1,74 +1,73 @@
-﻿using System.Collections;
+using System.Collections;
 using Clara.Utils;
 
-namespace Clara.Analysis
+namespace Clara.Analysis.Synonyms
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1710:Identifiers should have correct suffix", Justification = "By design")]
-    public readonly struct Phrase : IReadOnlyList<string>, IEquatable<Phrase>
+    public readonly struct PhraseGroup : IReadOnlyList<Phrase>, IEquatable<PhraseGroup>
     {
-        private readonly ListSlim<string> terms;
+        private readonly ListSlim<Phrase> phrases;
 
-        public Phrase(IEnumerable<string> terms)
+        public PhraseGroup(IEnumerable<Phrase> phrases)
         {
-            if (terms is null)
+            if (phrases is null)
             {
-                throw new ArgumentNullException(nameof(terms));
+                throw new ArgumentNullException(nameof(phrases));
             }
 
-            this.terms = new ListSlim<string>(terms);
+            this.phrases = new ListSlim<Phrase>(phrases);
         }
 
-        internal Phrase(ListSlim<string> terms)
+        internal PhraseGroup(ListSlim<Phrase> phrases)
         {
-            if (terms is null)
+            if (phrases is null)
             {
-                throw new ArgumentNullException(nameof(terms));
+                throw new ArgumentNullException(nameof(phrases));
             }
 
-            this.terms = terms;
+            this.phrases = phrases;
         }
 
         public int Count
         {
             get
             {
-                return this.terms.Count;
+                return this.phrases.Count;
             }
         }
 
-        public string this[int index]
+        public Phrase this[int index]
         {
             get
             {
-                return this.terms[index];
+                return this.phrases[index];
             }
         }
 
-        public static bool operator ==(Phrase left, Phrase right)
+        public static bool operator ==(PhraseGroup left, PhraseGroup right)
         {
             return left.Equals(right);
         }
 
-        public static bool operator !=(Phrase left, Phrase right)
+        public static bool operator !=(PhraseGroup left, PhraseGroup right)
         {
             return !(left == right);
         }
 
         public override bool Equals(object? obj)
         {
-            return obj is Phrase other && this == other;
+            return obj is PhraseGroup other && this == other;
         }
 
-        public bool Equals(Phrase other)
+        public bool Equals(PhraseGroup other)
         {
-            if (this.terms.Count != other.terms.Count)
+            if (this.phrases.Count != other.phrases.Count)
             {
                 return false;
             }
 
-            for (var i = 0; i < this.terms.Count; i++)
+            for (var i = 0; i < this.phrases.Count; i++)
             {
-                if (!StringComparer.Ordinal.Equals(this.terms[i], other.terms[i]))
+                if (!(this.phrases[i] == other.phrases[i]))
                 {
                     return false;
                 }
@@ -81,11 +80,11 @@ namespace Clara.Analysis
         {
             var hash = default(HashCode);
 
-            hash.Add(this.terms.Count);
+            hash.Add(this.phrases.Count);
 
-            foreach (var term in this.terms)
+            foreach (var phrase in this.phrases)
             {
-                hash.Add(term, StringComparer.OrdinalIgnoreCase);
+                hash.Add(phrase);
             }
 
             return hash.ToHashCode();
@@ -93,10 +92,10 @@ namespace Clara.Analysis
 
         public Enumerator GetEnumerator()
         {
-            return new Enumerator(this.terms.GetEnumerator());
+            return new Enumerator(this.phrases.GetEnumerator());
         }
 
-        IEnumerator<string> IEnumerable<string>.GetEnumerator()
+        IEnumerator<Phrase> IEnumerable<Phrase>.GetEnumerator()
         {
             return this.GetEnumerator();
         }
@@ -106,16 +105,16 @@ namespace Clara.Analysis
             return this.GetEnumerator();
         }
 
-        public struct Enumerator : IEnumerator<string>
+        public struct Enumerator : IEnumerator<Phrase>
         {
-            private ListSlim<string>.Enumerator enumerator;
+            private ListSlim<Phrase>.Enumerator enumerator;
 
-            internal Enumerator(ListSlim<string>.Enumerator enumerator)
+            internal Enumerator(ListSlim<Phrase>.Enumerator enumerator)
             {
                 this.enumerator = enumerator;
             }
 
-            public readonly string Current
+            public readonly Phrase Current
             {
                 get
                 {

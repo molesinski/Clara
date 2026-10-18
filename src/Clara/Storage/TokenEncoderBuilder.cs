@@ -1,4 +1,4 @@
-﻿using Clara.Analysis;
+using Clara.Analysis;
 using Clara.Utils;
 
 namespace Clara.Storage

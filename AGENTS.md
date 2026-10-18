@@ -1,4 +1,4 @@
-﻿# Repository Guidelines
+# Repository Guidelines
 
 ## Project Structure & Module Organization
 
@@ -25,7 +25,7 @@ The full test matrix targets .NET Framework 4.7.2 and .NET 8, 9, and 10; use Win
 
 ## Coding Style & Naming Conventions
 
-Follow `.editorconfig`: four spaces for C#, two for project/XML/JSON/YAML files, CRLF endings, and UTF-8 with BOM unless overridden. Use block-scoped namespaces, braces on separate lines, `var`, and `this.` qualification for instance members. Use PascalCase for types and members, `I`-prefixed interfaces, and camelCase fields and locals.
+Follow `.editorconfig`: four spaces for C#, two for project/XML/JSON/YAML files, LF endings, and UTF-8 without BOM. Use block-scoped namespaces, braces on separate lines, `var`, and `this.` qualification for instance members. Use PascalCase for types and members, `I`-prefixed interfaces, and camelCase fields and locals.
 
 C# 14, nullable references, .NET analyzers, and StyleCop are enabled. Warnings fail builds. Respect the generated-code settings under `src/Clara.Analysis.Snowball/Snowball/`.
 
@@ -40,6 +40,8 @@ Make repository changes on a dedicated branch and merge them into `master` throu
 Write repository documentation, code comments, commit messages, PR titles and descriptions, issue text, and release notes in English. Preserve language-specific test data, stop-word lists, and upstream content in their original language. Conversation with the user may follow the user's preferred language.
 
 Use short, imperative commit subjects, following history: `Rename ObjectPool to ObjectPoolSlim` or `Move CI and NuGet publishing to GitHub Actions`. Keep changes focused. PR descriptions should explain behavior changes, link relevant issues, and report build/test results and applicable benchmark comparisons.
+
+During 0.x releases, breaking public API changes are acceptable when they improve the design. Update all repository references, tests, and examples, and document the migration for consumers. Do not preserve an inconsistent API solely for backward compatibility.
 
 ## Architecture Constraints
 

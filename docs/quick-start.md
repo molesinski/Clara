@@ -1,4 +1,4 @@
-﻿# Your First Index and Query
+# Your First Index and Query
 
 This example builds a catalog of three products, searches text, filters by price and brand, and retrieves facets. It uses only the `Clara` core; `StandardAnalyzer` normalizes case but does not reduce inflected words to a common form.
 

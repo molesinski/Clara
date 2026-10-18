@@ -1,4 +1,4 @@
-﻿using Clara.Utils;
+using Clara.Utils;
 using Snowball;
 
 namespace Clara.Analysis

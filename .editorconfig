@@ -1,8 +1,8 @@
-﻿root = true
+root = true
 
 [*]
-charset = utf-8-bom
-end_of_line = crlf
+charset = utf-8
+end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = space
@@ -13,16 +13,6 @@ spelling_exclusion_path = spelling.dic
 [*.{csproj,dcproj,props,targets,json,config,conf,cmd,sh,yaml,yml,xml}]
 indent_size = 2
 tab_width = 2
-
-[*.{cmd,js,json}]
-charset = utf-8
-
-[*.{conf,sh}]
-charset = utf-8
-end_of_line = lf
-
-[global.json]
-charset = latin1
 
 [*.cs]
 csharp_indent_block_contents = true

@@ -1,4 +1,4 @@
-﻿#pragma warning disable SA1516 // Elements should be separated by blank line
+#pragma warning disable SA1516 // Elements should be separated by blank line
 
 using System.Globalization;
 using Clara.Analysis;

@@ -1,4 +1,4 @@
-﻿namespace Clara.Utils
+namespace Clara.Utils
 {
     public sealed class ObjectPoolSlim<TItem>
         where TItem : class

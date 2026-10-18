@@ -1,4 +1,4 @@
-﻿namespace Clara.Storage
+namespace Clara.Storage
 {
     internal readonly struct DocumentValue<TValue>
     {

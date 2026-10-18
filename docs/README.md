@@ -1,4 +1,4 @@
-﻿# Clara Developer Documentation
+# Clara Developer Documentation
 
 Clara is a C# library for searching an index held in process memory. It combines text analysis, document ranking, filtering, faceting, and sorting. The index is built from the complete dataset and must be rebuilt when that dataset changes.
 

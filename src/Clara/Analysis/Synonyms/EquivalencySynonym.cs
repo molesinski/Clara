@@ -1,6 +1,6 @@
-﻿using System.Text;
+using System.Text;
 
-namespace Clara.Analysis
+namespace Clara.Analysis.Synonyms
 {
     public sealed class EquivalencySynonym : Synonym
     {

@@ -1,4 +1,2 @@
-﻿# Normalize text files and keep shell/config files on LF.
-* text=auto
-*.sh text eol=lf
-*.conf text eol=lf
+# Normalize text files and use LF in every checkout.
+* text=auto eol=lf

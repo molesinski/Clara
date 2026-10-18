@@ -1,4 +1,4 @@
-﻿// Generated from armenian.sbl by Snowball 3.2.0 - https://snowballstem.org/
+// Generated from armenian.sbl by Snowball 3.2.0 - https://snowballstem.org/
 
 #pragma warning disable 0164
 #pragma warning disable 0162

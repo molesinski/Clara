@@ -1,4 +1,4 @@
-﻿namespace Clara.Analysis
+namespace Clara.Analysis
 {
     public sealed class BasqueStopTokenFilter : ResourceStopTokenFilter
     {

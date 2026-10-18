@@ -1,4 +1,4 @@
-﻿namespace Clara.Mapping
+namespace Clara.Mapping
 {
     public sealed class DateTimeField<TSource> : RangeField<TSource, DateTime>
     {

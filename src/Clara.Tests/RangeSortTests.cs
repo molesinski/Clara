@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Clara.Mapping;
 using Clara.Querying;
 using Clara.Storage;

@@ -1,4 +1,4 @@
-﻿# Clara
+# Clara
 
 [![CI](https://github.com/molesinski/Clara/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/molesinski/Clara/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/dt/clara.svg)](https://www.nuget.org/packages/clara)
@@ -45,6 +45,7 @@ the `DateOnly` example requires .NET 6 or later. Use these namespaces for mappin
 ```csharp
 using Clara;
 using Clara.Analysis;
+using Clara.Analysis.Synonyms;
 using Clara.Mapping;
 using Clara.Querying;
 ```
@@ -451,7 +452,7 @@ lemma rather than performing contextual disambiguation; see [text analysis](http
 
 ### Synonym Maps
 
-Synonym maps normalize related words and multiword expressions with the field's analyzer. Construct a
+Synonym and phrase types are in `Clara.Analysis.Synonyms`. Synonym maps normalize related words and multiword expressions with the field's analyzer. Construct a
 `SynonymMap` from rules and pass the **same analyzer instance** to both the map and the text field:
 
 ```csharp

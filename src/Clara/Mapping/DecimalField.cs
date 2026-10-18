@@ -1,4 +1,4 @@
-﻿namespace Clara.Mapping
+namespace Clara.Mapping
 {
     public sealed class DecimalField<TSource> : RangeField<TSource, decimal>
     {
