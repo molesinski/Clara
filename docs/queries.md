@@ -14,7 +14,7 @@ The simplest form is `using var result = index.Query(q => q.Filter(...));`. The 
 - Nonempty text that produces no terms after analysis, such as `...`, returns an empty result.
 - An unknown term contributes no matches in `Any` and can empty the result in `All`.
 
-A term can be a token or a group of alternative synonym phrases. A phrase requires all its tokens to occur in a document, but the index does not store their positions. This does not implement word adjacency checks, quoted phrase syntax, or fuzzy search. `PositionBoost` refers to positions in the analyzed query, not positions in the document.
+A term can be a token or a group of alternative synonym phrases. A phrase requires all its tokens to occur in a document, but the index does not store their positions. This does not implement word adjacency checks or quoted phrase syntax. Fields with `TokenCorrection` support misspelled and unfinished words through `matchMode`; see [token correction and phrase suggestions](correction-and-suggestions.md). `PositionBoost` refers to positions in the analyzed query, not positions in the document.
 
 ## Filters and document keys
 
@@ -34,8 +34,9 @@ Range filters include both bounds: `from <= value <= to`. A `null` bound leaves 
 2. Executes the search and retains the scores.
 3. Skips empty filters, orders the remaining filters, and intersects result sets.
 4. Applies `Exclude`, including to sets retained for facets.
-5. Computes facets from their respective document sets.
-6. Sorts documents and transfers buffers to `QueryResult`.
+5. Computes phrase suggestions from the current document set.
+6. Computes facets from their respective document sets.
+7. Sorts documents and transfers buffers to `QueryResult`.
 
 The order in which filters are added to the builder is not the execution plan. `FilterExpressionComparer` places filters that do not require a separate retained facet set first, then uses the stores' `FilterOrder`. This is a simple heuristic based on structure sizes, not a selectivity estimate for specific values.
 

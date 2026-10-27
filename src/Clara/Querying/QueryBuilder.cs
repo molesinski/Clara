@@ -27,7 +27,7 @@ namespace Clara.Querying
             return this.query;
         }
 
-        public QueryBuilder Search(TextField field, SearchMode searchMode, string? text, Func<Position, float>? positionBoost = null, ScoreAggregation? scoreAggregation = null)
+        public QueryBuilder Search(TextField field, SearchMode searchMode, string? text, Func<Position, float>? positionBoost = null, ScoreAggregation? scoreAggregation = null, MatchMode matchMode = MatchMode.Exact)
         {
             this.ThrowIfDisposed();
 
@@ -41,7 +41,7 @@ namespace Clara.Querying
                 throw new InvalidOperationException("Search already has been set.");
             }
 
-            this.query.Search = new TextSearchExpression(field, searchMode, text ?? string.Empty, positionBoost, scoreAggregation);
+            this.query.Search = new TextSearchExpression(field, searchMode, text ?? string.Empty, positionBoost, scoreAggregation, matchMode);
 
             return this;
         }
@@ -254,6 +254,30 @@ namespace Clara.Querying
             }
 
             this.query.Sort = new RangeSortExpression<TValue>(field, sortDirection);
+
+            return this;
+        }
+
+        public QueryBuilder Suggest(PhraseSuggester suggester, string? text, int count = 10)
+        {
+            this.ThrowIfDisposed();
+
+            if (suggester is null)
+            {
+                throw new ArgumentNullException(nameof(suggester));
+            }
+
+            if (this.query.Suggest is not null)
+            {
+                throw new InvalidOperationException("Suggest already has been set.");
+            }
+
+            if (suggester.Index != this.query.Index)
+            {
+                throw new InvalidOperationException("Suggester must be built off query index.");
+            }
+
+            this.query.Suggest = new SuggestExpression(suggester, text ?? string.Empty, count);
 
             return this;
         }

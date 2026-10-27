@@ -53,7 +53,9 @@ Many analyzers from different assemblies use the `Clara.Analysis` namespace. A t
 2. A query field must be the same instance used to build the index.
 3. A `Query` belongs to a specific index and cannot run against a replacement index after a rebuild.
 4. A synonym map and its text field must share the same analyzer instance.
-5. Results and temporary buffers have bounded lifetimes; their owner returns them to the pool through `Dispose()`.
+5. A token correction analyzer must use the same tokenizer as its text field.
+6. A phrase suggester belongs to the index it was built for and must be rebuilt with it.
+7. Results and temporary buffers have bounded lifetimes; their owner returns them to the pool through `Dispose()`.
 
 ## Source reading guide
 

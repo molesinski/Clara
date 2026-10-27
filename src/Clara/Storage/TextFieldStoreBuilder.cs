@@ -12,6 +12,10 @@ namespace Clara.Storage
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
         private readonly DictionarySlim<int, float> documentLengths;
+        private readonly ITokenTermSource? correctionTermSource;
+        private readonly StringPoolSlim? surfacePool;
+        private readonly DictionarySlim<string, int>? surfaceTokens;
+        private readonly DictionarySlim<int, int>? positionTokens;
         private bool isBuilt;
 
         public TextFieldStoreBuilder(TextField<TSource> field, TokenEncoderBuilder tokenEncoderBuilder)
@@ -32,6 +36,14 @@ namespace Clara.Storage
             this.tokenEncoderBuilder = tokenEncoderBuilder;
             this.tokenDocumentScores = new();
             this.documentLengths = new();
+
+            if (field.TokenCorrection is not null)
+            {
+                this.correctionTermSource = field.TokenCorrection.Analyzer.CreateTokenTermSource();
+                this.surfacePool = new();
+                this.surfaceTokens = new();
+                this.positionTokens = new();
+            }
         }
 
         public override void Index(int documentId, TSource item)
@@ -73,6 +85,12 @@ namespace Clara.Storage
 
                         length = this.field.IndexScoreAggregation.Combine(length, value.Weight);
                     }
+
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    this.IndexSurfaceTokens(value.Text);
+#else
+                    this.IndexSurfaceTokens(value.Text!);
+#endif
                 }
             }
         }
@@ -86,13 +104,64 @@ namespace Clara.Storage
 
             this.field.Similarity.Transform(this.tokenDocumentScores, this.documentLengths);
 
+            var tokenCorrectionStore = default(TokenCorrectionStore);
+
+            if (this.field.TokenCorrection is not null && this.surfaceTokens is not null)
+            {
+                var surfaceTokens = new DictionarySlim<string, int>();
+
+                foreach (var pair in this.surfaceTokens)
+                {
+                    if (this.tokenDocumentScores.ContainsKey(pair.Value))
+                    {
+                        ref var tokenId = ref surfaceTokens.GetValueRefOrAddDefault(pair.Key, out _);
+
+                        tokenId = pair.Value;
+                    }
+                }
+
+                tokenCorrectionStore = new TokenCorrectionStore(this.field.TokenCorrection, surfaceTokens);
+            }
+
             var store =
                 new TextFieldStore(
-                    new TextDocumentStore(tokenEncoder, this.field.Analyzer, this.field.SynonymMap, this.field.SearchScoreAggregation, this.tokenDocumentScores));
+                    new TextDocumentStore(tokenEncoder, this.field.Analyzer, this.field.SynonymMap, this.field.SearchScoreAggregation, this.tokenDocumentScores, tokenCorrectionStore));
 
             this.isBuilt = true;
 
             return store;
+        }
+
+        private void IndexSurfaceTokens(string text)
+        {
+            if (this.correctionTermSource is null || this.surfacePool is null || this.surfaceTokens is null || this.positionTokens is null)
+            {
+                return;
+            }
+
+            this.positionTokens.Clear();
+
+            foreach (var term in this.analyzerTermSource.GetTerms(text))
+            {
+                ref var tokenId = ref this.positionTokens.GetValueRefOrAddDefault(term.Position.Start, out _);
+
+                tokenId = this.tokenEncoderBuilder.Encode(term.Token);
+            }
+
+            foreach (var term in this.correctionTermSource.GetTerms(text))
+            {
+                if (this.positionTokens.TryGetValue(term.Position.Start, out var tokenId))
+                {
+                    var surface = this.surfacePool.GetOrAdd(term.Token.AsReadOnlySpan());
+
+                    ref var surfaceTokenId = ref this.surfaceTokens.GetValueRefOrAddDefault(surface, out var exists);
+
+                    if (!exists)
+                    {
+                        surfaceTokenId = tokenId;
+                    }
+                }
+            }
         }
     }
 }

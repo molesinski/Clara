@@ -6,7 +6,7 @@ namespace Clara.Mapping
 {
     public abstract class TextField : Field
     {
-        internal TextField(IAnalyzer analyzer, ISynonymMap? synonymMap, Similarity? similarity, ScoreAggregation? indexScoreAggregation, ScoreAggregation? searchScoreAggregation)
+        internal TextField(IAnalyzer analyzer, ISynonymMap? synonymMap, Similarity? similarity, ScoreAggregation? indexScoreAggregation, ScoreAggregation? searchScoreAggregation, TokenCorrection? tokenCorrection)
         {
             if (analyzer is null)
             {
@@ -21,11 +21,20 @@ namespace Clara.Mapping
                 }
             }
 
+            if (tokenCorrection is not null)
+            {
+                if (!tokenCorrection.Analyzer.Tokenizer.Equals(analyzer.Tokenizer))
+                {
+                    throw new ArgumentException("Token correction analyzer must use same tokenizer as text field.", nameof(tokenCorrection));
+                }
+            }
+
             this.Analyzer = analyzer;
             this.SynonymMap = synonymMap;
             this.Similarity = similarity ?? Similarity.Default;
             this.IndexScoreAggregation = indexScoreAggregation ?? ScoreAggregation.Default;
             this.SearchScoreAggregation = searchScoreAggregation ?? ScoreAggregation.Default;
+            this.TokenCorrection = tokenCorrection;
         }
 
         public IAnalyzer Analyzer { get; }
@@ -38,6 +47,8 @@ namespace Clara.Mapping
 
         public ScoreAggregation SearchScoreAggregation { get; }
 
+        public TokenCorrection? TokenCorrection { get; }
+
         public override bool IsSearchable
         {
             get
@@ -49,8 +60,8 @@ namespace Clara.Mapping
 
     public sealed class TextField<TSource> : TextField
     {
-        public TextField(Func<TSource, string?> valueMapper, IAnalyzer analyzer, ISynonymMap? synonymMap = null, Similarity? similarity = null, ScoreAggregation? indexScoreAggregation = null, ScoreAggregation? searchScoreAggregation = null)
-            : base(analyzer, synonymMap, similarity, indexScoreAggregation, searchScoreAggregation)
+        public TextField(Func<TSource, string?> valueMapper, IAnalyzer analyzer, ISynonymMap? synonymMap = null, Similarity? similarity = null, ScoreAggregation? indexScoreAggregation = null, ScoreAggregation? searchScoreAggregation = null, TokenCorrection? tokenCorrection = null)
+            : base(analyzer, synonymMap, similarity, indexScoreAggregation, searchScoreAggregation, tokenCorrection)
         {
             if (valueMapper is null)
             {
@@ -60,8 +71,8 @@ namespace Clara.Mapping
             this.ValueMapper = source => new TextWeightEnumerable(valueMapper(source));
         }
 
-        public TextField(Func<TSource, IEnumerable<string?>?> valueMapper, IAnalyzer analyzer, ISynonymMap? synonymMap = null, Similarity? similarity = null, ScoreAggregation? indexScoreAggregation = null, ScoreAggregation? searchScoreAggregation = null)
-            : base(analyzer, synonymMap, similarity, indexScoreAggregation, searchScoreAggregation)
+        public TextField(Func<TSource, IEnumerable<string?>?> valueMapper, IAnalyzer analyzer, ISynonymMap? synonymMap = null, Similarity? similarity = null, ScoreAggregation? indexScoreAggregation = null, ScoreAggregation? searchScoreAggregation = null, TokenCorrection? tokenCorrection = null)
+            : base(analyzer, synonymMap, similarity, indexScoreAggregation, searchScoreAggregation, tokenCorrection)
         {
             if (valueMapper is null)
             {
@@ -71,8 +82,8 @@ namespace Clara.Mapping
             this.ValueMapper = source => new TextWeightEnumerable(valueMapper(source));
         }
 
-        public TextField(Func<TSource, IEnumerable<TextWeight>?> valueMapper, IAnalyzer analyzer, ISynonymMap? synonymMap = null, Similarity? similarity = null, ScoreAggregation? indexScoreAggregation = null, ScoreAggregation? searchScoreAggregation = null)
-            : base(analyzer, synonymMap, similarity, indexScoreAggregation, searchScoreAggregation)
+        public TextField(Func<TSource, IEnumerable<TextWeight>?> valueMapper, IAnalyzer analyzer, ISynonymMap? synonymMap = null, Similarity? similarity = null, ScoreAggregation? indexScoreAggregation = null, ScoreAggregation? searchScoreAggregation = null, TokenCorrection? tokenCorrection = null)
+            : base(analyzer, synonymMap, similarity, indexScoreAggregation, searchScoreAggregation, tokenCorrection)
         {
             if (valueMapper is null)
             {

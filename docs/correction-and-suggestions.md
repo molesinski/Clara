@@ -1,0 +1,92 @@
+# Token Correction and Phrase Suggestions
+
+Use this chapter when a text field should tolerate misspelled or unfinished words, or when an application needs search phrase suggestions that respect the same filters as its document queries.
+
+## Token correction
+
+`TextField` accepts an optional [`TokenCorrection`](../src/Clara/Mapping/TokenCorrection.cs). Correction compares query words with the words that occur in the indexed text, in their surface form: tokenized and normalized, but not stemmed. Matching against stems would reject typing errors in inflected forms, because a stem can differ from the typed word by more than the allowed distance.
+
+```csharp
+var surfaceAnalyzer = new Analyzer(new StandardTokenizer(), new LowerInvariantTokenFilter());
+
+var text = new TextField<Product>(
+    x => x.Title,
+    new PorterAnalyzer(),
+    tokenCorrection: new TokenCorrection(surfaceAnalyzer, TokenMatching.Default, variants: knownMisspellings));
+```
+
+- The correction analyzer must use the same tokenizer as the field (`ITokenizer.Equals`). Query and index terms are related to their surface forms by token position, so both analyzers must produce the same positions.
+- While indexing, the field records which analyzed token each surface form produces. Only surface forms whose token has postings in the field are kept.
+- `variants` maps known misspellings to canonical surface forms. Each side is normalized with the correction analyzer and must produce a single token; a variant is used only for query words of at least `minimumVariantLength` characters that do not occur in the field.
+
+### Match modes
+
+`QueryBuilder.Search(..., matchMode: ...)` selects the behavior. Correcting modes require a field with `TokenCorrection`.
+
+| Mode | Term with an exact match | Term without an exact match | Last term, text not ending with whitespace |
+| --- | --- | --- | --- |
+| `Exact` (default) | Exact | No documents | Exact |
+| `Correct` | Exact | Candidates with the highest boost (lowest cost) | Same as other terms |
+| `CorrectPrefix` | Exact | Same as `Correct` | Exact plus every fuzzy and fuzzy prefix candidate |
+
+Synonym phrase terms are never corrected. A candidate contributes its token's postings multiplied by `TokenMatching.GetBoost(distance, isPrefix)`; within one term, a document keeps the best candidate (`Max`), so several similar words do not add up. Terms are then combined as before, with the position boost and the search aggregation.
+
+### TokenMatching
+
+[`TokenMatching`](../src/Clara/Mapping/TokenMatching.cs) defines the distance function and its limits:
+
+| Member | Purpose |
+| --- | --- |
+| `Normalize(char)` | Character folding used for the first-character rule; candidates must start with the same folded character |
+| `GetMaximumDistance(length)` | Largest accepted distance for a query word of the given length |
+| `GetMaximumLengthDifference(length)` | Length window for full-word candidates and prefix lengths |
+| `CalculateDistance(a, b, maximumDistance)` | Distance; may return any value above the maximum once it is exceeded |
+| `GetBoost(distance, isPrefix)` | Score multiplier for a candidate |
+
+`TokenMatching.Default` uses unit-cost Levenshtein distance: 0 edits up to 3 characters, 1 up to 6, and 2 above, with boost `1 / (1 + distance + (isPrefix ? 0.2 : 0))`. Applications that already rank suggestions with a weighted distance, for example one that charges less for a missing diacritic, should plug in that function so search and suggestions accept the same words.
+
+## Phrase suggestions
+
+[`PhraseSuggesterBuilder`](../src/Clara/PhraseSuggesterBuilder.cs) builds a [`PhraseSuggester`](../src/Clara/PhraseSuggester.cs) for one completed index and one of its text fields:
+
+```csharp
+var builder = new PhraseSuggesterBuilder(index, mapper.Text, phraseAnalyzer, matching, stopwords, variants);
+
+foreach (var phrase in popularPhrases)
+{
+    builder.Add(phrase.Text, phrase.Count, phrase.Aliases);
+}
+
+var suggester = builder.Build();
+
+using var result = index.Query(q => q
+    .Filter(mapper.Brand, FilterMode.Any, "Alpha")
+    .Suggest(suggester, "choc", count: 10));
+
+foreach (var suggestion in result.Suggestions)
+{
+    Console.WriteLine($"{suggestion.Text} {suggestion.HighlightedText} {suggestion.Score}");
+}
+```
+
+### Postings
+
+`Build()` searches every phrase in the field with `SearchMode.All` and `MatchMode.Exact`, including synonyms, and stores the matching document identifiers. Phrases that match no document are removed unless `removeUnmatched` is `false`. The suggester belongs to the index it was built for; rebuild it whenever the index is rebuilt.
+
+### Query semantics
+
+`Suggest` runs after `Include`, `Search`, filters, and `Exclude`, on the same document set that facets use. A phrase is returned only if its postings intersect that set, so selecting a suggestion with the same filters always finds at least one document. Without any restriction the intersection is skipped. Because `Search` also restricts the set, send suggestions as a separate query when the typed text should not narrow the documents.
+
+Empty or whitespace-only text returns phrases by weight. Otherwise every word of the text is matched against phrase words:
+
+- exact and fuzzy words within `GetMaximumDistance`,
+- fuzzy prefixes for the last word when the text does not end with whitespace,
+- variants, exactly or as a prefix of the last word.
+
+Words are intersected across the text. The score starts at 1,000,000 and subtracts the query word position, the matched word's position in the phrase, the phrase length in words, the distance, and one point each for a corrected or prefix match, a prefix match, a stopword match, and a phrase with zero weight. Results are ordered by score, then weight, then insertion order. `HighlightedText` marks the part of each phrase word that the query did not cover, using `highlightStart` and `highlightEnd` (`<b>` and `</b>` by default).
+
+### Concurrency
+
+A built suggester is read-only. Each query leases its own term source and working collections, so concurrent queries are safe as long as the analyzer's term sources are independent, as with the built-in analyzers.
+
+Tests: [TokenCorrectionTests.cs](../src/Clara.Tests/TokenCorrectionTests.cs), [PhraseSuggesterTests.cs](../src/Clara.Tests/PhraseSuggesterTests.cs).

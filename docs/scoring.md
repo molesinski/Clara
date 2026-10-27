@@ -63,6 +63,10 @@ In [`TextDocumentStore`](../src/Clara/Storage/TextDocumentStore.cs), the query's
 
 With mapping `alias => red blue`, `Similarity.TF`, and document `red blue`, a query override of `Max` produces score 1 even when the field uses `Sum`. Conversely, an override of `Sum` produces score 2 when the field uses `Max`. [ScoringTests.cs](../src/Clara.Tests/ScoringTests.cs) covers these cases, default fallback, alternative phrases, and position boosts.
 
+## Corrected terms
+
+In `Correct` and `CorrectPrefix` modes a corrected or completed term uses the candidate token's precomputed score multiplied by `TokenMatching.GetBoost(distance, isPrefix)`. Within one term, a document keeps its best candidate through `Max`, regardless of the search aggregation; exact matches keep their unboosted score. The position boost and search aggregation then combine terms as usual. When all matching documents share the same candidate, the multiplier does not change their relative order. See [token correction and phrase suggestions](correction-and-suggestions.md).
+
 ## Extending ranking
 
 A custom `Similarity` class implements `Transform`, modifying weights in the supplied dictionaries. A custom `ScoreAggregation` implements `Combine`. Check token weights, normalization, hit ordering, repetitions, multivalued fields, and synonyms separately. Testing only whether a document appears will not detect scoring regressions.

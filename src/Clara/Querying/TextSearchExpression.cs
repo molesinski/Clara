@@ -6,7 +6,7 @@ namespace Clara.Querying
 {
     public sealed class TextSearchExpression : SearchExpression
     {
-        public TextSearchExpression(TextField field, SearchMode searchMode, string text, Func<Position, float>? positionBoost = null, ScoreAggregation? searchScoreAggregation = null)
+        public TextSearchExpression(TextField field, SearchMode searchMode, string text, Func<Position, float>? positionBoost = null, ScoreAggregation? searchScoreAggregation = null, MatchMode matchMode = MatchMode.Exact)
         {
             if (field is null)
             {
@@ -23,11 +23,22 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(text));
             }
 
+            if (matchMode != MatchMode.Exact && matchMode != MatchMode.Correct && matchMode != MatchMode.CorrectPrefix)
+            {
+                throw new ArgumentException("Illegal match mode enum value.", nameof(matchMode));
+            }
+
+            if (matchMode != MatchMode.Exact && field.TokenCorrection is null)
+            {
+                throw new ArgumentException("Field must have token correction configured to use correcting match modes.", nameof(matchMode));
+            }
+
             this.Field = field;
             this.SearchMode = searchMode;
             this.Text = text;
             this.PositionBoost = positionBoost;
             this.SearchScoreAggregation = searchScoreAggregation;
+            this.MatchMode = matchMode;
         }
 
         public TextField Field { get; }
@@ -39,6 +50,8 @@ namespace Clara.Querying
         public Func<Position, float>? PositionBoost { get; }
 
         public ScoreAggregation? SearchScoreAggregation { get; }
+
+        public MatchMode MatchMode { get; }
 
         internal override bool IsEmpty
         {

@@ -16,13 +16,15 @@ namespace Clara.Storage
         private readonly ScoreAggregation searchScoreAggregation;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
         private readonly ObjectPoolSlim<IPhraseTermSource> phraseTermSourcePool;
+        private readonly TokenCorrectionStore? tokenCorrectionStore;
 
         public TextDocumentStore(
             TokenEncoder tokenEncoder,
             IAnalyzer analyzer,
             ISynonymMap? synonymMap,
             ScoreAggregation searchScoreAggregation,
-            DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores)
+            DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
+            TokenCorrectionStore? tokenCorrectionStore = null)
         {
             if (tokenEncoder is null)
             {
@@ -49,21 +51,36 @@ namespace Clara.Storage
             this.synonymMap = synonymMap;
             this.searchScoreAggregation = searchScoreAggregation;
             this.tokenDocumentScores = tokenDocumentScores;
+            this.tokenCorrectionStore = tokenCorrectionStore;
             this.phraseTermSourcePool = new ObjectPoolSlim<IPhraseTermSource>(() => this.synonymMap?.CreatePhraseTermSource() ?? new PhraseTermSource(this.analyzer.CreateTokenTermSource()));
         }
 
-        public DocumentScoring Search(SearchMode searchMode, string text, Func<Position, float>? positionBoost, ScoreAggregation? searchScoreAggregation)
+        public DocumentScoring Search(SearchMode searchMode, string text, Func<Position, float>? positionBoost, ScoreAggregation? searchScoreAggregation, MatchMode matchMode = MatchMode.Exact)
         {
+            if (matchMode != MatchMode.Exact && this.tokenCorrectionStore is null)
+            {
+                throw new InvalidOperationException("Field does not support token correction.");
+            }
+
             using var source = this.phraseTermSourcePool.Lease();
             using var termScores = SharedObjectPools.DocumentScores.Lease();
+            using var surfaceTerms = matchMode != MatchMode.Exact ? SharedObjectPools.SurfaceTerms.Lease() : default;
 
             var documentScores = SharedObjectPools.DocumentScores.Lease();
 
             try
             {
                 var isFirst = true;
+                var lastPosition = -1;
+                var isPrefixAllowed = false;
 
                 searchScoreAggregation ??= this.searchScoreAggregation;
+
+                if (this.tokenCorrectionStore is not null && matchMode != MatchMode.Exact)
+                {
+                    lastPosition = this.tokenCorrectionStore.GetSurfaceTerms(text, surfaceTerms.Instance);
+                    isPrefixAllowed = matchMode == MatchMode.CorrectPrefix && text.Length > 0 && !char.IsWhiteSpace(text[text.Length - 1]);
+                }
 
                 foreach (var term in source.Instance.GetTerms(text))
                 {
@@ -83,6 +100,19 @@ namespace Clara.Storage
                     else
                     {
                         throw new InvalidOperationException("Unsupported phrase term value encountered.");
+                    }
+
+                    if (this.tokenCorrectionStore is not null && matchMode != MatchMode.Exact && term.Token is not null)
+                    {
+                        if (surfaceTerms.Instance.TryGetValue(term.Position.Start, out var surface))
+                        {
+                            var isPrefix = isPrefixAllowed && term.Position.Start == lastPosition;
+
+                            if (termScores.Instance.Count == 0 || isPrefix)
+                            {
+                                this.SearchCandidates(surface, isPrefix, bestOnly: termScores.Instance.Count == 0 && !isPrefix, termScores.Instance);
+                            }
+                        }
                     }
 
                     var boost = DefaultBoost;
@@ -121,6 +151,26 @@ namespace Clara.Storage
             {
                 documentScores.Dispose();
                 throw;
+            }
+        }
+
+        private void SearchCandidates(string surface, bool isPrefix, bool bestOnly, DictionarySlim<int, float> termScores)
+        {
+            using var candidates = SharedObjectPools.DocumentScores.Lease();
+
+            var maximumBoost = this.tokenCorrectionStore!.GetCandidates(surface, isPrefix, candidates.Instance);
+
+            foreach (var candidate in candidates.Instance)
+            {
+                if (bestOnly && candidate.Value < maximumBoost)
+                {
+                    continue;
+                }
+
+                if (this.tokenDocumentScores.TryGetValue(candidate.Key, out var tokenDocuments))
+                {
+                    termScores.UnionWith(tokenDocuments, ScoreAggregation.Max, candidate.Value);
+                }
             }
         }
 
