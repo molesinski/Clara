@@ -29,7 +29,7 @@ var text = new TextField<Product>(
 | `Correct` | Exact | Candidates with the highest boost (lowest cost) | Same as other terms |
 | `CorrectPrefix` | Exact | Same as `Correct` | Exact plus every fuzzy and fuzzy prefix candidate |
 
-Synonym phrase terms are never corrected. A candidate contributes its token's postings multiplied by `TokenMatching.GetBoost(distance, isPrefix)`; within one term, a document keeps the best candidate (`Max`), so several similar words do not add up. Terms are then combined as before, with the position boost and the search aggregation.
+A query word replaced by a synonym is corrected like any other word, using the word as typed: its candidates are added to the synonym's postings, and a word without synonym matches is corrected. A synonym that spans several query words is never corrected. A candidate contributes its token's postings multiplied by `TokenMatching.GetBoost(distance, isPrefix)`; within one term, a document keeps the best candidate (`Max`), so several similar words do not add up. Terms are then combined as before, with the position boost and the search aggregation.
 
 ### TokenMatching
 

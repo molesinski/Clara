@@ -102,7 +102,7 @@ namespace Clara.Storage
                         throw new InvalidOperationException("Unsupported phrase term value encountered.");
                     }
 
-                    if (this.tokenCorrectionStore is not null && matchMode != MatchMode.Exact && term.Token is not null)
+                    if (this.tokenCorrectionStore is not null && matchMode != MatchMode.Exact && term.Position.Start == term.Position.End)
                     {
                         if (surfaceTerms.Instance.TryGetValue(term.Position.Start, out var surface))
                         {

@@ -1,6 +1,7 @@
 #pragma warning disable CA1861 // Avoid constant arrays as arguments
 
 using Clara.Analysis;
+using Clara.Analysis.Synonyms;
 using Clara.Mapping;
 using Clara.Querying;
 using Clara.Storage;
@@ -128,6 +129,41 @@ namespace Clara.Tests
 
             Assert.Equal("chocolate-cookies", document.Key);
             Assert.Equal(1f + TokenMatching.Default.GetBoost(1, isPrefix: false), document.Score);
+        }
+
+        [Fact]
+        public void CorrectPrefixModeCompletesLastTermWithSynonyms()
+        {
+            var mapper = new CorrectionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "red" }, new[] { "cherry" }) });
+            var index = IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore());
+
+            using var exact = index.Query(q => q.Search(mapper.Text, SearchMode.All, "red"));
+            using var prefix = index.Query(q => q.Search(mapper.Text, SearchMode.All, "red", matchMode: MatchMode.CorrectPrefix));
+
+            Assert.DoesNotContain("redwood-table", exact.Documents.Select(x => x.Key));
+            Assert.Equal(exact.Documents.Select(x => x.Key).Append("redwood-table").OrderBy(x => x, StringComparer.Ordinal), prefix.Documents.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal));
+        }
+
+        [Fact]
+        public void CorrectModeCorrectsTermsWithSynonymsWithoutExactMatches()
+        {
+            var mapper = new CorrectionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "colour" }, new[] { "hue" }) });
+            var index = IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore());
+
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "colour", matchMode: MatchMode.Correct));
+
+            Assert.Equal("color-pencils", Assert.Single(result.Documents).Key);
+        }
+
+        [Fact]
+        public void CorrectModeDoesNotCorrectMultiWordSynonyms()
+        {
+            var mapper = new CorrectionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "crock pot" }, new[] { "slow cooker" }) });
+            var index = IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore());
+
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "crock pot", matchMode: MatchMode.Correct));
+
+            Assert.Equal("slow-cookers", Assert.Single(result.Documents).Key);
         }
 
         [Fact]

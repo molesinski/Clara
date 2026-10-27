@@ -1,4 +1,5 @@
 using Clara.Analysis;
+using Clara.Analysis.Synonyms;
 using Clara.Mapping;
 
 namespace Clara.Tests
@@ -28,12 +29,16 @@ namespace Clara.Tests
             IEnumerable<KeyValuePair<string, string>>? variants = null,
             IEnumerable<KeyValuePair<string, string>>? phraseVariants = null,
             IEnumerable<KeyValuePair<string, string>>? phraseAliases = null,
-            bool validatePhrases = true)
+            bool validatePhrases = true,
+            IEnumerable<Synonym>? synonyms = null)
         {
+            var analyzer = new PorterAnalyzer();
+
             this.Text =
                 new TextField<CorrectionDocument>(
                     x => x.Text,
-                    new PorterAnalyzer(),
+                    analyzer,
+                    synonymMap: synonyms is null ? null : new SynonymMap(analyzer, synonyms),
                     similarity: Similarity.TF,
                     indexScoreAggregation: ScoreAggregation.Max,
                     searchScoreAggregation: ScoreAggregation.Sum,
