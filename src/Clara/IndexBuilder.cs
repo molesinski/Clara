@@ -143,10 +143,18 @@ namespace Clara
 
             foreach (var pair in this.fieldBuilders)
             {
-                var field = pair.Key;
-                var builder = pair.Value;
+                if (!pair.Value.RequiresFieldStores)
+                {
+                    fieldStores.Add(pair.Key, pair.Value.Build(tokenEncoder));
+                }
+            }
 
-                fieldStores.Add(field, builder.Build(tokenEncoder));
+            foreach (var pair in this.fieldBuilders)
+            {
+                if (pair.Value.RequiresFieldStores)
+                {
+                    fieldStores.Add(pair.Key, pair.Value.Build(tokenEncoder, fieldStores));
+                }
             }
 
             var index = new Index<TDocument>(tokenEncoder, this.documentMap, fieldStores);

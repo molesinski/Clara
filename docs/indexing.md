@@ -18,6 +18,7 @@ Keep field definitions in mapper properties. Do not create fresh fields on each 
 | --- | --- | --- |
 | `TextField<TSource>` | Text, a collection of strings, or `TextWeight` values | Search and ranking |
 | `KeywordField<TSource>` | One or more labels | Filtering and faceting |
+| `PhraseField<TSource>` | Weighted search phrases (`PhraseWeight`) | Phrase suggestions weighted by the filtered documents |
 | `HierarchyField<TSource>` | One or more encoded paths | Node filtering and hierarchical facets |
 | `RangeField<TSource, TValue>` | A nullable value or a collection of comparable values | Range filtering, min/max, and sorting |
 | `Int32Field`, `DoubleField`, `DecimalField`, `DateTimeField` | Convenient range specializations | Same as `RangeField` |
@@ -53,7 +54,7 @@ Values outside the field's `MinValue`–`MaxValue` bounds are skipped during ind
 2. The builder retrieves the fields and creates their corresponding `FieldStoreBuilder` instances.
 3. The document key is encoded as an integer, and the document is added to `documentMap`.
 4. Each field builder reads the document's values and updates its own structures.
-5. `Build()` finalizes the encoder and field stores, then creates `Index<TDocument>`.
+5. `Build()` finalizes the encoder and field stores, then creates `Index<TDocument>`. Phrase fields with a validation field are finalized after the other fields, because they search it.
 
 `IndexBuilder<TSource, TDocument>` allows manual calls to `Index(item)` followed by `Build()`. Both operations are prohibited after finalization. This variant does not automatically acquire the static method's lock; when using a shared encoder store, the application must synchronize the entire build cycle.
 
@@ -61,10 +62,11 @@ Values outside the field's `MinValue`–`MaxValue` bounds are skipped during ind
 
 | Field | Structures |
 | --- | --- |
-| Text | Token → document → `float`; document lengths used when finalizing scores |
+| Text | Token → document → `float`; document lengths used when finalizing scores; with `TokenCorrection`, surface form → token grouped by first character |
 | Keyword | Token → document set for filters; document → token set for facets |
 | Hierarchy | Keyword relationships plus parent → children |
 | Range | Sorted document–value pairs for filters; document → min/max for facets and sorting |
+| Phrase | Phrase → sorted documents and weights; phrase word → phrase → position, grouped by first character |
 
 The encoder is shared by document keys and text values within an index. Do not treat its integer identifiers as public domain identifiers. The [memory chapter](memory-and-concurrency.md) explains the choice between `SharedTokenEncoderStore` and `InstanceTokenEncoderStore`.
 

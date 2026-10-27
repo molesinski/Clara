@@ -21,8 +21,10 @@ Main features are:
 * Fast in memory searching
 * Low memory allocation for search execution
 * Multilingual stemming and configurable stopword lists
-* Text, keyword, hierarchy and range fields
+* Text, phrase, keyword, hierarchy and range fields
 * Index time synonym maps with multi token support
+* Optional correction of misspelled and unfinished words with a pluggable distance function
+* Phrase suggestions weighted by the documents that pass the same filters as document queries
 * Searching across document properties combined into one text field, with BM25 scoring
 * Filtering keyword and hierarchy fields by any or all values and range fields by value subrange
 * Faceting that can retain alternatives excluded by the facet's own field filter
@@ -115,8 +117,8 @@ support from single index. In such case we would combine text for each language 
 analyzer.
 
 For simple fields we define delegates that provide raw values for indexing. Each field can provide none,
-one or more values, null values are automatically skipped during indexing. All non-text fields can be marked
-as filterable or facetable, while only range fields can be made sortable.
+one or more values, null values are automatically skipped during indexing. Keyword, hierarchy, and range fields
+can be marked as filterable or facetable, while only range fields can be made sortable. Phrase fields provide suggestions.
 
 Built indexes have no persistence and reside only in memory. Rebuild an index when its source data changes.
 Fields have no names: keep their definitions in mapper properties and use those same instances when querying.
@@ -254,11 +256,12 @@ Use `IIndexMapper<TSource, TDocument>` when results should contain a different p
 within the index. `GetDocument` does not copy the object, so changing it later does not update indexed values.
 
 Each field reads one value or an enumerable of values from a source document. Null values are skipped.
-Non-text fields require at least one capability flag; enable only the operations your queries need.
+Keyword, hierarchy, and range fields require at least one capability flag; enable only the operations your queries need.
 
 | Field | Value type | Supported operations |
 | --- | --- | --- |
 | `TextField<TSource>` | Strings or `TextWeight` values | Search and scoring |
+| `PhraseField<TSource>` | Weighted phrases (`PhraseWeight`) | Phrase suggestions with filtered weights and document counts |
 | `KeywordField<TSource>` | Labels | Filtering and faceting |
 | `HierarchyField<TSource>` | Hierarchical identifiers or paths | Filtering and hierarchical faceting |
 | `RangeField<TSource, TValue>` | Comparable value types | Filtering, min/max facets, and sorting |
@@ -291,7 +294,88 @@ the indexed terms, and `ScoreAggregation.Sum` combines weights during indexing a
 does not imply a proportional final BM25 score. See [scoring](https://github.com/molesinski/Clara/blob/master/docs/scoring.md) for the calculation stages.
 
 `SearchMode.Any` accepts documents matching any query term; `SearchMode.All` requires every term.
-Search uses analyzed tokens, without fuzzy matching or quoted phrase adjacency checks.
+Search uses exact analyzed tokens by default. Optional token correction enables fuzzy matching and prefix
+completion. Quoted phrases do not enforce adjacency in documents.
+
+#### Token Correction
+
+To enable correction, replace the `Text` property in the `ProductMapper` above with:
+
+```csharp
+public TextField<Product> Text { get; } = new(
+    GetText,
+    new PorterAnalyzer(),
+    tokenCorrection: new TokenCorrection(
+        new Analyzer(new StandardTokenizer(), new LowerInvariantTokenFilter())));
+```
+
+The correction analyzer preserves normalized words before stemming and must use the same tokenizer as
+the text field. Rebuild the index after changing the field, then select a match mode when searching:
+
+```csharp
+var mapper = new ProductMapper();
+var index = IndexBuilder.Build(products, mapper);
+
+using var corrected = index.Query(q => q
+    .Search(mapper.Text, SearchMode.All, "iphne", matchMode: MatchMode.Correct));
+
+using var completed = index.Query(q => q
+    .Search(mapper.Text, SearchMode.All, "iph", matchMode: MatchMode.CorrectPrefix));
+```
+
+`Correct` keeps terms with exact matches and otherwise uses the best correction candidates. `CorrectPrefix`
+also expands the unfinished last word into fuzzy and prefix candidates; trailing whitespace marks that
+word as complete. `Exact` remains the default. Both correcting modes require `TokenCorrection` on the field.
+
+### Phrase Fields
+
+`PhraseField<TSource>` suggests phrases attached to documents. For a simple title autocomplete, add this
+constructor and property to the `ProductMapper` above:
+
+```csharp
+public ProductMapper()
+{
+    this.Phrases = new PhraseField<Product>(
+        product => new[] { new PhraseWeight(product.Title, weight: 1f) },
+        new Analyzer(new StandardTokenizer(), new LowerInvariantTokenFilter()),
+        validationField: this.Text);
+}
+
+public PhraseField<Product> Phrases { get; }
+```
+
+Add `yield return this.Phrases;` to `GetFields()` and rebuild the index. The optional `validationField`
+keeps a document–phrase pair only when an exact search for the phrase finds that document in the text
+field. It must be the same field instance included in the mapper. Phrase suggestions do not require
+token correction on the text field.
+
+```csharp
+var mapper = new ProductMapper();
+var index = IndexBuilder.Build(products, mapper);
+
+using var suggestions = index.Query(q => q
+    .Filter(mapper.Brand, FilterMode.Any, "Apple")
+    .Suggest(mapper.Phrases, "iph", count: 5));
+
+foreach (var suggestion in suggestions.Suggestions)
+{
+    Console.WriteLine($"{suggestion.Text}: {suggestion.Weight} weight, {suggestion.Count} documents");
+    Console.WriteLine(suggestion.HighlightedText);
+}
+```
+
+Suggestions support misspellings and completion of the unfinished last word. Empty text returns popular
+phrases by weight. `Weight` sums contributions from remaining documents, and `Count` counts those carrying
+the phrase, including zero-weight contributions. `HighlightedText` marks completion text with `<b>` by default.
+For popularity from search history, map each document's phrases and counts to `PhraseWeight` values instead
+of assigning every title weight 1.
+
+Suggestions respect `Include`, `Search`, all filters, and `Exclude`. Use a separate query with the same
+filters when the typed search text should not restrict the candidate documents. Continue to dispose every
+query result with `using`.
+
+See [token correction and phrase suggestions](docs/correction-and-suggestions.md) for custom distance
+functions, spelling variants, aliases, ranking, and upgrade requirements.
 
 ### Keyword Fields
 

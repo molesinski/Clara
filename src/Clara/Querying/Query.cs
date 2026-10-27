@@ -10,6 +10,7 @@ namespace Clara.Querying
         private readonly ObjectPoolSlimLease<ListSlim<FacetExpression>> facets;
         private SearchExpression? search;
         private SortExpression? sort;
+        private SuggestExpression? suggest;
         private IEnumerable<string?>? includeDocuments;
         private IEnumerable<string?>? excludeDocuments;
         private bool isDisposed;
@@ -91,6 +92,23 @@ namespace Clara.Querying
                 }
 
                 this.sort = value;
+            }
+        }
+
+        public SuggestExpression? Suggest
+        {
+            get
+            {
+                this.ThrowIfDisposed();
+
+                return this.suggest;
+            }
+
+            set
+            {
+                this.ThrowIfDisposed();
+
+                this.suggest = value;
             }
         }
 

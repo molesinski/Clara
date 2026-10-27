@@ -101,6 +101,7 @@ namespace Clara
             var documentScoring = default(DocumentScoring);
             var documentList = default(DocumentList);
             var facetResults = default(ObjectPoolSlimLease<ListSlim<FacetResult>>?);
+            var suggestionResults = default(IReadOnlyList<SuggestionResult>);
 
             try
             {
@@ -212,6 +213,13 @@ namespace Clara
                     }
                 }
 
+                if (query.Suggest is SuggestExpression suggestExpression)
+                {
+                    var documents = documentResultBuilder.Documents;
+
+                    suggestionResults = suggestExpression.Suggest(this, ReferenceEquals(documents, this.allDocuments) ? null : documents);
+                }
+
                 facetResults = SharedObjectPools.FacetResults.Lease();
 
                 for (var i = 0; i < query.Facets.Count; i++)
@@ -282,7 +290,7 @@ namespace Clara
                     }
                 }
 
-                return new QueryResult<TDocument>(this.tokenEncoder, this.documentMap, documentScoring, documentList, facetResults.Value);
+                return new QueryResult<TDocument>(this.tokenEncoder, this.documentMap, documentScoring, documentList, facetResults.Value, suggestionResults);
             }
             catch
             {

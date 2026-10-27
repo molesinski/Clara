@@ -8,10 +8,20 @@ namespace Clara.Utils
     {
         public static int CalculateDistance(ReadOnlySpan<char> a, ReadOnlySpan<char> b)
         {
+            return CalculateDistance(a, b, int.MaxValue);
+        }
+
+        public static int CalculateDistance(ReadOnlySpan<char> a, ReadOnlySpan<char> b, int maximumDistance)
+        {
+            if (maximumDistance < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maximumDistance));
+            }
+
             var len = a.Length <= b.Length ? a.Length : b.Length;
             var d = ArrayPool<int>.Shared.Rent(len);
 
-            var dd = CalculateDistance(a, b, d);
+            var dd = CalculateDistance(a, b, d, maximumDistance);
 
             ArrayPool<int>.Shared.Return(d);
 
@@ -20,6 +30,19 @@ namespace Clara.Utils
 
         public static int CalculateDistance(ReadOnlySpan<char> a, ReadOnlySpan<char> b, Span<int> d)
         {
+            return CalculateDistance(a, b, d, int.MaxValue);
+        }
+
+        // Returns the distance when it does not exceed maximumDistance, otherwise any value above it.
+        public static int CalculateDistance(ReadOnlySpan<char> a, ReadOnlySpan<char> b, Span<int> d, int maximumDistance)
+        {
+            if (maximumDistance < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maximumDistance));
+            }
+
+            var exceeded = maximumDistance == int.MaxValue ? int.MaxValue : maximumDistance + 1;
+
             if (a == b)
             {
                 return 0;
@@ -50,6 +73,12 @@ namespace Clara.Utils
 
             la -= offset;
             lb -= offset;
+
+            // The length difference is a lower bound of the distance.
+            if (lb - la > maximumDistance)
+            {
+                return exceeded;
+            }
 
             if (la == 0 || lb < 3)
             {
@@ -97,6 +126,12 @@ namespace Clara.Utils
                     d1 = d0;
                     d0 = dy;
                 }
+
+                // Column minimums never decrease, so once every cell of the column exceeds the limit, so will the result.
+                if (x > maximumDistance && Minimum(d.Slice(0, la)) > maximumDistance)
+                {
+                    return exceeded;
+                }
             }
 
             for (; x < lb;)
@@ -112,7 +147,22 @@ namespace Clara.Utils
                 }
             }
 
-            return dd;
+            return dd > maximumDistance ? exceeded : dd;
+
+            static int Minimum(Span<int> values)
+            {
+                var minimum = int.MaxValue;
+
+                for (var i = 0; i < values.Length; i++)
+                {
+                    if (values[i] < minimum)
+                    {
+                        minimum = values[i];
+                    }
+                }
+
+                return minimum;
+            }
 
             static int Min(int d0, int d1, int d2, char bx, char ay)
             {

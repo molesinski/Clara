@@ -7,6 +7,7 @@ namespace Clara.Querying
     {
         private readonly DocumentResultCollection<TDocument> documents;
         private readonly FacetResultCollection facets;
+        private readonly IReadOnlyList<SuggestionResult> suggestions;
         private bool isDisposed;
 
         internal QueryResult(
@@ -14,7 +15,8 @@ namespace Clara.Querying
             DictionarySlim<int, TDocument> documentMap,
             DocumentScoring documentScoring,
             DocumentList documentList,
-            ObjectPoolSlimLease<ListSlim<FacetResult>> facetResults)
+            ObjectPoolSlimLease<ListSlim<FacetResult>> facetResults,
+            IReadOnlyList<SuggestionResult>? suggestions)
         {
             if (tokenEncoder is null)
             {
@@ -28,6 +30,7 @@ namespace Clara.Querying
 
             this.documents = new DocumentResultCollection<TDocument>(tokenEncoder, documentMap, documentScoring, documentList);
             this.facets = new FacetResultCollection(facetResults);
+            this.suggestions = suggestions ?? Array.Empty<SuggestionResult>();
         }
 
         public DocumentResultCollection<TDocument> Documents
@@ -53,6 +56,19 @@ namespace Clara.Querying
                 }
 
                 return this.facets;
+            }
+        }
+
+        public IReadOnlyList<SuggestionResult> Suggestions
+        {
+            get
+            {
+                if (this.isDisposed)
+                {
+                    throw new ObjectDisposedException(this.GetType().FullName);
+                }
+
+                return this.suggestions;
             }
         }
 
