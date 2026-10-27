@@ -258,13 +258,13 @@ namespace Clara.Querying
             return this;
         }
 
-        public QueryBuilder Suggest(PhraseSuggester suggester, string? text, int count = 10)
+        public QueryBuilder Suggest(PhraseField field, string? text, int count = 10)
         {
             this.ThrowIfDisposed();
 
-            if (suggester is null)
+            if (field is null)
             {
-                throw new ArgumentNullException(nameof(suggester));
+                throw new ArgumentNullException(nameof(field));
             }
 
             if (this.query.Suggest is not null)
@@ -272,12 +272,7 @@ namespace Clara.Querying
                 throw new InvalidOperationException("Suggest already has been set.");
             }
 
-            if (suggester.Index != this.query.Index)
-            {
-                throw new InvalidOperationException("Suggester must be built off query index.");
-            }
-
-            this.query.Suggest = new SuggestExpression(suggester, text ?? string.Empty, count);
+            this.query.Suggest = new SuggestExpression(field, text ?? string.Empty, count);
 
             return this;
         }

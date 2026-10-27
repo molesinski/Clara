@@ -1,6 +1,6 @@
 # Token Correction and Phrase Suggestions
 
-Use this chapter when a text field should tolerate misspelled or unfinished words, or when an application needs search phrase suggestions that respect the same filters as its document queries.
+Use this chapter when a text field should tolerate misspelled or unfinished words, or when an application needs search phrase suggestions weighted by the documents that pass the same filters as its document queries.
 
 ## Token correction
 
@@ -47,35 +47,36 @@ Synonym phrase terms are never corrected. A candidate contributes its token's po
 
 ## Phrase suggestions
 
-[`PhraseSuggesterBuilder`](../src/Clara/PhraseSuggesterBuilder.cs) builds a [`PhraseSuggester`](../src/Clara/PhraseSuggester.cs) for one completed index and one of its text fields:
+[`PhraseField<TSource>`](../src/Clara/Mapping/PhraseField.cs) attaches weighted search phrases to documents, for example the phrases customers searched before choosing a product and how often they did. The field aggregates them per phrase, and a query suggests phrases using only the contributions of documents that pass its filters.
 
 ```csharp
-var builder = new PhraseSuggesterBuilder(index, mapper.Text, phraseAnalyzer, matching, stopwords, variants);
-
-foreach (var phrase in popularPhrases)
-{
-    builder.Add(phrase.Text, phrase.Count, phrase.Aliases);
-}
-
-var suggester = builder.Build();
+public PhraseField<Product> Phrases { get; } =
+    new(
+        x => x.Phrases.Select(p => new PhraseWeight(p.Text, p.Count)),
+        new Analyzer(new WhitespaceTokenizer(), new LowerInvariantTokenFilter()),
+        validationField: Text,
+        matching: matching,
+        stopwords: stopwords,
+        variants: knownMisspellings,
+        aliases: phraseAliases);
 
 using var result = index.Query(q => q
     .Filter(mapper.Brand, FilterMode.Any, "Alpha")
-    .Suggest(suggester, "choc", count: 10));
+    .Suggest(mapper.Phrases, "choc", count: 10));
 
 foreach (var suggestion in result.Suggestions)
 {
-    Console.WriteLine($"{suggestion.Text} {suggestion.HighlightedText} {suggestion.Score}");
+    Console.WriteLine($"{suggestion.Text} {suggestion.HighlightedText} {suggestion.Score} {suggestion.Weight}");
 }
 ```
 
-### Postings
-
-`Build()` searches every phrase in the field with `SearchMode.All` and `MatchMode.Exact`, including synonyms, and stores the matching document identifiers. Phrases that match no document are removed unless `removeUnmatched` is `false`. The suggester belongs to the index it was built for; rebuild it whenever the index is rebuilt.
+- `PhraseWeight(phrase, weight)` accepts zero, for phrases that should be suggested without popularity, such as brand names. Repeated phrases of one document add up.
+- `validationField` keeps a document–phrase pair only if searching the phrase in that text field (`SearchMode.All`, `MatchMode.Exact`, synonyms included) finds the document. A suggestion then always finds at least one document under the same filters. The text field must belong to the same index; phrase fields are built after the other fields.
+- `aliases` maps a phrase to an alternative wording that matches it, and `variants` maps known misspellings to phrase words; both are field settings because they describe phrases, not documents.
 
 ### Query semantics
 
-`Suggest` runs after `Include`, `Search`, filters, and `Exclude`, on the same document set that facets use. A phrase is returned only if its postings intersect that set, so selecting a suggestion with the same filters always finds at least one document. Without any restriction the intersection is skipped. Because `Search` also restricts the set, send suggestions as a separate query when the typed text should not narrow the documents.
+`Suggest` runs after `Include`, `Search`, filters, and `Exclude`, on the same document set that facets use. For each phrase, its weight is the sum of the weights of the remaining documents that carry it, and the phrase is suggested only if at least one of them remains. Without any restriction the precomputed totals are used. Because `Search` also restricts the set, send suggestions as a separate query when the typed text should not narrow the documents.
 
 Empty or whitespace-only text returns phrases by weight. Otherwise every word of the text is matched against phrase words:
 
@@ -83,10 +84,10 @@ Empty or whitespace-only text returns phrases by weight. Otherwise every word of
 - fuzzy prefixes for the last word when the text does not end with whitespace,
 - variants, exactly or as a prefix of the last word.
 
-Words are intersected across the text. The score starts at 1,000,000 and subtracts the query word position, the matched word's position in the phrase, the phrase length in words, the distance, and one point each for a corrected or prefix match, a prefix match, a stopword match, and a phrase with zero weight. Results are ordered by score, then weight, then insertion order. `HighlightedText` marks the part of each phrase word that the query did not cover, using `highlightStart` and `highlightEnd` (`<b>` and `</b>` by default).
+Words are intersected across the text. The score starts at 1,000,000 and subtracts the query word position, the matched word's position in the phrase, the phrase length in words, the distance, and one point each for a corrected or prefix match, a prefix match, and a stopword match. A phrase whose weight is zero, after filters when there are any, loses one more point per query word. Results are ordered by score, then weight, then by total weight and text, so filters change the order whenever they change weights. Weights are computed only for the score groups needed to fill `count`. `HighlightedText` marks the part of each phrase word that the query did not cover, using `highlightStart` and `highlightEnd` (`<b>` and `</b>` by default).
 
 ### Concurrency
 
-A built suggester is read-only. Each query leases its own term source and working collections, so concurrent queries are safe as long as the analyzer's term sources are independent, as with the built-in analyzers.
+A built index is read-only. Each query leases its own term source and working collections, so concurrent suggestions are safe as long as the analyzer's term sources are independent, as with the built-in analyzers.
 
-Tests: [TokenCorrectionTests.cs](../src/Clara.Tests/TokenCorrectionTests.cs), [PhraseSuggesterTests.cs](../src/Clara.Tests/PhraseSuggesterTests.cs).
+Tests: [TokenCorrectionTests.cs](../src/Clara.Tests/TokenCorrectionTests.cs), [PhraseFieldTests.cs](../src/Clara.Tests/PhraseFieldTests.cs).

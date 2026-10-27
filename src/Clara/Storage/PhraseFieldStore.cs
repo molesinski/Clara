@@ -4,75 +4,96 @@ using Clara.Mapping;
 using Clara.Querying;
 using Clara.Utils;
 
-namespace Clara
+namespace Clara.Storage
 {
-    public sealed class PhraseSuggester
+    internal sealed class PhraseFieldStore : FieldStore
     {
         private const int BaseScore = 1_000_000;
         private const int Penalty = 1;
 
         private static readonly ObjectPoolSlim<DictionarySlim<int, int>> Scores = new(() => new(), sizeFactor: 2);
-        private static readonly ObjectPoolSlim<ListSlim<ScoredPhrase>> ScoredPhrases = new(() => new());
+        private static readonly ObjectPoolSlim<ListSlim<Candidate>> Candidates = new(() => new(), sizeFactor: 2);
 
-        private readonly Index index;
         private readonly TokenMatching matching;
         private readonly HashSet<string> stopwords;
         private readonly int minimumVariantLength;
         private readonly string highlightStart;
         private readonly string highlightEnd;
         private readonly PhraseDocument[] documents;
-        private readonly int[] weightOrder;
         private readonly Dictionary<char, TokenDocuments[]> tokenBuckets;
         private readonly TokenDocuments[] variants;
         private readonly HashSet<string> singleTokenPhrases;
         private readonly ObjectPoolSlim<ITokenTermSource> termSourcePool;
 
-        internal PhraseSuggester(
-            Index index,
-            IAnalyzer analyzer,
-            TokenMatching matching,
-            HashSet<string> stopwords,
-            int minimumVariantLength,
-            string highlightStart,
-            string highlightEnd,
-            PhraseDocument[] documents,
-            Dictionary<string, DictionarySlim<int, int>> tokenIndex,
-            Dictionary<string, DictionarySlim<int, int>> variantIndex,
-            HashSet<string> singleTokenPhrases)
+        public PhraseFieldStore(PhraseField field, List<PhraseEntry> phrases)
         {
-            this.index = index;
-            this.matching = matching;
-            this.stopwords = stopwords;
-            this.minimumVariantLength = minimumVariantLength;
-            this.highlightStart = highlightStart;
-            this.highlightEnd = highlightEnd;
-            this.documents = documents;
-            this.singleTokenPhrases = singleTokenPhrases;
-            this.termSourcePool = new ObjectPoolSlim<ITokenTermSource>(analyzer.CreateTokenTermSource);
-            this.tokenBuckets = CreateBuckets(matching, tokenIndex);
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            if (phrases is null)
+            {
+                throw new ArgumentNullException(nameof(phrases));
+            }
+
+            this.matching = field.Matching;
+            this.stopwords = new HashSet<string>(field.Stopwords, StringComparer.Ordinal);
+            this.minimumVariantLength = field.MinimumVariantLength;
+            this.highlightStart = field.HighlightStart;
+            this.highlightEnd = field.HighlightEnd;
+            this.termSourcePool = new ObjectPoolSlim<ITokenTermSource>(field.Analyzer.CreateTokenTermSource);
+
+            phrases.Sort(PhraseEntryComparer.Instance);
+
+            var source = field.Analyzer.CreateTokenTermSource();
+            var documentIds = new Dictionary<string, int>(phrases.Count, StringComparer.Ordinal);
+            var tokenVariants = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+            var tokenIndex = new Dictionary<string, DictionarySlim<int, int>>(StringComparer.Ordinal);
+            var variantIndex = new Dictionary<string, DictionarySlim<int, int>>(StringComparer.Ordinal);
+
+            this.documents = new PhraseDocument[phrases.Count];
+            this.singleTokenPhrases = new HashSet<string>(StringComparer.Ordinal);
+
+            foreach (var pair in field.Variants)
+            {
+                if (pair.Key is null || pair.Value is null)
+                {
+                    continue;
+                }
+
+                if (!tokenVariants.TryGetValue(pair.Value, out var list))
+                {
+                    tokenVariants.Add(pair.Value, list = new List<string>());
+                }
+
+                list.Add(pair.Key);
+            }
+
+            for (var i = 0; i < phrases.Count; i++)
+            {
+                var phrase = phrases[i];
+                var tokens = GetTokens(source, phrase.Text);
+
+                this.documents[i] = new PhraseDocument(phrase.Text, phrase.Weight, tokens, phrase.DocumentIds, phrase.DocumentWeights);
+                documentIds.Add(phrase.Text, i);
+
+                this.IndexTokens(i, tokens, tokenIndex, variantIndex, tokenVariants);
+            }
+
+            foreach (var pair in field.Aliases)
+            {
+                if (pair.Key is not null && pair.Value is not null && documentIds.TryGetValue(pair.Key, out var documentId))
+                {
+                    this.IndexTokens(documentId, GetTokens(source, pair.Value), tokenIndex, variantIndex, tokenVariants);
+                }
+            }
+
+            this.tokenBuckets = CreateBuckets(this.matching, tokenIndex);
             this.variants = variantIndex.Select(o => new TokenDocuments(o.Key, o.Value)).ToArray();
-            this.weightOrder = Enumerable.Range(0, documents.Length).ToArray();
-
-            Array.Sort(this.weightOrder, new WeightComparer(documents));
         }
 
-        public int Count
-        {
-            get
-            {
-                return this.documents.Length;
-            }
-        }
-
-        internal Index Index
-        {
-            get
-            {
-                return this.index;
-            }
-        }
-
-        internal IReadOnlyList<SuggestionResult> Suggest(string text, int count, HashSetSlim<int>? allowedDocuments)
+        public List<SuggestionResult> Suggest(string text, int count, HashSetSlim<int>? allowedDocuments)
         {
             if (string.IsNullOrWhiteSpace(text))
             {
@@ -82,12 +103,12 @@ namespace Clara
             using var queryTokensLease = SharedObjectPools.SuggestTokens.Lease();
             using var globalScoresLease = Scores.Lease();
             using var localScoresLease = Scores.Lease();
-            using var scoredLease = ScoredPhrases.Lease();
 
             var queryTokens = queryTokensLease.Instance;
             var globalScores = globalScoresLease.Instance;
             var localScores = localScoresLease.Instance;
             var queryPosition = 1;
+            var matchedTokens = 0;
 
             using (var source = this.termSourcePool.Lease())
             {
@@ -119,6 +140,7 @@ namespace Clara
                     break;
                 }
 
+                matchedTokens++;
                 localScores.Clear();
 
                 if (!this.stopwords.Contains(queryToken))
@@ -127,38 +149,19 @@ namespace Clara
                 }
             }
 
-            var scored = scoredLease.Instance;
+            return this.Rank(globalScores, matchedTokens, queryTokens, count, allowedDocuments);
+        }
 
-            foreach (var pair in globalScores)
+        private static string[] GetTokens(ITokenTermSource source, string text)
+        {
+            var tokens = new List<string>();
+
+            foreach (var term in source.GetTerms(text))
             {
-                scored.Add(new ScoredPhrase(pair.Key, pair.Value, this.documents[pair.Key].Weight));
+                tokens.Add(term.Token.ToString());
             }
 
-            scored.Sort(ScoredPhraseComparer.Instance);
-
-            var results = new List<SuggestionResult>(Math.Min(count, scored.Count));
-            var builder = default(StringBuilder);
-
-            foreach (var item in scored)
-            {
-                var document = this.documents[item.DocumentId];
-
-                if (allowedDocuments is not null && !Intersects(document.Postings, allowedDocuments))
-                {
-                    continue;
-                }
-
-                builder ??= new StringBuilder();
-
-                results.Add(new SuggestionResult(document.Text, this.BuildHighlightedText(builder, document.Tokens, queryTokens), item.Score, document.Weight));
-
-                if (results.Count == count)
-                {
-                    break;
-                }
-            }
-
-            return results;
+            return tokens.ToArray();
         }
 
         private static Dictionary<char, TokenDocuments[]> CreateBuckets(TokenMatching matching, Dictionary<string, DictionarySlim<int, int>> tokenIndex)
@@ -213,15 +216,27 @@ namespace Clara
             return low;
         }
 
-        private static bool Intersects(int[] postings, HashSetSlim<int> allowedDocuments)
+        private static bool TryGetWeight(PhraseDocument document, HashSetSlim<int>? allowedDocuments, out float weight)
         {
-            if (postings.Length <= allowedDocuments.Count)
+            if (allowedDocuments is null)
             {
-                foreach (var documentId in postings)
+                weight = document.Weight;
+
+                return true;
+            }
+
+            var isAllowed = false;
+
+            weight = 0f;
+
+            if (document.DocumentIds.Length <= allowedDocuments.Count)
+            {
+                for (var i = 0; i < document.DocumentIds.Length; i++)
                 {
-                    if (allowedDocuments.Contains(documentId))
+                    if (allowedDocuments.Contains(document.DocumentIds[i]))
                     {
-                        return true;
+                        isAllowed = true;
+                        weight += document.DocumentWeights[i];
                     }
                 }
             }
@@ -229,14 +244,17 @@ namespace Clara
             {
                 foreach (var documentId in allowedDocuments)
                 {
-                    if (Array.BinarySearch(postings, documentId) >= 0)
+                    var index = Array.BinarySearch(document.DocumentIds, documentId);
+
+                    if (index >= 0)
                     {
-                        return true;
+                        isAllowed = true;
+                        weight += document.DocumentWeights[index];
                     }
                 }
             }
 
-            return false;
+            return isAllowed;
         }
 
         private static void UnionMax(DictionarySlim<int, int> scores, int documentId, int score)
@@ -289,28 +307,185 @@ namespace Clara
             }
         }
 
-        private List<SuggestionResult> SuggestByWeight(int count, HashSetSlim<int>? allowedDocuments)
+        private List<SuggestionResult> Rank(DictionarySlim<int, int> scores, int matchedTokens, ListSlim<string> queryTokens, int count, HashSetSlim<int>? allowedDocuments)
         {
-            var results = new List<SuggestionResult>(Math.Min(count, this.documents.Length));
+            using var candidatesLease = Candidates.Lease();
+            using var pendingLease = Candidates.Lease();
 
-            foreach (var documentId in this.weightOrder)
+            var candidates = candidatesLease.Instance;
+            var pending = pendingLease.Instance;
+            var results = new List<SuggestionResult>(Math.Min(count, scores.Count));
+            var builder = new StringBuilder();
+
+            foreach (var pair in scores)
             {
-                var document = this.documents[documentId];
+                candidates.Add(new Candidate(pair.Key, pair.Value, 0f));
+            }
 
-                if (allowedDocuments is not null && !Intersects(document.Postings, allowedDocuments))
+            candidates.Sort(CandidateComparer.Instance);
+
+            var index = 0;
+
+            while (index < candidates.Count && results.Count < count)
+            {
+                var groupScore = candidates[index].Score;
+
+                while (index < candidates.Count && candidates[index].Score == groupScore)
                 {
-                    continue;
+                    var documentId = candidates[index].DocumentId;
+
+                    if (TryGetWeight(this.documents[documentId], allowedDocuments, out var weight))
+                    {
+                        var score = weight > 0 ? groupScore : groupScore - (Penalty * matchedTokens);
+
+                        pending.Add(new Candidate(documentId, score, weight));
+                    }
+
+                    index++;
                 }
 
-                results.Add(new SuggestionResult(document.Text, document.Text, 0, document.Weight));
+                var nextScore = index < candidates.Count ? candidates[index].Score : int.MinValue;
 
-                if (results.Count == count)
+                pending.Sort(CandidateComparer.Instance);
+
+                var emitted = 0;
+
+                while (emitted < pending.Count && pending[emitted].Score > nextScore && results.Count < count)
                 {
-                    break;
+                    results.Add(this.CreateResult(builder, pending[emitted], queryTokens));
+                    emitted++;
+                }
+
+                if (emitted > 0)
+                {
+                    var remaining = pending.Count - emitted;
+
+                    for (var i = 0; i < remaining; i++)
+                    {
+                        pending[i] = pending[emitted + i];
+                    }
+
+                    while (pending.Count > remaining)
+                    {
+                        pending.RemoveAt(pending.Count - 1);
+                    }
                 }
             }
 
             return results;
+        }
+
+        private SuggestionResult CreateResult(StringBuilder builder, Candidate candidate, ListSlim<string> queryTokens)
+        {
+            var document = this.documents[candidate.DocumentId];
+
+            return new SuggestionResult(document.Text, this.BuildHighlightedText(builder, document.Tokens, queryTokens), candidate.Score, candidate.Weight);
+        }
+
+        private List<SuggestionResult> SuggestByWeight(int count, HashSetSlim<int>? allowedDocuments)
+        {
+            var results = new List<SuggestionResult>(Math.Min(count, this.documents.Length));
+
+            if (allowedDocuments is null)
+            {
+                for (var i = 0; i < this.documents.Length && results.Count < count; i++)
+                {
+                    results.Add(new SuggestionResult(this.documents[i].Text, this.documents[i].Text, 0, this.documents[i].Weight));
+                }
+
+                return results;
+            }
+
+            using var selectedLease = Candidates.Lease();
+
+            var selected = selectedLease.Instance;
+
+            for (var i = 0; i < this.documents.Length; i++)
+            {
+                if (selected.Count == count && this.documents[i].Weight <= selected[selected.Count - 1].Weight)
+                {
+                    break;
+                }
+
+                if (!TryGetWeight(this.documents[i], allowedDocuments, out var weight))
+                {
+                    continue;
+                }
+
+                if (selected.Count == count)
+                {
+                    if (weight <= selected[selected.Count - 1].Weight)
+                    {
+                        continue;
+                    }
+
+                    selected.RemoveAt(selected.Count - 1);
+                }
+
+                var position = selected.Count;
+
+                while (position > 0 && selected[position - 1].Weight < weight)
+                {
+                    position--;
+                }
+
+                selected.Insert(position, new Candidate(i, 0, weight));
+            }
+
+            foreach (var candidate in selected)
+            {
+                results.Add(new SuggestionResult(this.documents[candidate.DocumentId].Text, this.documents[candidate.DocumentId].Text, 0, candidate.Weight));
+            }
+
+            return results;
+        }
+
+        private void IndexTokens(
+            int documentId,
+            string[] tokens,
+            Dictionary<string, DictionarySlim<int, int>> tokenIndex,
+            Dictionary<string, DictionarySlim<int, int>> variantIndex,
+            Dictionary<string, List<string>> tokenVariants)
+        {
+            if (tokens.Length == 1)
+            {
+                this.singleTokenPhrases.Add(tokens[0]);
+            }
+
+            var position = 1;
+
+            foreach (var token in tokens)
+            {
+                AddPosition(tokenIndex, token, documentId, position);
+
+                if (tokenVariants.TryGetValue(token, out var variants))
+                {
+                    foreach (var variant in variants)
+                    {
+                        AddPosition(variantIndex, variant, documentId, position);
+                    }
+                }
+
+                if (!this.stopwords.Contains(token))
+                {
+                    position++;
+                }
+            }
+
+            static void AddPosition(Dictionary<string, DictionarySlim<int, int>> index, string token, int documentId, int position)
+            {
+                if (!index.TryGetValue(token, out var documents))
+                {
+                    index.Add(token, documents = new DictionarySlim<int, int>());
+                }
+
+                ref var current = ref documents.GetValueRefOrAddDefault(documentId, out var exists);
+
+                if (!exists || position < current)
+                {
+                    current = position;
+                }
+            }
         }
 
         private void MatchTokens(string queryToken, int queryPosition, bool isPrefix, DictionarySlim<int, int> scores)
@@ -386,15 +561,13 @@ namespace Clara
 
         private int ComputeScore(int documentId, int queryPosition, int documentPosition, bool isStopword, int distance, bool isPrefix)
         {
-            var document = this.documents[documentId];
             var score = BaseScore;
 
             score -= queryPosition;
             score -= documentPosition;
-            score -= document.Tokens.Length;
+            score -= this.documents[documentId].Tokens.Length;
             score -= distance > 0 || isPrefix ? Penalty : 0;
             score -= distance;
-            score -= !(document.Weight > 0) ? Penalty : 0;
             score -= isPrefix ? Penalty : 0;
             score -= isStopword ? Penalty : 0;
 
@@ -474,6 +647,25 @@ namespace Clara
             return builder.ToString();
         }
 
+        internal readonly struct PhraseEntry
+        {
+            public PhraseEntry(string text, float weight, int[] documentIds, float[] documentWeights)
+            {
+                this.Text = text;
+                this.Weight = weight;
+                this.DocumentIds = documentIds;
+                this.DocumentWeights = documentWeights;
+            }
+
+            public string Text { get; }
+
+            public float Weight { get; }
+
+            public int[] DocumentIds { get; }
+
+            public float[] DocumentWeights { get; }
+        }
+
         private readonly struct TokenDocuments
         {
             public TokenDocuments(string token, DictionarySlim<int, int> documents)
@@ -487,9 +679,9 @@ namespace Clara
             public DictionarySlim<int, int> Documents { get; }
         }
 
-        private readonly struct ScoredPhrase
+        private readonly struct Candidate
         {
-            public ScoredPhrase(int documentId, int score, float weight)
+            public Candidate(int documentId, int score, float weight)
             {
                 this.DocumentId = documentId;
                 this.Score = score;
@@ -503,14 +695,15 @@ namespace Clara
             public float Weight { get; }
         }
 
-        internal sealed class PhraseDocument
+        private sealed class PhraseDocument
         {
-            public PhraseDocument(string text, float weight, string[] tokens, int[] postings)
+            public PhraseDocument(string text, float weight, string[] tokens, int[] documentIds, float[] documentWeights)
             {
                 this.Text = text;
                 this.Weight = weight;
                 this.Tokens = tokens;
-                this.Postings = postings;
+                this.DocumentIds = documentIds;
+                this.DocumentWeights = documentWeights;
             }
 
             public string Text { get; }
@@ -519,7 +712,26 @@ namespace Clara
 
             public string[] Tokens { get; }
 
-            public int[] Postings { get; }
+            public int[] DocumentIds { get; }
+
+            public float[] DocumentWeights { get; }
+        }
+
+        private sealed class PhraseEntryComparer : IComparer<PhraseEntry>
+        {
+            public static PhraseEntryComparer Instance { get; } = new();
+
+            public int Compare(PhraseEntry x, PhraseEntry y)
+            {
+                var result = y.Weight.CompareTo(x.Weight);
+
+                if (result != 0)
+                {
+                    return result;
+                }
+
+                return string.CompareOrdinal(x.Text, y.Text);
+            }
         }
 
         private sealed class TokenDocumentsComparer : IComparer<TokenDocuments>
@@ -539,11 +751,11 @@ namespace Clara
             }
         }
 
-        private sealed class ScoredPhraseComparer : IComparer<ScoredPhrase>
+        private sealed class CandidateComparer : IComparer<Candidate>
         {
-            public static ScoredPhraseComparer Instance { get; } = new();
+            public static CandidateComparer Instance { get; } = new();
 
-            public int Compare(ScoredPhrase x, ScoredPhrase y)
+            public int Compare(Candidate x, Candidate y)
             {
                 var result = y.Score.CompareTo(x.Score);
 
@@ -560,28 +772,6 @@ namespace Clara
                 }
 
                 return x.DocumentId.CompareTo(y.DocumentId);
-            }
-        }
-
-        private sealed class WeightComparer : IComparer<int>
-        {
-            private readonly PhraseDocument[] documents;
-
-            public WeightComparer(PhraseDocument[] documents)
-            {
-                this.documents = documents;
-            }
-
-            public int Compare(int x, int y)
-            {
-                var result = this.documents[y].Weight.CompareTo(this.documents[x].Weight);
-
-                if (result != 0)
-                {
-                    return result;
-                }
-
-                return x.CompareTo(y);
             }
         }
     }

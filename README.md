@@ -24,7 +24,7 @@ Main features are:
 * Text, keyword, hierarchy and range fields
 * Index time synonym maps with multi token support
 * Optional correction of misspelled and unfinished words with a pluggable distance function
-* Phrase suggestions that respect the same filters as document queries
+* Phrase suggestions weighted by the documents that pass the same filters as document queries
 * Searching across document properties combined into one text field, with BM25 scoring
 * Filtering keyword and hierarchy fields by any or all values and range fields by value subrange
 * Faceting that can retain alternatives excluded by the facet's own field filter

@@ -215,14 +215,9 @@ namespace Clara
 
                 if (query.Suggest is SuggestExpression suggestExpression)
                 {
-                    if (suggestExpression.Suggester.Index != this)
-                    {
-                        throw new InvalidOperationException("Suggester must be built off current index.");
-                    }
-
                     var documents = documentResultBuilder.Documents;
 
-                    suggestionResults = suggestExpression.Suggester.Suggest(suggestExpression.Text, suggestExpression.Count, ReferenceEquals(documents, this.allDocuments) ? null : documents);
+                    suggestionResults = suggestExpression.Suggest(this, ReferenceEquals(documents, this.allDocuments) ? null : documents);
                 }
 
                 facetResults = SharedObjectPools.FacetResults.Lease();
