@@ -43,7 +43,7 @@ A query word replaced by a synonym is corrected like any other word, using the w
 | `CalculateDistance(a, b, maximumDistance)` | Distance; may return any value above the maximum once it is exceeded |
 | `GetBoost(distance, isPrefix)` | Score multiplier for a candidate |
 
-`TokenMatching.Default` uses unit-cost Levenshtein distance: 0 edits up to 3 characters, 1 up to 6, and 2 above, with boost `1 / (1 + distance + (isPrefix ? 0.2 : 0))`. Applications that already rank suggestions with a weighted distance, for example one that charges less for a missing diacritic, should plug in that function so search and suggestions accept the same words.
+`TokenMatching.Default` uses unit-cost Levenshtein distance ([`Levenshtein.CalculateDistance`](../src/Clara/Utils/Levenshtein.cs), which stops as soon as the distance is known to exceed the maximum): 0 edits up to 3 characters, 1 up to 6, and 2 above, with boost `1 / (1 + distance + (isPrefix ? 0.2 : 0))`. Applications that already rank suggestions with a weighted distance, for example one that charges less for a missing diacritic, should plug in that function so search and suggestions accept the same words.
 
 ## Phrase suggestions
 

@@ -99,7 +99,7 @@ namespace Clara.Mapping
 
             public override int CalculateDistance(ReadOnlySpan<char> a, ReadOnlySpan<char> b, int maximumDistance)
             {
-                return Levenshtein.CalculateDistance(a, b);
+                return Levenshtein.CalculateDistance(a, b, maximumDistance);
             }
 
             public override float GetBoost(int distance, bool isPrefix)
