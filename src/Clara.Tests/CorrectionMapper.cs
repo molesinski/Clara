@@ -72,7 +72,7 @@ namespace Clara.Tests
 
         public PhraseField<CorrectionDocument> Phrases { get; }
 
-        public KeywordField<CorrectionDocument> Brand { get; } = new(x => x.Brand, isFilterable: true);
+        public KeywordField<CorrectionDocument> Brand { get; } = new(x => x.Brand, isFilterable: true, isFacetable: true);
 
         public IEnumerable<Field> GetFields()
         {

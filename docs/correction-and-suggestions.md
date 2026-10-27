@@ -76,7 +76,7 @@ foreach (var suggestion in result.Suggestions)
 
 ### Query semantics
 
-`Suggest` runs after `Include`, `Search`, filters, and `Exclude`, on the same document set that facets use. For each phrase, its weight is the sum of the weights of the remaining documents that carry it, `Count` is the number of those documents (zero-weight carriers included), and the phrase is suggested only if at least one of them remains. `Count` counts documents that carry the phrase, not the documents a search for the phrase would find, which may be more. Without any restriction the precomputed totals are used. Because `Search` also restricts the set, send suggestions as a separate query when the typed text should not narrow the documents.
+`Suggest` runs after `Include`, `Search`, filters, and `Exclude`, on the final document set returned by the query. Facets can retain alternatives excluded by their own field filter; suggestions always respect every filter. For each phrase, its weight is the sum of the weights of the remaining documents that carry it, `Count` is the number of those documents (zero-weight carriers included), and the phrase is suggested only if at least one of them remains. `Count` counts documents that carry the phrase, not the documents a search for the phrase would find, which may be more. Without any restriction the precomputed totals are used. Because `Search` also restricts the set, send suggestions as a separate query when the typed text should not narrow the documents.
 
 Empty or whitespace-only text returns phrases by weight. Otherwise every word of the text is matched against phrase words:
 
@@ -89,5 +89,9 @@ Words are intersected across the text. The score starts at 1,000,000 and subtrac
 ### Concurrency
 
 A built index is read-only. Each query leases its own term source and working collections, so concurrent suggestions are safe as long as the analyzer's term sources are independent, as with the built-in analyzers.
+
+### Upgrading
+
+Existing source calls continue to use exact matching by default. Recompile consumers when upgrading: the optional parameters added to `TextField` constructors, `TextSearchExpression`, and `QueryBuilder.Search` change their binary signatures. To enable correction, configure `TokenCorrection` and select a correcting match mode. To enable suggestions, add a `PhraseField` to the mapper's `GetFields()` and rebuild the index. Dispose query results with `using` as before.
 
 Tests: [TokenCorrectionTests.cs](../src/Clara.Tests/TokenCorrectionTests.cs), [PhraseFieldTests.cs](../src/Clara.Tests/PhraseFieldTests.cs).

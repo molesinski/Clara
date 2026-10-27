@@ -194,6 +194,71 @@ namespace Clara.Tests
             Assert.Equal(new[] { "cherry", "chocolate" }, result.Suggestions.Select(x => x.Text));
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("ch")]
+        public void SuggestRespectsIncludedDocumentsAndEmptyIntersections(string? text)
+        {
+            var (index, mapper) = CreateIndex();
+
+            using var included = index.Query(q => q.Include(new[] { "chocolate-cookies" }).Suggest(mapper.Phrases, text));
+            using var excluded = index.Query(q => q.Include(new[] { "chocolate-cookies" }).Exclude(new[] { "chocolate-cookies" }).Suggest(mapper.Phrases, text));
+
+            Assert.Equal(new[] { "chocolate cookies", "chocolate" }, included.Suggestions.Select(x => x.Text));
+            Assert.Equal(new[] { 30f, 0f }, included.Suggestions.Select(x => x.Weight));
+            Assert.All(included.Suggestions, x => Assert.Equal(1, x.Count));
+            Assert.Empty(excluded.Suggestions);
+        }
+
+        [Fact]
+        public void SuggestionsRespectFiltersWhenFacetsRetainAlternatives()
+        {
+            var (index, mapper) = CreateIndex();
+
+            using var result = index.Query(q => q.Filter(mapper.Brand, FilterMode.Any, "beta").Facet(mapper.Brand).Suggest(mapper.Phrases, "ch"));
+
+            Assert.Equal(3, result.Facets.Field(mapper.Brand).Values.Count);
+            Assert.Equal(new[] { "chocolate cookies", "chocolate" }, result.Suggestions.Select(x => x.Text));
+            Assert.All(result.Suggestions, x => Assert.Equal(1, x.Count));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("ch")]
+        public void LimitedSuggestionsMatchFullRankingAfterZeroWeightPenalty(string? text)
+        {
+            var (index, mapper) = CreateIndex();
+
+            using var all = index.Query(q => q.Filter(mapper.Brand, FilterMode.Any, "beta").Suggest(mapper.Phrases, text));
+            using var top = index.Query(q => q.Filter(mapper.Brand, FilterMode.Any, "beta").Suggest(mapper.Phrases, text, count: 1));
+
+            Assert.Equal("chocolate cookies", Assert.Single(top.Suggestions).Text);
+            Assert.Equal(all.Suggestions[0].Score, top.Suggestions[0].Score);
+            Assert.Equal(all.Suggestions[0].Weight, top.Suggestions[0].Weight);
+        }
+
+        [Fact]
+        public void SuggestionsSurviveWorkingBufferReuseAndRejectDisposedResultAccess()
+        {
+            var (index, mapper) = CreateIndex();
+
+            using var first = index.Query(q => q.Suggest(mapper.Phrases, "choc"));
+            var expected = first.Suggestions.Select(x => (x.Text, x.HighlightedText, x.Score, x.Weight, x.Count)).ToArray();
+
+            using (var second = index.Query(q => q.Filter(mapper.Brand, FilterMode.Any, "beta").Suggest(mapper.Phrases, "ch")))
+            {
+                Assert.Equal(2, second.Suggestions.Count);
+            }
+
+            using var third = index.Query(q => q.Suggest(mapper.Phrases, "red"));
+
+            Assert.Equal(expected, first.Suggestions.Select(x => (x.Text, x.HighlightedText, x.Score, x.Weight, x.Count)));
+
+            first.Dispose();
+
+            Assert.Throws<ObjectDisposedException>(() => first.Suggestions);
+        }
+
         [Fact]
         public void ValidationFieldMustBelongToTheIndex()
         {
