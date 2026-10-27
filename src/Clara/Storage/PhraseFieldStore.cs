@@ -216,18 +216,18 @@ namespace Clara.Storage
             return low;
         }
 
-        private static bool TryGetWeight(PhraseDocument document, HashSetSlim<int>? allowedDocuments, out float weight)
+        private static bool TryGetWeight(PhraseDocument document, HashSetSlim<int>? allowedDocuments, out float weight, out int count)
         {
             if (allowedDocuments is null)
             {
                 weight = document.Weight;
+                count = document.DocumentIds.Length;
 
                 return true;
             }
 
-            var isAllowed = false;
-
             weight = 0f;
+            count = 0;
 
             if (document.DocumentIds.Length <= allowedDocuments.Count)
             {
@@ -235,8 +235,8 @@ namespace Clara.Storage
                 {
                     if (allowedDocuments.Contains(document.DocumentIds[i]))
                     {
-                        isAllowed = true;
                         weight += document.DocumentWeights[i];
+                        count++;
                     }
                 }
             }
@@ -248,13 +248,13 @@ namespace Clara.Storage
 
                     if (index >= 0)
                     {
-                        isAllowed = true;
                         weight += document.DocumentWeights[index];
+                        count++;
                     }
                 }
             }
 
-            return isAllowed;
+            return count > 0;
         }
 
         private static void UnionMax(DictionarySlim<int, int> scores, int documentId, int score)
@@ -319,7 +319,7 @@ namespace Clara.Storage
 
             foreach (var pair in scores)
             {
-                candidates.Add(new Candidate(pair.Key, pair.Value, 0f));
+                candidates.Add(new Candidate(pair.Key, pair.Value, 0f, 0));
             }
 
             candidates.Sort(CandidateComparer.Instance);
@@ -334,11 +334,11 @@ namespace Clara.Storage
                 {
                     var documentId = candidates[index].DocumentId;
 
-                    if (TryGetWeight(this.documents[documentId], allowedDocuments, out var weight))
+                    if (TryGetWeight(this.documents[documentId], allowedDocuments, out var weight, out var documentCount))
                     {
                         var score = weight > 0 ? groupScore : groupScore - (Penalty * matchedTokens);
 
-                        pending.Add(new Candidate(documentId, score, weight));
+                        pending.Add(new Candidate(documentId, score, weight, documentCount));
                     }
 
                     index++;
@@ -379,7 +379,7 @@ namespace Clara.Storage
         {
             var document = this.documents[candidate.DocumentId];
 
-            return new SuggestionResult(document.Text, this.BuildHighlightedText(builder, document.Tokens, queryTokens), candidate.Score, candidate.Weight);
+            return new SuggestionResult(document.Text, this.BuildHighlightedText(builder, document.Tokens, queryTokens), candidate.Score, candidate.Weight, candidate.Count);
         }
 
         private List<SuggestionResult> SuggestByWeight(int count, HashSetSlim<int>? allowedDocuments)
@@ -390,7 +390,7 @@ namespace Clara.Storage
             {
                 for (var i = 0; i < this.documents.Length && results.Count < count; i++)
                 {
-                    results.Add(new SuggestionResult(this.documents[i].Text, this.documents[i].Text, 0, this.documents[i].Weight));
+                    results.Add(new SuggestionResult(this.documents[i].Text, this.documents[i].Text, 0, this.documents[i].Weight, this.documents[i].DocumentIds.Length));
                 }
 
                 return results;
@@ -407,7 +407,7 @@ namespace Clara.Storage
                     break;
                 }
 
-                if (!TryGetWeight(this.documents[i], allowedDocuments, out var weight))
+                if (!TryGetWeight(this.documents[i], allowedDocuments, out var weight, out var documentCount))
                 {
                     continue;
                 }
@@ -429,12 +429,12 @@ namespace Clara.Storage
                     position--;
                 }
 
-                selected.Insert(position, new Candidate(i, 0, weight));
+                selected.Insert(position, new Candidate(i, 0, weight, documentCount));
             }
 
             foreach (var candidate in selected)
             {
-                results.Add(new SuggestionResult(this.documents[candidate.DocumentId].Text, this.documents[candidate.DocumentId].Text, 0, candidate.Weight));
+                results.Add(new SuggestionResult(this.documents[candidate.DocumentId].Text, this.documents[candidate.DocumentId].Text, 0, candidate.Weight, candidate.Count));
             }
 
             return results;
@@ -681,11 +681,12 @@ namespace Clara.Storage
 
         private readonly struct Candidate
         {
-            public Candidate(int documentId, int score, float weight)
+            public Candidate(int documentId, int score, float weight, int count)
             {
                 this.DocumentId = documentId;
                 this.Score = score;
                 this.Weight = weight;
+                this.Count = count;
             }
 
             public int DocumentId { get; }
@@ -693,6 +694,8 @@ namespace Clara.Storage
             public int Score { get; }
 
             public float Weight { get; }
+
+            public int Count { get; }
         }
 
         private sealed class PhraseDocument

@@ -66,7 +66,7 @@ using var result = index.Query(q => q
 
 foreach (var suggestion in result.Suggestions)
 {
-    Console.WriteLine($"{suggestion.Text} {suggestion.HighlightedText} {suggestion.Score} {suggestion.Weight}");
+    Console.WriteLine($"{suggestion.Text} {suggestion.HighlightedText} {suggestion.Score} {suggestion.Weight} {suggestion.Count}");
 }
 ```
 
@@ -76,7 +76,7 @@ foreach (var suggestion in result.Suggestions)
 
 ### Query semantics
 
-`Suggest` runs after `Include`, `Search`, filters, and `Exclude`, on the same document set that facets use. For each phrase, its weight is the sum of the weights of the remaining documents that carry it, and the phrase is suggested only if at least one of them remains. Without any restriction the precomputed totals are used. Because `Search` also restricts the set, send suggestions as a separate query when the typed text should not narrow the documents.
+`Suggest` runs after `Include`, `Search`, filters, and `Exclude`, on the same document set that facets use. For each phrase, its weight is the sum of the weights of the remaining documents that carry it, `Count` is the number of those documents (zero-weight carriers included), and the phrase is suggested only if at least one of them remains. `Count` counts documents that carry the phrase, not the documents a search for the phrase would find, which may be more. Without any restriction the precomputed totals are used. Because `Search` also restricts the set, send suggestions as a separate query when the typed text should not narrow the documents.
 
 Empty or whitespace-only text returns phrases by weight. Otherwise every word of the text is matched against phrase words:
 

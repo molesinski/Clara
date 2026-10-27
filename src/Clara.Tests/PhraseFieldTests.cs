@@ -157,6 +157,34 @@ namespace Clara.Tests
         }
 
         [Fact]
+        public void CountIsNumberOfDocumentsCarryingPhrase()
+        {
+            var (index, mapper) = CreateIndex();
+
+            using var completion = index.Query(q => q.Suggest(mapper.Phrases, "ch", count: 10));
+            using var popular = index.Query(q => q.Suggest(mapper.Phrases, null, count: 10));
+
+            Assert.Equal(new[] { "cherry", "chocolate", "chocolate cookies", "cherry juice", "chocolate bar" }, completion.Suggestions.Select(x => x.Text));
+            Assert.Equal(new[] { 1, 2, 1, 1, 1 }, completion.Suggestions.Select(x => x.Count));
+            Assert.Equal(2, popular.Suggestions.Single(x => x.Text == "chocolate").Count);
+            Assert.All(popular.Suggestions.Where(x => x.Text != "chocolate"), x => Assert.Equal(1, x.Count));
+        }
+
+        [Fact]
+        public void CountIncludesOnlyRemainingDocuments()
+        {
+            var (index, mapper) = CreateIndex();
+
+            using var filtered = index.Query(q => q.Filter(mapper.Brand, FilterMode.Any, "alpha", "beta").Suggest(mapper.Phrases, "chocolate", count: 10));
+            using var searched = index.Query(q => q.Search(mapper.Text, SearchMode.All, "chocolate").Exclude(new[] { "chocolate-bar" }).Suggest(mapper.Phrases, null, count: 10));
+            using var empty = index.Query(q => q.Filter(mapper.Brand, FilterMode.Any, "beta").Suggest(mapper.Phrases, null, count: 10));
+
+            Assert.Equal(2, filtered.Suggestions.Single(x => x.Text == "chocolate").Count);
+            Assert.Equal(new[] { ("chocolate cookies", 1), ("chocolate", 1) }, searched.Suggestions.Select(x => (x.Text, x.Count)));
+            Assert.Equal(new[] { ("chocolate cookies", 30f, 1), ("chocolate", 0f, 1) }, empty.Suggestions.Select(x => (x.Text, x.Weight, x.Count)));
+        }
+
+        [Fact]
         public void SuggestLimitsCount()
         {
             var (index, mapper) = CreateIndex();
