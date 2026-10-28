@@ -4,7 +4,7 @@ using Clara.Utils;
 
 namespace Clara.Storage
 {
-    internal sealed class TokenCorrectionStore
+    internal sealed class TokenExpansionStore
     {
         private readonly TokenMatching matching;
         private readonly int minimumVariantLength;
@@ -13,11 +13,11 @@ namespace Clara.Storage
         private readonly SurfaceToken[] variants;
         private readonly ObjectPoolSlim<ITokenTermSource> termSourcePool;
 
-        public TokenCorrectionStore(TokenCorrection tokenCorrection, DictionarySlim<string, int> surfaceTokens)
+        public TokenExpansionStore(TokenExpansion tokenExpansion, DictionarySlim<string, int> surfaceTokens)
         {
-            if (tokenCorrection is null)
+            if (tokenExpansion is null)
             {
-                throw new ArgumentNullException(nameof(tokenCorrection));
+                throw new ArgumentNullException(nameof(tokenExpansion));
             }
 
             if (surfaceTokens is null)
@@ -25,12 +25,12 @@ namespace Clara.Storage
                 throw new ArgumentNullException(nameof(surfaceTokens));
             }
 
-            this.matching = tokenCorrection.Matching;
-            this.minimumVariantLength = tokenCorrection.MinimumVariantLength;
+            this.matching = tokenExpansion.Matching;
+            this.minimumVariantLength = tokenExpansion.MinimumVariantLength;
             this.surfaceTokens = surfaceTokens;
-            this.termSourcePool = new ObjectPoolSlim<ITokenTermSource>(tokenCorrection.Analyzer.CreateTokenTermSource);
+            this.termSourcePool = new ObjectPoolSlim<ITokenTermSource>(tokenExpansion.Analyzer.CreateTokenTermSource);
             this.buckets = CreateBuckets(this.matching, surfaceTokens);
-            this.variants = this.CreateVariants(tokenCorrection.Variants);
+            this.variants = this.CreateVariants(tokenExpansion.Variants);
         }
 
         public int GetSurfaceTerms(string text, DictionarySlim<int, string> surfaceTerms)

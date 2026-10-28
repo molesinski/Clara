@@ -62,7 +62,7 @@ Values outside the field's `MinValue`–`MaxValue` bounds are skipped during ind
 
 | Field | Structures |
 | --- | --- |
-| Text | Token → document → `float`; document lengths used when finalizing scores; with `TokenCorrection`, surface form → token grouped by first character |
+| Text | Token → document → `float`; document lengths used when finalizing scores; with `TokenExpansion`, surface form → token grouped by first character |
 | Keyword | Token → document set for filters; document → token set for facets |
 | Hierarchy | Keyword relationships plus parent → children |
 | Range | Sorted document–value pairs for filters; document → min/max for facets and sorting |

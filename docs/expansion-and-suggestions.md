@@ -1,10 +1,10 @@
-# Token Correction and Phrase Suggestions
+# Token Expansion and Phrase Suggestions
 
 Use this chapter when a text field should tolerate misspelled or unfinished words, or when an application needs search phrase suggestions weighted by the documents that pass the same filters as its document queries.
 
-## Token correction
+## Token expansion
 
-`TextField` accepts an optional [`TokenCorrection`](../src/Clara/Mapping/TokenCorrection.cs). Correction compares query words with the words that occur in the indexed text, in their surface form: tokenized and normalized, but not stemmed. Matching against stems would reject typing errors in inflected forms, because a stem can differ from the typed word by more than the allowed distance.
+`TextField` accepts an optional [`TokenExpansion`](../src/Clara/Mapping/TokenExpansion.cs). Expansion compares query words with the words that occur in the indexed text, in their surface form: tokenized and normalized, but not stemmed. Matching against stems would reject typing errors in inflected forms, because a stem can differ from the typed word by more than the allowed distance.
 
 ```csharp
 var surfaceAnalyzer = new Analyzer(new StandardTokenizer(), new LowerInvariantTokenFilter());
@@ -12,16 +12,16 @@ var surfaceAnalyzer = new Analyzer(new StandardTokenizer(), new LowerInvariantTo
 var text = new TextField<Product>(
     x => x.Title,
     new PorterAnalyzer(),
-    tokenCorrection: new TokenCorrection(surfaceAnalyzer, TokenMatching.Default, variants: knownMisspellings));
+    tokenExpansion: new TokenExpansion(surfaceAnalyzer, TokenMatching.Default, variants: knownMisspellings));
 ```
 
-- The correction analyzer must use the same tokenizer as the field (`ITokenizer.Equals`). Query and index terms are related to their surface forms by token position, so both analyzers must produce the same positions.
+- The surface analyzer must use the same tokenizer as the field (`ITokenizer.Equals`). Query and index terms are related to their surface forms by token position, so both analyzers must produce the same positions.
 - While indexing, the field records which analyzed token each surface form produces. Only surface forms whose token has postings in the field are kept.
-- `variants` maps known misspellings to canonical surface forms. Each side is normalized with the correction analyzer and must produce a single token; a variant is used only with fuzzy matching, for query words of at least `minimumVariantLength` characters that do not occur in the field.
+- `variants` maps known misspellings to canonical surface forms. Each side is normalized with the surface analyzer and must produce a single token; a variant is used only with fuzzy matching, for query words of at least `minimumVariantLength` characters that do not occur in the field.
 
 ### Fuzzy and prefix matching
 
-`QueryBuilder.Search(..., isFuzzy: ..., prefixMode: ...)` takes two independent options. Both default to exact matching, and both require a field with `TokenCorrection`.
+`QueryBuilder.Search(..., isFuzzy: ..., prefixMode: ...)` takes two independent options. Both default to exact matching, and both require a field with `TokenExpansion`.
 
 | Option | Effect on a query word |
 | --- | --- |
@@ -96,6 +96,6 @@ A built index is read-only. Each query leases its own term source and working co
 
 ### Upgrading
 
-Existing source calls continue to use exact matching by default. Recompile consumers when upgrading: the optional parameters added to `TextField` constructors, `TextSearchExpression`, and `QueryBuilder.Search` change their binary signatures. To enable fuzzy or prefix matching, configure `TokenCorrection` and pass `isFuzzy` or `prefixMode`. To enable suggestions, add a `PhraseField` to the mapper's `GetFields()` and rebuild the index. Dispose query results with `using` as before.
+Existing source calls continue to use exact matching by default. Recompile consumers when upgrading: the optional parameters added to `TextField` constructors, `TextSearchExpression`, and `QueryBuilder.Search` change their binary signatures. To enable fuzzy or prefix matching, configure `TokenExpansion` and pass `isFuzzy` or `prefixMode`. Coming from 0.2.0-beta.1: `TokenCorrection` is now `TokenExpansion` (parameter `tokenExpansion`), and `matchMode` is replaced by `isFuzzy` and `prefixMode`; `CorrectPrefix` is closest to `isFuzzy: true, prefixMode: PrefixMode.Last`, while `Correct` has no direct counterpart because fuzzy matching now also expands words that have exact matches. To enable suggestions, add a `PhraseField` to the mapper's `GetFields()` and rebuild the index. Dispose query results with `using` as before.
 
-Tests: [TokenCorrectionTests.cs](../src/Clara.Tests/TokenCorrectionTests.cs), [PhraseFieldTests.cs](../src/Clara.Tests/PhraseFieldTests.cs).
+Tests: [TokenExpansionTests.cs](../src/Clara.Tests/TokenExpansionTests.cs), [PhraseFieldTests.cs](../src/Clara.Tests/PhraseFieldTests.cs).

@@ -2,11 +2,11 @@ using Clara.Analysis;
 
 namespace Clara.Mapping
 {
-    public sealed class TokenCorrection
+    public sealed class TokenExpansion
     {
         public const int DefaultMinimumVariantLength = 5;
 
-        public TokenCorrection(
+        public TokenExpansion(
             IAnalyzer analyzer,
             TokenMatching? matching = null,
             IEnumerable<KeyValuePair<string, string>>? variants = null,

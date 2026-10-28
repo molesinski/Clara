@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Clara.Tests
 {
-    public class TokenCorrectionTests
+    public class TokenExpansionTests
     {
         [Fact]
         public void ExactSearchDoesNotMatchMisspelledTokens()
@@ -129,7 +129,7 @@ namespace Clara.Tests
         [Fact]
         public void FuzzyScoresVariantLikeExactMatch()
         {
-            var (index, mapper) = CreateIndex(new CorrectionMapper(new[] { new KeyValuePair<string, string>("colour", "color") }));
+            var (index, mapper) = CreateIndex(new ExpansionMapper(new[] { new KeyValuePair<string, string>("colour", "color") }));
 
             using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "colour", isFuzzy: true));
 
@@ -142,7 +142,7 @@ namespace Clara.Tests
         [Fact]
         public void VariantsAreUsedOnlyWithFuzzy()
         {
-            var (index, mapper) = CreateIndex(new CorrectionMapper(new[] { new KeyValuePair<string, string>("colour", "color") }));
+            var (index, mapper) = CreateIndex(new ExpansionMapper(new[] { new KeyValuePair<string, string>("colour", "color") }));
 
             using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "colour", prefixMode: PrefixMode.Last));
 
@@ -165,7 +165,7 @@ namespace Clara.Tests
         [Fact]
         public void PrefixCompletesWordsReplacedBySynonyms()
         {
-            var (index, mapper) = CreateIndex(new CorrectionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "red" }, new[] { "cherry" }) }));
+            var (index, mapper) = CreateIndex(new ExpansionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "red" }, new[] { "cherry" }) }));
 
             using var exact = index.Query(q => q.Search(mapper.Text, SearchMode.All, "red"));
             using var prefix = index.Query(q => q.Search(mapper.Text, SearchMode.All, "red", prefixMode: PrefixMode.Last));
@@ -177,7 +177,7 @@ namespace Clara.Tests
         [Fact]
         public void FuzzyMatchesWordsReplacedBySynonyms()
         {
-            var (index, mapper) = CreateIndex(new CorrectionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "colour" }, new[] { "hue" }) }));
+            var (index, mapper) = CreateIndex(new ExpansionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "colour" }, new[] { "hue" }) }));
 
             using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "colour", isFuzzy: true));
 
@@ -187,7 +187,7 @@ namespace Clara.Tests
         [Fact]
         public void FuzzyDoesNotExpandMultiWordSynonyms()
         {
-            var (index, mapper) = CreateIndex(new CorrectionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "crock pot" }, new[] { "slow cooker" }) }));
+            var (index, mapper) = CreateIndex(new ExpansionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "crock pot" }, new[] { "slow cooker" }) }));
 
             using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "crock pot", isFuzzy: true));
 
@@ -195,17 +195,17 @@ namespace Clara.Tests
         }
 
         [Fact]
-        public void TokenCorrectionRequiresFieldTokenizer()
+        public void TokenExpansionRequiresFieldTokenizer()
         {
-            var correction = new TokenCorrection(new Analyzer(new WhitespaceTokenizer(), new LowerInvariantTokenFilter()));
+            var expansion = new TokenExpansion(new Analyzer(new WhitespaceTokenizer(), new LowerInvariantTokenFilter()));
 
-            Assert.Throws<ArgumentException>(() => new TextField<CorrectionDocument>(x => x.Text, new PorterAnalyzer(), tokenCorrection: correction));
+            Assert.Throws<ArgumentException>(() => new TextField<ExpansionDocument>(x => x.Text, new PorterAnalyzer(), tokenExpansion: expansion));
         }
 
         [Fact]
-        public void FuzzyAndPrefixRequireTokenCorrection()
+        public void FuzzyAndPrefixRequireTokenExpansion()
         {
-            var field = new TextField<CorrectionDocument>(x => x.Text, new PorterAnalyzer());
+            var field = new TextField<ExpansionDocument>(x => x.Text, new PorterAnalyzer());
 
             Assert.Throws<ArgumentException>(() => new TextSearchExpression(field, SearchMode.All, "red", isFuzzy: true));
             Assert.Throws<ArgumentException>(() => new TextSearchExpression(field, SearchMode.All, "red", prefixMode: PrefixMode.Last));
@@ -219,11 +219,11 @@ namespace Clara.Tests
             Assert.Throws<ArgumentException>(() => new TextSearchExpression(mapper.Text, SearchMode.All, "red", prefixMode: (PrefixMode)42));
         }
 
-        private static (Index<CorrectionDocument> Index, CorrectionMapper Mapper) CreateIndex(CorrectionMapper? mapper = null)
+        private static (Index<ExpansionDocument> Index, ExpansionMapper Mapper) CreateIndex(ExpansionMapper? mapper = null)
         {
-            mapper ??= new CorrectionMapper();
+            mapper ??= new ExpansionMapper();
 
-            return (IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore()), mapper);
+            return (IndexBuilder.Build(ExpansionMapper.Documents, mapper, new InstanceTokenEncoderStore()), mapper);
         }
     }
 }

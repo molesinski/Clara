@@ -28,9 +28,9 @@ namespace Clara.Querying
                 throw new ArgumentException("Illegal prefix mode enum value.", nameof(prefixMode));
             }
 
-            if ((isFuzzy || prefixMode != PrefixMode.None) && field.TokenCorrection is null)
+            if ((isFuzzy || prefixMode != PrefixMode.None) && field.TokenExpansion is null)
             {
-                throw new ArgumentException("Field must have token correction configured to use fuzzy or prefix matching.", isFuzzy ? nameof(isFuzzy) : nameof(prefixMode));
+                throw new ArgumentException("Field must have token expansion configured to use fuzzy or prefix matching.", isFuzzy ? nameof(isFuzzy) : nameof(prefixMode));
             }
 
             this.Field = field;

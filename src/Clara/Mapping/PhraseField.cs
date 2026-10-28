@@ -79,7 +79,7 @@ namespace Clara.Mapping
             IEnumerable<string>? stopwords = null,
             IEnumerable<KeyValuePair<string, string>>? variants = null,
             IEnumerable<KeyValuePair<string, string>>? aliases = null,
-            int minimumVariantLength = TokenCorrection.DefaultMinimumVariantLength,
+            int minimumVariantLength = TokenExpansion.DefaultMinimumVariantLength,
             string highlightStart = DefaultHighlightStart,
             string highlightEnd = DefaultHighlightEnd)
             : base(analyzer, validationField, matching, stopwords, variants, aliases, minimumVariantLength, highlightStart, highlightEnd)

@@ -16,7 +16,7 @@ namespace Clara.Storage
         private readonly ScoreAggregation searchScoreAggregation;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
         private readonly ObjectPoolSlim<IPhraseTermSource> phraseTermSourcePool;
-        private readonly TokenCorrectionStore? tokenCorrectionStore;
+        private readonly TokenExpansionStore? tokenExpansionStore;
 
         public TextDocumentStore(
             TokenEncoder tokenEncoder,
@@ -24,7 +24,7 @@ namespace Clara.Storage
             ISynonymMap? synonymMap,
             ScoreAggregation searchScoreAggregation,
             DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores,
-            TokenCorrectionStore? tokenCorrectionStore = null)
+            TokenExpansionStore? tokenExpansionStore = null)
         {
             if (tokenEncoder is null)
             {
@@ -51,7 +51,7 @@ namespace Clara.Storage
             this.synonymMap = synonymMap;
             this.searchScoreAggregation = searchScoreAggregation;
             this.tokenDocumentScores = tokenDocumentScores;
-            this.tokenCorrectionStore = tokenCorrectionStore;
+            this.tokenExpansionStore = tokenExpansionStore;
             this.phraseTermSourcePool = new ObjectPoolSlim<IPhraseTermSource>(() => this.synonymMap?.CreatePhraseTermSource() ?? new PhraseTermSource(this.analyzer.CreateTokenTermSource()));
         }
 
@@ -59,9 +59,9 @@ namespace Clara.Storage
         {
             var isExpanding = isFuzzy || prefixMode != PrefixMode.None;
 
-            if (isExpanding && this.tokenCorrectionStore is null)
+            if (isExpanding && this.tokenExpansionStore is null)
             {
-                throw new InvalidOperationException("Field does not support token correction.");
+                throw new InvalidOperationException("Field does not support token expansion.");
             }
 
             using var source = this.phraseTermSourcePool.Lease();
@@ -78,9 +78,9 @@ namespace Clara.Storage
 
                 searchScoreAggregation ??= this.searchScoreAggregation;
 
-                if (this.tokenCorrectionStore is not null && isExpanding)
+                if (this.tokenExpansionStore is not null && isExpanding)
                 {
-                    lastPosition = this.tokenCorrectionStore.GetSurfaceTerms(text, surfaceTerms.Instance);
+                    lastPosition = this.tokenExpansionStore.GetSurfaceTerms(text, surfaceTerms.Instance);
                     isLastPrefix = prefixMode == PrefixMode.Last && text.Length > 0 && !char.IsWhiteSpace(text[text.Length - 1]);
                 }
 
@@ -104,7 +104,7 @@ namespace Clara.Storage
                         throw new InvalidOperationException("Unsupported phrase term value encountered.");
                     }
 
-                    if (this.tokenCorrectionStore is not null && isExpanding && term.Position.Start == term.Position.End)
+                    if (this.tokenExpansionStore is not null && isExpanding && term.Position.Start == term.Position.End)
                     {
                         if (surfaceTerms.Instance.TryGetValue(term.Position.Start, out var surface))
                         {
@@ -160,7 +160,7 @@ namespace Clara.Storage
         {
             using var candidates = SharedObjectPools.DocumentScores.Lease();
 
-            this.tokenCorrectionStore!.GetCandidates(surface, isFuzzy, isPrefix, candidates.Instance);
+            this.tokenExpansionStore!.GetCandidates(surface, isFuzzy, isPrefix, candidates.Instance);
 
             foreach (var candidate in candidates.Instance)
             {
