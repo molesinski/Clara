@@ -26,7 +26,7 @@ namespace Clara.Tests
         {
             var (index, mapper) = CreateIndex();
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "chocolote", isFuzzy: true));
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "chocolote", fuzzyMode: FuzzyMode.Always));
 
             Assert.Equal(new[] { "chocolate-bar", "chocolate-cookies" }, result.Documents.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal));
             Assert.All(result.Documents, x => Assert.Equal(TokenMatching.Default.GetBoost(1, isPrefix: false), x.Score));
@@ -37,7 +37,7 @@ namespace Clara.Tests
         {
             var (index, mapper) = CreateIndex();
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "cookias", isFuzzy: true));
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "cookias", fuzzyMode: FuzzyMode.Always));
 
             Assert.Equal(new[] { "chocolate-cookies", "slow-cookers" }, result.Documents.Select(x => x.Key));
         }
@@ -48,7 +48,7 @@ namespace Clara.Tests
             var (index, mapper) = CreateIndex();
 
             using var exact = index.Query(q => q.Search(mapper.Text, SearchMode.All, "cookies"));
-            using var fuzzy = index.Query(q => q.Search(mapper.Text, SearchMode.All, "cookies", isFuzzy: true));
+            using var fuzzy = index.Query(q => q.Search(mapper.Text, SearchMode.All, "cookies", fuzzyMode: FuzzyMode.Always));
 
             Assert.Equal("chocolate-cookies", Assert.Single(exact.Documents).Key);
             Assert.Collection(
@@ -70,9 +70,61 @@ namespace Clara.Tests
         {
             var (index, mapper) = CreateIndex();
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "cable", isFuzzy: true));
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "cable", fuzzyMode: FuzzyMode.Always));
 
             Assert.Equal("cable-ties", Assert.Single(result.Documents).Key);
+        }
+
+        [Theory]
+        [InlineData("chocolote", FuzzyMode.None, new string[0])]
+        [InlineData("chocolote", FuzzyMode.Fallback, new[] { "chocolate-bar", "chocolate-cookies" })]
+        [InlineData("chocolote", FuzzyMode.Always, new[] { "chocolate-bar", "chocolate-cookies" })]
+        [InlineData("cookies", FuzzyMode.Fallback, new[] { "chocolate-cookies" })]
+        [InlineData("cookies", FuzzyMode.Always, new[] { "chocolate-cookies", "slow-cookers" })]
+        public void FuzzyModeSelectsExpandedWords(string text, FuzzyMode fuzzyMode, string[] expected)
+        {
+            var (index, mapper) = CreateIndex();
+
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, text, fuzzyMode: fuzzyMode));
+
+            Assert.Equal(expected, result.Documents.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal));
+        }
+
+        [Fact]
+        public void FallbackExpandsOnlyWordsWithoutExactMatches()
+        {
+            var (index, mapper) = CreateIndex();
+
+            using var fallback = index.Query(q => q.Search(mapper.Text, SearchMode.Any, "chocolote cookies", fuzzyMode: FuzzyMode.Fallback));
+            using var always = index.Query(q => q.Search(mapper.Text, SearchMode.Any, "chocolote cookies", fuzzyMode: FuzzyMode.Always));
+
+            Assert.Equal(new[] { "chocolate-bar", "chocolate-cookies" }, fallback.Documents.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal));
+            Assert.Equal(new[] { "chocolate-bar", "chocolate-cookies", "slow-cookers" }, always.Documents.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal));
+        }
+
+        [Fact]
+        public void FallbackDoesNotExpandWordsWhoseMatchesOtherWordsExclude()
+        {
+            var (index, mapper) = CreateIndex();
+
+            using var fallback = index.Query(q => q.Search(mapper.Text, SearchMode.All, "slow cookies", fuzzyMode: FuzzyMode.Fallback));
+            using var always = index.Query(q => q.Search(mapper.Text, SearchMode.All, "slow cookies", fuzzyMode: FuzzyMode.Always));
+
+            Assert.Empty(fallback.Documents);
+            Assert.Equal("slow-cookers", Assert.Single(always.Documents).Key);
+        }
+
+        [Theory]
+        [InlineData("choc", new[] { "chocolate-bar", "chocolate-cookies" })]
+        [InlineData("chox", new[] { "chocolate-bar", "chocolate-cookies" })]
+        [InlineData("cookie", new[] { "chocolate-cookies" })]
+        public void FallbackPrefersExactCompletions(string text, string[] expected)
+        {
+            var (index, mapper) = CreateIndex();
+
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, text, fuzzyMode: FuzzyMode.Fallback, prefixMode: PrefixMode.Last));
+
+            Assert.Equal(expected, result.Documents.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal));
         }
 
         [Theory]
@@ -99,7 +151,7 @@ namespace Clara.Tests
             var (index, mapper) = CreateIndex();
 
             using var exact = index.Query(q => q.Search(mapper.Text, SearchMode.All, "chox", prefixMode: PrefixMode.Last));
-            using var fuzzy = index.Query(q => q.Search(mapper.Text, SearchMode.All, "chox", isFuzzy: true, prefixMode: PrefixMode.Last));
+            using var fuzzy = index.Query(q => q.Search(mapper.Text, SearchMode.All, "chox", fuzzyMode: FuzzyMode.Always, prefixMode: PrefixMode.Last));
 
             Assert.Empty(exact.Documents);
             Assert.Equal(new[] { "chocolate-bar", "chocolate-cookies" }, fuzzy.Documents.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal));
@@ -131,7 +183,7 @@ namespace Clara.Tests
         {
             var (index, mapper) = CreateIndex(new ExpansionMapper(new[] { new KeyValuePair<string, string>("colour", "color") }));
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "colour", isFuzzy: true));
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "colour", fuzzyMode: FuzzyMode.Always));
 
             var document = Assert.Single(result.Documents);
 
@@ -154,7 +206,7 @@ namespace Clara.Tests
         {
             var (index, mapper) = CreateIndex();
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "chocolote cookies", isFuzzy: true));
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "chocolote cookies", fuzzyMode: FuzzyMode.Always));
 
             var document = Assert.Single(result.Documents);
 
@@ -179,7 +231,7 @@ namespace Clara.Tests
         {
             var (index, mapper) = CreateIndex(new ExpansionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "colour" }, new[] { "hue" }) }));
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "colour", isFuzzy: true));
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "colour", fuzzyMode: FuzzyMode.Always));
 
             Assert.Equal("color-pencils", Assert.Single(result.Documents).Key);
         }
@@ -189,7 +241,7 @@ namespace Clara.Tests
         {
             var (index, mapper) = CreateIndex(new ExpansionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "crock pot" }, new[] { "slow cooker" }) }));
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "crock pot", isFuzzy: true));
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "crock pot", fuzzyMode: FuzzyMode.Always));
 
             Assert.Equal("slow-cookers", Assert.Single(result.Documents).Key);
         }
@@ -207,8 +259,17 @@ namespace Clara.Tests
         {
             var field = new TextField<ExpansionDocument>(x => x.Text, new PorterAnalyzer());
 
-            Assert.Throws<ArgumentException>(() => new TextSearchExpression(field, SearchMode.All, "red", isFuzzy: true));
+            Assert.Throws<ArgumentException>(() => new TextSearchExpression(field, SearchMode.All, "red", fuzzyMode: FuzzyMode.Always));
+            Assert.Throws<ArgumentException>(() => new TextSearchExpression(field, SearchMode.All, "red", fuzzyMode: FuzzyMode.Fallback));
             Assert.Throws<ArgumentException>(() => new TextSearchExpression(field, SearchMode.All, "red", prefixMode: PrefixMode.Last));
+        }
+
+        [Fact]
+        public void IllegalFuzzyModeIsRejected()
+        {
+            var (_, mapper) = CreateIndex();
+
+            Assert.Throws<ArgumentException>(() => new TextSearchExpression(mapper.Text, SearchMode.All, "red", fuzzyMode: (FuzzyMode)42));
         }
 
         [Fact]

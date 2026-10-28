@@ -6,7 +6,7 @@ namespace Clara.Querying
 {
     public sealed class TextSearchExpression : SearchExpression
     {
-        public TextSearchExpression(TextField field, SearchMode searchMode, string text, Func<Position, float>? positionBoost = null, ScoreAggregation? searchScoreAggregation = null, bool isFuzzy = false, PrefixMode prefixMode = PrefixMode.None)
+        public TextSearchExpression(TextField field, SearchMode searchMode, string text, Func<Position, float>? positionBoost = null, ScoreAggregation? searchScoreAggregation = null, FuzzyMode fuzzyMode = FuzzyMode.None, PrefixMode prefixMode = PrefixMode.None)
         {
             if (field is null)
             {
@@ -23,14 +23,19 @@ namespace Clara.Querying
                 throw new ArgumentNullException(nameof(text));
             }
 
+            if (fuzzyMode != FuzzyMode.None && fuzzyMode != FuzzyMode.Fallback && fuzzyMode != FuzzyMode.Always)
+            {
+                throw new ArgumentException("Illegal fuzzy mode enum value.", nameof(fuzzyMode));
+            }
+
             if (prefixMode != PrefixMode.None && prefixMode != PrefixMode.Last && prefixMode != PrefixMode.All)
             {
                 throw new ArgumentException("Illegal prefix mode enum value.", nameof(prefixMode));
             }
 
-            if ((isFuzzy || prefixMode != PrefixMode.None) && field.TokenExpansion is null)
+            if ((fuzzyMode != FuzzyMode.None || prefixMode != PrefixMode.None) && field.TokenExpansion is null)
             {
-                throw new ArgumentException("Field must have token expansion configured to use fuzzy or prefix matching.", isFuzzy ? nameof(isFuzzy) : nameof(prefixMode));
+                throw new ArgumentException("Field must have token expansion configured to use fuzzy or prefix matching.", fuzzyMode != FuzzyMode.None ? nameof(fuzzyMode) : nameof(prefixMode));
             }
 
             this.Field = field;
@@ -38,7 +43,7 @@ namespace Clara.Querying
             this.Text = text;
             this.PositionBoost = positionBoost;
             this.SearchScoreAggregation = searchScoreAggregation;
-            this.IsFuzzy = isFuzzy;
+            this.FuzzyMode = fuzzyMode;
             this.PrefixMode = prefixMode;
         }
 
@@ -52,7 +57,7 @@ namespace Clara.Querying
 
         public ScoreAggregation? SearchScoreAggregation { get; }
 
-        public bool IsFuzzy { get; }
+        public FuzzyMode FuzzyMode { get; }
 
         public PrefixMode PrefixMode { get; }
 

@@ -21,17 +21,18 @@ var text = new TextField<Product>(
 
 ### Fuzzy and prefix matching
 
-`QueryBuilder.Search(..., isFuzzy: ..., prefixMode: ...)` takes two independent options. Both default to exact matching, and both require a field with `TokenExpansion`.
+`QueryBuilder.Search(..., fuzzyMode: ..., prefixMode: ...)` takes two independent options. Both default to exact matching, and both require a field with `TokenExpansion`.
 
 | Option | Effect on a query word |
 | --- | --- |
-| `isFuzzy: false` (default) | Only its exact analyzed token |
-| `isFuzzy: true` | Its exact token plus every word of the field within `TokenMatching.GetMaximumDistance`, and known variants |
+| `fuzzyMode: FuzzyMode.None` (default) | Only its exact analyzed token |
+| `fuzzyMode: FuzzyMode.Fallback` | Its exact token; only when the word matches no document on its own, every word of the field within `TokenMatching.GetMaximumDistance`, and known variants |
+| `fuzzyMode: FuzzyMode.Always` | Its exact token plus every word of the field within `TokenMatching.GetMaximumDistance`, and known variants |
 | `prefixMode: PrefixMode.None` (default) | No completion |
 | `prefixMode: PrefixMode.Last` | Words starting with the last query word, when the text does not end with whitespace |
 | `prefixMode: PrefixMode.All` | Words starting with any query word |
 
-Without `isFuzzy`, a completion must start with the query word exactly; with it, prefixes within the maximum distance also count. Fuzzy matching applies whether or not the word has exact matches: exact matches keep their unboosted score, so they rank above similar words.
+Without fuzzy matching, a completion must start with the query word exactly; with it, prefixes within the maximum distance also count. With `Always`, fuzzy matching applies whether or not the word has exact matches: exact matches keep their unboosted score, so they rank above similar words, but the result also contains every document with a similar word. `Fallback` decides per query word, before the words are combined: a word with exact matches (or, at a prefix position, exact completions) is not expanded, even if other words of the query then exclude all its documents. To retry a query that returned nothing, run it again with `Always`.
 
 A query word replaced by a synonym is expanded like any other word, using the word as typed: its candidates are added to the synonym's postings. A synonym that spans several query words is never expanded. A candidate contributes its token's postings multiplied by `TokenMatching.GetBoost(distance, isPrefix)`; within one term, a document keeps the best candidate (`Max`), so several similar words do not add up. Terms are then combined as before, with the position boost and the search aggregation.
 
@@ -96,6 +97,6 @@ A built index is read-only. Each query leases its own term source and working co
 
 ### Upgrading
 
-Existing source calls continue to use exact matching by default. Recompile consumers when upgrading: the optional parameters added to `TextField` constructors, `TextSearchExpression`, and `QueryBuilder.Search` change their binary signatures. To enable fuzzy or prefix matching, configure `TokenExpansion` and pass `isFuzzy` or `prefixMode`. Coming from 0.2.0-beta.1: `TokenCorrection` is now `TokenExpansion` (parameter `tokenExpansion`), and `matchMode` is replaced by `isFuzzy` and `prefixMode`; `CorrectPrefix` is closest to `isFuzzy: true, prefixMode: PrefixMode.Last`, while `Correct` has no direct counterpart because fuzzy matching now also expands words that have exact matches. To enable suggestions, add a `PhraseField` to the mapper's `GetFields()` and rebuild the index. Dispose query results with `using` as before.
+Existing source calls continue to use exact matching by default. Recompile consumers when upgrading: the optional parameters added to `TextField` constructors, `TextSearchExpression`, and `QueryBuilder.Search` change their binary signatures. To enable fuzzy or prefix matching, configure `TokenExpansion` and pass `fuzzyMode` or `prefixMode`. Coming from 0.2.0-beta.1: `TokenCorrection` is now `TokenExpansion` (parameter `tokenExpansion`), and `matchMode` is replaced by `fuzzyMode` and `prefixMode`; `Correct` is closest to `fuzzyMode: FuzzyMode.Fallback`, and `CorrectPrefix` to `fuzzyMode: FuzzyMode.Always, prefixMode: PrefixMode.Last`. To enable suggestions, add a `PhraseField` to the mapper's `GetFields()` and rebuild the index. Dispose query results with `using` as before.
 
 Tests: [TokenExpansionTests.cs](../src/Clara.Tests/TokenExpansionTests.cs), [PhraseFieldTests.cs](../src/Clara.Tests/PhraseFieldTests.cs).

@@ -27,7 +27,7 @@ namespace Clara.Storage
                         textSearchExpression.Text,
                         textSearchExpression.PositionBoost,
                         textSearchExpression.SearchScoreAggregation,
-                        textSearchExpression.IsFuzzy,
+                        textSearchExpression.FuzzyMode,
                         textSearchExpression.PrefixMode);
             }
 

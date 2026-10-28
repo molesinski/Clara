@@ -14,7 +14,7 @@ The simplest form is `using var result = index.Query(q => q.Filter(...));`. The 
 - Nonempty text that produces no terms after analysis, such as `...`, returns an empty result.
 - An unknown term contributes no matches in `Any` and can empty the result in `All`.
 
-A term can be a token or a group of alternative synonym phrases. A phrase requires all its tokens to occur in a document, but the index does not store their positions. This does not implement word adjacency checks or quoted phrase syntax. Fields with `TokenExpansion` support misspelled and unfinished words through `isFuzzy` and `prefixMode`; see [token expansion and phrase suggestions](expansion-and-suggestions.md). `PositionBoost` refers to positions in the analyzed query, not positions in the document.
+A term can be a token or a group of alternative synonym phrases. A phrase requires all its tokens to occur in a document, but the index does not store their positions. This does not implement word adjacency checks or quoted phrase syntax. Fields with `TokenExpansion` support misspelled and unfinished words through `fuzzyMode` and `prefixMode`; see [token expansion and phrase suggestions](expansion-and-suggestions.md). `PositionBoost` refers to positions in the analyzed query, not positions in the document.
 
 ## Filters and document keys
 

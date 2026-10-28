@@ -55,9 +55,9 @@ namespace Clara.Storage
             this.phraseTermSourcePool = new ObjectPoolSlim<IPhraseTermSource>(() => this.synonymMap?.CreatePhraseTermSource() ?? new PhraseTermSource(this.analyzer.CreateTokenTermSource()));
         }
 
-        public DocumentScoring Search(SearchMode searchMode, string text, Func<Position, float>? positionBoost, ScoreAggregation? searchScoreAggregation, bool isFuzzy = false, PrefixMode prefixMode = PrefixMode.None)
+        public DocumentScoring Search(SearchMode searchMode, string text, Func<Position, float>? positionBoost, ScoreAggregation? searchScoreAggregation, FuzzyMode fuzzyMode = FuzzyMode.None, PrefixMode prefixMode = PrefixMode.None)
         {
-            var isExpanding = isFuzzy || prefixMode != PrefixMode.None;
+            var isExpanding = fuzzyMode != FuzzyMode.None || prefixMode != PrefixMode.None;
 
             if (isExpanding && this.tokenExpansionStore is null)
             {
@@ -110,9 +110,16 @@ namespace Clara.Storage
                         {
                             var isPrefix = prefixMode == PrefixMode.All || (isLastPrefix && term.Position.Start == lastPosition);
 
+                            var isFuzzy = fuzzyMode == FuzzyMode.Always;
+
                             if (isFuzzy || isPrefix)
                             {
                                 this.SearchCandidates(surface, isFuzzy, isPrefix, termScores.Instance);
+                            }
+
+                            if (fuzzyMode == FuzzyMode.Fallback && termScores.Instance.Count == 0)
+                            {
+                                this.SearchCandidates(surface, isFuzzy: true, isPrefix, termScores.Instance);
                             }
                         }
                     }

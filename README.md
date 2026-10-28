@@ -317,14 +317,14 @@ var mapper = new ProductMapper();
 var index = IndexBuilder.Build(products, mapper);
 
 using var corrected = index.Query(q => q
-    .Search(mapper.Text, SearchMode.All, "iphne", isFuzzy: true));
+    .Search(mapper.Text, SearchMode.All, "iphne", fuzzyMode: FuzzyMode.Fallback));
 
 using var completed = index.Query(q => q
-    .Search(mapper.Text, SearchMode.All, "iph", isFuzzy: true, prefixMode: PrefixMode.Last));
+    .Search(mapper.Text, SearchMode.All, "iph", fuzzyMode: FuzzyMode.Always, prefixMode: PrefixMode.Last));
 ```
 
-`isFuzzy` adds every similar word within the maximum distance to each query word, ranked below exact
-matches. `prefixMode` completes no words (`None`, the default), the unfinished last word (`Last`; trailing
+`fuzzyMode` adds every similar word within the maximum distance to a query word, ranked below exact
+matches: `Fallback` only to words that match nothing on their own, `Always` to every word. `prefixMode` completes no words (`None`, the default), the unfinished last word (`Last`; trailing
 whitespace marks it as complete), or every word (`All`). Both options require `TokenExpansion` on the field.
 
 ### Phrase Fields

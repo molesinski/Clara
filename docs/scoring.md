@@ -65,7 +65,7 @@ With mapping `alias => red blue`, `Similarity.TF`, and document `red blue`, a qu
 
 ## Fuzzy and completed terms
 
-With `isFuzzy` or a `prefixMode`, a similar or completed word uses the candidate token's precomputed score multiplied by `TokenMatching.GetBoost(distance, isPrefix)`. Within one term, a document keeps its best candidate through `Max`, regardless of the search aggregation; exact matches keep their unboosted score. The position boost and search aggregation then combine terms as usual. When all matching documents share the same candidate, the multiplier does not change their relative order. See [token expansion and phrase suggestions](expansion-and-suggestions.md).
+With a `fuzzyMode` or a `prefixMode`, a similar or completed word uses the candidate token's precomputed score multiplied by `TokenMatching.GetBoost(distance, isPrefix)`. Within one term, a document keeps its best candidate through `Max`, regardless of the search aggregation; exact matches keep their unboosted score. The position boost and search aggregation then combine terms as usual. When all matching documents share the same candidate, the multiplier does not change their relative order. See [token expansion and phrase suggestions](expansion-and-suggestions.md).
 
 ## Extending ranking
 
