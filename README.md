@@ -323,8 +323,10 @@ using var completed = index.Query(q => q
     .Search(mapper.Text, SearchMode.All, "iph", fuzzyMode: FuzzyMode.Always, prefixMode: PrefixMode.Last));
 ```
 
-`fuzzyMode` adds every similar word within the maximum distance to a query word, ranked below exact
-matches: `Fallback` only to words that match nothing on their own, `Always` to every word. `prefixMode` completes no words (`None`, the default), the unfinished last word (`Last`; trailing
+`fuzzyMode` adds every similar word within the maximum distance to a query word: `Fallback` only to
+words that match nothing on their own, `Always` to every word. The default matching function discounts
+candidates that require edits or prefix completion, but document weights and similarity scores can still rank them above exact
+matches. `prefixMode` completes no words (`None`, the default), the unfinished last word (`Last`; trailing
 whitespace marks it as complete), or every word (`All`). Both options require `TokenExpansion` on the field.
 
 ### Phrase Fields
