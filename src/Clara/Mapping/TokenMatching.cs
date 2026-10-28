@@ -21,6 +21,11 @@ namespace Clara.Mapping
 
         internal bool TryMatch(string token, string query, out int distance)
         {
+            return this.TryMatch(token, query, this.GetMaximumDistance(query.Length), this.GetMaximumLengthDifference(query.Length), out distance);
+        }
+
+        internal bool TryMatch(string token, string query, int maximumDistance, int maximumLengthDifference, out int distance)
+        {
             distance = 0;
 
             if (this.Normalize(token[0]) != this.Normalize(query[0]))
@@ -28,12 +33,10 @@ namespace Clara.Mapping
                 return false;
             }
 
-            if (Math.Abs(token.Length - query.Length) > this.GetMaximumLengthDifference(query.Length))
+            if (Math.Abs(token.Length - query.Length) > maximumLengthDifference)
             {
                 return false;
             }
-
-            var maximumDistance = this.GetMaximumDistance(query.Length);
 
             distance = this.CalculateDistance(token.AsSpan(), query.AsSpan(), maximumDistance);
 
@@ -41,6 +44,11 @@ namespace Clara.Mapping
         }
 
         internal bool TryMatchPrefix(string token, string query, out int distance, out int length)
+        {
+            return this.TryMatchPrefix(token, query, this.GetMaximumDistance(query.Length), this.GetMaximumLengthDifference(query.Length), out distance, out length);
+        }
+
+        internal bool TryMatchPrefix(string token, string query, int maximumDistance, int maximumLengthDifference, out int distance, out int length)
         {
             distance = 0;
             length = 0;
@@ -50,8 +58,6 @@ namespace Clara.Mapping
                 return false;
             }
 
-            var maximumDistance = this.GetMaximumDistance(query.Length);
-            var maximumLengthDifference = this.GetMaximumLengthDifference(query.Length);
             var minimumLength = Math.Max(1, query.Length - maximumLengthDifference);
             var maximumLength = Math.Min(token.Length, query.Length + maximumLengthDifference);
             var bestDistance = maximumDistance + 1;

@@ -12,7 +12,7 @@ Clara is a C# library for searching an index held in process memory. It combines
 | [Queries and facets](queries.md) | Search, filter, facet, and sorting semantics |
 | [Text analysis and synonyms](text-analysis.md) | Tokenization, filters, languages, and synonym rules |
 | [Scoring](scoring.md) | Weights, aggregation, TF, TFIDF, and BM25 |
-| [Token correction and phrase suggestions](correction-and-suggestions.md) | Misspelled and unfinished words, match modes, filtered phrase suggestions |
+| [Token correction and phrase suggestions](correction-and-suggestions.md) | Misspelled and unfinished words, fuzzy and prefix matching, filtered phrase suggestions |
 | [Memory and concurrency](memory-and-concurrency.md) | Result ownership, pooling, and index replacement |
 | [Development and testing](development-and-testing.md) | Environment, commands, benchmarks, extensions, and publishing |
 | [GitHub Actions and releases](github-actions-and-releases.md) | CI, shared package versions, NuGet Trusted Publishing setup, and release recovery |

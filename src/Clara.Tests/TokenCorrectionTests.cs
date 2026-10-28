@@ -12,10 +12,9 @@ namespace Clara.Tests
     public class TokenCorrectionTests
     {
         [Fact]
-        public void ExactModeDoesNotCorrectMisspelledTokens()
+        public void ExactSearchDoesNotMatchMisspelledTokens()
         {
-            var mapper = new CorrectionMapper();
-            var index = IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore());
+            var (index, mapper) = CreateIndex();
 
             using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "chocolote"));
 
@@ -23,71 +22,95 @@ namespace Clara.Tests
         }
 
         [Fact]
-        public void CorrectModeMatchesMisspelledTokenWithBoostedScore()
+        public void FuzzyMatchesMisspelledTokenWithBoostedScore()
         {
-            var mapper = new CorrectionMapper();
-            var index = IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore());
+            var (index, mapper) = CreateIndex();
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "chocolote", matchMode: MatchMode.Correct));
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "chocolote", isFuzzy: true));
 
             Assert.Equal(new[] { "chocolate-bar", "chocolate-cookies" }, result.Documents.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal));
             Assert.All(result.Documents, x => Assert.Equal(TokenMatching.Default.GetBoost(1, isPrefix: false), x.Score));
         }
 
         [Fact]
-        public void CorrectModeUsesOnlyLowestCostCandidates()
+        public void FuzzyUsesEveryCandidateWithinMaximumDistance()
         {
-            var mapper = new CorrectionMapper();
-            var index = IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore());
+            var (index, mapper) = CreateIndex();
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "cookias", matchMode: MatchMode.Correct));
-
-            Assert.Equal("chocolate-cookies", Assert.Single(result.Documents).Key);
-        }
-
-        [Fact]
-        public void CorrectPrefixModeUsesAllCandidatesForLastTerm()
-        {
-            var mapper = new CorrectionMapper();
-            var index = IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore());
-
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "cookias", matchMode: MatchMode.CorrectPrefix));
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "cookias", isFuzzy: true));
 
             Assert.Equal(new[] { "chocolate-cookies", "slow-cookers" }, result.Documents.Select(x => x.Key));
         }
 
         [Fact]
-        public void CorrectModeKeepsTermsWithExactMatches()
+        public void FuzzyKeepsExactMatchesAboveSimilarWords()
         {
-            var mapper = new CorrectionMapper();
-            var index = IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore());
+            var (index, mapper) = CreateIndex();
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "cable", matchMode: MatchMode.Correct));
+            using var exact = index.Query(q => q.Search(mapper.Text, SearchMode.All, "cookies"));
+            using var fuzzy = index.Query(q => q.Search(mapper.Text, SearchMode.All, "cookies", isFuzzy: true));
+
+            Assert.Equal("chocolate-cookies", Assert.Single(exact.Documents).Key);
+            Assert.Collection(
+                fuzzy.Documents,
+                x =>
+                {
+                    Assert.Equal("chocolate-cookies", x.Key);
+                    Assert.Equal(1f, x.Score);
+                },
+                x =>
+                {
+                    Assert.Equal("slow-cookers", x.Key);
+                    Assert.Equal(TokenMatching.Default.GetBoost(2, isPrefix: false), x.Score);
+                });
+        }
+
+        [Fact]
+        public void FuzzyDoesNotExpandWordsWithoutSimilarWords()
+        {
+            var (index, mapper) = CreateIndex();
+
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "cable", isFuzzy: true));
 
             Assert.Equal("cable-ties", Assert.Single(result.Documents).Key);
         }
 
         [Theory]
-        [InlineData("choc", new[] { "chocolate-bar", "chocolate-cookies" })]
-        [InlineData("choc ", new string[0])]
-        [InlineData("chocolate bar", new[] { "chocolate-bar" })]
-        public void CorrectPrefixModeCompletesOnlyUnfinishedLastTerm(string text, string[] expected)
+        [InlineData("choc", PrefixMode.None, new string[0])]
+        [InlineData("choc", PrefixMode.Last, new[] { "chocolate-bar", "chocolate-cookies" })]
+        [InlineData("choc", PrefixMode.All, new[] { "chocolate-bar", "chocolate-cookies" })]
+        [InlineData("choc ", PrefixMode.Last, new string[0])]
+        [InlineData("choc ", PrefixMode.All, new[] { "chocolate-bar", "chocolate-cookies" })]
+        [InlineData("choc bar", PrefixMode.Last, new string[0])]
+        [InlineData("choc bar", PrefixMode.All, new[] { "chocolate-bar" })]
+        [InlineData("chocolate ba", PrefixMode.Last, new[] { "chocolate-bar" })]
+        public void PrefixModeSelectsCompletedWords(string text, PrefixMode prefixMode, string[] expected)
         {
-            var mapper = new CorrectionMapper();
-            var index = IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore());
+            var (index, mapper) = CreateIndex();
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, text, matchMode: MatchMode.CorrectPrefix));
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, text, prefixMode: prefixMode));
 
             Assert.Equal(expected, result.Documents.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal));
         }
 
         [Fact]
-        public void CorrectPrefixModeRanksExactTokenAboveCompletion()
+        public void PrefixWithoutFuzzyRequiresExactPrefix()
         {
-            var mapper = new CorrectionMapper();
-            var index = IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore());
+            var (index, mapper) = CreateIndex();
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "red", matchMode: MatchMode.CorrectPrefix));
+            using var exact = index.Query(q => q.Search(mapper.Text, SearchMode.All, "chox", prefixMode: PrefixMode.Last));
+            using var fuzzy = index.Query(q => q.Search(mapper.Text, SearchMode.All, "chox", isFuzzy: true, prefixMode: PrefixMode.Last));
+
+            Assert.Empty(exact.Documents);
+            Assert.Equal(new[] { "chocolate-bar", "chocolate-cookies" }, fuzzy.Documents.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal));
+        }
+
+        [Fact]
+        public void PrefixRanksExactTokenAboveCompletion()
+        {
+            var (index, mapper) = CreateIndex();
+
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "red", prefixMode: PrefixMode.Last));
 
             Assert.Collection(
                 result.Documents,
@@ -104,12 +127,11 @@ namespace Clara.Tests
         }
 
         [Fact]
-        public void CorrectModePrefersVariantOverFuzzyMatch()
+        public void FuzzyScoresVariantLikeExactMatch()
         {
-            var mapper = new CorrectionMapper(new[] { new KeyValuePair<string, string>("colour", "color") });
-            var index = IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore());
+            var (index, mapper) = CreateIndex(new CorrectionMapper(new[] { new KeyValuePair<string, string>("colour", "color") }));
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "colour", matchMode: MatchMode.Correct));
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "colour", isFuzzy: true));
 
             var document = Assert.Single(result.Documents);
 
@@ -118,12 +140,21 @@ namespace Clara.Tests
         }
 
         [Fact]
-        public void CorrectModeCombinesCorrectedAndExactTerms()
+        public void VariantsAreUsedOnlyWithFuzzy()
         {
-            var mapper = new CorrectionMapper();
-            var index = IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore());
+            var (index, mapper) = CreateIndex(new CorrectionMapper(new[] { new KeyValuePair<string, string>("colour", "color") }));
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "chocolote cookies", matchMode: MatchMode.Correct));
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "colour", prefixMode: PrefixMode.Last));
+
+            Assert.Empty(result.Documents);
+        }
+
+        [Fact]
+        public void FuzzyCombinesCorrectedAndExactTerms()
+        {
+            var (index, mapper) = CreateIndex();
+
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "chocolote cookies", isFuzzy: true));
 
             var document = Assert.Single(result.Documents);
 
@@ -132,36 +163,33 @@ namespace Clara.Tests
         }
 
         [Fact]
-        public void CorrectPrefixModeCompletesLastTermWithSynonyms()
+        public void PrefixCompletesWordsReplacedBySynonyms()
         {
-            var mapper = new CorrectionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "red" }, new[] { "cherry" }) });
-            var index = IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore());
+            var (index, mapper) = CreateIndex(new CorrectionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "red" }, new[] { "cherry" }) }));
 
             using var exact = index.Query(q => q.Search(mapper.Text, SearchMode.All, "red"));
-            using var prefix = index.Query(q => q.Search(mapper.Text, SearchMode.All, "red", matchMode: MatchMode.CorrectPrefix));
+            using var prefix = index.Query(q => q.Search(mapper.Text, SearchMode.All, "red", prefixMode: PrefixMode.Last));
 
             Assert.DoesNotContain("redwood-table", exact.Documents.Select(x => x.Key));
             Assert.Equal(exact.Documents.Select(x => x.Key).Append("redwood-table").OrderBy(x => x, StringComparer.Ordinal), prefix.Documents.Select(x => x.Key).OrderBy(x => x, StringComparer.Ordinal));
         }
 
         [Fact]
-        public void CorrectModeCorrectsTermsWithSynonymsWithoutExactMatches()
+        public void FuzzyMatchesWordsReplacedBySynonyms()
         {
-            var mapper = new CorrectionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "colour" }, new[] { "hue" }) });
-            var index = IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore());
+            var (index, mapper) = CreateIndex(new CorrectionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "colour" }, new[] { "hue" }) }));
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "colour", matchMode: MatchMode.Correct));
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "colour", isFuzzy: true));
 
             Assert.Equal("color-pencils", Assert.Single(result.Documents).Key);
         }
 
         [Fact]
-        public void CorrectModeDoesNotCorrectMultiWordSynonyms()
+        public void FuzzyDoesNotExpandMultiWordSynonyms()
         {
-            var mapper = new CorrectionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "crock pot" }, new[] { "slow cooker" }) });
-            var index = IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore());
+            var (index, mapper) = CreateIndex(new CorrectionMapper(synonyms: new[] { new ExplicitMappingSynonym(new[] { "crock pot" }, new[] { "slow cooker" }) }));
 
-            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "crock pot", matchMode: MatchMode.Correct));
+            using var result = index.Query(q => q.Search(mapper.Text, SearchMode.All, "crock pot", isFuzzy: true));
 
             Assert.Equal("slow-cookers", Assert.Single(result.Documents).Key);
         }
@@ -175,11 +203,27 @@ namespace Clara.Tests
         }
 
         [Fact]
-        public void CorrectingModesRequireTokenCorrection()
+        public void FuzzyAndPrefixRequireTokenCorrection()
         {
             var field = new TextField<CorrectionDocument>(x => x.Text, new PorterAnalyzer());
 
-            Assert.Throws<ArgumentException>(() => new TextSearchExpression(field, SearchMode.All, "red", matchMode: MatchMode.Correct));
+            Assert.Throws<ArgumentException>(() => new TextSearchExpression(field, SearchMode.All, "red", isFuzzy: true));
+            Assert.Throws<ArgumentException>(() => new TextSearchExpression(field, SearchMode.All, "red", prefixMode: PrefixMode.Last));
+        }
+
+        [Fact]
+        public void IllegalPrefixModeIsRejected()
+        {
+            var (_, mapper) = CreateIndex();
+
+            Assert.Throws<ArgumentException>(() => new TextSearchExpression(mapper.Text, SearchMode.All, "red", prefixMode: (PrefixMode)42));
+        }
+
+        private static (Index<CorrectionDocument> Index, CorrectionMapper Mapper) CreateIndex(CorrectionMapper? mapper = null)
+        {
+            mapper ??= new CorrectionMapper();
+
+            return (IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore()), mapper);
         }
     }
 }

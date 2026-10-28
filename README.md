@@ -310,22 +310,22 @@ public TextField<Product> Text { get; } = new(
 ```
 
 The correction analyzer preserves normalized words before stemming and must use the same tokenizer as
-the text field. Rebuild the index after changing the field, then select a match mode when searching:
+the text field. Rebuild the index after changing the field, then enable fuzzy or prefix matching when searching:
 
 ```csharp
 var mapper = new ProductMapper();
 var index = IndexBuilder.Build(products, mapper);
 
 using var corrected = index.Query(q => q
-    .Search(mapper.Text, SearchMode.All, "iphne", matchMode: MatchMode.Correct));
+    .Search(mapper.Text, SearchMode.All, "iphne", isFuzzy: true));
 
 using var completed = index.Query(q => q
-    .Search(mapper.Text, SearchMode.All, "iph", matchMode: MatchMode.CorrectPrefix));
+    .Search(mapper.Text, SearchMode.All, "iph", isFuzzy: true, prefixMode: PrefixMode.Last));
 ```
 
-`Correct` keeps terms with exact matches and otherwise uses the best correction candidates. `CorrectPrefix`
-also expands the unfinished last word into fuzzy and prefix candidates; trailing whitespace marks that
-word as complete. `Exact` remains the default. Both correcting modes require `TokenCorrection` on the field.
+`isFuzzy` adds every similar word within the maximum distance to each query word, ranked below exact
+matches. `prefixMode` completes no words (`None`, the default), the unfinished last word (`Last`; trailing
+whitespace marks it as complete), or every word (`All`). Both options require `TokenCorrection` on the field.
 
 ### Phrase Fields
 

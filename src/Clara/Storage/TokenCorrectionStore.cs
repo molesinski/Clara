@@ -54,18 +54,17 @@ namespace Clara.Storage
             return lastPosition;
         }
 
-        public float GetCandidates(string surface, bool isPrefix, DictionarySlim<int, float> candidates)
+        public void GetCandidates(string surface, bool isFuzzy, bool isPrefix, DictionarySlim<int, float> candidates)
         {
             if (surface.Length == 0)
             {
-                return 0f;
+                return;
             }
-
-            var maximumBoost = 0f;
 
             if (this.buckets.TryGetValue(this.matching.Normalize(surface[0]), out var bucket))
             {
-                var maximumLengthDifference = this.matching.GetMaximumLengthDifference(surface.Length);
+                var maximumDistance = isFuzzy ? this.matching.GetMaximumDistance(surface.Length) : 0;
+                var maximumLengthDifference = isFuzzy ? this.matching.GetMaximumLengthDifference(surface.Length) : 0;
                 var minimumLength = Math.Max(1, surface.Length - maximumLengthDifference);
                 var maximumLength = surface.Length + maximumLengthDifference;
 
@@ -78,37 +77,32 @@ namespace Clara.Storage
                         break;
                     }
 
-                    if (this.matching.TryMatch(entry.Value, surface, out var distance))
+                    if (isFuzzy && this.matching.TryMatch(entry.Value, surface, maximumDistance, maximumLengthDifference, out var distance))
                     {
-                        AddCandidate(candidates, entry.TokenId, this.matching.GetBoost(distance, isPrefix: false), ref maximumBoost);
+                        AddCandidate(candidates, entry.TokenId, this.matching.GetBoost(distance, isPrefix: false));
                     }
 
-                    if (isPrefix)
+                    if (isPrefix && this.matching.TryMatchPrefix(entry.Value, surface, maximumDistance, maximumLengthDifference, out distance, out _))
                     {
-                        if (this.matching.TryMatchPrefix(entry.Value, surface, out distance, out _))
-                        {
-                            AddCandidate(candidates, entry.TokenId, this.matching.GetBoost(distance, isPrefix: true), ref maximumBoost);
-                        }
+                        AddCandidate(candidates, entry.TokenId, this.matching.GetBoost(distance, isPrefix: true));
                     }
                 }
             }
 
-            if (surface.Length >= this.minimumVariantLength && !this.surfaceTokens.ContainsKey(surface))
+            if (isFuzzy && surface.Length >= this.minimumVariantLength && !this.surfaceTokens.ContainsKey(surface))
             {
                 foreach (var variant in this.variants)
                 {
                     if (string.Equals(variant.Value, surface, StringComparison.Ordinal))
                     {
-                        AddCandidate(candidates, variant.TokenId, this.matching.GetBoost(0, isPrefix: false), ref maximumBoost);
+                        AddCandidate(candidates, variant.TokenId, this.matching.GetBoost(0, isPrefix: false));
                     }
                     else if (isPrefix && variant.Value.StartsWith(surface, StringComparison.Ordinal))
                     {
-                        AddCandidate(candidates, variant.TokenId, this.matching.GetBoost(0, isPrefix: true), ref maximumBoost);
+                        AddCandidate(candidates, variant.TokenId, this.matching.GetBoost(0, isPrefix: true));
                     }
                 }
             }
-
-            return maximumBoost;
         }
 
         private static Dictionary<char, SurfaceToken[]> CreateBuckets(TokenMatching matching, DictionarySlim<string, int> surfaceTokens)
@@ -168,18 +162,13 @@ namespace Clara.Storage
             return low;
         }
 
-        private static void AddCandidate(DictionarySlim<int, float> candidates, int tokenId, float boost, ref float maximumBoost)
+        private static void AddCandidate(DictionarySlim<int, float> candidates, int tokenId, float boost)
         {
             ref var current = ref candidates.GetValueRefOrAddDefault(tokenId, out var exists);
 
             if (!exists || boost > current)
             {
                 current = boost;
-            }
-
-            if (boost > maximumBoost)
-            {
-                maximumBoost = boost;
             }
         }
 
