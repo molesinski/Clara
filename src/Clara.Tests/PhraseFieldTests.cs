@@ -25,7 +25,7 @@ namespace Clara.Tests
         [Fact]
         public void PairsAreKeptWithoutValidationField()
         {
-            var (index, mapper) = CreateIndex(new CorrectionMapper(validatePhrases: false));
+            var (index, mapper) = CreateIndex(new ExpansionMapper(validatePhrases: false));
 
             using var result = index.Query(q => q.Suggest(mapper.Phrases, "uni", count: 10));
 
@@ -145,7 +145,7 @@ namespace Clara.Tests
         {
             var (index, mapper) =
                 CreateIndex(
-                    new CorrectionMapper(
+                    new ExpansionMapper(
                         phraseVariants: new[] { new KeyValuePair<string, string>("biscuits", "cookies") },
                         phraseAliases: new[] { new KeyValuePair<string, string>("cherry juice", "cherry nectar") }));
 
@@ -262,17 +262,17 @@ namespace Clara.Tests
         [Fact]
         public void ValidationFieldMustBelongToTheIndex()
         {
-            var other = new CorrectionMapper();
-            var field = new PhraseField<CorrectionDocument>(x => x.Phrases, CorrectionMapper.SurfaceAnalyzer, validationField: other.Text);
+            var other = new ExpansionMapper();
+            var field = new PhraseField<ExpansionDocument>(x => x.Phrases, ExpansionMapper.SurfaceAnalyzer, validationField: other.Text);
 
-            Assert.Throws<InvalidOperationException>(() => IndexBuilder.Build(CorrectionMapper.Documents, new PhraseOnlyMapper(field), new InstanceTokenEncoderStore()));
+            Assert.Throws<InvalidOperationException>(() => IndexBuilder.Build(ExpansionMapper.Documents, new PhraseOnlyMapper(field), new InstanceTokenEncoderStore()));
         }
 
         [Fact]
         public void SuggestRejectsFieldOfAnotherIndex()
         {
             var (index, _) = CreateIndex();
-            var other = new CorrectionMapper();
+            var other = new ExpansionMapper();
 
             Assert.Throws<InvalidOperationException>(() => index.Query(q => q.Suggest(other.Phrases, "ch")));
         }
@@ -303,18 +303,18 @@ namespace Clara.Tests
             }
         }
 
-        private static (Index<CorrectionDocument> Index, CorrectionMapper Mapper) CreateIndex(CorrectionMapper? mapper = null)
+        private static (Index<ExpansionDocument> Index, ExpansionMapper Mapper) CreateIndex(ExpansionMapper? mapper = null)
         {
-            mapper ??= new CorrectionMapper();
+            mapper ??= new ExpansionMapper();
 
-            return (IndexBuilder.Build(CorrectionMapper.Documents, mapper, new InstanceTokenEncoderStore()), mapper);
+            return (IndexBuilder.Build(ExpansionMapper.Documents, mapper, new InstanceTokenEncoderStore()), mapper);
         }
 
-        private sealed class PhraseOnlyMapper : IIndexMapper<CorrectionDocument>
+        private sealed class PhraseOnlyMapper : IIndexMapper<ExpansionDocument>
         {
-            private readonly PhraseField<CorrectionDocument> field;
+            private readonly PhraseField<ExpansionDocument> field;
 
-            public PhraseOnlyMapper(PhraseField<CorrectionDocument> field)
+            public PhraseOnlyMapper(PhraseField<ExpansionDocument> field)
             {
                 this.field = field;
             }
@@ -324,12 +324,12 @@ namespace Clara.Tests
                 yield return this.field;
             }
 
-            public string GetDocumentKey(CorrectionDocument item)
+            public string GetDocumentKey(ExpansionDocument item)
             {
                 return item.Key;
             }
 
-            public CorrectionDocument GetDocument(CorrectionDocument item)
+            public ExpansionDocument GetDocument(ExpansionDocument item)
             {
                 return item;
             }

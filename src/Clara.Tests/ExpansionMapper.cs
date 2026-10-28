@@ -4,9 +4,9 @@ using Clara.Mapping;
 
 namespace Clara.Tests
 {
-    public sealed class CorrectionDocument
+    public sealed class ExpansionDocument
     {
-        public CorrectionDocument(string key, string text, string brand, params PhraseWeight[] phrases)
+        public ExpansionDocument(string key, string text, string brand, params PhraseWeight[] phrases)
         {
             this.Key = key;
             this.Text = text;
@@ -23,9 +23,9 @@ namespace Clara.Tests
         public IReadOnlyList<PhraseWeight> Phrases { get; }
     }
 
-    public sealed class CorrectionMapper : IIndexMapper<CorrectionDocument>
+    public sealed class ExpansionMapper : IIndexMapper<ExpansionDocument>
     {
-        public CorrectionMapper(
+        public ExpansionMapper(
             IEnumerable<KeyValuePair<string, string>>? variants = null,
             IEnumerable<KeyValuePair<string, string>>? phraseVariants = null,
             IEnumerable<KeyValuePair<string, string>>? phraseAliases = null,
@@ -35,17 +35,17 @@ namespace Clara.Tests
             var analyzer = new PorterAnalyzer();
 
             this.Text =
-                new TextField<CorrectionDocument>(
+                new TextField<ExpansionDocument>(
                     x => x.Text,
                     analyzer,
                     synonymMap: synonyms is null ? null : new SynonymMap(analyzer, synonyms),
                     similarity: Similarity.TF,
                     indexScoreAggregation: ScoreAggregation.Max,
                     searchScoreAggregation: ScoreAggregation.Sum,
-                    tokenCorrection: new TokenCorrection(SurfaceAnalyzer, variants: variants));
+                    tokenExpansion: new TokenExpansion(SurfaceAnalyzer, variants: variants));
 
             this.Phrases =
-                new PhraseField<CorrectionDocument>(
+                new PhraseField<ExpansionDocument>(
                     x => x.Phrases,
                     SurfaceAnalyzer,
                     validationField: validatePhrases ? this.Text : null,
@@ -55,24 +55,24 @@ namespace Clara.Tests
 
         public static IAnalyzer SurfaceAnalyzer { get; } = new Analyzer(new StandardTokenizer(), new LowerInvariantTokenFilter());
 
-        public static IReadOnlyList<CorrectionDocument> Documents { get; } =
+        public static IReadOnlyList<ExpansionDocument> Documents { get; } =
             new[]
             {
-                new CorrectionDocument("chocolate-bar", "chocolate bar", "alpha", new PhraseWeight("chocolate", 30), new PhraseWeight("chocolate bar", 5), new PhraseWeight("unicorn", 100)),
-                new CorrectionDocument("chocolate-cookies", "chocolate cookies", "beta", new PhraseWeight("chocolate", 0), new PhraseWeight("chocolate cookies", 30)),
-                new CorrectionDocument("cherry-juice", "cherry juice", "alpha", new PhraseWeight("cherry", 40), new PhraseWeight("cherry juice", 10)),
-                new CorrectionDocument("red-apple", "red apple", "gamma", new PhraseWeight("red apple", 20)),
-                new CorrectionDocument("redwood-table", "redwood table", "gamma", new PhraseWeight("redwood table", 5)),
-                new CorrectionDocument("slow-cookers", "slow cookers", "gamma", new PhraseWeight("slow cookers", 0)),
-                new CorrectionDocument("color-pencils", "color pencils", "gamma"),
-                new CorrectionDocument("cable-ties", "cable ties", "gamma"),
+                new ExpansionDocument("chocolate-bar", "chocolate bar", "alpha", new PhraseWeight("chocolate", 30), new PhraseWeight("chocolate bar", 5), new PhraseWeight("unicorn", 100)),
+                new ExpansionDocument("chocolate-cookies", "chocolate cookies", "beta", new PhraseWeight("chocolate", 0), new PhraseWeight("chocolate cookies", 30)),
+                new ExpansionDocument("cherry-juice", "cherry juice", "alpha", new PhraseWeight("cherry", 40), new PhraseWeight("cherry juice", 10)),
+                new ExpansionDocument("red-apple", "red apple", "gamma", new PhraseWeight("red apple", 20)),
+                new ExpansionDocument("redwood-table", "redwood table", "gamma", new PhraseWeight("redwood table", 5)),
+                new ExpansionDocument("slow-cookers", "slow cookers", "gamma", new PhraseWeight("slow cookers", 0)),
+                new ExpansionDocument("color-pencils", "color pencils", "gamma"),
+                new ExpansionDocument("cable-ties", "cable ties", "gamma"),
             };
 
-        public TextField<CorrectionDocument> Text { get; }
+        public TextField<ExpansionDocument> Text { get; }
 
-        public PhraseField<CorrectionDocument> Phrases { get; }
+        public PhraseField<ExpansionDocument> Phrases { get; }
 
-        public KeywordField<CorrectionDocument> Brand { get; } = new(x => x.Brand, isFilterable: true, isFacetable: true);
+        public KeywordField<ExpansionDocument> Brand { get; } = new(x => x.Brand, isFilterable: true, isFacetable: true);
 
         public IEnumerable<Field> GetFields()
         {
@@ -81,7 +81,7 @@ namespace Clara.Tests
             yield return this.Brand;
         }
 
-        public string GetDocumentKey(CorrectionDocument item)
+        public string GetDocumentKey(ExpansionDocument item)
         {
             if (item is null)
             {
@@ -91,7 +91,7 @@ namespace Clara.Tests
             return item.Key;
         }
 
-        public CorrectionDocument GetDocument(CorrectionDocument item)
+        public ExpansionDocument GetDocument(ExpansionDocument item)
         {
             return item;
         }

@@ -63,9 +63,9 @@ In [`TextDocumentStore`](../src/Clara/Storage/TextDocumentStore.cs), the query's
 
 With mapping `alias => red blue`, `Similarity.TF`, and document `red blue`, a query override of `Max` produces score 1 even when the field uses `Sum`. Conversely, an override of `Sum` produces score 2 when the field uses `Max`. [ScoringTests.cs](../src/Clara.Tests/ScoringTests.cs) covers these cases, default fallback, alternative phrases, and position boosts.
 
-## Corrected terms
+## Fuzzy and completed terms
 
-In `Correct` and `CorrectPrefix` modes a corrected or completed term uses the candidate token's precomputed score multiplied by `TokenMatching.GetBoost(distance, isPrefix)`. Within one term, a document keeps its best candidate through `Max`, regardless of the search aggregation; exact matches keep their unboosted score. The position boost and search aggregation then combine terms as usual. When all matching documents share the same candidate, the multiplier does not change their relative order. See [token correction and phrase suggestions](correction-and-suggestions.md).
+With a `fuzzyMode` or a `prefixMode`, a similar or completed word uses the candidate token's precomputed score multiplied by `TokenMatching.GetBoost(distance, isPrefix)`. Within one term, a document keeps its best candidate through `Max`, regardless of the search aggregation; exact matches contribute their unboosted score. The position boost and search aggregation then combine terms as usual. The default multiplier discounts positive-distance and prefix candidates, but does not guarantee exact-first ordering: a candidate with a larger precomputed score can still outrank an exact match. For example, with `Similarity.TF`, an exact `cookies` token weighted 1 scores 1, while a fuzzy `cookers` token weighted 10 scores `10 / (1 + 2)`, approximately 3.33, for the query `cookies`. When all matching documents share the same candidate, the multiplier does not change their relative order. See [token expansion and phrase suggestions](expansion-and-suggestions.md).
 
 ## Extending ranking
 

@@ -23,7 +23,7 @@ Main features are:
 * Multilingual stemming and configurable stopword lists
 * Text, phrase, keyword, hierarchy and range fields
 * Index time synonym maps with multi token support
-* Optional correction of misspelled and unfinished words with a pluggable distance function
+* Optional fuzzy matching and prefix completion of misspelled and unfinished words with a pluggable distance function
 * Phrase suggestions weighted by the documents that pass the same filters as document queries
 * Searching across document properties combined into one text field, with BM25 scoring
 * Filtering keyword and hierarchy fields by any or all values and range fields by value subrange
@@ -294,38 +294,40 @@ the indexed terms, and `ScoreAggregation.Sum` combines weights during indexing a
 does not imply a proportional final BM25 score. See [scoring](https://github.com/molesinski/Clara/blob/master/docs/scoring.md) for the calculation stages.
 
 `SearchMode.Any` accepts documents matching any query term; `SearchMode.All` requires every term.
-Search uses exact analyzed tokens by default. Optional token correction enables fuzzy matching and prefix
+Search uses exact analyzed tokens by default. Optional token expansion enables fuzzy matching and prefix
 completion. Quoted phrases do not enforce adjacency in documents.
 
-#### Token Correction
+#### Token Expansion
 
-To enable correction, replace the `Text` property in the `ProductMapper` above with:
+To enable expansion, replace the `Text` property in the `ProductMapper` above with:
 
 ```csharp
 public TextField<Product> Text { get; } = new(
     GetText,
     new PorterAnalyzer(),
-    tokenCorrection: new TokenCorrection(
+    tokenExpansion: new TokenExpansion(
         new Analyzer(new StandardTokenizer(), new LowerInvariantTokenFilter())));
 ```
 
-The correction analyzer preserves normalized words before stemming and must use the same tokenizer as
-the text field. Rebuild the index after changing the field, then select a match mode when searching:
+The surface analyzer preserves normalized words before stemming and must use the same tokenizer as
+the text field. Rebuild the index after changing the field, then enable fuzzy or prefix matching when searching:
 
 ```csharp
 var mapper = new ProductMapper();
 var index = IndexBuilder.Build(products, mapper);
 
 using var corrected = index.Query(q => q
-    .Search(mapper.Text, SearchMode.All, "iphne", matchMode: MatchMode.Correct));
+    .Search(mapper.Text, SearchMode.All, "iphne", fuzzyMode: FuzzyMode.Fallback));
 
 using var completed = index.Query(q => q
-    .Search(mapper.Text, SearchMode.All, "iph", matchMode: MatchMode.CorrectPrefix));
+    .Search(mapper.Text, SearchMode.All, "iph", fuzzyMode: FuzzyMode.Always, prefixMode: PrefixMode.Last));
 ```
 
-`Correct` keeps terms with exact matches and otherwise uses the best correction candidates. `CorrectPrefix`
-also expands the unfinished last word into fuzzy and prefix candidates; trailing whitespace marks that
-word as complete. `Exact` remains the default. Both correcting modes require `TokenCorrection` on the field.
+`fuzzyMode` adds every similar word within the maximum distance to a query word: `Fallback` only to
+words that match nothing on their own, `Always` to every word. The default matching function discounts
+candidates that require edits or prefix completion, but document weights and similarity scores can still rank them above exact
+matches. `prefixMode` completes no words (`None`, the default), the unfinished last word (`Last`; trailing
+whitespace marks it as complete), or every word (`All`). Both options require `TokenExpansion` on the field.
 
 ### Phrase Fields
 
@@ -347,7 +349,7 @@ public PhraseField<Product> Phrases { get; }
 Add `yield return this.Phrases;` to `GetFields()` and rebuild the index. The optional `validationField`
 keeps a document–phrase pair only when an exact search for the phrase finds that document in the text
 field. It must be the same field instance included in the mapper. Phrase suggestions do not require
-token correction on the text field.
+token expansion on the text field.
 
 ```csharp
 var mapper = new ProductMapper();
@@ -374,7 +376,7 @@ Suggestions respect `Include`, `Search`, all filters, and `Exclude`. Use a separ
 filters when the typed search text should not restrict the candidate documents. Continue to dispose every
 query result with `using`.
 
-See [token correction and phrase suggestions](docs/correction-and-suggestions.md) for custom distance
+See [token expansion and phrase suggestions](docs/expansion-and-suggestions.md) for custom distance
 functions, spelling variants, aliases, ranking, and upgrade requirements.
 
 ### Keyword Fields

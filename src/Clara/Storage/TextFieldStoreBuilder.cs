@@ -12,7 +12,7 @@ namespace Clara.Storage
         private readonly TokenEncoderBuilder tokenEncoderBuilder;
         private readonly DictionarySlim<int, DictionarySlim<int, float>> tokenDocumentScores;
         private readonly DictionarySlim<int, float> documentLengths;
-        private readonly ITokenTermSource? correctionTermSource;
+        private readonly ITokenTermSource? surfaceTermSource;
         private readonly StringPoolSlim? surfacePool;
         private readonly DictionarySlim<string, int>? surfaceTokens;
         private readonly DictionarySlim<int, int>? positionTokens;
@@ -37,9 +37,9 @@ namespace Clara.Storage
             this.tokenDocumentScores = new();
             this.documentLengths = new();
 
-            if (field.TokenCorrection is not null)
+            if (field.TokenExpansion is not null)
             {
-                this.correctionTermSource = field.TokenCorrection.Analyzer.CreateTokenTermSource();
+                this.surfaceTermSource = field.TokenExpansion.Analyzer.CreateTokenTermSource();
                 this.surfacePool = new();
                 this.surfaceTokens = new();
                 this.positionTokens = new();
@@ -104,9 +104,9 @@ namespace Clara.Storage
 
             this.field.Similarity.Transform(this.tokenDocumentScores, this.documentLengths);
 
-            var tokenCorrectionStore = default(TokenCorrectionStore);
+            var tokenExpansionStore = default(TokenExpansionStore);
 
-            if (this.field.TokenCorrection is not null && this.surfaceTokens is not null)
+            if (this.field.TokenExpansion is not null && this.surfaceTokens is not null)
             {
                 var surfaceTokens = new DictionarySlim<string, int>();
 
@@ -120,12 +120,12 @@ namespace Clara.Storage
                     }
                 }
 
-                tokenCorrectionStore = new TokenCorrectionStore(this.field.TokenCorrection, surfaceTokens);
+                tokenExpansionStore = new TokenExpansionStore(this.field.TokenExpansion, surfaceTokens);
             }
 
             var store =
                 new TextFieldStore(
-                    new TextDocumentStore(tokenEncoder, this.field.Analyzer, this.field.SynonymMap, this.field.SearchScoreAggregation, this.tokenDocumentScores, tokenCorrectionStore));
+                    new TextDocumentStore(tokenEncoder, this.field.Analyzer, this.field.SynonymMap, this.field.SearchScoreAggregation, this.tokenDocumentScores, tokenExpansionStore));
 
             this.isBuilt = true;
 
@@ -134,7 +134,7 @@ namespace Clara.Storage
 
         private void IndexSurfaceTokens(string text)
         {
-            if (this.correctionTermSource is null || this.surfacePool is null || this.surfaceTokens is null || this.positionTokens is null)
+            if (this.surfaceTermSource is null || this.surfacePool is null || this.surfaceTokens is null || this.positionTokens is null)
             {
                 return;
             }
@@ -148,7 +148,7 @@ namespace Clara.Storage
                 tokenId = this.tokenEncoderBuilder.Encode(term.Token);
             }
 
-            foreach (var term in this.correctionTermSource.GetTerms(text))
+            foreach (var term in this.surfaceTermSource.GetTerms(text))
             {
                 if (this.positionTokens.TryGetValue(term.Position.Start, out var tokenId))
                 {

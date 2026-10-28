@@ -1,10 +1,10 @@
-# Token Correction and Phrase Suggestions
+# Token Expansion and Phrase Suggestions
 
 Use this chapter when a text field should tolerate misspelled or unfinished words, or when an application needs search phrase suggestions weighted by the documents that pass the same filters as its document queries.
 
-## Token correction
+## Token expansion
 
-`TextField` accepts an optional [`TokenCorrection`](../src/Clara/Mapping/TokenCorrection.cs). Correction compares query words with the words that occur in the indexed text, in their surface form: tokenized and normalized, but not stemmed. Matching against stems would reject typing errors in inflected forms, because a stem can differ from the typed word by more than the allowed distance.
+`TextField` accepts an optional [`TokenExpansion`](../src/Clara/Mapping/TokenExpansion.cs). Expansion compares query words with the words that occur in the indexed text, in their surface form: tokenized and normalized, but not stemmed. Matching against stems would reject typing errors in inflected forms, because a stem can differ from the typed word by more than the allowed distance.
 
 ```csharp
 var surfaceAnalyzer = new Analyzer(new StandardTokenizer(), new LowerInvariantTokenFilter());
@@ -12,24 +12,29 @@ var surfaceAnalyzer = new Analyzer(new StandardTokenizer(), new LowerInvariantTo
 var text = new TextField<Product>(
     x => x.Title,
     new PorterAnalyzer(),
-    tokenCorrection: new TokenCorrection(surfaceAnalyzer, TokenMatching.Default, variants: knownMisspellings));
+    tokenExpansion: new TokenExpansion(surfaceAnalyzer, TokenMatching.Default, variants: knownMisspellings));
 ```
 
-- The correction analyzer must use the same tokenizer as the field (`ITokenizer.Equals`). Query and index terms are related to their surface forms by token position, so both analyzers must produce the same positions.
+- The surface analyzer must use the same tokenizer as the field (`ITokenizer.Equals`). Query and index terms are related to their surface forms by token position, so both analyzers must produce the same positions.
 - While indexing, the field records which analyzed token each surface form produces. Only surface forms whose token has postings in the field are kept.
-- `variants` maps known misspellings to canonical surface forms. Each side is normalized with the correction analyzer and must produce a single token; a variant is used only for query words of at least `minimumVariantLength` characters that do not occur in the field.
+- `variants` maps known misspellings to canonical surface forms. Each side is normalized with the surface analyzer and must produce a single token; a variant is used only with fuzzy matching, for query words of at least `minimumVariantLength` characters that do not occur in the field.
 
-### Match modes
+### Fuzzy and prefix matching
 
-`QueryBuilder.Search(..., matchMode: ...)` selects the behavior. Correcting modes require a field with `TokenCorrection`.
+`QueryBuilder.Search(..., fuzzyMode: ..., prefixMode: ...)` takes two independent options. Both default to exact matching, and both require a field with `TokenExpansion`.
 
-| Mode | Term with an exact match | Term without an exact match | Last term, text not ending with whitespace |
-| --- | --- | --- | --- |
-| `Exact` (default) | Exact | No documents | Exact |
-| `Correct` | Exact | Candidates with the highest boost (lowest cost) | Same as other terms |
-| `CorrectPrefix` | Exact | Same as `Correct` | Exact plus every fuzzy and fuzzy prefix candidate |
+| Option | Effect on a query word |
+| --- | --- |
+| `fuzzyMode: FuzzyMode.None` (default) | Only its exact analyzed token |
+| `fuzzyMode: FuzzyMode.Fallback` | Its exact token; only when the word matches no document on its own, every word of the field within `TokenMatching.GetMaximumDistance`, and known variants |
+| `fuzzyMode: FuzzyMode.Always` | Its exact token plus every word of the field within `TokenMatching.GetMaximumDistance`, and known variants |
+| `prefixMode: PrefixMode.None` (default) | No completion |
+| `prefixMode: PrefixMode.Last` | Words starting with the last query word, when the text does not end with whitespace |
+| `prefixMode: PrefixMode.All` | Words starting with any query word |
 
-A query word replaced by a synonym is corrected like any other word, using the word as typed: its candidates are added to the synonym's postings, and a word without synonym matches is corrected. A synonym that spans several query words is never corrected. A candidate contributes its token's postings multiplied by `TokenMatching.GetBoost(distance, isPrefix)`; within one term, a document keeps the best candidate (`Max`), so several similar words do not add up. Terms are then combined as before, with the position boost and the search aggregation.
+Without fuzzy matching, a completion must start with the query word exactly; with it, prefixes within the maximum distance also count. With `Always`, fuzzy matching applies whether or not the word has exact matches, and the result also contains every document with a similar word. Exact matches contribute their unboosted score; candidates contribute their own posting score multiplied by `TokenMatching.GetBoost(distance, isPrefix)`. The default matching function discounts positive-distance and prefix candidates, but document weights and similarity scores can still rank them above exact matches. There is no guaranteed exact-first ordering. `Fallback` decides per query word, before the words are combined: a word with exact matches (or, at a prefix position, exact completions) is not expanded, even if other words of the query then exclude all its documents. To retry a query that returned nothing, run it again with `Always`.
+
+A query word replaced by a synonym is expanded like any other word, using the word as typed: its candidates are added to the synonym's postings. A synonym that spans several query words is never expanded. A candidate contributes its token's postings multiplied by `TokenMatching.GetBoost(distance, isPrefix)`; within one term, a document keeps the best candidate (`Max`), so several similar words do not add up. Terms are then combined as before, with the position boost and the search aggregation.
 
 ### TokenMatching
 
@@ -71,7 +76,7 @@ foreach (var suggestion in result.Suggestions)
 ```
 
 - `PhraseWeight(phrase, weight)` accepts zero, for phrases that should be suggested without popularity, such as brand names. Repeated phrases of one document add up.
-- `validationField` keeps a document–phrase pair only if searching the phrase in that text field (`SearchMode.All`, `MatchMode.Exact`, synonyms included) finds the document. A suggestion then always finds at least one document under the same filters. The text field must belong to the same index; phrase fields are built after the other fields.
+- `validationField` keeps a document–phrase pair only if searching the phrase in that text field (`SearchMode.All`, exact matching, synonyms included) finds the document. A suggestion then always finds at least one document under the same filters. The text field must belong to the same index; phrase fields are built after the other fields.
 - `aliases` maps a phrase to an alternative wording that matches it, and `variants` maps known misspellings to phrase words; both are field settings because they describe phrases, not documents.
 
 ### Query semantics
@@ -92,6 +97,6 @@ A built index is read-only. Each query leases its own term source and working co
 
 ### Upgrading
 
-Existing source calls continue to use exact matching by default. Recompile consumers when upgrading: the optional parameters added to `TextField` constructors, `TextSearchExpression`, and `QueryBuilder.Search` change their binary signatures. To enable correction, configure `TokenCorrection` and select a correcting match mode. To enable suggestions, add a `PhraseField` to the mapper's `GetFields()` and rebuild the index. Dispose query results with `using` as before.
+Existing source calls continue to use exact matching by default. Recompile consumers when upgrading: the optional parameters added to `TextField` constructors, `TextSearchExpression`, and `QueryBuilder.Search` change their binary signatures. To enable fuzzy or prefix matching, configure `TokenExpansion` and pass `fuzzyMode` or `prefixMode`. Coming from 0.2.0-beta.1: `TokenCorrection` is now `TokenExpansion` (parameter `tokenExpansion`), and `matchMode` is replaced by `fuzzyMode` and `prefixMode`; `Correct` is closest to `fuzzyMode: FuzzyMode.Fallback`, and `CorrectPrefix` to `fuzzyMode: FuzzyMode.Always, prefixMode: PrefixMode.Last`. To enable suggestions, add a `PhraseField` to the mapper's `GetFields()` and rebuild the index. Dispose query results with `using` as before.
 
-Tests: [TokenCorrectionTests.cs](../src/Clara.Tests/TokenCorrectionTests.cs), [PhraseFieldTests.cs](../src/Clara.Tests/PhraseFieldTests.cs).
+Tests: [TokenExpansionTests.cs](../src/Clara.Tests/TokenExpansionTests.cs), [PhraseFieldTests.cs](../src/Clara.Tests/PhraseFieldTests.cs).
